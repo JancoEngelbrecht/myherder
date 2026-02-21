@@ -1,0 +1,35 @@
+import axios from 'axios'
+import db from '../db/indexedDB.js'
+
+const api = axios.create({
+  baseURL: '/api',
+  timeout: 15000,
+})
+
+// Request interceptor: inject token
+api.interceptors.request.use((config) => {
+  // Import lazily to avoid circular deps
+  const token = localStorage.getItem('auth_token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+// Response interceptor: handle 401
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('auth_token')
+      // Also clear IndexedDB so hydrate() won't restore the invalid session
+      try { await db.auth.delete('session') } catch { /* ignore */ }
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
+    }
+    return Promise.reject(error)
+  }
+)
+
+export default api

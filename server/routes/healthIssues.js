@@ -1,0 +1,234 @@
+const express = require('express')
+const { randomUUID: uuidv4 } = require('crypto')
+const Joi = require('joi')
+const db = require('../config/database')
+const authenticate = require('../middleware/auth')
+const authorize = require('../middleware/authorize')
+
+const router = express.Router()
+router.use(authenticate)
+
+const TEAT_POSITIONS = ['front_left', 'front_right', 'rear_left', 'rear_right']
+
+const createSchema = Joi.object({
+  cow_id: Joi.string().uuid().required(),
+  issue_types: Joi.array().items(Joi.string().min(1).max(50)).min(1).required(),
+  severity: Joi.string().valid('low', 'medium', 'high').default('medium'),
+  affected_teats: Joi.array().items(Joi.string().valid(...TEAT_POSITIONS)).allow(null),
+  description: Joi.string().max(2000).allow('', null),
+  observed_at: Joi.string().isoDate().required(),
+})
+
+const statusSchema = Joi.object({
+  status: Joi.string().valid('open', 'treating', 'resolved').required(),
+})
+
+// Base query with joined cow + user names
+function issueQuery() {
+  return db('health_issues as h')
+    .join('cows as c', 'h.cow_id', 'c.id')
+    .join('users as u', 'h.reported_by', 'u.id')
+    .whereNull('c.deleted_at')
+    .select(
+      'h.*',
+      'c.tag_number',
+      'c.name as cow_name',
+      'u.full_name as reported_by_name',
+    )
+}
+
+// Parse JSON columns from string (SQLite stores JSON as text)
+function parseRow(row) {
+  if (!row) return row
+  if (typeof row.affected_teats === 'string') {
+    try { row.affected_teats = JSON.parse(row.affected_teats) } catch { row.affected_teats = [] }
+  }
+  if (typeof row.issue_types === 'string') {
+    try { row.issue_types = JSON.parse(row.issue_types) } catch { row.issue_types = [] }
+  }
+  return row
+}
+
+const MAX_SEARCH_LENGTH = 100
+const DEFAULT_PAGE_SIZE = 20
+const MAX_PAGE_SIZE = 100
+
+// GET /api/health-issues
+router.get('/', async (req, res, next) => {
+  try {
+    const query = issueQuery().orderBy('h.observed_at', 'desc')
+    if (req.query.cow_id) query.where('h.cow_id', req.query.cow_id)
+    if (req.query.status) query.where('h.status', req.query.status)
+    if (req.query.search) {
+      const s = `%${String(req.query.search).slice(0, MAX_SEARCH_LENGTH)}%`
+      query.where(function () {
+        this.where('c.tag_number', 'like', s).orWhere('c.name', 'like', s)
+      })
+    }
+
+    if (req.query.page !== undefined) {
+      const page = Math.max(1, parseInt(String(req.query.page), 10) || 1)
+      const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, parseInt(String(req.query.limit), 10) || DEFAULT_PAGE_SIZE))
+      const offset = (page - 1) * limit
+
+      const [{ count: total }] = await query.clone().count('h.id as count')
+      const rows = await query.limit(limit).offset(offset)
+
+      res.set('X-Total-Count', String(total))
+      res.json(rows.map(parseRow))
+    } else {
+      const rows = await query
+      res.set('X-Total-Count', String(rows.length))
+      res.json(rows.map(parseRow))
+    }
+  } catch (err) {
+    next(err)
+  }
+})
+
+// GET /api/health-issues/:id
+router.get('/:id', async (req, res, next) => {
+  try {
+    const row = await issueQuery().where('h.id', req.params.id).first()
+    if (!row) return res.status(404).json({ error: 'Health issue not found' })
+    res.json(parseRow(row))
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /api/health-issues
+router.post('/', async (req, res, next) => {
+  try {
+    const { error, value } = createSchema.validate(req.body)
+    if (error) return res.status(400).json({ error: error.details[0].message })
+
+    const cow = await db('cows').where({ id: value.cow_id }).whereNull('deleted_at').first()
+    if (!cow) return res.status(404).json({ error: 'Cow not found' })
+
+    const id = uuidv4()
+    const now = new Date().toISOString()
+
+    await db('health_issues').insert({
+      id,
+      cow_id: value.cow_id,
+      reported_by: req.user.id,
+      issue_types: JSON.stringify(value.issue_types),
+      severity: value.severity,
+      affected_teats: value.affected_teats?.length ? JSON.stringify(value.affected_teats) : null,
+      description: value.description || null,
+      observed_at: value.observed_at,
+      status: 'open',
+      created_at: now,
+      updated_at: now,
+    })
+
+    const created = await issueQuery().where('h.id', id).first()
+    res.status(201).json(parseRow(created))
+  } catch (err) {
+    next(err)
+  }
+})
+
+// PATCH /api/health-issues/:id/status
+router.patch('/:id/status', async (req, res, next) => {
+  try {
+    const { error, value } = statusSchema.validate(req.body)
+    if (error) return res.status(400).json({ error: error.details[0].message })
+
+    const existing = await db('health_issues').where({ id: req.params.id }).first()
+    if (!existing) return res.status(404).json({ error: 'Health issue not found' })
+
+    const now = new Date().toISOString()
+    const update = { status: value.status, updated_at: now }
+    if (value.status === 'resolved' && !existing.resolved_at) {
+      update.resolved_at = now
+    }
+
+    await db('health_issues').where({ id: req.params.id }).update(update)
+
+    const updated = await issueQuery().where('h.id', req.params.id).first()
+    res.json(parseRow(updated))
+  } catch (err) {
+    next(err)
+  }
+})
+
+// DELETE /api/health-issues/:id — admin only
+router.delete('/:id', authorize('admin'), async (req, res, next) => {
+  try {
+    const existing = await db('health_issues').where({ id: req.params.id }).first()
+    if (!existing) return res.status(404).json({ error: 'Health issue not found' })
+
+    await db('health_issues').where({ id: req.params.id }).delete()
+    res.json({ message: 'Health issue deleted' })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// --- Comments ---
+
+const commentSchema = Joi.object({
+  comment: Joi.string().min(1).max(2000).required(),
+})
+
+// GET /api/health-issues/:id/comments
+router.get('/:id/comments', async (req, res, next) => {
+  try {
+    const rows = await db('health_issue_comments as c')
+      .join('users as u', 'c.user_id', 'u.id')
+      .where('c.health_issue_id', req.params.id)
+      .orderBy('c.created_at', 'asc')
+      .select('c.*', 'u.full_name as author_name')
+    res.json(rows)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /api/health-issues/:id/comments
+router.post('/:id/comments', async (req, res, next) => {
+  try {
+    const { error, value } = commentSchema.validate(req.body)
+    if (error) return res.status(400).json({ error: error.details[0].message })
+
+    const issue = await db('health_issues').where({ id: req.params.id }).first()
+    if (!issue) return res.status(404).json({ error: 'Health issue not found' })
+
+    const id = uuidv4()
+    const now = new Date().toISOString()
+    await db('health_issue_comments').insert({
+      id,
+      health_issue_id: req.params.id,
+      user_id: req.user.id,
+      comment: value.comment,
+      created_at: now,
+      updated_at: now,
+    })
+
+    const created = await db('health_issue_comments as c')
+      .join('users as u', 'c.user_id', 'u.id')
+      .where('c.id', id)
+      .select('c.*', 'u.full_name as author_name')
+      .first()
+    res.status(201).json(created)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// DELETE /api/health-issues/:id/comments/:commentId — admin only
+router.delete('/:id/comments/:commentId', authorize('admin'), async (req, res, next) => {
+  try {
+    const existing = await db('health_issue_comments').where({ id: req.params.commentId }).first()
+    if (!existing) return res.status(404).json({ error: 'Comment not found' })
+
+    await db('health_issue_comments').where({ id: req.params.commentId }).delete()
+    res.json({ message: 'Comment deleted' })
+  } catch (err) {
+    next(err)
+  }
+})
+
+module.exports = router

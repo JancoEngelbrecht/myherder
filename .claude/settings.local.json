@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(node -e:*)",
+      "Bash(npx knex:*)",
+      "Bash(dir:*)",
+      "Bash(curl:*)",
+      "Bash(cmd /c \"cd C:\\\\projects\\\\myherder\\\\client && npm install 2>&1\")",
+      "Bash(powershell -Command \"Set-Location ''C:\\\\projects\\\\myherder\\\\client''; npm install 2>&1\")",
+      "Bash(powershell -Command:*)",
+      "Bash(timeout:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(npm run build:*)",
+      "Bash(npm run migrate:*)",
+      "Bash(npm run seed:*)",
+      "Bash(python3:*)",
+      "Bash(__NEW_LINE_d4e7f528f912bb72__ echo \"\")",
+      "Bash(__NEW_LINE_58d397d44341ec24__ echo \"\")",
+      "Bash(__NEW_LINE_53fa99859c49b783__ echo \"\")",
+      "Bash(npm test:*)",
+      "Bash(node --version:*)",
+      "Bash(npm --version:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run test:run:*)",
+      "Bash(netstat:*)"
+    ]
+  }
+}

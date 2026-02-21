@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "checkJs": true,
+    "strict": false,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true
+  },
+  "include": ["server/**/*.js", "knexfile.js", "jest.config.js"],
+  "exclude": ["node_modules", "client", "coverage"]
+}

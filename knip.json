@@ -1,0 +1,15 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": ["server/index.js", "server/app.js", "knexfile.js", "jest.config.js"],
+      "project": ["server/**/*.js", "!server/tests/**"]
+    },
+    "client": {
+      "entry": ["src/main.js", "vite.config.js"],
+      "project": ["src/**/*.{js,vue}"]
+    }
+  },
+  "ignoreDependencies": ["better-sqlite3", "mysql2", "myherder"],
+  "ignoreExportsUsedInFile": true
+}

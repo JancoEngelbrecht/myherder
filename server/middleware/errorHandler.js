@@ -1,0 +1,18 @@
+module.exports = function errorHandler(err, _req, res, _next) {
+  console.error(err.stack || err.message || err);
+
+  // Database unique constraint violations (SQLite + MySQL)
+  if (
+    err.code === 'SQLITE_CONSTRAINT_UNIQUE' ||
+    err.code === 'ER_DUP_ENTRY' ||
+    (err.message && err.message.includes('UNIQUE'))
+  ) {
+    return res.status(409).json({ error: 'A record with that value already exists' });
+  }
+
+  // Joi / validation errors forwarded with status
+  const status = err.status || 500;
+  const message = status === 500 ? 'Internal server error' : err.message;
+
+  res.status(status).json({ error: message });
+};

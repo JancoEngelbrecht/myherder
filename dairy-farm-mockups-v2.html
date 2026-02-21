@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dairy Farm App – UI Mockups v2</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F4F1EC;
+    --surface: #FFFFFF;
+    --surface-alt: #F9F7F4;
+    --text: #1A1A1A;
+    --text-muted: #6B6560;
+    --text-light: #9B9590;
+    --border: #E5E0D8;
+    --primary: #2D6A4F;
+    --primary-light: #D8F3DC;
+    --primary-dark: #1B4332;
+    --danger: #D62828;
+    --danger-light: #FFE0E0;
+    --danger-bg: #FFF0F0;
+    --warning: #E07C24;
+    --warning-light: #FFF3E0;
+    --success: #2D6A4F;
+    --success-light: #D8F3DC;
+    --blue: #2563EB;
+    --blue-light: #DBEAFE;
+    --pink: #DB2777;
+    --pink-light: #FCE7F3;
+    --purple: #7C3AED;
+    --purple-light: #EDE9FE;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.10);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-lg: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #2A2520;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+
+  /* Navigation */
+  .nav-bar {
+    max-width: 1000px;
+    margin: 0 auto 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .nav-btn {
+    padding: 10px 16px;
+    border: 2px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.7);
+    border-radius: 100px;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .nav-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .nav-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+  .screen-title {
+    text-align: center;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  /* Phone frame */
+  .phone-frame {
+    width: 390px;
+    height: 780px;
+    margin: 0 auto;
+    background: var(--bg);
+    border-radius: 40px;
+    overflow: hidden;
+    box-shadow: 0 0 0 4px #1A1512, 0 20px 60px rgba(0,0,0,0.5);
+    position: relative;
+    display: none;
+  }
+
+  .phone-frame.active { display: block; }
+
+  .phone-frame::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 28px;
+    background: #1A1512;
+    border-radius: 0 0 20px 20px;
+    z-index: 100;
+  }
+
+  .screen-content {
+    height: 100%;
+    overflow-y: auto;
+    padding-top: 36px;
+    scrollbar-width: none;
+  }
+
+  .screen-content::-webkit-scrollbar { display: none; }
+
+  /* Status bar */
+  .status-bar {
+    padding: 8px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .sync-dot {
+    width: 8px; height: 8px;
+    background: var(--success);
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 4px;
+    animation: pulse-dot 2s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* App header */
+  .app-header {
+    padding: 8px 20px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .app-header h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+
+  .header-actions { display: flex; gap: 8px; }
+
+  .icon-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  /* Alert banners */
+  .alert-banner {
+    margin: 0 16px 12px;
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .alert-banner.danger { background: var(--danger); color: white; animation: alert-pulse 1.5s infinite; }
+
+  @keyframes alert-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(214,40,40,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(214,40,40,0); }
+  }
+
+  .alert-banner.warning { background: var(--warning-light); color: #9A3412; border: 1.5px solid #FDBA74; }
+
+  .alert-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .alert-banner.danger .alert-icon { background: rgba(255,255,255,0.2); }
+  .alert-banner.warning .alert-icon { background: rgba(234,88,12,0.12); }
+  .alert-text small { display: block; font-weight: 400; opacity: 0.85; font-size: 12px; margin-top: 2px; }
+
+  /* Quick actions */
+  .section-label {
+    padding: 16px 20px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-light);
+  }
+
+  .quick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 16px 8px;
+  }
+
+  .quick-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 12px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text);
+  }
+
+  .quick-action-btn:hover { border-color: var(--primary); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+
+  .qa-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+
+  .qa-icon.green { background: var(--primary-light); }
+  .qa-icon.red { background: var(--danger-light); }
+  .qa-icon.blue { background: var(--blue-light); }
+  .qa-icon.orange { background: var(--warning-light); }
+  .qa-icon.pink { background: var(--pink-light); }
+
+  .quick-action-btn span { font-size: 13px; font-weight: 700; text-align: center; line-height: 1.3; }
+
+  /* Card / list items */
+  .card {
+    margin: 0 16px 10px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .issue-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+  }
+
+  .issue-row + .issue-row { border-top: 1px solid var(--border); }
+
+  .issue-badge {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .issue-info { flex: 1; min-width: 0; }
+  .issue-info strong { font-size: 14px; display: block; }
+  .issue-info small { font-size: 12px; color: var(--text-muted); }
+
+  .severity-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .severity-dot.high { background: var(--danger); }
+  .severity-dot.medium { background: var(--warning); }
+  .severity-dot.low { background: var(--success); }
+
+  /* Page header */
+  .page-header {
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .back-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  .page-header h2 { font-size: 18px; font-weight: 800; }
+
+  /* Forms */
+  .form-group { margin-bottom: 14px; }
+
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    font-family: inherit;
+    background: var(--surface-alt);
+    transition: border-color 0.15s;
+  }
+
+  .form-input:focus { outline: none; border-color: var(--primary); }
+
+  .btn-primary {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--primary);
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  .btn-primary:hover { background: var(--primary-dark); }
+
+  /* Search */
+  .cow-search { margin: 0 16px 16px; }
+
+  .search-input-wrap { position: relative; }
+
+  .search-input-wrap .form-input { padding-left: 44px; font-size: 18px; font-weight: 600; background: var(--surface); }
+
+  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--text-light); }
+
+  .cow-result {
+    margin-top: 8px;
+    padding: 12px 16px;
+    background: var(--primary-light);
+    border: 1.5px solid var(--primary);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .cow-tag {
+    background: var(--primary);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .cow-name { font-weight: 700; font-size: 15px; }
+
+  /* Issue grid */
+  .issue-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 16px 12px;
+  }
+
+  .issue-type-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 18px 8px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .issue-type-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+  .issue-type-btn.selected { border-color: var(--primary); background: var(--primary-light); }
+  .issue-type-btn .icon { font-size: 28px; }
+  .issue-type-btn .label { font-size: 12px; font-weight: 700; text-align: center; }
+
+  /* Severity */
+  .severity-row { display: flex; gap: 10px; padding: 0 16px 16px; }
+
+  .severity-btn {
+    flex: 1;
+    padding: 14px 8px;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--border);
+    background: var(--surface);
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .severity-btn.low.selected { border-color: var(--success); background: var(--success-light); color: #1B4332; }
+  .severity-btn.med.selected { border-color: var(--warning); background: var(--warning-light); color: #9A3412; }
+  .severity-btn.high.selected { border-color: var(--danger); background: var(--danger-light); color: #991B1B; }
+
+  /* Teat selector */
+  .teat-section {
+    margin: 0 16px 16px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .teat-section h4 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    text-align: center;
+  }
+
+  .teat-diagram { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+  .udder-body {
+    width: 120px;
+    height: 50px;
+    background: #F5E6D3;
+    border-radius: 50% 50% 40% 40%;
+    border: 2px solid #D4C4B0;
+  }
+
+  .teat-row { display: flex; gap: 16px; }
+  .teat-row-label { font-size: 10px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; text-align: center; }
+
+  .teat-btn {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    border: 2.5px solid var(--border);
+    background: var(--surface-alt);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .teat-btn .teat-icon { font-size: 18px; }
+  .teat-btn .teat-label { font-size: 9px; font-weight: 700; color: var(--text-muted); margin-top: 2px; }
+  .teat-btn.affected { border-color: var(--danger); background: var(--danger-light); }
+  .teat-btn.affected .teat-label { color: var(--danger); }
+
+  /* ══════════════════════════════════════════════
+     MILK RECORDING – NEW AUTO-SAVE DESIGN
+     ══════════════════════════════════════════════ */
+  .session-tabs { display: flex; gap: 8px; padding: 0 16px 12px; }
+
+  .session-tab {
+    flex: 1;
+    padding: 12px 8px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+
+  .session-tab.active { border-color: var(--primary); background: var(--primary-light); }
+  .session-tab .tab-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+
+  /* Individual milk entry card */
+  .milk-entry-card {
+    margin: 0 16px 12px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+
+  .milk-entry-card.on-withdrawal {
+    border-color: var(--danger) !important;
+    background: var(--danger-bg) !important;
+    animation: withdrawal-flash 1s infinite;
+  }
+
+  @keyframes withdrawal-flash {
+    0%, 100% { background: var(--danger-bg); }
+    50% { background: #FFCDD2; }
+  }
+
+  .milk-entry-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  .cow-list-avatar {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .milk-cow-info { flex: 1; }
+  .milk-cow-info strong { font-size: 15px; display: block; }
+  .milk-cow-info small { font-size: 12px; color: var(--text-muted); }
+
+  .milk-input-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .milk-input {
+    width: 80px;
+    padding: 10px;
+    text-align: center;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--surface-alt);
+    transition: border-color 0.15s;
+  }
+
+  .milk-input:focus { border-color: var(--primary); outline: none; }
+
+  .milk-unit { font-size: 14px; font-weight: 600; color: var(--text-muted); }
+
+  /* Auto-save indicator */
+  .auto-save-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .auto-save-badge.saved { background: var(--success-light); color: var(--primary-dark); }
+  .auto-save-badge.saving { background: var(--blue-light); color: var(--blue); animation: pulse-dot 1s infinite; }
+  .auto-save-badge.pending { background: var(--warning-light); color: #9A3412; }
+
+  .milk-saved-footer {
+    padding: 8px 16px;
+    background: var(--surface-alt);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* Withdrawal tag */
+  .withdrawal-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: var(--danger);
+    color: white;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .withdrawal-warning-bar {
+    padding: 10px 16px;
+    background: var(--danger);
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    animation: flash-text 0.8s infinite;
+  }
+
+  @keyframes flash-text {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  /* Full-screen withdrawal flash */
+  .withdrawal-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--danger);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    text-align: center;
+    animation: flash-bg 0.8s infinite;
+  }
+
+  @keyframes flash-bg {
+    0%, 100% { background: #D62828; }
+    50% { background: #B91C1C; }
+  }
+
+  .withdrawal-overlay .big-icon {
+    font-size: 80px;
+    margin-bottom: 16px;
+    animation: shake 0.5s infinite;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(-5deg); }
+    75% { transform: rotate(5deg); }
+  }
+
+  .withdrawal-overlay h2 { color: white; font-size: 28px; font-weight: 800; margin-bottom: 12px; }
+  .withdrawal-overlay p { color: rgba(255,255,255,0.9); font-size: 16px; line-height: 1.5; margin-bottom: 8px; }
+
+  .withdrawal-overlay .med-name {
+    color: white;
+    font-size: 18px;
+    font-weight: 800;
+    background: rgba(255,255,255,0.15);
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    margin: 16px 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .withdrawal-overlay .dismiss-btn {
+    margin-top: 20px;
+    padding: 16px 40px;
+    background: white;
+    color: var(--danger);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  /* ══════════════════════════════════════════════
+     BREEDING / REPRODUCTION SCREEN
+     ══════════════════════════════════════════════ */
+  .breeding-timeline {
+    margin: 0 16px 12px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .breeding-timeline h4 {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-light);
+    margin-bottom: 12px;
+  }
+
+  .timeline-bar {
+    position: relative;
+    height: 32px;
+    background: #F0EBE3;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .timeline-fill {
+    height: 100%;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+  }
+
+  .timeline-fill.pregnant { background: linear-gradient(90deg, var(--pink) 0%, var(--purple) 100%); }
+  .timeline-fill.heat { background: linear-gradient(90deg, #F97316 0%, #EF4444 100%); }
+  .timeline-fill.postpartum { background: linear-gradient(90deg, var(--blue) 0%, #6366F1 100%); }
+
+  .timeline-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text-light);
+    font-weight: 600;
+  }
+
+  /* Breeding event cards */
+  .breed-event {
+    margin: 0 16px 10px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .breed-event-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .breed-event-info { flex: 1; }
+  .breed-event-info strong { font-size: 14px; display: block; margin-bottom: 2px; }
+  .breed-event-info small { font-size: 12px; color: var(--text-muted); display: block; }
+
+  .breed-event-tag {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  /* Upcoming events */
+  .upcoming-card {
+    margin: 0 16px 10px;
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .upcoming-card.heat-soon {
+    background: #FFF7ED;
+    border: 2px solid #FB923C;
+  }
+
+  .upcoming-card.calving-soon {
+    background: var(--pink-light);
+    border: 2px solid var(--pink);
+  }
+
+  .upcoming-card.preg-check {
+    background: var(--purple-light);
+    border: 2px solid var(--purple);
+  }
+
+  .upcoming-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .upcoming-info { flex: 1; }
+  .upcoming-info strong { font-size: 14px; display: block; }
+  .upcoming-info small { font-size: 12px; color: var(--text-muted); }
+
+  .upcoming-countdown {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* Breeding log form */
+  .breed-form-card {
+    margin: 0 16px 12px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .breed-type-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .breed-type-btn {
+    padding: 14px 8px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    text-align: center;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+
+  .breed-type-btn .b-icon { font-size: 24px; display: block; margin-bottom: 4px; }
+  .breed-type-btn .b-label { font-size: 12px; font-weight: 700; }
+  .breed-type-btn.selected { border-color: var(--pink); background: var(--pink-light); }
+
+  /* Cow detail */
+  .cow-header { padding: 0 20px 16px; text-align: center; }
+
+  .cow-avatar {
+    width: 72px; height: 72px;
+    border-radius: 20px;
+    background: var(--primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto 10px;
+    border: 2px solid var(--primary);
+  }
+
+  .cow-header h2 { font-size: 20px; font-weight: 800; }
+
+  .cow-header .tag {
+    display: inline-block;
+    background: var(--primary);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  .cow-status-badges { display: flex; gap: 6px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+
+  .badge {
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .badge.active { background: var(--success-light); color: var(--primary-dark); }
+  .badge.withdrawal { background: var(--danger); color: white; }
+  .badge.pregnant { background: var(--pink-light); color: var(--pink); }
+
+  .detail-section {
+    margin: 0 16px 12px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .detail-section h4 {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-light);
+    margin-bottom: 12px;
+  }
+
+  .lineage-tree { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .lineage-parents { display: flex; gap: 12px; width: 100%; }
+
+  .lineage-card {
+    flex: 1;
+    padding: 10px 12px;
+    background: var(--surface-alt);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    text-align: center;
+  }
+
+  .lineage-card .role { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); margin-bottom: 4px; }
+  .lineage-card .name { font-size: 14px; font-weight: 700; }
+  .lineage-card .tag-sm { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text-muted); }
+
+  .lineage-connector { width: 2px; height: 16px; background: var(--border); }
+  .lineage-self { padding: 8px 16px; background: var(--primary-light); border: 1.5px solid var(--primary); border-radius: var(--radius-sm); font-weight: 700; font-size: 14px; }
+
+  .detail-row { display: flex; justify-content: space-between; padding: 8px 0; }
+  .detail-row + .detail-row { border-top: 1px solid var(--border); }
+  .detail-row .label { font-size: 13px; color: var(--text-muted); }
+  .detail-row .value { font-size: 13px; font-weight: 700; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1.5px solid var(--border);
+    display: flex;
+    padding: 8px 4px calc(8px + env(safe-area-inset-bottom, 20px));
+  }
+
+  .bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--text-light);
+  }
+
+  .bottom-nav-item.active { color: var(--primary); }
+  .bottom-nav-item .nav-icon { font-size: 18px; }
+  .bottom-nav-item .nav-label { font-size: 9px; font-weight: 700; }
+
+  .bottom-nav-spacer { height: 72px; }
+
+  /* Withdrawal list */
+  .withdrawal-cow-card {
+    margin: 0 16px 10px;
+    padding: 16px;
+    background: var(--danger-bg);
+    border: 2px solid var(--danger);
+    border-radius: var(--radius);
+  }
+
+  .withdrawal-cow-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+
+  .withdrawal-cow-header .avatar {
+    width: 40px; height: 40px;
+    background: var(--danger-light);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .withdrawal-details { background: white; border-radius: var(--radius-sm); padding: 10px 12px; }
+  .withdrawal-details .med { font-size: 14px; font-weight: 700; color: var(--danger); }
+  .withdrawal-details .until { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .withdrawal-details .countdown { font-size: 18px; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: var(--danger); margin-top: 6px; }
+
+  /* Login */
+  .login-screen {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: calc(100% - 36px); padding: 40px 24px;
+    background: linear-gradient(175deg, #1B4332 0%, #2D6A4F 50%, #40916C 100%);
+  }
+
+  .login-logo {
+    width: 80px; height: 80px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 24px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px;
+    margin-bottom: 16px;
+  }
+
+  .login-title { color: white; font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+  .login-subtitle { color: rgba(255,255,255,0.6); font-size: 14px; margin-bottom: 36px; }
+
+  .login-card { width: 100%; background: white; border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-lg); }
+
+  .login-tabs { display: flex; background: var(--surface-alt); border-radius: var(--radius-sm); padding: 3px; margin-bottom: 20px; }
+
+  .login-tab {
+    flex: 1; padding: 10px; text-align: center; font-size: 13px; font-weight: 700;
+    border-radius: 6px; cursor: pointer; color: var(--text-muted);
+    border: none; background: none; font-family: inherit;
+  }
+
+  .login-tab.active { background: white; color: var(--text); box-shadow: var(--shadow-sm); }
+
+  .lang-toggle { margin-top: 20px; text-align: center; }
+
+  .lang-toggle button {
+    background: none;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    color: rgba(255,255,255,0.7);
+    padding: 8px 16px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .pin-box {
+    width: 52px; height: 64px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    text-align: center;
+    font-size: 24px;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--surface-alt);
+  }
+
+  .pin-box:focus { border-color: var(--primary); outline: none; }
+
+  /* Repro stat cards */
+  .repro-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 0 16px 12px;
+  }
+
+  .repro-stat {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 8px;
+    text-align: center;
+  }
+
+  .repro-stat .num {
+    font-size: 24px;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1;
+  }
+
+  .repro-stat .stat-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<div class="nav-bar" id="navBar">
+  <button class="nav-btn active" data-screen="login">Login</button>
+  <button class="nav-btn" data-screen="dashboard">Dashboard</button>
+  <button class="nav-btn" data-screen="cowDetail">Cow Detail</button>
+  <button class="nav-btn" data-screen="logIssue">Log Issue</button>
+  <button class="nav-btn" data-screen="logTreatment">Log Treatment</button>
+  <button class="nav-btn" data-screen="milkRecord">Milk Recording</button>
+  <button class="nav-btn" data-screen="withdrawalFlash">⚠️ WD Flash</button>
+  <button class="nav-btn" data-screen="breedingDash">Breeding Hub</button>
+  <button class="nav-btn" data-screen="logBreeding">Log Breeding</button>
+  <button class="nav-btn" data-screen="cowBreeding">Cow Repro</button>
+</div>
+
+<p class="screen-title" id="screenTitle">Login Screen</p>
+
+<!-- ═══════════════════ LOGIN ═══════════════════ -->
+<div class="phone-frame active" id="login">
+  <div class="screen-content">
+    <div class="login-screen">
+      <div class="login-logo">🐄</div>
+      <h1 class="login-title">MelkBoer</h1>
+      <p class="login-subtitle">Dairy Farm Manager</p>
+      <div class="login-card">
+        <div class="login-tabs">
+          <button class="login-tab active" onclick="this.parentElement.querySelectorAll('.login-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">👨‍🌾 Admin</button>
+          <button class="login-tab" onclick="this.parentElement.querySelectorAll('.login-tab').forEach(t=>t.classList.remove('active'));this.classList.add('active')">👷 Worker</button>
+        </div>
+        <div class="form-group">
+          <label>Username</label>
+          <input class="form-input" type="text" value="JanBotha">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input class="form-input" type="password" value="••••••••">
+        </div>
+        <button class="btn-primary">Sign In</button>
+      </div>
+      <div class="lang-toggle"><button>🌐 English / Afrikaans</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ DASHBOARD ═══════════════════ -->
+<div class="phone-frame" id="dashboard">
+  <div class="screen-content">
+    <div class="status-bar">
+      <span><span class="sync-dot"></span> Synced</span>
+      <span>14:32</span>
+      <span>🔋 82%</span>
+    </div>
+    <div class="app-header">
+      <h1>Dashboard</h1>
+      <div class="header-actions">
+        <div class="icon-btn">🌐</div>
+        <div class="icon-btn">⚙️</div>
+      </div>
+    </div>
+
+    <div class="alert-banner danger">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-text">
+        <strong>3 Cows on Withdrawal</strong>
+        <small>Do NOT use their milk</small>
+      </div>
+    </div>
+
+    <div class="alert-banner warning">
+      <div class="alert-icon">🔥</div>
+      <div class="alert-text">
+        <strong>2 Cows Expected in Heat</strong>
+        <small>Daisy #012 and Mooi #023 — next 3 days</small>
+      </div>
+    </div>
+
+    <div class="section-label">Quick Actions</div>
+    <div class="quick-actions">
+      <div class="quick-action-btn"><div class="qa-icon red">🚨</div><span>Log Health<br>Issue</span></div>
+      <div class="quick-action-btn"><div class="qa-icon green">💉</div><span>Log<br>Treatment</span></div>
+      <div class="quick-action-btn"><div class="qa-icon blue">🥛</div><span>Record<br>Milk</span></div>
+      <div class="quick-action-btn"><div class="qa-icon pink">💕</div><span>Breeding<br>& Repro</span></div>
+    </div>
+
+    <div class="section-label">Recent Issues (7 days)</div>
+    <div class="card">
+      <div class="issue-row">
+        <div class="issue-badge" style="background:var(--danger-light);">🦶</div>
+        <div class="issue-info"><strong>Bella (#047) – Lameness</strong><small>Sipho • 2h ago</small></div>
+        <div class="severity-dot high"></div>
+      </div>
+      <div class="issue-row">
+        <div class="issue-badge" style="background:var(--warning-light);">🫧</div>
+        <div class="issue-info"><strong>Daisy (#012) – Mastitis</strong><small>Thabo • 1d ago</small></div>
+        <div class="severity-dot medium"></div>
+      </div>
+    </div>
+
+    <div class="bottom-nav-spacer"></div>
+    <nav class="bottom-nav">
+      <button class="bottom-nav-item active"><span class="nav-icon">📊</span><span class="nav-label">Home</span></button>
+      <button class="bottom-nav-item"><span class="nav-icon">🐄</span><span class="nav-label">Cows</span></button>
+      <button class="bottom-nav-item"><span class="nav-icon">🚨</span><span class="nav-label">Log</span></button>
+      <button class="bottom-nav-item"><span class="nav-icon">🥛</span><span class="nav-label">Milk</span></button>
+      <button class="bottom-nav-item"><span class="nav-icon">💕</span><span class="nav-label">Breed</span></button>
+    </nav>
+  </div>
+</div>
+
+<!-- ═══════════════════ COW DETAIL ═══════════════════ -->
+<div class="phone-frame" id="cowDetail">
+  <div class="screen-content">
+    <div class="status-bar"><span><span class="sync-dot"></span> Synced</span><span>14:38</span><span>🔋 81%</span></div>
+    <div class="page-header"><button class="back-btn">←</button><h2>Cow Detail</h2></div>
+    <div class="cow-header">
+      <div class="cow-avatar">🐄</div>
+      <h2>Bella</h2>
+      <span class="tag">#047</span>
+      <div class="cow-status-badges">
+        <span class="badge active">Active</span>
+        <span class="badge pregnant">🤰 Pregnant (187d)</span>
+      </div>
+    </div>
+    <div class="detail-section">
+      <h4>🧬 Lineage</h4>
+      <div class="lineage-tree">
+        <div class="lineage-parents">
+          <div class="lineage-card"><div class="role">🐂 Sire</div><div class="name">Thunder</div><div class="tag-sm">#001</div></div>
+          <div class="lineage-card"><div class="role">🐄 Dam</div><div class="name">Daisy</div><div class="tag-sm">#012</div></div>
+        </div>
+        <div class="lineage-connector"></div>
+        <div class="lineage-self">🐄 Bella #047</div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <h4>💕 Reproduction Status</h4>
+      <div class="detail-row"><span class="label">Status</span><span class="value" style="color:var(--pink);">Pregnant</span></div>
+      <div class="detail-row"><span class="label">Bred on</span><span class="value">2025-08-12</span></div>
+      <div class="detail-row"><span class="label">Method</span><span class="value">AI — Semen: KZN Bull #442</span></div>
+      <div class="detail-row"><span class="label">Gestation Day</span><span class="value">187 of 283</span></div>
+      <div class="detail-row"><span class="label">Est. Calving Date</span><span class="value" style="font-family:'JetBrains Mono',monospace;">2026-05-22</span></div>
+      <div class="detail-row"><span class="label">Pregnancy Confirmed</span><span class="value" style="color:var(--success);">✓ Yes (Vet check Sep 15)</span></div>
+    </div>
+    <div class="detail-section">
+      <h4>ℹ️ Information</h4>
+      <div class="detail-row"><span class="label">Breed</span><span class="value">Holstein</span></div>
+      <div class="detail-row"><span class="label">Date of Birth</span><span class="value">2021-03-15</span></div>
+      <div class="detail-row"><span class="label">Lactations</span><span class="value">3</span></div>
+      <div class="detail-row"><span class="label">Offspring</span><span class="value">2 calves</span></div>
+    </div>
+    <div style="height:30px;"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ LOG ISSUE ═══════════════════ -->
+<div class="phone-frame" id="logIssue">
+  <div class="screen-content">
+    <div class="status-bar"><span style="color:var(--warning);">● Offline — will sync later</span><span>14:41</span><span>🔋 79%</span></div>
+    <div class="page-header"><button class="back-btn">←</button><h2>Log Health Issue</h2></div>
+    <div class="section-label">Step 1 — Select Cow</div>
+    <div class="cow-search">
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="form-input" placeholder="Type tag # or name..." value="047">
+      </div>
+      <div class="cow-result"><span class="cow-tag">#047</span><span class="cow-name">Bella – Holstein</span><span style="margin-left:auto;font-size:18px;">✅</span></div>
+    </div>
+    <div class="section-label">Step 2 — What's the Issue?</div>
+    <div class="issue-grid">
+      <button class="issue-type-btn"><span class="icon">🦶</span><span class="label">Lameness</span></button>
+      <button class="issue-type-btn selected"><span class="icon">🫧</span><span class="label">Mastitis</span></button>
+      <button class="issue-type-btn"><span class="icon">🫁</span><span class="label">Respiratory</span></button>
+      <button class="issue-type-btn"><span class="icon">🤢</span><span class="label">Digestive</span></button>
+      <button class="issue-type-btn"><span class="icon">🌡️</span><span class="label">Fever</span></button>
+      <button class="issue-type-btn"><span class="icon">🥛</span><span class="label">Bad Milk</span></button>
+      <button class="issue-type-btn"><span class="icon">👁️</span><span class="label">Eye Issue</span></button>
+      <button class="issue-type-btn"><span class="icon">🐣</span><span class="label">Calving</span></button>
+    </div>
+    <div class="teat-section">
+      <h4>Which Teats are Affected?</h4>
+      <div class="teat-diagram">
+        <div class="udder-body"></div>
+        <div><div class="teat-row-label">Front</div><div class="teat-row">
+          <button class="teat-btn affected" onclick="this.classList.toggle('affected')"><span class="teat-icon">◉</span><span class="teat-label">FL</span></button>
+          <button class="teat-btn" onclick="this.classList.toggle('affected')"><span class="teat-icon">○</span><span class="teat-label">FR</span></button>
+        </div></div>
+        <div><div class="teat-row-label">Rear</div><div class="teat-row">
+          <button class="teat-btn affected" onclick="this.classList.toggle('affected')"><span class="teat-icon">◉</span><span class="teat-label">RL</span></button>
+          <button class="teat-btn" onclick="this.classList.toggle('affected')"><span class="teat-icon">○</span><span class="teat-label">RR</span></button>
+        </div></div>
+      </div>
+    </div>
+    <div class="section-label">Step 3 — Severity</div>
+    <div class="severity-row">
+      <button class="severity-btn low">🟢 Low</button>
+      <button class="severity-btn med selected">🟡 Medium</button>
+      <button class="severity-btn high">🔴 High</button>
+    </div>
+    <div style="padding:0 16px 24px;"><button class="btn-primary" style="font-size:18px;padding:18px;">✓ Submit Issue</button></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ LOG TREATMENT ═══════════════════ -->
+<div class="phone-frame" id="logTreatment">
+  <div class="screen-content">
+    <div class="status-bar"><span><span class="sync-dot"></span> Synced</span><span>14:45</span><span>🔋 78%</span></div>
+    <div class="page-header"><button class="back-btn">←</button><h2>Log Treatment</h2></div>
+    <div class="cow-search">
+      <div class="cow-result"><span class="cow-tag">#047</span><span class="cow-name">Bella – Holstein</span><span style="margin-left:auto;font-size:14px;color:var(--text-muted);">Change</span></div>
+    </div>
+    <div class="section-label">Select Medication</div>
+    <div style="margin:0 16px 12px;padding:16px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);">
+      <div class="med-option selected" style="padding:12px;border:1.5px solid var(--primary);border-radius:var(--radius-sm);margin-bottom:8px;background:var(--primary-light);display:flex;align-items:center;gap:10px;cursor:pointer;">
+        <div style="width:20px;height:20px;border:2px solid var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;"><div style="width:10px;height:10px;background:var(--primary);border-radius:50%;"></div></div>
+        <div><strong style="font-size:14px;display:block;">Cephalexin</strong><small style="font-size:12px;color:var(--text-muted);">Withdrawal: 96h milk • 4 days meat</small></div>
+      </div>
+      <div style="padding:12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;">
+        <div style="width:20px;height:20px;border:2px solid var(--border);border-radius:50%;"></div>
+        <div><strong style="font-size:14px;display:block;">Pen-Strep</strong><small style="font-size:12px;color:var(--text-muted);">Withdrawal: 72h milk • 14 days meat</small></div>
+      </div>
+      <div style="margin-top:12px;padding:12px;background:var(--warning-light);border:1.5px solid #FDBA74;border-radius:var(--radius-sm);font-size:13px;color:#9A3412;">
+        <strong style="display:block;margin-bottom:2px;">⏱️ Withdrawal will end:</strong>
+        Milk safe: Feb 20, 2026 at 14:45<br>Meat safe: Feb 20, 2026
+      </div>
+    </div>
+    <div class="section-label">Dosage & Cost</div>
+    <div style="margin:0 16px;padding:16px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);">
+      <div class="form-group"><label>Dosage</label><input class="form-input" value="10ml"></div>
+      <div class="form-group"><label>Cost (R)</label><input class="form-input" value="85.00" type="number"></div>
+    </div>
+    <div style="padding:16px;"><button class="btn-primary" style="font-size:18px;padding:18px;">✓ Save Treatment</button></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MILK RECORDING (NEW — AUTO-SAVE + SEARCH) ═══════════════════ -->
+<div class="phone-frame" id="milkRecord">
+  <div class="screen-content">
+    <div class="status-bar"><span><span class="sync-dot"></span> Synced</span><span>05:48</span><span>🔋 94%</span></div>
+    <div class="app-header">
+      <h1>🥛 Milk</h1>
+      <div class="header-actions"><div class="icon-btn">📅</div></div>
+    </div>
+
+    <div class="session-tabs">
+      <button class="session-tab active"><span class="tab-icon">🌅</span>Morning</button>
+      <button class="session-tab"><span class="tab-icon">☀️</span>Afternoon</button>
+      <button class="session-tab"><span class="tab-icon">🌙</span>Evening</button>
+    </div>
+
+    <!-- Search for cow -->
+    <div class="cow-search">
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="form-input" placeholder="Search cow by tag # or name..." type="text">
+      </div>
+    </div>
+
+    <div style="padding:0 20px 6px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:12px;font-weight:700;color:var(--text-light);">FEB 16, 2026 — MORNING</span>
+      <span class="auto-save-badge saved">✓ Auto-saves</span>
+    </div>
+
+    <!-- Cow 1 — SAVED -->
+    <div class="milk-entry-card">
+      <div class="milk-entry-header">
+        <div class="cow-list-avatar">🐄</div>
+        <div class="milk-cow-info"><strong>Daisy #012</strong><small>Avg: 24.5L • Jersey</small></div>
+        <div class="milk-input-area">
+          <input class="milk-input" value="25.2" type="text">
+          <span class="milk-unit">L</span>
+        </div>
+      </div>
+      <div class="milk-saved-footer">
+        <span>✓ Saved 05:43</span>
+        <span class="auto-save-badge saved">✓ Synced</span>
+      </div>
+    </div>
+
+    <!-- Cow 2 — WITHDRAWAL! -->
+    <div class="milk-entry-card on-withdrawal">
+      <div class="withdrawal-warning-bar">
+        ⚠️ WITHDRAWAL — TOSS MILK — Cephalexin until Feb 18
+      </div>
+      <div class="milk-entry-header">
+        <div class="cow-list-avatar" style="background:var(--danger-light);">⚠️</div>
+        <div class="milk-cow-info">
+          <strong>Bella #047</strong>
+          <small style="color:var(--danger);font-weight:700;">Safe after: Feb 18, 14:45</small>
+        </div>
+        <div class="milk-input-area">
+          <input class="milk-input" style="border-color:var(--danger);" value="18.5" type="text">
+          <span class="milk-unit">L</span>
+        </div>
+      </div>
+      <div class="milk-saved-footer" style="background:#FEE2E2;border-color:#FECACA;">
+        <span style="color:var(--danger);font-weight:700;">🗑️ Marked as DISCARDED</span>
+        <span class="auto-save-badge saved">✓ Saved</span>
+      </div>
+    </div>
+
+    <!-- Cow 3 — JUST TYPED (saving...) -->
+    <div class="milk-entry-card">
+      <div class="milk-entry-header">
+        <div class="cow-list-avatar">🐄</div>
+        <div class="milk-cow-info"><strong>Rosie #031</strong><small>Avg: 22.1L • Holstein</small></div>
+        <div class="milk-input-area">
+          <input class="milk-input" style="border-color:var(--blue);" value="21.8" type="text">
+          <span class="milk-unit">L</span>
+        </div>
+      </div>
+      <div class="milk-saved-footer">
+        <span style="color:var(--blue);">Saving...</span>
+        <span class="auto-save-badge saving">⟳ Saving</span>
+      </div>
+    </div>
+
+    <!-- Cow 4 — empty (waiting for input) -->
+    <div class="milk-entry-card">
+      <div class="milk-entry-header">
+        <div class="cow-list-avatar">🐄</div>
+        <div class="milk-cow-info"><strong>Mooi #023</strong><small>Avg: 19.3L • Jersey</small></div>
+        <div class="milk-input-area">
+          <input class="milk-input" value="" placeholder="—" type="text">
+          <span class="milk-unit">L</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cow 5 — dry, disabled -->
+    <div class="milk-entry-card" style="opacity:0.5;">
+      <div class="milk-entry-header">
+        <div class="cow-list-avatar">🐄</div>
+        <div class="milk-cow-info"><strong>Spotty #055</strong><small style="color:var(--blue);">Dry — skip</small></div>
+        <div class="milk-input-area">
+          <input class="milk-input" disabled style="opacity:0.3;" type="text">
+          <span class="milk-unit" style="opacity:0.3;">L</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px;">
+      <strong>3 of 65</strong> recorded • <strong>1</strong> discarded (withdrawal)<br>
+      <span style="font-size:11px;">Data saves automatically when you type</span>
+    </div>
+
+    <div class="bottom-nav-spacer"></div>
+    <nav class="bottom-nav">
+      <button class="bottom-nav-item"><span class="nav-icon">📊</span><span class="nav-label">Home</span></button>
+      <button class="bottom-nav-item"><span class="nav-icon">🐄</span><span class="nav-label">Cows</span></button>
+      <button class="bottom-nav-item"><span class="nav-icon">🚨</span><span class="nav-label">Log</span></button>
+      <button class="bottom-nav-item active"><span class="nav-icon">🥛</span><span class="nav-label">Milk</span></button>
+      <button class="bottom-nav-item"><span class="nav-icon">💕</span><span class="nav-label">Breed</span></button>
+    </nav>
+  </div>
+</div>
+
+<!-- ═══════════════════ WITHDRAWAL FLASH ═══════════════════ -->
+<div class="phone-frame" id="withdrawalFlash">
+  <div class="screen-content">
+    <div class="withdrawal-overlay" id="flashOverlay">
+      <div class="big-icon">🚫</div>
+      <h2>DO NOT USE MILK</h2>
+      <p>Cow <strong>Bella #047</strong> is on medication withdrawal</p>
+      <div class="med-name">Cephalexin</div>
+      <p>Safe to milk after:<br><strong>Feb 18, 2026 at 14:45</strong></p>
+      <p style="font-size:14px;opacity:0.7;margin-top:8px;">Milk must be discarded</p>
+      <button class="dismiss-btn" onclick="document.getElementById('flashOverlay').style.display='none'">I Understand — Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ BREEDING HUB (DASHBOARD) ═══════════════════ -->
+<div class="phone-frame" id="breedingDash">
+  <div class="screen-content">
+    <div class="status-bar"><span><span class="sync-dot"></span> Synced</span><span>09:15</span><span>🔋 88%</span></div>
+    <div class="app-header">
+      <h1>💕 Breeding</h1>
+      <div class="header-actions"><div class="icon-btn">➕</div></div>
+    </div>
+
+    <!-- Stats -->
+    <div class="repro-stats">
+      <div class="repro-stat"><div class="num" style="color:var(--pink);">23</div><div class="stat-label">Pregnant</div></div>
+      <div class="repro-stat"><div class="num" style="color:#F97316;">8</div><div class="stat-label">Open</div></div>
+      <div class="repro-stat"><div class="num" style="color:var(--purple);">4</div><div class="stat-label">Due Soon</div></div>
+    </div>
+
+    <!-- Upcoming alerts -->
+    <div class="section-label">🔔 Upcoming (Next 7 Days)</div>
+
+    <div class="upcoming-card heat-soon">
+      <div class="upcoming-icon" style="background:#FED7AA;">🔥</div>
+      <div class="upcoming-info">
+        <strong>Daisy #012 — Expected Heat</strong>
+        <small>21-day cycle from last heat on Jan 28</small>
+      </div>
+      <div class="upcoming-countdown" style="color:#EA580C;">2d</div>
+    </div>
+
+    <div class="upcoming-card heat-soon">
+      <div class="upcoming-icon" style="background:#FED7AA;">🔥</div>
+      <div class="upcoming-info">
+        <strong>Mooi #023 — Expected Heat</strong>
+        <small>21-day cycle from last heat on Jan 30</small>
+      </div>
+      <div class="upcoming-countdown" style="color:#EA580C;">4d</div>
+    </div>
+
+    <div class="upcoming-card calving-soon">
+      <div class="upcoming-icon" style="background:#FBCFE8;">🐣</div>
+      <div class="upcoming-info">
+        <strong>Rosie #031 — Due to Calve</strong>
+        <small>Day 276 of 283 • AI: Semen KZN #218</small>
+      </div>
+      <div class="upcoming-countdown" style="color:var(--pink);">7d</div>
+    </div>
+
+    <div class="upcoming-card preg-check">
+      <div class="upcoming-icon" style="background:#DDD6FE;">🩺</div>
+      <div class="upcoming-info">
+        <strong>Spotty #055 — Preg Check Due</strong>
+        <small>AI'd 35 days ago, confirm pregnancy</small>
+      </div>
+      <div class="upcoming-countdown" style="color:var(--purple);">3d</div>
+    </div>
+
+    <!-- Recent breeding events -->
+    <div class="section-label">Recent Breeding Events</div>
+
+    <div class="breed-event">
+      <div class="breed-event-icon" style="background:var(--pink-light);">💉</div>
+      <div class="breed-event-info">
+        <strong>Spotty #055 — AI Insemination</strong>
+        <small>Semen: KZN Bull #442 • Jan 12, 2026</small>
+        <small>Preg check due: Feb 19</small>
+      </div>
+      <span class="breed-event-tag" style="background:var(--purple-light);color:var(--purple);">Await</span>
+    </div>
+
+    <div class="breed-event">
+      <div class="breed-event-icon" style="background:var(--warning-light);">🐂</div>
+      <div class="breed-event-info">
+        <strong>Mooi #023 — Heat Observed</strong>
+        <small>Standing heat confirmed • Jan 30, 2026</small>
+        <small>Next expected heat: ~Feb 20</small>
+      </div>
+      <span class="breed-event-tag" style="background:var(--warning-light);color:#9A3412;">Open</span>
+    </div>
+
+    <div class="breed-event">
+      <div class="breed-event-icon" style="background:var(--success-light);">✅</div>
+      <div class="breed-event-info">
+        <strong>Bella #047 — Pregnancy Confirmed</strong>
+        <small>Vet check • Sep 15, 2025</small>
+        <small>Due: May 22, 2026</small>
+      </div>
+      <span class="breed-event-tag" style="background:var(--pink-light);color:var(--pink);">Preg</span>
+    </div>
+
+    <div class="bottom-nav-spacer"></div>
+    <nav class="bottom-nav">
+      <button class="bottom-nav-item"><span class="nav-icon">📊</span><span class="nav-label">Home</span></button>
+      <button class="bottom-nav-item"><span class="nav-icon">🐄</span><span class="nav-label">Cows</span></button>
+      <button class="bottom-nav-item"><span class="nav-icon">🚨</span><span class="nav-label">Log</span></button>
+      <button class="bottom-nav-item"><span class="nav-icon">🥛</span><span class="nav-label">Milk</span></button>
+      <button class="bottom-nav-item active"><span class="nav-icon">💕</span><span class="nav-label">Breed</span></button>
+    </nav>
+  </div>
+</div>
+
+<!-- ═══════════════════ LOG BREEDING EVENT ═══════════════════ -->
+<div class="phone-frame" id="logBreeding">
+  <div class="screen-content">
+    <div class="status-bar"><span><span class="sync-dot"></span> Synced</span><span>09:20</span><span>🔋 87%</span></div>
+    <div class="page-header"><button class="back-btn">←</button><h2>Log Breeding Event</h2></div>
+
+    <div class="section-label">Select Cow</div>
+    <div class="cow-search">
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="form-input" placeholder="Type tag # or name..." value="055">
+      </div>
+      <div class="cow-result"><span class="cow-tag">#055</span><span class="cow-name">Spotty – Friesian</span><span style="margin-left:auto;font-size:18px;">✅</span></div>
+    </div>
+
+    <div class="section-label">What Happened?</div>
+    <div style="padding:0 16px;">
+      <div class="breed-type-grid">
+        <button class="breed-type-btn" onclick="document.querySelectorAll('.breed-type-btn').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')"><span class="b-icon">🔥</span><span class="b-label">Heat<br>Observed</span></button>
+        <button class="breed-type-btn selected" onclick="document.querySelectorAll('.breed-type-btn').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')"><span class="b-icon">💉</span><span class="b-label">AI<br>Insemination</span></button>
+        <button class="breed-type-btn" onclick="document.querySelectorAll('.breed-type-btn').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')"><span class="b-icon">🐂</span><span class="b-label">Bull<br>Service</span></button>
+        <button class="breed-type-btn" onclick="document.querySelectorAll('.breed-type-btn').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')"><span class="b-icon">🩺</span><span class="b-label">Preg Check<br>Result</span></button>
+      </div>
+    </div>
+
+    <!-- AI-specific fields -->
+    <div class="section-label">AI Details</div>
+    <div class="breed-form-card">
+      <div class="form-group">
+        <label>Semen / Bull ID</label>
+        <input class="form-input" placeholder="e.g. KZN Bull #442" value="KZN Bull #442">
+      </div>
+      <div class="form-group">
+        <label>Inseminator</label>
+        <input class="form-input" placeholder="Who performed AI?" value="Dr. Van Wyk">
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input class="form-input" type="date" value="2026-02-16">
+      </div>
+      <div class="form-group">
+        <label>Cost (R)</label>
+        <input class="form-input" type="number" placeholder="e.g. 350" value="350">
+      </div>
+    </div>
+
+    <!-- Auto-calculated dates -->
+    <div style="margin:0 16px 16px;padding:14px;background:var(--pink-light);border:1.5px solid var(--pink);border-radius:var(--radius);font-size:13px;">
+      <strong style="display:block;margin-bottom:6px;color:var(--pink);">📅 Auto-Calculated Dates</strong>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>Preg check due (35d)</span><strong>Mar 23, 2026</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;border-top:1px solid rgba(219,39,119,0.2);"><span>Next heat if open (21d)</span><strong>Mar 9, 2026</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;border-top:1px solid rgba(219,39,119,0.2);"><span>Est. calving (283d)</span><strong>Nov 27, 2026</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;border-top:1px solid rgba(219,39,119,0.2);"><span>Dry-off date (~220d)</span><strong>Sep 24, 2026</strong></div>
+    </div>
+
+    <div style="padding:0 16px 24px;"><button class="btn-primary" style="font-size:18px;padding:18px;">✓ Save Breeding Event</button></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ COW REPRODUCTION DETAIL ═══════════════════ -->
+<div class="phone-frame" id="cowBreeding">
+  <div class="screen-content">
+    <div class="status-bar"><span><span class="sync-dot"></span> Synced</span><span>09:25</span><span>🔋 86%</span></div>
+    <div class="page-header"><button class="back-btn">←</button><h2>Reproduction — Bella</h2></div>
+
+    <div style="text-align:center;padding:0 16px 16px;">
+      <div style="font-size:40px;margin-bottom:4px;">🤰</div>
+      <div style="font-size:20px;font-weight:800;">Bella #047</div>
+      <span class="badge pregnant" style="margin-top:6px;display:inline-block;">Pregnant — Day 187</span>
+    </div>
+
+    <!-- Gestation progress bar -->
+    <div class="breeding-timeline">
+      <h4>Gestation Progress</h4>
+      <div class="timeline-bar">
+        <div class="timeline-fill pregnant" style="width:66%;">66% — Day 187</div>
+      </div>
+      <div class="timeline-labels">
+        <span>Bred: Aug 12</span>
+        <span>Due: May 22</span>
+      </div>
+    </div>
+
+    <!-- Key dates -->
+    <div class="detail-section">
+      <h4>📅 Key Dates</h4>
+      <div class="detail-row"><span class="label">Breeding Date</span><span class="value">Aug 12, 2025</span></div>
+      <div class="detail-row"><span class="label">Method</span><span class="value">AI — KZN #442</span></div>
+      <div class="detail-row"><span class="label">Preg Confirmed</span><span class="value" style="color:var(--success);">✓ Sep 15, 2025</span></div>
+      <div class="detail-row"><span class="label">Est. Calving</span><span class="value" style="font-weight:800;color:var(--pink);">May 22, 2026</span></div>
+      <div class="detail-row"><span class="label">Dry-Off Date</span><span class="value">~Mar 20, 2026</span></div>
+      <div class="detail-row"><span class="label">Post-Partum Ends</span><span class="value">~Jul 16, 2026</span></div>
+    </div>
+
+    <!-- Estrus cycle history -->
+    <div class="detail-section">
+      <h4>🔥 Heat Cycle History</h4>
+      <div class="issue-row">
+        <div class="issue-badge" style="background:var(--pink-light);">💉</div>
+        <div class="issue-info"><strong>AI Insemination</strong><small>Aug 12, 2025 → Pregnant ✓</small></div>
+      </div>
+      <div class="issue-row">
+        <div class="issue-badge" style="background:#FED7AA;">🔥</div>
+        <div class="issue-info"><strong>Heat Observed</strong><small>Aug 11, 2025 • Standing heat AM</small></div>
+      </div>
+      <div class="issue-row">
+        <div class="issue-badge" style="background:#FED7AA;">🔥</div>
+        <div class="issue-info"><strong>Heat Observed</strong><small>Jul 21, 2025 • Not bred (bull unavailable)</small></div>
+      </div>
+      <div class="issue-row">
+        <div class="issue-badge" style="background:var(--blue-light);">🐣</div>
+        <div class="issue-info"><strong>Last Calving</strong><small>May 28, 2025 • Heifer calf (#068)</small></div>
+      </div>
+    </div>
+
+    <!-- Breeding stats -->
+    <div class="detail-section">
+      <h4>📊 Lifetime Breeding Stats</h4>
+      <div class="detail-row"><span class="label">Total Calvings</span><span class="value">3</span></div>
+      <div class="detail-row"><span class="label">Services per Conception</span><span class="value">1.3 avg</span></div>
+      <div class="detail-row"><span class="label">Avg Calving Interval</span><span class="value">372 days</span></div>
+      <div class="detail-row"><span class="label">Avg Cycle Length</span><span class="value">21 days</span></div>
+      <div class="detail-row"><span class="label">Avg Days Open</span><span class="value">89 days</span></div>
+    </div>
+
+    <div style="height:30px;"></div>
+  </div>
+</div>
+
+<script>
+  const navBtns = document.querySelectorAll('.nav-btn');
+  const screens = document.querySelectorAll('.phone-frame');
+  const screenTitle = document.getElementById('screenTitle');
+
+  const titles = {
+    login: 'Login Screen',
+    dashboard: 'Dashboard (with Breeding Alerts)',
+    cowDetail: 'Cow Detail + Lineage + Pregnancy',
+    logIssue: 'Log Health Issue + Teat Selector',
+    logTreatment: 'Log Treatment',
+    milkRecord: 'Milk Recording — Auto-Save + Search',
+    withdrawalFlash: 'Withdrawal Flash Alert',
+    breedingDash: 'Breeding Hub — Alerts & Predictions',
+    logBreeding: 'Log Breeding Event',
+    cowBreeding: 'Cow Reproduction Timeline'
+  };
+
+  navBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.screen;
+      navBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      screens.forEach(s => s.classList.remove('active'));
+      document.getElementById(target).classList.add('active');
+      screenTitle.textContent = titles[target] || '';
+      if (target === 'withdrawalFlash') document.getElementById('flashOverlay').style.display = 'flex';
+    });
+  });
+
+  // Interactive buttons
+  document.querySelectorAll('.issue-type-btn').forEach(b => b.addEventListener('click', () => { document.querySelectorAll('.issue-type-btn').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); }));
+  document.querySelectorAll('.severity-btn').forEach(b => b.addEventListener('click', () => { document.querySelectorAll('.severity-btn').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); }));
+  document.querySelectorAll('.session-tab').forEach(b => b.addEventListener('click', () => { document.querySelectorAll('.session-tab').forEach(x=>x.classList.remove('active')); b.classList.add('active'); }));
+</script>
+</body>
+</html>
