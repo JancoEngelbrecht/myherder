@@ -1,6 +1,37 @@
+# Dependencies
 node_modules/
+client/node_modules/
+
+# Environment
 .env
+.env.local
+.env.*.local
+
+# Database
 *.sqlite3
-tmpclaude-*
-coverage/
+*.sqlite
+*.db
+
+# Build output
 client/dist/
+client/dist-ssr/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+
+# Vite
+client/.vite/
+
+# Coverage / test output
+coverage/
+
+# Temp files
+tmpclaude-*
