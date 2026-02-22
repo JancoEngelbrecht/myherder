@@ -161,7 +161,7 @@
     "removeMedication": "Verwyder medikasie",
     "treatmentDate": "Behandelingsdatum en -tyd",
     "dosage": "Dosis",
-    "dosagePlaceholder": "bv. 5ml",
+    "dosagePlaceholder": "bv. 5",
     "cost": "Koste (R)",
     "isVetVisit": "Veearts besoek",
     "vetName": "Veearts Naam",
@@ -198,6 +198,7 @@
     "notes": "Notas",
     "refresh": "Verfris",
     "required": "Verpligtend",
+    "errorLoading": "Kon nie laai nie. Probeer asseblief weer.",
     "comingSoon": "Binnekort Beskikbaar",
     "yes": "Ja",
     "no": "Nee",
@@ -289,6 +290,105 @@
     "activate": "Aktiveer",
     "empty": "Geen probleemtipes gedefinieer nie"
   },
+  "milkRecording": {
+    "title": "Melk Optekening",
+    "session": "Sessie",
+    "morning": "Oggend",
+    "afternoon": "Middag",
+    "evening": "Aand",
+    "date": "Datum",
+    "litres": "Liter",
+    "search": "Soek koei…",
+    "saving": "Stoor…",
+    "saved": "✓ Gestoor",
+    "syncError": "⚠ Fout",
+    "discarded": "Weggegooi",
+    "withdrawalBanner": "⚠ MELK WEGGEGOOI — Onttrekking tot {date}",
+    "dryLabel": "Droog — geen melk",
+    "summary": "{recorded} van {total} opgeteken • {litres} L • {discarded} weggegooi",
+    "noActiveCows": "Geen aktiewe koeie om op te teken",
+    "sessionTime": "Melktyd",
+    "sessionTimeHint": "Alle inskrywings word op hierdie tyd aangeteken"
+  },
+  "breeding": {
+    "title": "Teelt & Reproduksie",
+    "hubTitle": "Teelt Sentrum",
+    "logTitle": "Aanteken Teelt Geleentheid",
+    "editTitle": "Wysig Teelt Geleentheid",
+    "reproTitle": "Reproduksie",
+    "logEvent": "Aanteken Geleentheid",
+    "noEvents": "Geen teelt geleenthede aangeteken nie",
+    "recentEvents": "Onlangse Geleenthede",
+    "viewAll": "Sien alles",
+    "deleteConfirm": "Permanent verwyder hierdie teelt geleentheid?",
+    "gestationDays": "Dragtigheid",
+    "gestationProgress": "{days} / 283 dae",
+    "daysOpen": "Oop Dae",
+    "keyDates": "Sleuteldatums",
+    "stats": {
+      "pregnant": "Dragtig",
+      "open": "Oop",
+      "dueSoon": "Binnekort"
+    },
+    "upcoming": {
+      "heats": "Aankomende Hits",
+      "calvings": "Binnekort Kalf",
+      "pregChecks": "Dragtigheidstoetse",
+      "none": "Geen aankomende waarskuwings nie"
+    },
+    "alert": {
+      "heatIn": "Hits in {days}d",
+      "calvingIn": "Kalf in {days}d",
+      "pregCheckIn": "Toets in {days}d",
+      "today": "Vandag",
+      "overdue": "Agterstallig"
+    },
+    "dates": {
+      "nextHeat": "Volgende Hits",
+      "pregCheck": "Dragtigheidstoets",
+      "calving": "Verwagte Kalf",
+      "dryOff": "Droogdatum"
+    },
+    "status": {
+      "pregnant": "Dragtig",
+      "open": "Oop",
+      "daysToCalving": "{days} dae tot kalf",
+      "overdue": "Agterstallig — koei nagaan"
+    },
+    "form": {
+      "cow": "Koei",
+      "cowPlaceholder": "Soek koei by oornommer of naam...",
+      "eventType": "Geleentheid Tipe",
+      "eventDate": "Geleentheid Datum & Tyd",
+      "sire": "Bul (Vader)",
+      "sirePlaceholder": "Soek bul...",
+      "semenId": "Saad ID",
+      "semenIdPlaceholder": "bv. HO-12345",
+      "inseminator": "Insemineerder",
+      "inseminatorPlaceholder": "bv. J. Smit",
+      "pregCheckMethod": "Metode",
+      "cost": "Koste (R)",
+      "notes": "Notas",
+      "notesPlaceholder": "Enige addisionele notas...",
+      "autoDatesPreview": "Outomaties berekende datums",
+      "calfSex": "Kalf Geslag",
+      "calfTagNumber": "Kalf Oornommer",
+      "calfTagPlaceholder": "bv. MH-050",
+      "calfWeight": "Kalf Gewig (kg)",
+      "complications": "Komplikasies / Notas"
+    },
+    "pregCheckMethod": {
+      "manual": "Handmatig",
+      "ultrasound": "Ultraklank",
+      "blood_test": "Bloedtoets"
+    },
+    "lifetime": {
+      "title": "Lewensduur Statistieke",
+      "calvings": "Kalfgeboort",
+      "firstCalving": "Eerste Kalf",
+      "lastCalving": "Laaste Kalf"
+    }
+  },
   "placeholder": {
     "title": "Binnekort Beskikbaar",
     "subtitle": "Hierdie funksie sal in 'n toekomstige opdatering beskikbaar wees."
@@ -297,6 +397,16 @@
     "title": "Instellings",
     "adminTools": "Admin Hulpmiddels",
     "medicationsDesc": "Bestuur medikasie en onttrekkingstydperke",
-    "issueTypesDesc": "Stel gesondheidsprobleem tipes en kategorieë op"
+    "issueTypesDesc": "Stel gesondheidsprobleem tipes en kategorieë op",
+    "breedingEventTypesDesc": "Pas teelt geleentheid tipe name en ikone aan"
+  },
+  "breedingEventTypes": {
+    "title": "Teelt Geleentheid Tipes",
+    "editTitle": "Wysig Geleentheid Tipe",
+    "name": "Naam",
+    "namePlaceholder": "bv. Hits Waargeneem",
+    "emoji": "Ikoon",
+    "code": "Kode (onveranderlik)",
+    "sortOrder": "Sorteer Volgorde"
   }
 }

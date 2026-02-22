@@ -161,7 +161,7 @@
     "removeMedication": "Remove medication",
     "treatmentDate": "Treatment Date & Time",
     "dosage": "Dosage",
-    "dosagePlaceholder": "e.g. 5ml",
+    "dosagePlaceholder": "e.g. 5",
     "cost": "Cost (R)",
     "isVetVisit": "Vet visit",
     "vetName": "Vet Name",
@@ -198,6 +198,7 @@
     "notes": "Notes",
     "refresh": "Refresh",
     "required": "Required",
+    "errorLoading": "Failed to load. Please try again.",
     "comingSoon": "Coming Soon",
     "yes": "Yes",
     "no": "No",
@@ -289,6 +290,105 @@
     "activate": "Activate",
     "empty": "No issue types defined"
   },
+  "milkRecording": {
+    "title": "Milk Recording",
+    "session": "Session",
+    "morning": "Morning",
+    "afternoon": "Afternoon",
+    "evening": "Evening",
+    "date": "Date",
+    "litres": "Litres",
+    "search": "Search cow…",
+    "saving": "Saving…",
+    "saved": "✓ Saved",
+    "syncError": "⚠ Error",
+    "discarded": "Discarded",
+    "withdrawalBanner": "⚠ MILK DISCARDED — Withdrawal until {date}",
+    "dryLabel": "Dry — no milk",
+    "summary": "{recorded} of {total} recorded • {litres} L • {discarded} discarded",
+    "noActiveCows": "No active cows to record",
+    "sessionTime": "Recording time",
+    "sessionTimeHint": "All entries will be logged at this time"
+  },
+  "breeding": {
+    "title": "Breeding & Reproduction",
+    "hubTitle": "Breeding Hub",
+    "logTitle": "Log Breeding Event",
+    "editTitle": "Edit Breeding Event",
+    "reproTitle": "Reproduction",
+    "logEvent": "Log Event",
+    "noEvents": "No breeding events recorded",
+    "recentEvents": "Recent Events",
+    "viewAll": "View all",
+    "deleteConfirm": "Permanently delete this breeding event?",
+    "gestationDays": "Gestation",
+    "gestationProgress": "{days} / 283 days",
+    "daysOpen": "Days Open",
+    "keyDates": "Key Dates",
+    "stats": {
+      "pregnant": "Pregnant",
+      "open": "Open",
+      "dueSoon": "Due Soon"
+    },
+    "upcoming": {
+      "heats": "Upcoming Heats",
+      "calvings": "Due to Calve",
+      "pregChecks": "Preg Checks Due",
+      "none": "No upcoming alerts"
+    },
+    "alert": {
+      "heatIn": "Heat in {days}d",
+      "calvingIn": "Calving in {days}d",
+      "pregCheckIn": "Preg check in {days}d",
+      "today": "Today",
+      "overdue": "Overdue"
+    },
+    "dates": {
+      "nextHeat": "Next Heat",
+      "pregCheck": "Preg Check",
+      "calving": "Expected Calving",
+      "dryOff": "Dry-off Date"
+    },
+    "status": {
+      "pregnant": "Pregnant",
+      "open": "Open",
+      "daysToCalving": "{days} days to calving",
+      "overdue": "Overdue — check cow"
+    },
+    "form": {
+      "cow": "Cow",
+      "cowPlaceholder": "Search for cow by tag or name...",
+      "eventType": "Event Type",
+      "eventDate": "Event Date & Time",
+      "sire": "Sire (Bull)",
+      "sirePlaceholder": "Search for sire...",
+      "semenId": "Semen ID",
+      "semenIdPlaceholder": "e.g. HO-12345",
+      "inseminator": "Inseminator",
+      "inseminatorPlaceholder": "e.g. J. Smith",
+      "pregCheckMethod": "Method",
+      "cost": "Cost (R)",
+      "notes": "Notes",
+      "notesPlaceholder": "Any additional notes...",
+      "autoDatesPreview": "Auto-calculated dates",
+      "calfSex": "Calf Sex",
+      "calfTagNumber": "Calf Tag Number",
+      "calfTagPlaceholder": "e.g. MH-050",
+      "calfWeight": "Calf Weight (kg)",
+      "complications": "Complications / Notes"
+    },
+    "pregCheckMethod": {
+      "manual": "Manual",
+      "ultrasound": "Ultrasound",
+      "blood_test": "Blood Test"
+    },
+    "lifetime": {
+      "title": "Lifetime Stats",
+      "calvings": "Calvings",
+      "firstCalving": "First Calving",
+      "lastCalving": "Last Calving"
+    }
+  },
   "placeholder": {
     "title": "Coming Soon",
     "subtitle": "This feature will be available in a future update."
@@ -297,6 +397,16 @@
     "title": "Settings",
     "adminTools": "Admin Tools",
     "medicationsDesc": "Manage medications and withdrawal periods",
-    "issueTypesDesc": "Configure health issue types and categories"
+    "issueTypesDesc": "Configure health issue types and categories",
+    "breedingEventTypesDesc": "Customise breeding event type names and icons"
+  },
+  "breedingEventTypes": {
+    "title": "Breeding Event Types",
+    "editTitle": "Edit Event Type",
+    "name": "Name",
+    "namePlaceholder": "e.g. Heat Observed",
+    "emoji": "Icon",
+    "code": "Code (immutable)",
+    "sortOrder": "Sort Order"
   }
 }

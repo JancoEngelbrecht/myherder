@@ -127,6 +127,39 @@
           </div>
         </div>
 
+        <!-- Reproduction (female only) -->
+        <div v-if="cow.sex !== 'male'" class="card treatment-card">
+          <div class="treatment-header">
+            <h3 class="section-label">{{ t('breeding.reproTitle') }}</h3>
+            <RouterLink :to="`/cows/${cow.id}/repro`" class="view-all-link">
+              {{ t('cowDetail.viewAll') }} ›
+            </RouterLink>
+          </div>
+
+          <div v-if="reproLoading" class="spinner-mini"><div class="spinner" /></div>
+
+          <template v-if="!reproLoading">
+            <RouterLink :to="`/cows/${cow.id}/repro`" class="treatment-summary-link">
+              <div class="tx-summary-body">
+                <div class="tx-summary-last-med">
+                  <template v-if="latestReproEvent">
+                    {{ breedingEventTypesStore.getByCode(latestReproEvent.event_type)?.emoji ?? '📋' }}
+                    {{ breedingEventTypesStore.getByCode(latestReproEvent.event_type)?.name ?? latestReproEvent.event_type }}
+                  </template>
+                  <template v-else>{{ t('breeding.noEvents') }}</template>
+                </div>
+                <div v-if="latestReproEvent" class="tx-summary-meta mono">
+                  {{ latestReproEvent.event_date?.slice(0, 10) }}
+                  <template v-if="latestReproEvent.expected_calving">
+                    · 🐮 {{ latestReproEvent.expected_calving }}
+                  </template>
+                </div>
+              </div>
+              <span class="tx-summary-chevron">›</span>
+            </RouterLink>
+          </template>
+        </div>
+
         <!-- Health Issues (compact) -->
         <div class="card treatment-card">
           <div class="treatment-header">
@@ -191,6 +224,13 @@
           </template>
         </div>
 
+        <!-- Breeding action (female cows, all users) -->
+        <div v-if="cow.sex !== 'male'" class="action-row">
+          <RouterLink :to="`/breed/log?cow_id=${cow.id}`" class="btn-secondary edit-link">
+            🐂 {{ t('breeding.logEvent') }}
+          </RouterLink>
+        </div>
+
         <!-- Actions -->
         <div v-if="authStore.canManageCows" class="action-row">
           <RouterLink :to="`/cows/${cow.id}/edit`" class="btn-secondary edit-link">
@@ -224,6 +264,8 @@ import { useAuthStore } from '../stores/auth.js'
 import { useTreatmentsStore } from '../stores/treatments.js'
 import { useHealthIssuesStore } from '../stores/healthIssues.js'
 import { useIssueTypesStore } from '../stores/issueTypes.js'
+import { useBreedingEventsStore } from '../stores/breedingEvents.js'
+import { useBreedingEventTypesStore } from '../stores/breedingEventTypes.js'
 import { formatDate, formatDateTime } from '../utils/format.js'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../components/molecules/ConfirmDialog.vue'
@@ -236,12 +278,16 @@ const authStore = useAuthStore()
 const treatmentsStore = useTreatmentsStore()
 const healthIssuesStore = useHealthIssuesStore()
 const issueTypesStore = useIssueTypesStore()
+const breedingEventsStore = useBreedingEventsStore()
+const breedingEventTypesStore = useBreedingEventTypesStore()
 
 const cow = ref(null)
 const loading = ref(true)
 const error = ref('')
 const showDeleteDialog = ref(false)
 const deleting = ref(false)
+const latestReproEvent = ref(null)
+const reproLoading = ref(false)
 const treatmentsLoading = computed(() => treatmentsStore.loadingByCow)
 const issuesLoading = computed(() => healthIssuesStore.loadingByCow)
 const cowIssues = computed(() => cow.value ? healthIssuesStore.getCowIssues(cow.value.id) : [])
@@ -290,10 +336,18 @@ async function load() {
   } finally {
     loading.value = false
   }
-  // Load treatments + issues in background (loadingByCow tracked in each store)
+  // Load treatments, issues, repro in background
   if (cow.value) {
     treatmentsStore.fetchByCow(cow.value.id)
     healthIssuesStore.fetchByCow(cow.value.id)
+    if (cow.value.sex !== 'male') {
+      reproLoading.value = true
+      breedingEventsStore.fetchForCow(cow.value.id)
+        .then((events) => {
+          latestReproEvent.value = breedingEventsStore.latestForCow(cow.value.id, events)
+        })
+        .finally(() => { reproLoading.value = false })
+    }
   }
 }
 

@@ -176,7 +176,7 @@
 
           <div v-if="med.default_dosage" class="med-dosage">
             {{ $t('medications.defaultDosage') }}:
-            <span class="mono">{{ med.default_dosage }}{{ med.unit ? ` ${med.unit}` : '' }}</span>
+            <span class="mono">{{ parseFloat(med.default_dosage) }}{{ med.unit ? ` ${med.unit}` : '' }}</span>
           </div>
 
           <div class="med-actions">

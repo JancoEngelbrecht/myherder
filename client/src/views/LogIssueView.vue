@@ -181,7 +181,7 @@ async function submit() {
   }
   try {
     await healthIssuesStore.create(payload)
-    router.push(backRoute)
+    router.replace(backRoute)
   } catch (err) {
     submitError.value = err.response?.data?.error || err.message
   } finally {

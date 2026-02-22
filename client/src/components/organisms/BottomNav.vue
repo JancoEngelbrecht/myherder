@@ -31,6 +31,7 @@ const tabs = [
 function isActive(tab) {
   if (tab.name === 'home') return route.path === '/'
   if (tab.name === 'cows') return route.path.startsWith('/cows')
+  if (tab.name === 'breed') return route.path.startsWith('/breed')
   return route.path === tab.to
 }
 </script>

@@ -119,13 +119,37 @@ const routes = [
   {
     path: '/milk',
     name: 'milk',
-    component: () => import('../views/PlaceholderView.vue'),
+    component: () => import('../views/MilkRecordingView.vue'),
     meta: { requiresAuth: true },
   },
   {
     path: '/breed',
     name: 'breed',
-    component: () => import('../views/PlaceholderView.vue'),
+    component: () => import('../views/BreedingHubView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/breed/log',
+    name: 'breed-log',
+    component: () => import('../views/LogBreedingView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/breed/edit/:id',
+    name: 'breed-edit',
+    component: () => import('../views/LogBreedingView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
+    path: '/admin/breeding-event-types',
+    name: 'breeding-event-types',
+    component: () => import('../views/admin/BreedingEventTypeManagement.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
+    path: '/cows/:id/repro',
+    name: 'cow-repro',
+    component: () => import('../views/CowReproView.vue'),
     meta: { requiresAuth: true },
   },
   {

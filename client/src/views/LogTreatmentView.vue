@@ -30,11 +30,17 @@
                   {{ med.name }}{{ med.active_ingredient ? ` (${med.active_ingredient})` : '' }}
                 </option>
               </select>
-              <input
-                v-model="item.dosage"
-                class="form-input dosage-input"
-                :placeholder="$t('treatments.dosagePlaceholder')"
-              />
+              <div class="dosage-with-unit">
+                <input
+                  v-model="item.dosage"
+                  type="number"
+                  min="0"
+                  step="any"
+                  class="form-input dosage-input"
+                  :placeholder="$t('treatments.dosagePlaceholder')"
+                />
+                <span v-if="item.unit" class="dosage-unit">{{ item.unit }}</span>
+              </div>
             </div>
             <button
               v-if="form.medications.length > 1"
@@ -181,7 +187,7 @@ const backRoute = prefillCowId ? `/cows/${prefillCowId}` : '/log'
 const form = ref({
   cow_id: prefillCowId,
   health_issue_id: prefillHealthIssueId,
-  medications: [{ medication_id: '', dosage: '' }],
+  medications: [{ medication_id: '', dosage: '', unit: '' }],
   treatment_date: localNow(),
   cost: '',
   is_vet_visit: false,
@@ -248,7 +254,7 @@ function localNow() {
 }
 
 function addMed() {
-  form.value.medications.push({ medication_id: '', dosage: '' })
+  form.value.medications.push({ medication_id: '', dosage: '', unit: '' })
 }
 
 function removeMed(index) {
@@ -258,9 +264,12 @@ function removeMed(index) {
 function onMedChange(index) {
   const item = form.value.medications[index]
   const med = medications.value.find((m) => m.id === item.medication_id)
+  // Always sync unit from selected medication (clear if none selected)
+  item.unit = med?.unit || ''
   // Auto-fill default dosage only if the dosage field is still blank
   if (med?.default_dosage && !item.dosage) {
-    item.dosage = med.default_dosage
+    const numeric = parseFloat(String(med.default_dosage))
+    if (!isNaN(numeric)) item.dosage = String(numeric)
   }
 }
 
@@ -301,7 +310,7 @@ async function submit() {
   }
   try {
     await treatmentsStore.create(payload)
-    router.push(backRoute)
+    router.replace(backRoute)
   } catch (err) {
     submitError.value = err.response?.data?.error || err.message
   } finally {
@@ -334,9 +343,27 @@ async function submit() {
 
 .med-row-inputs {
   display: grid;
-  grid-template-columns: 1fr 90px;
+  grid-template-columns: 1fr 120px;
   gap: 8px;
   flex: 1;
+}
+
+.dosage-with-unit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dosage-with-unit .form-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.dosage-unit {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-remove-med {

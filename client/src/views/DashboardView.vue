@@ -68,17 +68,15 @@
             <span class="action-label">{{ t('dashboard.withdrawal') }}</span>
           </RouterLink>
 
-          <div class="action-card disabled-action">
+          <RouterLink to="/milk" class="action-card">
             <span class="action-icon">🥛</span>
             <span class="action-label">{{ t('dashboard.recordMilk') }}</span>
-            <span class="action-badge">{{ t('dashboard.comingSoon') }}</span>
-          </div>
+          </RouterLink>
 
-          <div class="action-card disabled-action">
+          <RouterLink to="/breed" class="action-card active-action">
             <span class="action-icon">🐂</span>
             <span class="action-label">{{ t('dashboard.breed') }}</span>
-            <span class="action-badge">{{ t('dashboard.comingSoon') }}</span>
-          </div>
+          </RouterLink>
         </div>
       </section>
     </div>
