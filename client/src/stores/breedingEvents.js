@@ -5,7 +5,7 @@ import db from '../db/indexedDB'
 
 export const useBreedingEventsStore = defineStore('breedingEvents', () => {
   const events = ref([])
-  const upcoming = reactive({ heats: [], calvings: [], pregChecks: [] })
+  const upcoming = reactive({ heats: [], calvings: [], pregChecks: [], dryOffs: [], needsAttention: [] })
   const loading = ref(false)
   const error = ref(null)
 
@@ -42,6 +42,8 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
       upcoming.heats = data.heats ?? []
       upcoming.calvings = data.calvings ?? []
       upcoming.pregChecks = data.pregChecks ?? []
+      upcoming.dryOffs = data.dryOffs ?? []
+      upcoming.needsAttention = data.needsAttention ?? []
     } catch {
       // Offline: derive from cached events
       const today = new Date().toISOString().slice(0, 10)
@@ -96,6 +98,17 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
     return data
   }
 
+  // ── Dismiss ─────────────────────────────────────────────────────────────────
+
+  async function dismissEvent(id, reason = '') {
+    const { data } = await api.patch(`/breeding-events/${id}/dismiss`, { reason })
+    const idx = events.value.findIndex((e) => e.id === id)
+    if (idx !== -1) events.value[idx] = data
+    await db.breedingEvents.put(data)
+    fetchUpcoming().catch(() => {})
+    return data
+  }
+
   // ── Delete ───────────────────────────────────────────────────────────────────
 
   async function deleteEvent(id) {
@@ -107,7 +120,7 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
   // ── Computed ─────────────────────────────────────────────────────────────────
 
   const upcomingCount = computed(
-    () => upcoming.heats.length + upcoming.calvings.length + upcoming.pregChecks.length,
+    () => upcoming.heats.length + upcoming.calvings.length + upcoming.pregChecks.length + upcoming.dryOffs.length + upcoming.needsAttention.length,
   )
 
   // Latest event per cow — used in CowDetailView repro summary
@@ -126,15 +139,14 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
   }
 
   // Gestation progress for a pregnant cow: 0–100
-  function gestationPercent(expectedCalving) {
+  function gestationPercent(expectedCalving, gestationDays = 283) {
     if (!expectedCalving) return null
     const today = new Date()
     const calving = new Date(expectedCalving)
     const conception = new Date(calving)
-    conception.setDate(conception.getDate() - 283)
-    const total = 283
+    conception.setDate(conception.getDate() - gestationDays)
     const elapsed = Math.round((today - conception) / 86400000)
-    return Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)))
+    return Math.min(100, Math.max(0, Math.round((elapsed / gestationDays) * 100)))
   }
 
   return {
@@ -148,6 +160,7 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
     fetchUpcoming,
     createEvent,
     updateEvent,
+    dismissEvent,
     deleteEvent,
     latestForCow,
     daysBetween,

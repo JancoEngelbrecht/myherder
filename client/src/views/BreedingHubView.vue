@@ -3,6 +3,25 @@
     <AppHeader :title="t('breeding.hubTitle')" />
 
     <div class="page-content">
+      <!-- Needs Attention -->
+      <section v-if="breedingStore.upcoming.needsAttention.length" class="section attention-section">
+        <h3 class="group-label attention-label">{{ t('breeding.needsAttention') }}</h3>
+        <div
+          v-for="item in breedingStore.upcoming.needsAttention"
+          :key="item.id"
+          class="alert-row card attention-row"
+          @click="goToRepro(item.cow_id)"
+        >
+          <span class="alert-cow mono">{{ item.tag_number }}</span>
+          <span v-if="item.cow_name" class="alert-name">{{ item.cow_name }}</span>
+          <span class="alert-badge overdue">{{ t('breeding.alert.overdue') }}</span>
+          <span class="spacer" />
+          <button class="btn-secondary btn-sm-dismiss" @click.stop="openDismiss(item)">
+            {{ t('breeding.dismiss') }}
+          </button>
+        </div>
+      </section>
+
       <!-- Stats row -->
       <section class="section">
         <div class="stats-row">
@@ -70,6 +89,31 @@
             <span class="alert-badge check">{{ alertLabel(ev.expected_preg_check) }}</span>
           </div>
         </div>
+
+        <!-- Upcoming dry-offs -->
+        <div v-if="breedingStore.upcoming.dryOffs.length" class="alert-group">
+          <h3 class="group-label">🌿 {{ t('breeding.upcoming.dryOffs') }}</h3>
+          <div
+            v-for="ev in breedingStore.upcoming.dryOffs"
+            :key="ev.id"
+            class="card dryoff-card"
+          >
+            <div class="alert-row" @click="goToRepro(ev.cow_id)">
+              <span class="alert-cow mono">{{ ev.tag_number }}</span>
+              <span v-if="ev.cow_name" class="alert-name">{{ ev.cow_name }}</span>
+              <span class="spacer" />
+              <span class="alert-badge dryoff">{{ alertLabel(ev.expected_dry_off) }}</span>
+            </div>
+            <div class="dryoff-actions">
+              <button class="btn-primary btn-sm-action" @click="acceptDryOff(ev)">
+                {{ t('breeding.dryOff.accept') }}
+              </button>
+              <button class="btn-secondary btn-sm-action" @click="openDismiss(ev)">
+                {{ t('breeding.dryOff.reject') }}
+              </button>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- No upcoming -->
@@ -84,13 +128,25 @@
       </div>
 
       <!-- Recent events -->
-      <section v-if="recentEvents.length" class="section">
+      <section v-if="breedingStore.events.length" class="section">
         <div class="section-header">
           <h2 class="section-label">{{ t('breeding.recentEvents') }}</h2>
         </div>
+
+        <!-- Filter tabs -->
+        <div class="filter-chips">
+          <button
+            v-for="f in eventFilters"
+            :key="f.value"
+            class="chip"
+            :class="{ active: eventFilter === f.value }"
+            @click="eventFilter = f.value"
+          >{{ f.label }}</button>
+        </div>
+
         <div class="events-list">
           <BreedingEventCard
-            v-for="ev in recentEvents"
+            v-for="ev in filteredEvents"
             :key="ev.id"
             :event="ev"
             :show-cow="true"
@@ -99,6 +155,7 @@
             @delete="confirmDelete"
           />
         </div>
+        <p v-if="filteredEvents.length === 0" class="no-alerts">{{ t('breeding.noEvents') }}</p>
       </section>
 
       <div v-else-if="!breedingStore.loading" class="empty-state">
@@ -118,6 +175,17 @@
       :loading="deleting"
       @confirm="doDelete"
       @cancel="deleteTargetId = null"
+    />
+
+    <!-- Dismiss dialog -->
+    <ConfirmDialog
+      :show="!!dismissTarget"
+      :message="t('breeding.dismissConfirm')"
+      :confirm-label="t('breeding.dismiss')"
+      :cancel-label="t('common.cancel')"
+      :loading="dismissing"
+      @confirm="doDismiss"
+      @cancel="dismissTarget = null"
     />
   </div>
 </template>
@@ -141,6 +209,18 @@ const authStore = useAuthStore()
 
 const deleteTargetId = ref(null)
 const deleting = ref(false)
+const dismissTarget = ref(null)
+const dismissing = ref(false)
+const eventFilter = ref('')
+
+const eventFilters = [
+  { value: '', label: t('cows.filterAll') },
+  { value: 'heat_observed', label: '🔥' },
+  { value: 'ai_insemination,bull_service', label: '🧬' },
+  { value: 'preg_check_positive,preg_check_negative', label: '🩺' },
+  { value: 'calving', label: '🐮' },
+  { value: 'dry_off', label: '🌿' },
+]
 
 const pregnantCount = computed(() =>
   cowsStore.cows.filter((c) => c.sex !== 'male' && c.status === 'pregnant').length,
@@ -154,7 +234,12 @@ const dueSoonCount = computed(() => breedingStore.upcoming.calvings.length)
 
 const upcomingCount = computed(() => breedingStore.upcomingCount)
 
-const recentEvents = computed(() => breedingStore.events.slice(0, 20))
+const filteredEvents = computed(() => {
+  const all = breedingStore.events.slice(0, 50)
+  if (!eventFilter.value) return all.slice(0, 20)
+  const codes = eventFilter.value.split(',')
+  return all.filter((e) => codes.includes(e.event_type)).slice(0, 20)
+})
 
 function alertLabel(dateStr) {
   if (!dateStr) return ''
@@ -178,6 +263,37 @@ function goToEdit(id) {
 
 function confirmDelete(id) {
   deleteTargetId.value = id
+}
+
+function openDismiss(item) {
+  dismissTarget.value = item
+}
+
+async function doDismiss() {
+  dismissing.value = true
+  try {
+    await breedingStore.dismissEvent(dismissTarget.value.id)
+  } finally {
+    dismissing.value = false
+    dismissTarget.value = null
+  }
+}
+
+async function acceptDryOff(ev) {
+  try {
+    // Create dry_off breeding event
+    await breedingStore.createEvent({
+      cow_id: ev.cow_id,
+      event_type: 'dry_off',
+      event_date: new Date().toISOString().slice(0, 16),
+    })
+    // Update cow is_dry flag
+    await cowsStore.update(ev.cow_id, { is_dry: true })
+    // Refresh upcoming alerts
+    await breedingStore.fetchUpcoming()
+  } catch {
+    // Silently fail — event card will stay if failed
+  }
 }
 
 async function doDelete() {
@@ -320,12 +436,108 @@ onMounted(async () => {
   color: var(--primary);
 }
 
+.attention-section {
+  background: color-mix(in srgb, var(--danger) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 20%, transparent);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+}
+
+.attention-label {
+  color: var(--danger);
+}
+
+.attention-row {
+  background: var(--surface);
+}
+
+.alert-badge.overdue {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+}
+
+.alert-badge.dryoff {
+  background: color-mix(in srgb, #2D6A4F 12%, transparent);
+  color: #2D6A4F;
+}
+
+.btn-sm-dismiss {
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  width: auto;
+  flex-shrink: 0;
+}
+
+.filter-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.filter-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.chip.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
 .no-alerts {
   font-size: 0.85rem;
   color: var(--text-muted);
   text-align: center;
   padding: 0.5rem 0;
   margin: 0;
+}
+
+.dryoff-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.dryoff-card .alert-row {
+  padding: 0.65rem 0.85rem;
+  cursor: pointer;
+}
+
+.dryoff-actions {
+  display: flex;
+  gap: 0;
+  border-top: 1px solid var(--border);
+}
+
+.btn-sm-action {
+  flex: 1;
+  font-size: 0.78rem;
+  padding: 8px;
+  border-radius: 0;
+  width: auto;
+}
+
+.dryoff-actions .btn-sm-action:first-child {
+  border-radius: 0 0 0 var(--radius);
+}
+
+.dryoff-actions .btn-sm-action:last-child {
+  border-radius: 0 0 var(--radius) 0;
 }
 
 .events-list {

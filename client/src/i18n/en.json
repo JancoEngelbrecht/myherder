@@ -54,7 +54,19 @@
     "emptyTitle": "No cows found",
     "emptySubtitle": "Try a different search or add a new cow",
     "addCow": "Add Cow",
-    "noResults": "No cows found"
+    "noResults": "No cows found",
+    "filterFemale": "Female",
+    "filterMale": "Male",
+    "advancedFilters": "Advanced Filters",
+    "filterAllBreeds": "All Breeds",
+    "filterAllPhases": "All Phases"
+  },
+  "lifePhase": {
+    "calf": "Calf",
+    "heifer": "Heifer",
+    "cow": "Cow",
+    "young_bull": "Young Bull",
+    "bull": "Bull"
   },
   "cowForm": {
     "titleAdd": "Add Cow",
@@ -80,7 +92,17 @@
     "saving": "Saving...",
     "cancel": "Cancel",
     "validationTag": "Tag number is required",
-    "validationSex": "Sex is required"
+    "validationSex": "Sex is required",
+    "selectBreed": "Select breed...",
+    "isExternal": "External bull (not on farm)",
+    "purpose": "Purpose",
+    "purposeNatural": "Natural Service",
+    "purposeAI": "AI Semen Donor",
+    "purposeBoth": "Both",
+    "lifePhaseOverride": "Life Phase Override",
+    "lifePhaseAuto": "Auto (from age)",
+    "isDry": "Currently Dry",
+    "fromCalvingBanner": "Registering calf from calving event. All fields can be changed."
   },
   "cowDetail": {
     "info": "Information",
@@ -106,7 +128,11 @@
     "onWithdrawal": "On milk withdrawal until",
     "milkClear": "Milk clear",
     "treatmentsCount": "{count} treatments",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "lifePhase": "Life Phase",
+    "breedType": "Breed Type",
+    "external": "External",
+    "purpose": "Purpose"
   },
   "status": {
     "active": "Active",
@@ -321,6 +347,11 @@
     "recentEvents": "Recent Events",
     "viewAll": "View all",
     "deleteConfirm": "Permanently delete this breeding event?",
+    "needsAttention": "Needs Attention",
+    "dismiss": "Dismiss",
+    "dismissReason": "Reason (optional)",
+    "dismissConfirm": "Dismiss this alert? It will not appear again.",
+    "dismissed": "Dismissed",
     "gestationDays": "Gestation",
     "gestationProgress": "{days} / 283 days",
     "daysOpen": "Days Open",
@@ -334,6 +365,7 @@
       "heats": "Upcoming Heats",
       "calvings": "Due to Calve",
       "pregChecks": "Preg Checks Due",
+      "dryOffs": "Due for Dry-Off",
       "none": "No upcoming alerts"
     },
     "alert": {
@@ -387,6 +419,12 @@
       "calvings": "Calvings",
       "firstCalving": "First Calving",
       "lastCalving": "Last Calving"
+    },
+    "dryOff": {
+      "accept": "Accept Dry-Off",
+      "reject": "Not Yet",
+      "prompt": "Transition {tag} to dry status?",
+      "accepted": "Dry-off recorded"
     }
   },
   "placeholder": {
@@ -398,7 +436,28 @@
     "adminTools": "Admin Tools",
     "medicationsDesc": "Manage medications and withdrawal periods",
     "issueTypesDesc": "Configure health issue types and categories",
-    "breedingEventTypesDesc": "Customise breeding event type names and icons"
+    "breedingEventTypesDesc": "Customise breeding event type names and icons",
+    "breedTypesDesc": "Manage breed types and their timing defaults"
+  },
+  "breedTypes": {
+    "title": "Breed Types",
+    "addTitle": "Add Breed Type",
+    "editTitle": "Edit Breed Type",
+    "name": "Name",
+    "namePlaceholder": "e.g. Holstein",
+    "code": "Code (immutable)",
+    "heatCycleDays": "Heat Cycle (days)",
+    "gestationDays": "Gestation (days)",
+    "pregCheckDays": "Preg Check After (days)",
+    "voluntaryWaitingDays": "Voluntary Waiting (days)",
+    "dryOffDays": "Dry-off Before Calving (days)",
+    "calfMaxMonths": "Calf Phase Max (months)",
+    "heiferMinMonths": "Heifer Min Age (months)",
+    "youngBullMinMonths": "Young Bull Min Age (months)",
+    "sortOrder": "Sort Order",
+    "deleteConfirm": "Delete this breed type? This cannot be undone.",
+    "deleteBlocked": "Cannot delete: this breed is assigned to {count} cow(s).",
+    "timingDefaults": "Timing & Phase Defaults"
   },
   "breedingEventTypes": {
     "title": "Breeding Event Types",

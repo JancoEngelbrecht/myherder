@@ -10,9 +10,12 @@
         <span class="badge" :class="`badge-${cow.status}`">
           {{ t(`status.${cow.status}`) }}
         </span>
+        <span v-if="lifePhase" class="badge" :class="`badge-phase-${lifePhase}`">
+          {{ t(`lifePhase.${lifePhase}`) }}
+        </span>
       </div>
       <div class="cow-name">{{ cow.name || '—' }}</div>
-      <div class="cow-meta">{{ cow.breed || t('common.comingSoon') }}</div>
+      <div class="cow-meta">{{ cow.breed_type_name || cow.breed || '—' }}</div>
     </div>
 
     <div class="cow-chevron">›</div>
@@ -20,15 +23,24 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { computeLifePhase } from '../../stores/cows.js'
+import { useBreedTypesStore } from '../../stores/breedTypes.js'
 
 const { t } = useI18n()
+const breedTypesStore = useBreedTypesStore()
 
-defineProps({
+const props = defineProps({
   cow: {
     type: Object,
     required: true,
   },
+})
+
+const lifePhase = computed(() => {
+  const bt = props.cow.breed_type_id ? breedTypesStore.getById(props.cow.breed_type_id) : null
+  return computeLifePhase(props.cow, bt)
 })
 </script>
 

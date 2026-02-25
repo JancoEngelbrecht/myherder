@@ -1,9 +1,9 @@
 <template>
   <div class="breeding-event-card card">
     <div class="card-header">
-      <span class="event-icon">{{ eventTypesStore.getByCode(event.event_type)?.emoji ?? '📋' }}</span>
+      <span class="event-icon">{{ getEventType(event.event_type)?.emoji ?? '📋' }}</span>
       <div class="event-meta">
-        <span class="event-type">{{ eventTypesStore.getByCode(event.event_type)?.name ?? event.event_type }}</span>
+        <span class="event-type">{{ t(`breeding.eventTypes.${event.event_type}`, event.event_type) }}</span>
         <span class="event-date mono">{{ formatDate(event.event_date) }}</span>
       </div>
       <RouterLink
@@ -72,10 +72,9 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useBreedingEventTypesStore } from '../../stores/breedingEventTypes'
+import { getEventType } from '../../config/breedingEventTypes'
 
 const { t } = useI18n()
-const eventTypesStore = useBreedingEventTypesStore()
 
 const props = defineProps({
   event: { type: Object, required: true },

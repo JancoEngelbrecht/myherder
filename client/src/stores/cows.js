@@ -3,6 +3,56 @@ import { ref } from 'vue'
 import api from '../services/api.js'
 import * as sync from '../services/syncManager.js'
 
+/**
+ * Compute life phase from age + sex, with optional breed-specific thresholds.
+ * Returns: 'calf' | 'heifer' | 'cow' | 'young_bull' | 'bull'
+ */
+export function computeLifePhase(cow, breedType = null) {
+  if (cow.life_phase_override) return cow.life_phase_override
+  if (!cow.dob) return cow.sex === 'male' ? 'bull' : 'cow'
+
+  const ageMs = Date.now() - new Date(cow.dob).getTime()
+  const ageMonths = ageMs / (1000 * 60 * 60 * 24 * 30.44)
+
+  const calfMax = breedType?.calf_max_months ?? 6
+  const heiferMin = breedType?.heifer_min_months ?? 15
+  const youngBullMin = breedType?.young_bull_min_months ?? 15
+
+  if (cow.sex === 'male') {
+    if (ageMonths < calfMax) return 'calf'
+    if (ageMonths < youngBullMin) return 'young_bull'
+    return 'bull'
+  }
+  // female
+  if (ageMonths < calfMax) return 'calf'
+  if (ageMonths < heiferMin) return 'heifer'
+  return 'cow'
+}
+
+/**
+ * Compute whether a cow is ready to breed.
+ * Male → false. Pregnant → false. Based on age (heifer) or days since last calving (cow).
+ */
+export function computeIsReadyToBreed(cow, breedType = null, lastCalvingDate = null) {
+  if (cow.sex === 'male') return false
+  if (cow.status === 'pregnant') return false
+  if (!cow.dob) return false
+
+  const heiferMin = breedType?.heifer_min_months ?? 15
+  const vwd = breedType?.voluntary_waiting_days ?? 45
+
+  const ageMs = Date.now() - new Date(cow.dob).getTime()
+  const ageMonths = ageMs / (1000 * 60 * 60 * 24 * 30.44)
+
+  if (!lastCalvingDate) {
+    // Heifer: ready if old enough
+    return ageMonths >= heiferMin
+  }
+  // Cow with calving history: ready if past voluntary waiting period
+  const daysSinceCalving = (Date.now() - new Date(lastCalvingDate).getTime()) / (1000 * 60 * 60 * 24)
+  return daysSinceCalving >= vwd
+}
+
 export const useCowsStore = defineStore('cows', () => {
   const cows = ref([])
   const total = ref(0)

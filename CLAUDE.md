@@ -20,7 +20,7 @@ npm run seed          # knex seed:run (admin/admin123, sipho/PIN 1234)
 npm run build         # outputs client/dist/
 ```
 
-No test framework is currently installed.
+Tests: `cd client && npm run test:run` (Vitest). Lint: `npm run lint` / `npm run lint:fix`.
 
 ## Architecture
 
@@ -38,10 +38,10 @@ No test framework is currently installed.
 
 - All routes except `/api/auth/*` require `Authorization: Bearer <token>`
 - `GET /api/cows` returns a **plain array**, not `{ cows: [] }`
-- `GET /api/cows/:id` returns cow with `sire_name`/`dam_name` as strings (not nested objects)
+- `GET /api/cows/:id` returns cow with `sire_name`/`dam_name` strings + `breed_type_name`/`breed_type_code` via left-joins
 - Cow date field is `dob`, not `date_of_birth`
 - `GET /api/analytics/herd-summary` returns `{ total, by_status: [{status, count}] }`
-- Cows API supports `search`, `status`, `page`, `limit` query params — no `sex` or client-side-only filters
+- Cows API supports `search`, `status`, `sex`, `breed_type_id`, `is_dry`, `page`, `limit` query params
 - Soft delete: `DELETE /api/cows/:id` sets `deleted_at` (admin only)
 - **Cow IDs are UUIDs** — never use `Number(route.params.id)`
 - `GET /api/medications` — active only; `?all=1` for all (admin)
@@ -49,6 +49,10 @@ No test framework is currently installed.
 - `GET/POST /api/health-issues`, `PATCH /api/health-issues/:id/status`, `DELETE /api/health-issues/:id`
 - `affected_teats` stored as JSON string in SQLite — always `JSON.parse()` when reading
 - `GET /api/issue-types` — active only; `?all=1` for all; CRUD admin-only; DELETE blocked if `code` referenced in `health_issues`; `code` is immutable slug auto-generated from `name`
+- `GET /api/breed-types` — active only; `?all=1` for all; CRUD admin-only; DELETE blocked if cows reference breed; `code` is immutable slug auto-generated from `name`
+- `GET/POST /api/breeding-events`, `PATCH /:id` (admin), `PATCH /:id/dismiss` (any user), `DELETE /:id` (admin)
+- `GET /api/breeding-events/upcoming` returns `{ heats, calvings, pregChecks, dryOffs, needsAttention }` — excludes dismissed events
+- Breeding auto-dates use breed-specific timings from `breed_types` table (gestation, heat cycle, preg check, dry-off days)
 
 ## i18n
 
@@ -90,8 +94,36 @@ CSS custom properties defined in `client/src/style.css`:
 
 ## Project Phases
 
-Master plan in `dairy-farm-plan-final.md`. Phase 1 (backend API) and Phase 2 (Vue PWA frontend) are complete. Phases 3-7 cover milk recording, breeding, health, feeding, and reports.
+Master plan in `dairy-farm-plan-final.md`. Breeding v2 plan in `breeding-v2-plan.md`. See `MEMORY.md` for current phase status — always check before starting work.
 
 ## Environment
 
 Copy `.env.example` to `.env`. Key vars: `JWT_SECRET` (required in production), `DB_PATH` (SQLite file, default `./dev.sqlite3`), `PORT` (default 3000). Production uses `DB_HOST/PORT/USER/PASSWORD/NAME` for MySQL.
+
+## Agent Efficiency Guidelines
+
+These rules help keep token usage low while maintaining quality output:
+
+**Before writing code:**
+- Read `MEMORY.md` first — it has phase status, file map, and conventions that prevent redundant exploration
+- Use targeted `Glob`/`Grep` with specific patterns — don't broad-search
+- When the plan says "follow pattern from X file", read X once and replicate — don't explore alternatives
+- Check if a reference file is listed in MEMORY.md before searching for it
+
+**While writing code:**
+- Follow conventions in MEMORY.md `Code Conventions` section — write clean code the first time
+- Batch related edits to the same file into one Edit call where possible
+- Don't read files you've already read in the same conversation unless they were modified
+- For new route files: copy structure from closest existing route (see `Pattern Reference Files` in MEMORY.md)
+
+**After writing code:**
+- Self-review: check for redundant DB queries, duplicated patterns, top-level schema placement
+- Run a quick verification (inline `node -e` test) rather than starting the full dev server
+- Update MEMORY.md phase status when completing a plan phase
+- Keep CLAUDE.md API docs current when adding/changing endpoints
+
+**What NOT to do:**
+- Don't re-explore completed phases — trust MEMORY.md status
+- Don't read the master plan file unless specifically working on phase planning
+- Don't load skills unless the task directly matches (e.g., don't load `express-patterns` for a frontend-only change)
+- Don't use Task/subagents for single-file searches — use Glob/Grep directly

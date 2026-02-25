@@ -24,11 +24,11 @@
             <span class="settings-arrow">›</span>
           </RouterLink>
 
-          <RouterLink to="/admin/breeding-event-types" class="settings-item">
-            <span class="settings-icon">🐂</span>
+<RouterLink to="/admin/breed-types" class="settings-item">
+            <span class="settings-icon">🐄</span>
             <div class="settings-info">
-              <span class="settings-name">{{ t('breedingEventTypes.title') }}</span>
-              <span class="settings-desc">{{ t('settings.breedingEventTypesDesc') }}</span>
+              <span class="settings-name">{{ t('breedTypes.title') }}</span>
+              <span class="settings-desc">{{ t('settings.breedTypesDesc') }}</span>
             </div>
             <span class="settings-arrow">›</span>
           </RouterLink>

@@ -54,7 +54,19 @@
     "emptyTitle": "Geen koeie gevind nie",
     "emptySubtitle": "Probeer 'n ander soektog of voeg 'n nuwe koei by",
     "addCow": "Voeg Koei by",
-    "noResults": "Geen koeie gevind nie"
+    "noResults": "Geen koeie gevind nie",
+    "filterFemale": "Vroulik",
+    "filterMale": "Manlik",
+    "advancedFilters": "Gevorderde Filters",
+    "filterAllBreeds": "Alle Rasse",
+    "filterAllPhases": "Alle Fases"
+  },
+  "lifePhase": {
+    "calf": "Kalf",
+    "heifer": "Vers",
+    "cow": "Koei",
+    "young_bull": "Jong Bul",
+    "bull": "Bul"
   },
   "cowForm": {
     "titleAdd": "Voeg Koei by",
@@ -80,7 +92,17 @@
     "saving": "Stoor...",
     "cancel": "Kanselleer",
     "validationTag": "Tagnommer is verpligtend",
-    "validationSex": "Geslag is verpligtend"
+    "validationSex": "Geslag is verpligtend",
+    "selectBreed": "Kies ras...",
+    "isExternal": "Eksterne bul (nie op plaas nie)",
+    "purpose": "Doel",
+    "purposeNatural": "Natuurlike Diens",
+    "purposeAI": "KI Saad Skenker",
+    "purposeBoth": "Beide",
+    "lifePhaseOverride": "Lewensfase Oorskryf",
+    "lifePhaseAuto": "Outo (van ouderdom)",
+    "isDry": "Tans Droog",
+    "fromCalvingBanner": "Registreer kalf van kalfgeboorte. Alle velde kan gewysig word."
   },
   "cowDetail": {
     "info": "Inligting",
@@ -106,7 +128,11 @@
     "onWithdrawal": "Op melkonttrekking tot",
     "milkClear": "Melk vry",
     "treatmentsCount": "{count} behandelings",
-    "viewAll": "Sien almal"
+    "viewAll": "Sien almal",
+    "lifePhase": "Lewensfase",
+    "breedType": "Rastipe",
+    "external": "Ekstern",
+    "purpose": "Doel"
   },
   "status": {
     "active": "Aktief",
@@ -321,6 +347,11 @@
     "recentEvents": "Onlangse Geleenthede",
     "viewAll": "Sien alles",
     "deleteConfirm": "Permanent verwyder hierdie teelt geleentheid?",
+    "needsAttention": "Benodig Aandag",
+    "dismiss": "Verwerp",
+    "dismissReason": "Rede (opsioneel)",
+    "dismissConfirm": "Verwerp hierdie waarskuwing? Dit sal nie weer verskyn nie.",
+    "dismissed": "Verwerp",
     "gestationDays": "Dragtigheid",
     "gestationProgress": "{days} / 283 dae",
     "daysOpen": "Oop Dae",
@@ -334,6 +365,7 @@
       "heats": "Aankomende Hits",
       "calvings": "Binnekort Kalf",
       "pregChecks": "Dragtigheidstoetse",
+      "dryOffs": "Droogmaak Nodig",
       "none": "Geen aankomende waarskuwings nie"
     },
     "alert": {
@@ -387,6 +419,12 @@
       "calvings": "Kalfgeboort",
       "firstCalving": "Eerste Kalf",
       "lastCalving": "Laaste Kalf"
+    },
+    "dryOff": {
+      "accept": "Aanvaar Droogmaak",
+      "reject": "Nog Nie",
+      "prompt": "Skakel {tag} na droogstatus oor?",
+      "accepted": "Droogmaak aangeteken"
     }
   },
   "placeholder": {
@@ -398,7 +436,28 @@
     "adminTools": "Admin Hulpmiddels",
     "medicationsDesc": "Bestuur medikasie en onttrekkingstydperke",
     "issueTypesDesc": "Stel gesondheidsprobleem tipes en kategorieë op",
-    "breedingEventTypesDesc": "Pas teelt geleentheid tipe name en ikone aan"
+    "breedingEventTypesDesc": "Pas teelt geleentheid tipe name en ikone aan",
+    "breedTypesDesc": "Bestuur rastipes en hul tydsberekenings"
+  },
+  "breedTypes": {
+    "title": "Rastipes",
+    "addTitle": "Voeg Rastipe By",
+    "editTitle": "Wysig Rastipe",
+    "name": "Naam",
+    "namePlaceholder": "bv. Holstein",
+    "code": "Kode (onveranderlik)",
+    "heatCycleDays": "Hitsiklus (dae)",
+    "gestationDays": "Dragtigheid (dae)",
+    "pregCheckDays": "Dragtigheidstoets Na (dae)",
+    "voluntaryWaitingDays": "Vrywillige Wagtyd (dae)",
+    "dryOffDays": "Droogmaak Voor Kalf (dae)",
+    "calfMaxMonths": "Kalf Fase Maks (maande)",
+    "heiferMinMonths": "Vers Min Ouderdom (maande)",
+    "youngBullMinMonths": "Jong Bul Min Ouderdom (maande)",
+    "sortOrder": "Sorteer Volgorde",
+    "deleteConfirm": "Verwyder hierdie rastipe? Dit kan nie ongedaan gemaak word nie.",
+    "deleteBlocked": "Kan nie verwyder nie: hierdie ras is aan {count} koei(e) toegewys.",
+    "timingDefaults": "Tydsberekening & Fase Verstek"
   },
   "breedingEventTypes": {
     "title": "Teelt Geleentheid Tipes",

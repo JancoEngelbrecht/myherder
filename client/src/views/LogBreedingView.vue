@@ -42,7 +42,7 @@
               @click="form.event_type = et.code"
             >
               <span class="et-icon">{{ et.emoji }}</span>
-              <span class="et-label">{{ et.name }}</span>
+              <span class="et-label">{{ t(`breeding.eventTypes.${et.code}`) }}</span>
             </button>
           </div>
           <span v-if="errors.event_type" class="field-error">{{ errors.event_type }}</span>
@@ -218,14 +218,17 @@ import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import CowSearchDropdown from '../components/molecules/CowSearchDropdown.vue'
 import { useBreedingEventsStore } from '../stores/breedingEvents'
-import { useBreedingEventTypesStore } from '../stores/breedingEventTypes'
+import { BREEDING_EVENT_TYPES, getEventType } from '../config/breedingEventTypes'
+import { useBreedTypesStore } from '../stores/breedTypes'
+import { useCowsStore } from '../stores/cows'
 import api from '../services/api'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const breedingStore = useBreedingEventsStore()
-const eventTypesStore = useBreedingEventTypesStore()
+const breedTypesStore = useBreedTypesStore()
+const cowsStore = useCowsStore()
 
 const PREG_CHECK_METHODS = ['manual', 'ultrasound', 'blood_test']
 
@@ -233,8 +236,7 @@ const editMode = computed(() => !!route.params.id)
 const loadingEvent = ref(false)
 const editCowLabel = ref('')
 
-// Event types: from store (active + sorted), fallback to hardcoded via store's FALLBACK
-const displayEventTypes = computed(() => eventTypesStore.activeTypes)
+const displayEventTypes = BREEDING_EVENT_TYPES
 
 const nowLocal = () => {
   const d = new Date()
@@ -273,10 +275,24 @@ const isPregCheck = computed(() =>
   ['preg_check_positive', 'preg_check_negative'].includes(form.value.event_type),
 )
 
+// Look up breed timings for the selected cow
+const selectedCowBreed = computed(() => {
+  if (!form.value.cow_id) return null
+  const cow = cowsStore.cows.find((c) => c.id === form.value.cow_id)
+  if (!cow?.breed_type_id) return null
+  return breedTypesStore.getById(cow.breed_type_id)
+})
+
 const autoDates = computed(() => {
   const { event_type, event_date } = form.value
   if (!event_date || !event_type) return null
   if (!['heat_observed', 'ai_insemination', 'bull_service'].includes(event_type)) return null
+
+  const bt = selectedCowBreed.value
+  const heatCycle = bt?.heat_cycle_days ?? 21
+  const pregCheck = bt?.preg_check_days ?? 35
+  const gestation = bt?.gestation_days ?? 283
+  const dryOffDays = bt?.dry_off_days ?? 60
 
   const base = new Date(event_date)
   const addDays = (n) => {
@@ -286,17 +302,17 @@ const autoDates = computed(() => {
   }
 
   const result = {
-    expected_next_heat: addDays(21),
-    expected_preg_check: addDays(35),
+    expected_next_heat: addDays(heatCycle),
+    expected_preg_check: addDays(pregCheck),
     expected_calving: null,
     expected_dry_off: null,
   }
 
   if (['ai_insemination', 'bull_service'].includes(event_type)) {
     const calving = new Date(base)
-    calving.setDate(calving.getDate() + 283)
+    calving.setDate(calving.getDate() + gestation)
     const dryOff = new Date(calving)
-    dryOff.setDate(dryOff.getDate() - 60)
+    dryOff.setDate(dryOff.getDate() - dryOffDays)
     result.expected_calving = calving.toISOString().slice(0, 10)
     result.expected_dry_off = dryOff.toISOString().slice(0, 10)
   }
@@ -365,7 +381,21 @@ async function submit() {
 
       const created = await breedingStore.createEvent(payload)
 
-      if (route.query.cow_id) {
+      // Post-calving: redirect to Add Cow form with pre-filled calf details
+      if (form.value.event_type === 'calving' && form.value.calving_details.calf_sex) {
+        const q = {
+          from_calving: 'true',
+          dam_id: created.cow_id,
+          dob: new Date().toISOString().slice(0, 10),
+          sex: form.value.calving_details.calf_sex,
+        }
+        if (form.value.calving_details.calf_tag_number) {
+          q.tag_number = form.value.calving_details.calf_tag_number
+        }
+        if (created.sire_id) q.sire_id = created.sire_id
+        if (created.breed_type_id) q.breed_type_id = created.breed_type_id
+        router.replace({ path: '/cows/new', query: q })
+      } else if (route.query.cow_id) {
         router.replace(`/cows/${created.cow_id}/repro`)
       } else {
         router.replace('/breed')
@@ -379,9 +409,13 @@ async function submit() {
 }
 
 onMounted(async () => {
-  // Fetch event types (active list for the buttons)
-  if (eventTypesStore.types.length === 0) {
-    eventTypesStore.fetchAll().catch(() => {})
+  // Fetch breed types for auto-date calculation
+  if (breedTypesStore.activeTypes.length === 0) {
+    breedTypesStore.fetchActive().catch(() => {})
+  }
+  // Ensure cows list is loaded for breed lookup
+  if (cowsStore.cows.length === 0) {
+    cowsStore.fetchAll().catch(() => {})
   }
 
   if (editMode.value) {
@@ -426,7 +460,7 @@ onMounted(async () => {
     }
     if (route.query.event_type) {
       const qt = String(route.query.event_type)
-      if (eventTypesStore.activeTypes.some((et) => et.code === qt)) {
+      if (getEventType(qt)) {
         form.value.event_type = qt
       }
     }

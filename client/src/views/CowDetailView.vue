@@ -27,9 +27,14 @@
           <div class="cow-hero-info">
             <div class="cow-hero-tag mono">{{ cow.tag_number }}</div>
             <div class="cow-hero-name">{{ cow.name || '—' }}</div>
-            <span class="badge" :class="`badge-${cow.status}`">
-              {{ t(`status.${cow.status}`) }}
-            </span>
+            <div class="hero-badges">
+              <span class="badge" :class="`badge-${cow.status}`">
+                {{ t(`status.${cow.status}`) }}
+              </span>
+              <span v-if="lifePhase" class="badge" :class="`badge-phase-${lifePhase}`">
+                {{ t(`lifePhase.${lifePhase}`) }}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -39,7 +44,7 @@
           <div class="info-grid">
             <div class="info-item">
               <span class="info-label">{{ t('cowDetail.breed') }}</span>
-              <span class="info-value">{{ cow.breed || '—' }}</span>
+              <span class="info-value">{{ cow.breed_type_name || cow.breed || '—' }}</span>
             </div>
             <div class="info-item">
               <span class="info-label">{{ t('cowDetail.dob') }}</span>
@@ -52,6 +57,14 @@
             <div class="info-item">
               <span class="info-label">{{ t('cowDetail.sex') }}</span>
               <span class="info-value">{{ t(`sex.${cow.sex}`) }}</span>
+            </div>
+            <div v-if="cow.sex === 'male' && cow.purpose" class="info-item">
+              <span class="info-label">{{ t('cowDetail.purpose') }}</span>
+              <span class="info-value">{{ t(`cowForm.purpose${cow.purpose === 'natural_service' ? 'Natural' : cow.purpose === 'ai_semen_donor' ? 'AI' : 'Both'}`) }}</span>
+            </div>
+            <div v-if="cow.sex === 'male' && cow.is_external" class="info-item">
+              <span class="info-label">{{ t('cowDetail.external') }}</span>
+              <span class="info-value">{{ t('common.yes') }}</span>
             </div>
           </div>
           <div v-if="cow.notes" class="info-notes">{{ cow.notes }}</div>
@@ -143,8 +156,8 @@
               <div class="tx-summary-body">
                 <div class="tx-summary-last-med">
                   <template v-if="latestReproEvent">
-                    {{ breedingEventTypesStore.getByCode(latestReproEvent.event_type)?.emoji ?? '📋' }}
-                    {{ breedingEventTypesStore.getByCode(latestReproEvent.event_type)?.name ?? latestReproEvent.event_type }}
+                    {{ getEventType(latestReproEvent.event_type)?.emoji ?? '📋' }}
+                    {{ t(`breeding.eventTypes.${latestReproEvent.event_type}`, latestReproEvent.event_type) }}
                   </template>
                   <template v-else>{{ t('breeding.noEvents') }}</template>
                 </div>
@@ -259,13 +272,14 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useCowsStore } from '../stores/cows.js'
+import { useCowsStore, computeLifePhase } from '../stores/cows.js'
 import { useAuthStore } from '../stores/auth.js'
+import { useBreedTypesStore } from '../stores/breedTypes.js'
 import { useTreatmentsStore } from '../stores/treatments.js'
 import { useHealthIssuesStore } from '../stores/healthIssues.js'
 import { useIssueTypesStore } from '../stores/issueTypes.js'
 import { useBreedingEventsStore } from '../stores/breedingEvents.js'
-import { useBreedingEventTypesStore } from '../stores/breedingEventTypes.js'
+import { getEventType } from '../config/breedingEventTypes.js'
 import { formatDate, formatDateTime } from '../utils/format.js'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../components/molecules/ConfirmDialog.vue'
@@ -279,11 +293,18 @@ const treatmentsStore = useTreatmentsStore()
 const healthIssuesStore = useHealthIssuesStore()
 const issueTypesStore = useIssueTypesStore()
 const breedingEventsStore = useBreedingEventsStore()
-const breedingEventTypesStore = useBreedingEventTypesStore()
+
+const breedTypesStore = useBreedTypesStore()
 
 const cow = ref(null)
 const loading = ref(true)
 const error = ref('')
+
+const lifePhase = computed(() => {
+  if (!cow.value) return null
+  const bt = cow.value.breed_type_id ? breedTypesStore.getById(cow.value.breed_type_id) : null
+  return computeLifePhase(cow.value, bt)
+})
 const showDeleteDialog = ref(false)
 const deleting = ref(false)
 const latestReproEvent = ref(null)
@@ -354,6 +375,7 @@ async function load() {
 onMounted(() => {
   load()
   issueTypesStore.fetchAll()
+  if (breedTypesStore.activeTypes.length === 0) breedTypesStore.fetchActive().catch(() => {})
 })
 
 function calcAge(dob) {
@@ -440,6 +462,12 @@ async function handleDelete() {
   font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 6px;
+}
+
+.hero-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 /* Info card */

@@ -7,6 +7,10 @@
     />
 
     <div class="page-content">
+      <div v-if="fromCalving" class="calving-banner">
+        {{ t('cowForm.fromCalvingBanner') }}
+      </div>
+
       <form class="cow-form" @submit.prevent="handleSubmit">
         <!-- Tag Number -->
         <div class="form-group">
@@ -33,15 +37,15 @@
           />
         </div>
 
-        <!-- Breed -->
+        <!-- Breed Type -->
         <div class="form-group">
           <label class="form-label">{{ t('cowForm.breed') }}</label>
-          <input
-            v-model="form.breed"
-            type="text"
-            class="form-input"
-            :placeholder="t('cowForm.breedPlaceholder')"
-          />
+          <select v-model="form.breed_type_id" class="form-select">
+            <option :value="null">{{ t('cowForm.selectBreed') }}</option>
+            <option v-for="bt in breedTypesStore.activeTypes" :key="bt.id" :value="bt.id">
+              {{ bt.name }}
+            </option>
+          </select>
         </div>
 
         <!-- DOB -->
@@ -76,6 +80,46 @@
             </button>
           </div>
           <span v-if="errors.sex" class="form-error">{{ errors.sex }}</span>
+        </div>
+
+        <!-- Bull-only fields -->
+        <template v-if="form.sex === 'male'">
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input v-model="form.is_external" type="checkbox" />
+              {{ t('cowForm.isExternal') }}
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="form-label">{{ t('cowForm.purpose') }}</label>
+            <select v-model="form.purpose" class="form-select">
+              <option :value="null">—</option>
+              <option value="natural_service">{{ t('cowForm.purposeNatural') }}</option>
+              <option value="ai_semen_donor">{{ t('cowForm.purposeAI') }}</option>
+              <option value="both">{{ t('cowForm.purposeBoth') }}</option>
+            </select>
+          </div>
+        </template>
+
+        <!-- Dry flag (female only) -->
+        <div v-if="form.sex === 'female'" class="form-group">
+          <label class="checkbox-label">
+            <input v-model="form.is_dry" type="checkbox" />
+            {{ t('cowForm.isDry') }}
+          </label>
+        </div>
+
+        <!-- Life phase override -->
+        <div class="form-group">
+          <label class="form-label">{{ t('cowForm.lifePhaseOverride') }}</label>
+          <select v-model="form.life_phase_override" class="form-select">
+            <option :value="null">{{ t('cowForm.lifePhaseAuto') }}</option>
+            <option value="calf">{{ t('lifePhase.calf') }}</option>
+            <option value="heifer">{{ t('lifePhase.heifer') }}</option>
+            <option value="cow">{{ t('lifePhase.cow') }}</option>
+            <option value="young_bull">{{ t('lifePhase.young_bull') }}</option>
+            <option value="bull">{{ t('lifePhase.bull') }}</option>
+          </select>
         </div>
 
         <!-- Status -->
@@ -141,6 +185,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useCowsStore } from '../stores/cows.js'
+import { useBreedTypesStore } from '../stores/breedTypes.js'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import CowSearchDropdown from '../components/molecules/CowSearchDropdown.vue'
 
@@ -148,19 +193,25 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const cowsStore = useCowsStore()
+const breedTypesStore = useBreedTypesStore()
 
 const isEdit = computed(() => !!route.params.id && route.path.endsWith('/edit'))
+const fromCalving = computed(() => route.query.from_calving === 'true')
 
 const form = reactive({
   tag_number: '',
   name: '',
-  breed: '',
+  breed_type_id: null,
   dob: '',
   sex: 'female',
   status: 'active',
   notes: '',
   sire_id: null,
   dam_id: null,
+  is_external: false,
+  purpose: null,
+  life_phase_override: null,
+  is_dry: false,
 })
 
 const errors = reactive({})
@@ -170,23 +221,38 @@ const saving = ref(false)
 const statuses = ['active', 'dry', 'pregnant', 'sick', 'sold', 'dead']
 
 onMounted(async () => {
+  if (breedTypesStore.activeTypes.length === 0) breedTypesStore.fetchActive()
+
   if (isEdit.value) {
     try {
       const cow = await cowsStore.fetchOne(route.params.id)
       Object.assign(form, {
         tag_number: cow.tag_number || '',
         name: cow.name || '',
-        breed: cow.breed || '',
+        breed_type_id: cow.breed_type_id || null,
         dob: cow.dob ? cow.dob.substring(0, 10) : '',
         sex: cow.sex || 'female',
         status: cow.status || 'active',
         notes: cow.notes || '',
         sire_id: cow.sire_id || null,
         dam_id: cow.dam_id || null,
+        is_external: cow.is_external || false,
+        purpose: cow.purpose || null,
+        life_phase_override: cow.life_phase_override || null,
+        is_dry: cow.is_dry || false,
       })
     } catch {
       apiError.value = t('common.error')
     }
+  } else if (fromCalving.value) {
+    // Pre-fill from calving event query params
+    const q = route.query
+    if (q.tag_number) form.tag_number = String(q.tag_number)
+    if (q.sex) form.sex = String(q.sex)
+    if (q.dob) form.dob = String(q.dob)
+    if (q.dam_id) form.dam_id = String(q.dam_id)
+    if (q.sire_id) form.sire_id = String(q.sire_id)
+    if (q.breed_type_id) form.breed_type_id = String(q.breed_type_id)
   }
 })
 
@@ -206,6 +272,13 @@ async function handleSubmit() {
   if (!payload.dob) delete payload.dob
   if (!payload.sire_id) delete payload.sire_id
   if (!payload.dam_id) delete payload.dam_id
+  // Clean up sex-specific fields
+  if (payload.sex === 'female') {
+    payload.is_external = false
+    payload.purpose = null
+  } else {
+    payload.is_dry = false
+  }
 
   try {
     if (isEdit.value) {
@@ -232,6 +305,16 @@ function handleCancel() {
 </script>
 
 <style scoped>
+.calving-banner {
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  color: var(--primary-dark);
+  margin-bottom: 12px;
+}
+
 .cow-form {
   display: flex;
   flex-direction: column;
@@ -271,6 +354,14 @@ function handleCancel() {
   font-size: 0.875rem;
   font-weight: 500;
   border: 1px solid rgba(214,40,40,0.2);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
 }
 
 .form-actions {

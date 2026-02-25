@@ -140,10 +140,10 @@ const routes = [
     component: () => import('../views/LogBreedingView.vue'),
     meta: { requiresAuth: true, requiresAdmin: true },
   },
-  {
-    path: '/admin/breeding-event-types',
-    name: 'breeding-event-types',
-    component: () => import('../views/admin/BreedingEventTypeManagement.vue'),
+{
+    path: '/admin/breed-types',
+    name: 'breed-types',
+    component: () => import('../views/admin/BreedTypeManagement.vue'),
     meta: { requiresAuth: true, requiresAdmin: true },
   },
   {

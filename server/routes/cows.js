@@ -15,10 +15,15 @@ const cowSchema = Joi.object({
   name: Joi.string().max(100).allow('', null),
   dob: Joi.string().allow('', null),
   breed: Joi.string().max(100).allow('', null),
+  breed_type_id: Joi.string().max(36).allow(null, ''),
   sex: Joi.string().valid('female', 'male').default('female'),
   status: Joi.string().valid('active', 'dry', 'pregnant', 'sick', 'sold', 'dead').default('active'),
   sire_id: Joi.string().uuid().allow(null),
   dam_id: Joi.string().uuid().allow(null),
+  is_external: Joi.boolean().default(false),
+  purpose: Joi.string().valid('natural_service', 'ai_semen_donor', 'both').allow(null, ''),
+  life_phase_override: Joi.string().valid('calf', 'heifer', 'cow', 'young_bull', 'bull').allow(null, ''),
+  is_dry: Joi.boolean().default(false),
   notes: Joi.string().max(2000).allow('', null)
 });
 
@@ -60,6 +65,18 @@ router.get('/', async (req, res, next) => {
       query.where('status', req.query.status);
     }
 
+    if (req.query.sex) {
+      query.where('sex', req.query.sex);
+    }
+
+    if (req.query.breed_type_id) {
+      query.where('breed_type_id', req.query.breed_type_id);
+    }
+
+    if (req.query.is_dry !== undefined) {
+      query.where('is_dry', req.query.is_dry === 'true' || req.query.is_dry === '1');
+    }
+
     // Pagination
     const page = Math.max(1, parseInt(String(req.query.page), 10) || 1);
     const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, parseInt(String(req.query.limit), 10) || DEFAULT_PAGE_SIZE));
@@ -84,10 +101,13 @@ router.get('/:id', async (req, res, next) => {
       .whereNull('c.deleted_at')
       .leftJoin('cows as sire', 'c.sire_id', 'sire.id')
       .leftJoin('cows as dam', 'c.dam_id', 'dam.id')
+      .leftJoin('breed_types as bt', 'c.breed_type_id', 'bt.id')
       .select(
         'c.*',
         db.raw('COALESCE(sire.name, sire.tag_number) as sire_name'),
-        db.raw('COALESCE(dam.name, dam.tag_number) as dam_name')
+        db.raw('COALESCE(dam.name, dam.tag_number) as dam_name'),
+        'bt.name as breed_type_name',
+        'bt.code as breed_type_code'
       )
       .first();
 

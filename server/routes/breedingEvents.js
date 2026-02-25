@@ -17,10 +17,12 @@ const STATUS_TRANSITIONS = {
   abortion: 'active',
 }
 
-async function validEventTypes() {
-  const rows = await db('breeding_event_types').select('code')
-  return rows.map((r) => r.code)
-}
+// Fixed workflow event types — not configurable
+const VALID_EVENT_TYPES = [
+  'heat_observed', 'ai_insemination', 'bull_service',
+  'preg_check_positive', 'preg_check_negative',
+  'calving', 'abortion', 'dry_off',
+]
 
 const createSchema = Joi.object({
   cow_id: Joi.string().uuid().required(),
@@ -41,10 +43,32 @@ const createSchema = Joi.object({
   notes: Joi.string().max(2000).allow(null, '').default(null),
 })
 
+const updateSchema = Joi.object({
+  event_type: Joi.string().optional(),
+  event_date: Joi.string().isoDate().optional(),
+  sire_id: Joi.string().uuid().allow(null, '').optional(),
+  semen_id: Joi.string().max(100).allow(null, '').optional(),
+  inseminator: Joi.string().max(100).allow(null, '').optional(),
+  preg_check_method: Joi.string().valid(...PREG_CHECK_METHODS).allow(null).optional(),
+  calving_details: Joi.object({
+    calf_sex: Joi.string().valid('male', 'female').allow(null),
+    calf_tag_number: Joi.string().max(50).allow(null, ''),
+    calf_weight: Joi.number().min(0).max(999).allow(null),
+    complications: Joi.string().max(2000).allow(null, ''),
+  }).allow(null).optional(),
+  cost: Joi.number().precision(2).min(0).allow(null).optional(),
+  notes: Joi.string().max(2000).allow(null, '').optional(),
+})
+
 // ── Auto-date calculation ─────────────────────────────────────────────────────
 
-function calcDates(eventType, eventDate) {
+function calcDates(eventType, eventDate, breedTimings = {}) {
   const base = new Date(eventDate)
+  const heatCycleDays = breedTimings.heat_cycle_days ?? 21
+  const pregCheckDays = breedTimings.preg_check_days ?? 35
+  const gestationDays = breedTimings.gestation_days ?? 283
+  const dryOffDays = breedTimings.dry_off_days ?? 60
+
   const addDays = (n) => {
     const d = new Date(base)
     d.setDate(d.getDate() + n)
@@ -53,17 +77,17 @@ function calcDates(eventType, eventDate) {
 
   if (['heat_observed', 'ai_insemination', 'bull_service'].includes(eventType)) {
     const result = {
-      expected_next_heat: addDays(21),
-      expected_preg_check: addDays(35),
+      expected_next_heat: addDays(heatCycleDays),
+      expected_preg_check: addDays(pregCheckDays),
       expected_calving: null,
       expected_dry_off: null,
     }
 
     if (['ai_insemination', 'bull_service'].includes(eventType)) {
       const calvingDate = new Date(base)
-      calvingDate.setDate(calvingDate.getDate() + 283)
+      calvingDate.setDate(calvingDate.getDate() + gestationDays)
       const dryOffDate = new Date(calvingDate)
-      dryOffDate.setDate(dryOffDate.getDate() - 60)
+      dryOffDate.setDate(dryOffDate.getDate() - dryOffDays)
       result.expected_calving = calvingDate.toISOString().slice(0, 10)
       result.expected_dry_off = dryOffDate.toISOString().slice(0, 10)
     }
@@ -77,6 +101,15 @@ function calcDates(eventType, eventDate) {
     expected_calving: null,
     expected_dry_off: null,
   }
+}
+
+// Look up breed-specific timing values by breed_type_id.
+// Returns the full breed_types row, or {} if no breed is assigned.
+// Used by POST/PATCH handlers to pass breed timings into calcDates().
+async function getBreedTimings(breedTypeId) {
+  if (!breedTypeId) return {}
+  const breed = await db('breed_types').where({ id: breedTypeId }).first()
+  return breed || {}
 }
 
 // ── Query helpers ─────────────────────────────────────────────────────────────
@@ -112,31 +145,50 @@ function parseJsonFields(row) {
 // ── Routes ────────────────────────────────────────────────────────────────────
 
 // GET /api/breeding-events/upcoming — events with alert dates in the next 14 days
+// Returns: { heats, calvings, pregChecks, dryOffs, needsAttention }
+// - heats/calvings/pregChecks/dryOffs: upcoming items within their lookahead window
+// - needsAttention: overdue items from the past 30 days with is_overdue flag
+// - All categories exclude dismissed events and deduplicate to latest event per cow
 router.get('/upcoming', async (req, res, next) => {
   try {
     const today = new Date().toISOString().slice(0, 10)
     const in7  = new Date(Date.now() + 7  * 86400000).toISOString().slice(0, 10)
     const in14 = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10)
+    const past30 = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)
 
-    // Latest event per cow that has the relevant auto-date set
-    const [heatsRaw, calvingsRaw, pregChecksRaw] = await Promise.all([
-      breedingQuery()
-        .whereNotNull('be.expected_next_heat')
-        .where('be.expected_next_heat', '>=', today)
-        .where('be.expected_next_heat', '<=', in7)
-        .orderBy('be.expected_next_heat', 'asc'),
+    // Base query: join cow+sire+user, exclude dismissed events
+    const baseQuery = () => breedingQuery().whereNull('be.dismissed_at')
 
-      breedingQuery()
-        .whereNotNull('be.expected_calving')
-        .where('be.expected_calving', '>=', today)
-        .where('be.expected_calving', '<=', in14)
-        .orderBy('be.expected_calving', 'asc'),
+    // Build a date-range query for a specific auto-date column.
+    // extraFilters: optional callback to add category-specific conditions (e.g. dry-off checks cow status)
+    function dateRangeQuery(dateCol, from, to, extraFilters) {
+      const q = baseQuery()
+        .whereNotNull(`be.${dateCol}`)
+        .where(`be.${dateCol}`, '>=', from)
+        .where(`be.${dateCol}`, '<=', to)
+        .orderBy(`be.${dateCol}`, 'asc')
+      if (extraFilters) extraFilters(q)
+      return q
+    }
 
-      breedingQuery()
-        .whereNotNull('be.expected_preg_check')
-        .where('be.expected_preg_check', '>=', today)
-        .where('be.expected_preg_check', '<=', in7)
-        .orderBy('be.expected_preg_check', 'asc'),
+    // Dry-off only applies to pregnant cows that aren't already dry
+    const dryOffFilters = (q) => q.where('c.status', 'pregnant').where('c.is_dry', false)
+
+    // Fetch upcoming + overdue for all categories in parallel
+    const [
+      heatsRaw, calvingsRaw, pregChecksRaw, dryOffsRaw,
+      overdueHeats, overdueCalvings, overduePregChecks, overdueDryOffs,
+    ] = await Promise.all([
+      // Upcoming
+      dateRangeQuery('expected_next_heat', today, in7),
+      dateRangeQuery('expected_calving', today, in14),
+      dateRangeQuery('expected_preg_check', today, in7),
+      dateRangeQuery('expected_dry_off', today, in14, dryOffFilters),
+      // Overdue (past 30 days)
+      dateRangeQuery('expected_next_heat', past30, today),
+      dateRangeQuery('expected_calving', past30, today),
+      dateRangeQuery('expected_preg_check', past30, today),
+      dateRangeQuery('expected_dry_off', past30, today, dryOffFilters),
     ])
 
     // Deduplicate: keep only the latest event per cow for each category
@@ -150,10 +202,28 @@ router.get('/upcoming', async (req, res, next) => {
       return Object.values(map).sort((a, b) => a[dateField].localeCompare(b[dateField]))
     }
 
+    // Build needs-attention list: overdue items with alert metadata
+    const toOverdueItems = (rows, alertType, dateField) =>
+      latestPerCow(rows, dateField).map((row) => ({
+        ...parseJsonFields(row),
+        alert_type: alertType,
+        alert_date: row[dateField],
+        is_overdue: true,
+      }))
+
+    const needsAttention = [
+      ...toOverdueItems(overdueHeats, 'heat', 'expected_next_heat'),
+      ...toOverdueItems(overduePregChecks, 'preg_check', 'expected_preg_check'),
+      ...toOverdueItems(overdueCalvings, 'calving', 'expected_calving'),
+      ...toOverdueItems(overdueDryOffs, 'dry_off', 'expected_dry_off'),
+    ].sort((a, b) => a.alert_date.localeCompare(b.alert_date))
+
     res.json({
       heats: latestPerCow(heatsRaw, 'expected_next_heat').map(parseJsonFields),
       calvings: latestPerCow(calvingsRaw, 'expected_calving').map(parseJsonFields),
       pregChecks: latestPerCow(pregChecksRaw, 'expected_preg_check').map(parseJsonFields),
+      dryOffs: latestPerCow(dryOffsRaw, 'expected_dry_off').map(parseJsonFields),
+      needsAttention,
     })
   } catch (err) {
     next(err)
@@ -166,7 +236,7 @@ router.get('/', async (req, res, next) => {
     const { cow_id, event_type, limit } = req.query
 
     if (event_type) {
-      const validTypes = await validEventTypes()
+      const validTypes = VALID_EVENT_TYPES
       if (!validTypes.includes(event_type)) {
         return res.status(400).json({ error: 'Invalid event_type' })
       }
@@ -201,7 +271,7 @@ router.post('/', async (req, res, next) => {
     const { error, value } = createSchema.validate(req.body)
     if (error) return res.status(400).json({ error: error.details[0].message })
 
-    const validTypes = await validEventTypes()
+    const validTypes = VALID_EVENT_TYPES
     if (!validTypes.includes(value.event_type)) {
       return res.status(400).json({ error: `Invalid event_type: ${value.event_type}` })
     }
@@ -215,7 +285,9 @@ router.post('/', async (req, res, next) => {
       if (!sire) return res.status(404).json({ error: 'Sire not found' })
     }
 
-    const autoDates = calcDates(value.event_type, value.event_date)
+    // Use cow's breed type for breed-specific date calculations
+    const breedTimings = await getBreedTimings(cow.breed_type_id)
+    const autoDates = calcDates(value.event_type, value.event_date, breedTimings)
     const id = uuidv4()
     const now = new Date().toISOString()
 
@@ -238,10 +310,15 @@ router.post('/', async (req, res, next) => {
       updated_at: now,
     })
 
-    // Auto-update cow status based on event type
+    // Build cow updates: status transition + dry flag changes in one write
+    const cowUpdates = { updated_at: now }
     const newStatus = STATUS_TRANSITIONS[value.event_type]
-    if (newStatus) {
-      await db('cows').where({ id: value.cow_id }).update({ status: newStatus, updated_at: now })
+    if (newStatus) cowUpdates.status = newStatus
+    if (value.event_type === 'dry_off') cowUpdates.is_dry = true
+    if (value.event_type === 'calving') cowUpdates.is_dry = false
+
+    if (Object.keys(cowUpdates).length > 1) {
+      await db('cows').where({ id: value.cow_id }).update(cowUpdates)
     }
 
     const created = await breedingQuery().where('be.id', id).first()
@@ -259,28 +336,11 @@ router.patch('/:id', async (req, res, next) => {
     const existing = await db('breeding_events').where({ id: req.params.id }).first()
     if (!existing) return res.status(404).json({ error: 'Breeding event not found' })
 
-    const updateSchema = Joi.object({
-      event_type: Joi.string().optional(),
-      event_date: Joi.string().isoDate().optional(),
-      sire_id: Joi.string().uuid().allow(null, '').optional(),
-      semen_id: Joi.string().max(100).allow(null, '').optional(),
-      inseminator: Joi.string().max(100).allow(null, '').optional(),
-      preg_check_method: Joi.string().valid(...PREG_CHECK_METHODS).allow(null).optional(),
-      calving_details: Joi.object({
-        calf_sex: Joi.string().valid('male', 'female').allow(null),
-        calf_tag_number: Joi.string().max(50).allow(null, ''),
-        calf_weight: Joi.number().min(0).max(999).allow(null),
-        complications: Joi.string().max(2000).allow(null, ''),
-      }).allow(null).optional(),
-      cost: Joi.number().precision(2).min(0).allow(null).optional(),
-      notes: Joi.string().max(2000).allow(null, '').optional(),
-    })
-
     const { error, value } = updateSchema.validate(req.body)
     if (error) return res.status(400).json({ error: error.details[0].message })
 
     if (value.event_type) {
-      const validTypes = await validEventTypes()
+      const validTypes = VALID_EVENT_TYPES
       if (!validTypes.includes(value.event_type)) {
         return res.status(400).json({ error: `Invalid event_type: ${value.event_type}` })
       }
@@ -288,7 +348,9 @@ router.patch('/:id', async (req, res, next) => {
 
     const eventType = value.event_type ?? existing.event_type
     const eventDate = value.event_date ?? existing.event_date
-    const autoDates = calcDates(eventType, eventDate)
+    const cow = await db('cows').where({ id: existing.cow_id }).first()
+    const breedTimings = await getBreedTimings(cow?.breed_type_id)
+    const autoDates = calcDates(eventType, eventDate, breedTimings)
 
     const now = new Date().toISOString()
     const updates = { updated_at: now, ...autoDates }
@@ -312,6 +374,27 @@ router.patch('/:id', async (req, res, next) => {
         await db('cows').where({ id: existing.cow_id }).update({ status: newStatus, updated_at: now })
       }
     }
+
+    const updated = await breedingQuery().where('be.id', req.params.id).first()
+    res.json(parseJsonFields(updated))
+  } catch (err) {
+    next(err)
+  }
+})
+
+// PATCH /api/breeding-events/:id/dismiss — any authenticated user
+router.patch('/:id/dismiss', async (req, res, next) => {
+  try {
+    const existing = await db('breeding_events').where({ id: req.params.id }).first()
+    if (!existing) return res.status(404).json({ error: 'Breeding event not found' })
+
+    const now = new Date().toISOString()
+    await db('breeding_events').where({ id: req.params.id }).update({
+      dismissed_at: now,
+      dismissed_by: req.user.id,
+      dismiss_reason: req.body.reason || null,
+      updated_at: now,
+    })
 
     const updated = await breedingQuery().where('be.id', req.params.id).first()
     res.json(parseJsonFields(updated))

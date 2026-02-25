@@ -31,7 +31,7 @@
         <div v-if="isPregnant && latestEvent?.expected_calving" class="gestation-card card">
           <div class="gestation-header">
             <span class="gestation-label">{{ t('breeding.gestationDays') }}</span>
-            <span class="gestation-progress mono">{{ t('breeding.gestationProgress', { days: gestationDays }) }}</span>
+            <span class="gestation-progress mono">{{ gestationDays }} / {{ breedGestation }} {{ t('common.days') }}</span>
           </div>
           <div class="progress-track">
             <div class="progress-fill" :style="{ width: `${gestationPct}%` }" />
@@ -153,6 +153,7 @@ import ConfirmDialog from '../components/molecules/ConfirmDialog.vue'
 import { useBreedingEventsStore } from '../stores/breedingEvents'
 import { useCowsStore } from '../stores/cows'
 import { useAuthStore } from '../stores/auth'
+import { useBreedTypesStore } from '../stores/breedTypes'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -160,6 +161,7 @@ const router = useRouter()
 const breedingStore = useBreedingEventsStore()
 const cowsStore = useCowsStore()
 const authStore = useAuthStore()
+const breedTypesStore = useBreedTypesStore()
 
 const cowId = computed(() => route.params.id)
 const cowEvents = ref([])
@@ -177,6 +179,11 @@ const latestEvent = computed(() => {
 
 const isPregnant = computed(() => cow.value?.status === 'pregnant')
 
+const breedGestation = computed(() => {
+  if (!cow.value?.breed_type_id) return 283
+  return breedTypesStore.getById(cow.value.breed_type_id)?.gestation_days ?? 283
+})
+
 const gestationDays = computed(() => {
   if (!latestEvent.value?.event_date) return 0
   const today = new Date()
@@ -185,7 +192,7 @@ const gestationDays = computed(() => {
 })
 
 const gestationPct = computed(() =>
-  breedingStore.gestationPercent(latestEvent.value?.expected_calving) ?? 0,
+  breedingStore.gestationPercent(latestEvent.value?.expected_calving, breedGestation.value) ?? 0,
 )
 
 const daysToCalving = computed(() => {
@@ -239,6 +246,7 @@ async function doDelete() {
 
 onMounted(async () => {
   loading.value = true
+  if (breedTypesStore.activeTypes.length === 0) breedTypesStore.fetchActive().catch(() => {})
   if (cowsStore.cows.length === 0) await cowsStore.fetchAll()
   cowEvents.value = await breedingStore.fetchForCow(cowId.value)
   loading.value = false
