@@ -1,48 +1,76 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { useCowsStore } from '../stores/cows.js'
 import SyncIndicator from '../components/atoms/SyncIndicator.vue'
 
-// Mock store dependencies so the cows store can be instantiated without a real API
-vi.mock('../services/api.js', () => ({
-  default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() },
+// Mock syncManager so sync store can initialize
+vi.mock('../services/syncManager.js', () => {
+  const { ref } = require('vue')
+  return {
+    isOnline: ref(true),
+    pendingCount: ref(0),
+    isSyncing: ref(false),
+    lastSyncTime: ref(null),
+    failedItems: ref([]),
+    sync: vi.fn(),
+    initialSync: vi.fn(),
+    getPending: vi.fn().mockResolvedValue([]),
+  }
+})
+
+vi.mock('../db/indexedDB.js', () => ({
+  default: {
+    syncQueue: {
+      where: vi.fn().mockReturnValue({ aboveOrEqual: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      bulkDelete: vi.fn(),
+    },
+  },
 }))
 
-vi.mock('../services/syncManager.js', () => ({
-  pullCows: vi.fn().mockResolvedValue([]),
-  pullOneCow: vi.fn().mockResolvedValue(null),
-  getLocalCows: vi.fn().mockResolvedValue([]),
-  getLocalCow: vi.fn().mockResolvedValue(null),
-  saveCowLocally: vi.fn().mockResolvedValue(undefined),
-  removeCowLocally: vi.fn().mockResolvedValue(undefined),
-  isOfflineError: vi.fn().mockReturnValue(false),
-}))
+import { isOnline, pendingCount, isSyncing } from '../services/syncManager.js'
 
 describe('SyncIndicator', () => {
-  it('applies the synced class when syncStatus is synced', () => {
-    const store = useCowsStore()
-    store.syncStatus = 'synced'
+  it('applies the synced class when online with no pending', () => {
+    isOnline.value = true
+    pendingCount.value = 0
+    isSyncing.value = false
     const wrapper = mount(SyncIndicator)
     expect(wrapper.find('.sync-indicator').classes()).toContain('synced')
   })
 
-  it('applies the syncing class when syncStatus is syncing', () => {
-    const store = useCowsStore()
-    store.syncStatus = 'syncing'
+  it('applies the syncing class when syncing', () => {
+    isSyncing.value = true
     const wrapper = mount(SyncIndicator)
     expect(wrapper.find('.sync-indicator').classes()).toContain('syncing')
+    isSyncing.value = false
   })
 
-  it('applies the offline class when syncStatus is offline', () => {
-    const store = useCowsStore()
-    store.syncStatus = 'offline'
+  it('applies the offline class when offline', () => {
+    isOnline.value = false
+    pendingCount.value = 0
     const wrapper = mount(SyncIndicator)
     expect(wrapper.find('.sync-indicator').classes()).toContain('offline')
   })
 
+  it('applies the pending class when online with pending items', () => {
+    isOnline.value = true
+    pendingCount.value = 3
+    isSyncing.value = false
+    const wrapper = mount(SyncIndicator)
+    expect(wrapper.find('.sync-indicator').classes()).toContain('pending')
+  })
+
+  it('shows pending count badge when items are pending', () => {
+    isOnline.value = true
+    pendingCount.value = 5
+    isSyncing.value = false
+    const wrapper = mount(SyncIndicator)
+    expect(wrapper.find('.badge').text()).toBe('5')
+  })
+
   it('always renders the dot element', () => {
-    const store = useCowsStore()
-    store.syncStatus = 'synced'
+    isOnline.value = true
+    pendingCount.value = 0
+    isSyncing.value = false
     const wrapper = mount(SyncIndicator)
     expect(wrapper.find('.dot').exists()).toBe(true)
   })

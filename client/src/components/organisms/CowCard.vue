@@ -15,7 +15,13 @@
         </span>
       </div>
       <div class="cow-name">{{ cow.name || '—' }}</div>
-      <div class="cow-meta">{{ cow.breed_type_name || cow.breed || '—' }}</div>
+      <div class="cow-meta">
+        {{ breedName }}
+        <template v-if="cow.sex === 'male' && (cow.is_external || cow.purpose === 'ai_semen_donor')">
+          <span v-if="cow.is_external" class="bull-tag external">{{ t('cowCard.external') }}</span>
+          <span v-if="cow.purpose === 'ai_semen_donor'" class="bull-tag ai">{{ t('cowCard.aiSemen') }}</span>
+        </template>
+      </div>
     </div>
 
     <div class="cow-chevron">›</div>
@@ -36,6 +42,15 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+})
+
+const breedName = computed(() => {
+  if (props.cow.breed_type_name) return props.cow.breed_type_name
+  if (props.cow.breed_type_id) {
+    const bt = breedTypesStore.getById(props.cow.breed_type_id)
+    return bt?.name || props.cow.breed || '—'
+  }
+  return props.cow.breed || '—'
 })
 
 const lifePhase = computed(() => {
@@ -117,6 +132,26 @@ const lifePhase = computed(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.bull-tag {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.bull-tag.external {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.bull-tag.ai {
+  background: #DBEAFE;
+  color: #1E40AF;
 }
 
 .cow-chevron {

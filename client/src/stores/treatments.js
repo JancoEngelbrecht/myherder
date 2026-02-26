@@ -1,7 +1,9 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
+import { v4 as uuidv4 } from 'uuid'
 import api from '../services/api'
 import db from '../db/indexedDB'
+import { enqueue, dequeueByEntityId, isOfflineError } from '../services/syncManager'
 
 export const useTreatmentsStore = defineStore('treatments', () => {
   const treatments = ref([])
@@ -63,10 +65,27 @@ export const useTreatmentsStore = defineStore('treatments', () => {
   }
 
   async function create(data) {
-    const { data: created } = await api.post('/treatments', data)
-    treatments.value.unshift(created)
-    await db.treatments.put(created)
-    return created
+    const now = new Date().toISOString()
+    const localTreatment = { id: uuidv4(), ...data, updated_at: now, created_at: now }
+
+    await db.treatments.put(localTreatment)
+    await enqueue('treatments', 'create', localTreatment.id, localTreatment)
+
+    try {
+      const { data: created } = await api.post('/treatments', data)
+      await db.treatments.put(created)
+      await dequeueByEntityId('treatments', localTreatment.id)
+      treatments.value.unshift(created)
+      return created
+    } catch (err) {
+      if (isOfflineError(err)) {
+        treatments.value.unshift(localTreatment)
+        return localTreatment
+      }
+      await dequeueByEntityId('treatments', localTreatment.id)
+      await db.treatments.delete(localTreatment.id)
+      throw err
+    }
   }
 
   async function fetchOne(id) {
@@ -90,8 +109,20 @@ export const useTreatmentsStore = defineStore('treatments', () => {
   }
 
   async function remove(id) {
-    await api.delete(`/treatments/${id}`)
+    const backup = treatments.value.find((t) => t.id === id)
     treatments.value = treatments.value.filter((t) => t.id !== id)
+    await enqueue('treatments', 'delete', id, { id })
+
+    try {
+      await api.delete(`/treatments/${id}`)
+      await db.treatments.delete(id)
+      await dequeueByEntityId('treatments', id)
+    } catch (err) {
+      if (isOfflineError(err)) return
+      if (backup) treatments.value.unshift(backup)
+      await dequeueByEntityId('treatments', id)
+      throw err
+    }
   }
 
   function getCowTreatments(cowId) {

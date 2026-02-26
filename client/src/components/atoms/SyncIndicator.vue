@@ -1,17 +1,38 @@
 <template>
-  <div class="sync-indicator" :class="syncStatus" :title="t(`sync.${syncStatus}`)">
+  <button class="sync-indicator" :class="indicatorClass" :title="label" @click="$emit('click')">
     <span class="dot" />
-  </div>
+    <span v-if="showCount" class="badge mono">{{ syncStore.pendingCount }}</span>
+  </button>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useCowsStore } from '../../stores/cows.js'
+import { useSyncStore } from '../../stores/sync.js'
+
+defineEmits(['click'])
 
 const { t } = useI18n()
-const cowsStore = useCowsStore()
-const syncStatus = computed(() => cowsStore.syncStatus)
+const syncStore = useSyncStore()
+
+const indicatorClass = computed(() => {
+  const s = syncStore.syncStatus
+  if (s === 'syncing') return 'syncing'
+  if (s === 'offline-pending' || s === 'offline') return 'offline'
+  if (s === 'pending') return 'pending'
+  return 'synced'
+})
+
+const showCount = computed(() => syncStore.pendingCount > 0)
+
+const label = computed(() => {
+  const s = syncStore.syncStatus
+  if (s === 'syncing') return t('sync.syncing')
+  if (s === 'offline-pending') return t('sync.offlinePending', { count: syncStore.pendingCount })
+  if (s === 'offline') return t('sync.offline')
+  if (s === 'pending') return t('sync.pendingCount', { count: syncStore.pendingCount })
+  return t('sync.synced')
+})
 </script>
 
 <style scoped>
@@ -19,8 +40,12 @@ const syncStatus = computed(() => cowsStore.syncStatus)
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
+  gap: 4px;
   height: 28px;
+  padding: 0 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
 }
 
 .dot {
@@ -29,6 +54,13 @@ const syncStatus = computed(() => cowsStore.syncStatus)
   border-radius: 50%;
   display: block;
   transition: background 0.3s;
+}
+
+.badge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  line-height: 1;
 }
 
 .synced .dot {
@@ -40,6 +72,11 @@ const syncStatus = computed(() => cowsStore.syncStatus)
   background: var(--warning);
   box-shadow: 0 0 4px rgba(224,124,36,0.5);
   animation: pulse 1s infinite;
+}
+
+.pending .dot {
+  background: var(--warning);
+  box-shadow: 0 0 4px rgba(224,124,36,0.5);
 }
 
 .offline .dot {

@@ -13,13 +13,35 @@ vi.mock('../services/api.js', () => ({
   default: { get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() },
 }))
 
-vi.mock('../services/syncManager.js', () => ({
-  pullCows: vi.fn().mockResolvedValue([]),
-  getLocalCows: vi.fn().mockResolvedValue([]),
-  isOfflineError: vi.fn().mockReturnValue(false),
+vi.mock('../services/syncManager.js', () => {
+  const { ref } = require('vue')
+  return {
+    isOnline: ref(true),
+    pendingCount: ref(0),
+    isSyncing: ref(false),
+    lastSyncTime: ref(null),
+    failedItems: ref([]),
+    sync: vi.fn(),
+    initialSync: vi.fn(),
+    getPending: vi.fn().mockResolvedValue([]),
+    init: vi.fn(),
+    destroyListeners: vi.fn(),
+    isOfflineError: vi.fn().mockReturnValue(false),
+    enqueue: vi.fn(),
+    dequeueByEntityId: vi.fn(),
+  }
+})
+
+vi.mock('../db/indexedDB.js', () => ({
+  default: {
+    syncQueue: {
+      where: vi.fn().mockReturnValue({ aboveOrEqual: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      bulkDelete: vi.fn(),
+    },
+  },
 }))
 
-const stubs = { SyncIndicator: true }
+const stubs = { SyncIndicator: true, SyncPanel: true }
 
 describe('AppHeader', () => {
   beforeEach(() => {

@@ -1,7 +1,9 @@
 import { ref, reactive, computed } from 'vue'
 import { defineStore } from 'pinia'
+import { v4 as uuidv4 } from 'uuid'
 import api from '../services/api'
 import db from '../db/indexedDB'
+import { enqueue, dequeueByEntityId, isOfflineError } from '../services/syncManager'
 
 export const useBreedingEventsStore = defineStore('breedingEvents', () => {
   const events = ref([])
@@ -79,42 +81,105 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
   // ── Create ───────────────────────────────────────────────────────────────────
 
   async function createEvent(payload) {
-    const { data } = await api.post('/breeding-events', payload)
-    events.value.unshift(data)
-    await db.breedingEvents.put(data)
-    // Refresh upcoming in background (don't block the UI)
-    fetchUpcoming().catch(() => {})
-    return data
+    const now = new Date().toISOString()
+    const localEvent = { id: uuidv4(), ...payload, updated_at: now, created_at: now }
+
+    await db.breedingEvents.put(localEvent)
+    await enqueue('breedingEvents', 'create', localEvent.id, localEvent)
+
+    try {
+      const { data } = await api.post('/breeding-events', payload)
+      await db.breedingEvents.put(data)
+      await dequeueByEntityId('breedingEvents', localEvent.id)
+      events.value.unshift(data)
+      fetchUpcoming().catch(() => {})
+      return data
+    } catch (err) {
+      if (isOfflineError(err)) {
+        events.value.unshift(localEvent)
+        return localEvent
+      }
+      await dequeueByEntityId('breedingEvents', localEvent.id)
+      await db.breedingEvents.delete(localEvent.id)
+      throw err
+    }
   }
 
   // ── Update ───────────────────────────────────────────────────────────────────
 
   async function updateEvent(id, payload) {
-    const { data } = await api.patch(`/breeding-events/${id}`, payload)
-    const idx = events.value.findIndex((e) => e.id === id)
-    if (idx !== -1) events.value[idx] = data
-    await db.breedingEvents.put(data)
-    fetchUpcoming().catch(() => {})
-    return data
+    const now = new Date().toISOString()
+    const existing = await db.breedingEvents.get(id)
+    const localEvent = { ...existing, ...payload, id, updated_at: now }
+
+    await db.breedingEvents.put(localEvent)
+    await enqueue('breedingEvents', 'update', id, localEvent)
+
+    try {
+      const { data } = await api.patch(`/breeding-events/${id}`, payload)
+      await db.breedingEvents.put(data)
+      await dequeueByEntityId('breedingEvents', id)
+      const idx = events.value.findIndex((e) => e.id === id)
+      if (idx !== -1) events.value[idx] = data
+      fetchUpcoming().catch(() => {})
+      return data
+    } catch (err) {
+      if (isOfflineError(err)) {
+        const idx = events.value.findIndex((e) => e.id === id)
+        if (idx !== -1) events.value[idx] = localEvent
+        return localEvent
+      }
+      await dequeueByEntityId('breedingEvents', id)
+      throw err
+    }
   }
 
   // ── Dismiss ─────────────────────────────────────────────────────────────────
 
   async function dismissEvent(id, reason = '') {
-    const { data } = await api.patch(`/breeding-events/${id}/dismiss`, { reason })
-    const idx = events.value.findIndex((e) => e.id === id)
-    if (idx !== -1) events.value[idx] = data
-    await db.breedingEvents.put(data)
-    fetchUpcoming().catch(() => {})
-    return data
+    const now = new Date().toISOString()
+    const existing = await db.breedingEvents.get(id)
+    const localEvent = { ...existing, id, dismissed_at: now, dismiss_reason: reason, updated_at: now }
+
+    await db.breedingEvents.put(localEvent)
+    await enqueue('breedingEvents', 'update', id, localEvent)
+
+    try {
+      const { data } = await api.patch(`/breeding-events/${id}/dismiss`, { reason })
+      await db.breedingEvents.put(data)
+      await dequeueByEntityId('breedingEvents', id)
+      const idx = events.value.findIndex((e) => e.id === id)
+      if (idx !== -1) events.value[idx] = data
+      fetchUpcoming().catch(() => {})
+      return data
+    } catch (err) {
+      if (isOfflineError(err)) {
+        const idx = events.value.findIndex((e) => e.id === id)
+        if (idx !== -1) events.value[idx] = localEvent
+        return localEvent
+      }
+      await dequeueByEntityId('breedingEvents', id)
+      throw err
+    }
   }
 
   // ── Delete ───────────────────────────────────────────────────────────────────
 
   async function deleteEvent(id) {
-    await api.delete(`/breeding-events/${id}`)
+    const backup = events.value.find((e) => e.id === id)
     events.value = events.value.filter((e) => e.id !== id)
-    await db.breedingEvents.delete(id)
+    await enqueue('breedingEvents', 'delete', id, { id })
+
+    try {
+      await api.delete(`/breeding-events/${id}`)
+      await db.breedingEvents.delete(id)
+      await dequeueByEntityId('breedingEvents', id)
+    } catch (err) {
+      if (isOfflineError(err)) return
+      if (backup) events.value.unshift(backup)
+      await dequeueByEntityId('breedingEvents', id)
+      throw err
+    }
   }
 
   // ── Computed ─────────────────────────────────────────────────────────────────

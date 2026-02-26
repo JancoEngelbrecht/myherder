@@ -32,7 +32,7 @@ Tests: `cd client && npm run test:run` (Vitest). Lint: `npm run lint` / `npm run
 
 **Offline/PWA:** `vite-plugin-pwa` with NetworkFirst strategy for `/api` routes (10s timeout). Dexie.js IndexedDB (`myherder_db`) stores `cows` and `auth` tables. The cows Pinia store falls back to IndexedDB when API calls fail.
 
-**Auth:** Two login modes — admin password (`POST /api/auth/login`, 24h JWT) and worker PIN (`POST /api/auth/login-pin`, 7d JWT). JWT payload includes `{ id, username, full_name, role, permissions[], language }`. Admin role bypasses permission checks; workers need specific permissions (e.g., `can_manage_cows`). Token stored in both localStorage and IndexedDB.
+**Auth:** Two login modes — admin password (`POST /api/auth/login`, 24h JWT) and worker PIN (`POST /api/auth/login-pin`, 7d JWT). `POST /api/auth/refresh` renews a valid JWT (auto-called when <1h from expiry). Offline login falls back to cached JWT in IndexedDB if not expired. JWT payload includes `{ id, username, full_name, role, permissions[], language }`. Admin role bypasses permission checks; workers need specific permissions (e.g., `can_manage_cows`). Token stored in both localStorage and IndexedDB.
 
 ## API Conventions
 
@@ -53,6 +53,9 @@ Tests: `cd client && npm run test:run` (Vitest). Lint: `npm run lint` / `npm run
 - `GET/POST /api/breeding-events`, `PATCH /:id` (admin), `PATCH /:id/dismiss` (any user), `DELETE /:id` (admin)
 - `GET /api/breeding-events/upcoming` returns `{ heats, calvings, pregChecks, dryOffs, needsAttention }` — excludes dismissed events
 - Breeding auto-dates use breed-specific timings from `breed_types` table (gestation, heat cycle, preg check, dry-off days)
+- `GET /api/sync/health` — no auth, returns `{ ok, timestamp }` (connectivity check)
+- `POST /api/sync/push` — batch push client changes; body `{ deviceId, changes: [{ entityType, action, id, data, updatedAt }] }`; returns `{ results: [{ id, entityType, status, serverData?, error? }] }`; LWW conflict resolution
+- `GET /api/sync/pull?since=<ISO>&full=1` — pull server data; returns `{ cows, medications, treatments, healthIssues, milkRecords, breedingEvents, breedTypes, issueTypes, deleted, syncedAt }`
 
 ## i18n
 
@@ -94,7 +97,16 @@ CSS custom properties defined in `client/src/style.css`:
 
 ## Project Phases
 
-Master plan in `dairy-farm-plan-final.md`. Breeding v2 plan in `breeding-v2-plan.md`. See `MEMORY.md` for current phase status — always check before starting work.
+Master plan in `PLAN.md`. Feature sub-plans in `plans/` folder. See `MEMORY.md` for current phase status — always check before starting work.
+
+### Sub-Plan Workflow
+When the user says "make this a feature sub-plan" (or similar):
+1. Create `plans/<feature-name>.md` with detailed implementation steps
+2. Add a `> Sub-plan: [plans/<feature-name>.md](plans/<feature-name>.md)` link under the relevant phase in `PLAN.md`
+3. Track sub-phase progress in `MEMORY.md` as work proceeds
+4. When complete, mark the sub-plan link in `PLAN.md` with `(COMPLETE)`
+
+Existing sub-plans: `plans/breeding-v2.md` (COMPLETE), `plans/offline-sync.md` (COMPLETE)
 
 ## Environment
 

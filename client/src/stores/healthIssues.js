@@ -1,7 +1,9 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
+import { v4 as uuidv4 } from 'uuid'
 import api from '../services/api'
 import db from '../db/indexedDB'
+import { enqueue, dequeueByEntityId, isOfflineError } from '../services/syncManager'
 
 export const useHealthIssuesStore = defineStore('healthIssues', () => {
   const issues = ref([])
@@ -54,24 +56,70 @@ export const useHealthIssuesStore = defineStore('healthIssues', () => {
   }
 
   async function create(data) {
-    const { data: created } = await api.post('/health-issues', data)
-    issues.value.unshift(created)
-    await db.healthIssues.put(created)
-    return created
+    const now = new Date().toISOString()
+    const localIssue = { id: uuidv4(), ...data, status: data.status || 'open', updated_at: now, created_at: now }
+
+    await db.healthIssues.put(localIssue)
+    await enqueue('healthIssues', 'create', localIssue.id, localIssue)
+
+    try {
+      const { data: created } = await api.post('/health-issues', data)
+      await db.healthIssues.put(created)
+      await dequeueByEntityId('healthIssues', localIssue.id)
+      issues.value.unshift(created)
+      return created
+    } catch (err) {
+      if (isOfflineError(err)) {
+        issues.value.unshift(localIssue)
+        return localIssue
+      }
+      await dequeueByEntityId('healthIssues', localIssue.id)
+      await db.healthIssues.delete(localIssue.id)
+      throw err
+    }
   }
 
   async function updateStatus(id, status) {
-    const { data: updated } = await api.patch(`/health-issues/${id}/status`, { status })
-    const idx = issues.value.findIndex((i) => i.id === id)
-    if (idx >= 0) issues.value[idx] = updated
-    await db.healthIssues.put(updated)
-    return updated
+    const now = new Date().toISOString()
+    const existing = await db.healthIssues.get(id)
+    const localIssue = { ...existing, id, status, updated_at: now }
+
+    await db.healthIssues.put(localIssue)
+    await enqueue('healthIssues', 'update', id, localIssue)
+
+    try {
+      const { data: updated } = await api.patch(`/health-issues/${id}/status`, { status })
+      await db.healthIssues.put(updated)
+      await dequeueByEntityId('healthIssues', id)
+      const idx = issues.value.findIndex((i) => i.id === id)
+      if (idx >= 0) issues.value[idx] = updated
+      return updated
+    } catch (err) {
+      if (isOfflineError(err)) {
+        const idx = issues.value.findIndex((i) => i.id === id)
+        if (idx >= 0) issues.value[idx] = localIssue
+        return localIssue
+      }
+      await dequeueByEntityId('healthIssues', id)
+      throw err
+    }
   }
 
   async function remove(id) {
-    await api.delete(`/health-issues/${id}`)
+    const backup = issues.value.find((i) => i.id === id)
     issues.value = issues.value.filter((i) => i.id !== id)
-    await db.healthIssues.delete(id)
+    await enqueue('healthIssues', 'delete', id, { id })
+
+    try {
+      await api.delete(`/health-issues/${id}`)
+      await db.healthIssues.delete(id)
+      await dequeueByEntityId('healthIssues', id)
+    } catch (err) {
+      if (isOfflineError(err)) return
+      if (backup) issues.value.unshift(backup)
+      await dequeueByEntityId('healthIssues', id)
+      throw err
+    }
   }
 
   function getCowIssues(cowId) {

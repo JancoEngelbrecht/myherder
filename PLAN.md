@@ -569,7 +569,7 @@ All reports filterable by date range, exportable as PDF and Excel:
 
 ## Phased Build Plan
 
-### Phase 1: Foundation (Backend Core + Auth + Cow Registry + Basic Analytics)
+### Phase 1: Foundation (Backend Core + Auth + Cow Registry + Basic Analytics) — COMPLETE
 **Goal:** Server runs, admin can log in, manage cows, see basic stats.
 
 | Step | Task | Details |
@@ -587,7 +587,7 @@ All reports filterable by date range, exportable as PDF and Excel:
 
 ---
 
-### Phase 2: Frontend Shell + Cow Registry UI
+### Phase 2: Frontend Shell + Cow Registry UI — COMPLETE
 **Goal:** Installable PWA where admin can log in, manage cows, see basic analytics.
 
 | Step | Task | Details |
@@ -610,7 +610,7 @@ All reports filterable by date range, exportable as PDF and Excel:
 
 ---
 
-### Phase 3: Medications + Treatments + Withdrawal Engine
+### Phase 3: Medications + Treatments + Withdrawal Engine — COMPLETE
 **Goal:** Core treatment workflow with automatic withdrawal calculations.
 
 | Step | Task | Details |
@@ -628,7 +628,7 @@ All reports filterable by date range, exportable as PDF and Excel:
 
 ---
 
-### Phase 4: Health Issue Logging (Quick Log)
+### Phase 4: Health Issue Logging (Quick Log) — COMPLETE
 **Goal:** Workers can log health issues in 10 seconds with big buttons.
 
 | Step | Task | Details |
@@ -647,7 +647,7 @@ All reports filterable by date range, exportable as PDF and Excel:
 
 ---
 
-### Phase 4B: Milk Production Recording
+### Phase 4B: Milk Production Recording — COMPLETE
 **Goal:** Workers record daily milk. Auto-saves. Withdrawal flash alerts.
 
 | Step | Task | Details |
@@ -663,8 +663,9 @@ All reports filterable by date range, exportable as PDF and Excel:
 
 ---
 
-### Phase 4C: Breeding & Reproduction Tracking
+### Phase 4C: Breeding & Reproduction Tracking — COMPLETE
 **Goal:** Track full reproductive lifecycle.
+> Sub-plan: [plans/breeding-v2.md](plans/breeding-v2.md) — Enhanced breeding with configurable breed types, life phases, dry-off management (COMPLETE)
 
 | Step | Task | Details |
 |------|------|---------|
@@ -682,8 +683,9 @@ All reports filterable by date range, exportable as PDF and Excel:
 
 ---
 
-### Phase 5: Offline Sync Engine (Hardening)
+### Phase 5: Offline Sync Engine (Hardening) — COMPLETE
 **Goal:** Bulletproof offline. No data loss ever.
+> Sub-plan: [plans/offline-sync.md](plans/offline-sync.md) — Full sync engine implementation (COMPLETE)
 
 | Step | Task | Details |
 |------|------|---------|
@@ -700,7 +702,7 @@ All reports filterable by date range, exportable as PDF and Excel:
 
 ---
 
-### Phase 6: Full Analytics + Dashboard + Reports
+### Phase 6: Full Analytics + Dashboard + Reports — NOT STARTED
 **Goal:** Complete analytics, enhanced dashboard, audit-ready exports.
 
 | Step | Task | Details |
@@ -720,7 +722,7 @@ All reports filterable by date range, exportable as PDF and Excel:
 
 ---
 
-### Phase 7: Admin Settings + User Management
+### Phase 7: Admin Settings + User Management — NOT STARTED
 **Goal:** Father controls users, permissions, settings.
 
 | Step | Task | Details |

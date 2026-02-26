@@ -91,3 +91,52 @@ const service = new UserService(mockHttp);
 - Aim for high coverage on business logic (80%+)
 - Don't chase 100% — diminishing returns on boilerplate/config code
 - Coverage is a signal, not a target — 100% coverage with bad assertions is worthless
+
+## MyHerder-Specific Test Patterns
+
+### Two Testing Strategies
+
+**Integration tests (real IndexedDB)** — for sync/offline-critical code:
+```js
+import 'fake-indexeddb/auto'  // MUST be first import
+// Import real db, real syncManager — only mock api.js
+```
+- Use for: syncManager, store offline-first flows, sync store actions
+- `beforeEach`: clear all tables, reset reactive refs (`isOnline`, `pendingCount`, etc.)
+- `afterEach`: call `destroyListeners()` to prevent interval/listener leaks
+- Reference files: `syncManager.test.js`, `cows.store.test.js`, `sync.store.test.js`
+
+**Unit tests (mocked IndexedDB)** — for store CRUD logic:
+```js
+vi.mock('../db/indexedDB.js', () => ({ default: { tableName: { bulkPut: vi.fn(), put: vi.fn(), ... } } }))
+vi.mock('../services/syncManager', () => ({ enqueue: vi.fn(), dequeueByEntityId: vi.fn(), isOfflineError: vi.fn().mockReturnValue(false) }))
+```
+- Use for: store fetch/create/update/delete when not testing sync integration
+- Reference files: `healthIssues.store.test.js`, `milkRecords.store.test.js`
+
+### Common Setup Patterns
+
+```js
+// Mock navigator.onLine (for offline tests)
+let _onLine = true
+Object.defineProperty(navigator, 'onLine', { get: () => _onLine, configurable: true })
+
+// Clear all IndexedDB tables
+async function clearAllTables() {
+  for (const t of db.tables.map(t => t.name)) {
+    await db.table(t).clear()
+  }
+}
+```
+
+### When to Use Which Strategy
+- **Sync queue correctness, push/pull flows, conflict resolution** → integration (real IndexedDB)
+- **Store CRUD happy paths, loading states, error messages** → unit (mocked)
+- **Computed properties, pure functions** → unit (no mocks needed)
+- **Component rendering, CSS classes** → mount with mocked stores
+
+### Gotchas
+- `vi.mock()` factories are hoisted — use `require('vue')` not `import` inside factory
+- Dexie compound index warnings on syncQueue are cosmetic — safe to ignore
+- Always `destroyListeners()` in afterEach when importing syncManager to prevent interval leaks
+- Component tests use stub i18n with empty messages — "Not found" key warnings are harmless

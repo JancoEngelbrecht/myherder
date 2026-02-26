@@ -118,4 +118,36 @@ router.post('/login-pin', loginLimiter, async (req, res, next) => {
   }
 });
 
+// POST /api/auth/refresh — refresh JWT using current valid token
+router.post('/refresh', async (req, res, next) => {
+  try {
+    const header = req.headers.authorization;
+    if (!header || !header.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(header.slice(7), jwtSecret);
+    } catch {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    // Fetch fresh user data
+    const user = await db('users').where({ id: decoded.id, is_active: true }).first();
+    if (!user) {
+      return res.status(401).json({ error: 'User not found or inactive' });
+    }
+
+    const userPayload = buildUserResponse(user);
+    // Determine original expiry type from token claims
+    const expiry = decoded.role === 'admin' ? jwtExpiryPassword : jwtExpiryPin;
+    const token = jwt.sign(userPayload, jwtSecret, { expiresIn: expiry });
+
+    res.json({ token, user: userPayload });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

@@ -1,6 +1,9 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
+import { v4 as uuidv4 } from 'uuid'
 import api from '../services/api'
+import db from '../db/indexedDB'
+import { enqueue, dequeueByEntityId, isOfflineError } from '../services/syncManager'
 
 // Last-resort fallback for offline first-load before any DB fetch succeeds.
 const FALLBACK = [
@@ -20,8 +23,10 @@ export const useBreedTypesStore = defineStore('breedTypes', () => {
     try {
       const { data } = await api.get('/breed-types?all=1')
       types.value = data
+      await db.breedTypes.bulkPut(data)
     } catch {
-      if (types.value.length === 0) types.value = [...FALLBACK]
+      const local = await db.breedTypes.toArray()
+      types.value = local.length ? local : [...FALLBACK]
     } finally {
       loading.value = false
     }
@@ -32,29 +37,80 @@ export const useBreedTypesStore = defineStore('breedTypes', () => {
     try {
       const { data } = await api.get('/breed-types')
       types.value = data
+      await db.breedTypes.bulkPut(data)
     } catch {
-      if (types.value.length === 0) types.value = [...FALLBACK]
+      const local = await db.breedTypes.toArray()
+      types.value = local.length ? local.filter((t) => t.is_active) : [...FALLBACK]
     } finally {
       loading.value = false
     }
   }
 
   async function create(payload) {
-    const { data } = await api.post('/breed-types', payload)
-    types.value.push(data)
-    return data
+    const now = new Date().toISOString()
+    const localType = { id: uuidv4(), ...payload, updated_at: now, created_at: now }
+
+    await db.breedTypes.put(localType)
+    await enqueue('breedTypes', 'create', localType.id, localType)
+
+    try {
+      const { data } = await api.post('/breed-types', payload)
+      await db.breedTypes.put(data)
+      await dequeueByEntityId('breedTypes', localType.id)
+      types.value.push(data)
+      return data
+    } catch (err) {
+      if (isOfflineError(err)) {
+        types.value.push(localType)
+        return localType
+      }
+      await dequeueByEntityId('breedTypes', localType.id)
+      await db.breedTypes.delete(localType.id)
+      throw err
+    }
   }
 
   async function update(id, payload) {
-    const { data } = await api.put(`/breed-types/${id}`, payload)
-    const idx = types.value.findIndex((t) => t.id === id)
-    if (idx !== -1) types.value[idx] = data
-    return data
+    const now = new Date().toISOString()
+    const existing = await db.breedTypes.get(id)
+    const localType = { ...existing, ...payload, id, updated_at: now }
+
+    await db.breedTypes.put(localType)
+    await enqueue('breedTypes', 'update', id, localType)
+
+    try {
+      const { data } = await api.put(`/breed-types/${id}`, payload)
+      await db.breedTypes.put(data)
+      await dequeueByEntityId('breedTypes', id)
+      const idx = types.value.findIndex((t) => t.id === id)
+      if (idx !== -1) types.value[idx] = data
+      return data
+    } catch (err) {
+      if (isOfflineError(err)) {
+        const idx = types.value.findIndex((t) => t.id === id)
+        if (idx !== -1) types.value[idx] = localType
+        return localType
+      }
+      await dequeueByEntityId('breedTypes', id)
+      throw err
+    }
   }
 
   async function remove(id) {
-    await api.delete(`/breed-types/${id}`)
+    const backup = types.value.find((t) => t.id === id)
     types.value = types.value.filter((t) => t.id !== id)
+    await enqueue('breedTypes', 'delete', id, { id })
+
+    try {
+      await api.delete(`/breed-types/${id}`)
+      await db.breedTypes.delete(id)
+      await dequeueByEntityId('breedTypes', id)
+    } catch (err) {
+      if (isOfflineError(err)) return
+      if (backup) types.value.push(backup)
+      await dequeueByEntityId('breedTypes', id)
+      throw err
+    }
   }
 
   const activeTypes = computed(() =>

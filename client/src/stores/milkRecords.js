@@ -1,7 +1,9 @@
 import { ref, reactive } from 'vue'
 import { defineStore } from 'pinia'
+import { v4 as uuidv4 } from 'uuid'
 import api from '../services/api'
 import db from '../db/indexedDB'
+import { enqueue, dequeueByEntityId, isOfflineError } from '../services/syncManager'
 
 const DEBOUNCE_MS = 1500
 
@@ -121,10 +123,22 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
 
   async function _persist(cowId, litres, session, date, discarded, discardReason, sessionTime, existingId = null) {
     const effectiveTime = sessionTime || new Date().toTimeString().slice(0, 5)
+    const now = new Date().toISOString()
     const payload = {
       litres: Math.round(Number(litres) * 100) / 100,
       milk_discarded: discarded,
       discard_reason: discardReason || null,
+    }
+
+    // Build local record for IndexedDB + queue
+    const localRecord = {
+      id: existingId || uuidv4(),
+      cow_id: cowId,
+      session,
+      recording_date: date,
+      session_time: effectiveTime,
+      ...payload,
+      updated_at: now,
     }
 
     try {
@@ -151,6 +165,7 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
         syncStatus[cowId] = 'idle'
       }
       await db.milkRecords.put(result)
+      await dequeueByEntityId('milkRecords', localRecord.id)
     } catch (err) {
       // Handle 409 Conflict (record created on another device) — fetch and update instead
       if (err.response?.status === 409 && err.response?.data?.id) {
@@ -165,9 +180,21 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
           await db.milkRecords.put(data)
           return
         } catch {
-          // fall through to error state
+          // fall through to offline queue
         }
       }
+
+      // Offline: save locally and enqueue for later sync
+      if (isOfflineError(err)) {
+        await db.milkRecords.put(localRecord)
+        await enqueue('milkRecords', existingId ? 'update' : 'create', localRecord.id, localRecord)
+        if (session === currentSession.value && date === currentDate.value) {
+          records[cowId] = localRecord
+          syncStatus[cowId] = 'saved'
+        }
+        return
+      }
+
       syncStatus[cowId] = 'error'
       error.value = err.message
     }

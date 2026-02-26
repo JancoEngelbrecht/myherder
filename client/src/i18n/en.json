@@ -104,6 +104,10 @@
     "isDry": "Currently Dry",
     "fromCalvingBanner": "Registering calf from calving event. All fields can be changed."
   },
+  "cowCard": {
+    "external": "External",
+    "aiSemen": "AI Semen"
+  },
   "cowDetail": {
     "info": "Information",
     "breed": "Breed",
@@ -245,7 +249,34 @@
   "sync": {
     "synced": "Synced",
     "syncing": "Syncing...",
-    "offline": "Offline"
+    "offline": "Offline",
+    "offlinePending": "Offline ({count} pending)",
+    "pendingCount": "Pending ({count})",
+    "panelTitle": "Sync Status",
+    "lastSync": "Last sync",
+    "neverSynced": "Never synced",
+    "pendingItems": "Pending Items",
+    "failedItems": "Failed Items",
+    "more": "more",
+    "syncNow": "Sync Now",
+    "retryFailed": "Retry Failed",
+    "clearFailed": "Clear Failed",
+    "staleWarning": "Data may be outdated — connect to sync",
+    "queueOverflow": "Many changes pending — connect to sync soon",
+    "offlineMode": "Offline Mode",
+    "offlineBanner": "You are working offline. Changes will sync when connected.",
+    "cacheReset": "Local cache was reset. Your data will re-sync from the server.",
+    "cannotLogin": "Cannot log in — no connection available",
+    "entity": {
+      "cows": "Cows",
+      "medications": "Medications",
+      "treatments": "Treatments",
+      "healthIssues": "Health Issues",
+      "milkRecords": "Milk Records",
+      "breedingEvents": "Breeding Events",
+      "breedTypes": "Breed Types",
+      "issueTypes": "Issue Types"
+    }
   },
   "treatmentDetail": {
     "title": "Treatment",
@@ -425,6 +456,16 @@
       "reject": "Not Yet",
       "prompt": "Transition {tag} to dry status?",
       "accepted": "Dry-off recorded"
+    },
+    "eventTypes": {
+      "heat_observed": "Heat Observed",
+      "ai_insemination": "AI Insemination",
+      "bull_service": "Bull Service",
+      "preg_check_positive": "Preg Check +",
+      "preg_check_negative": "Preg Check -",
+      "calving": "Calving",
+      "abortion": "Abortion",
+      "dry_off": "Dry Off"
     }
   },
   "placeholder": {
@@ -436,8 +477,12 @@
     "adminTools": "Admin Tools",
     "medicationsDesc": "Manage medications and withdrawal periods",
     "issueTypesDesc": "Configure health issue types and categories",
-    "breedingEventTypesDesc": "Customise breeding event type names and icons",
-    "breedTypesDesc": "Manage breed types and their timing defaults"
+"breedTypesDesc": "Manage breed types and their timing defaults",
+    "dataSync": "Data Sync",
+    "forceSync": "Force Full Sync",
+    "forceSyncDesc": "Re-download all data from the server",
+    "syncingNow": "Syncing data...",
+    "lastSync": "Last sync"
   },
   "breedTypes": {
     "title": "Breed Types",
@@ -458,14 +503,5 @@
     "deleteConfirm": "Delete this breed type? This cannot be undone.",
     "deleteBlocked": "Cannot delete: this breed is assigned to {count} cow(s).",
     "timingDefaults": "Timing & Phase Defaults"
-  },
-  "breedingEventTypes": {
-    "title": "Breeding Event Types",
-    "editTitle": "Edit Event Type",
-    "name": "Name",
-    "namePlaceholder": "e.g. Heat Observed",
-    "emoji": "Icon",
-    "code": "Code (immutable)",
-    "sortOrder": "Sort Order"
   }
 }

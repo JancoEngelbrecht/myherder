@@ -283,10 +283,10 @@ async function handleSubmit() {
   try {
     if (isEdit.value) {
       await cowsStore.update(route.params.id, payload)
-      router.push(`/cows/${route.params.id}`)
+      router.replace(`/cows/${route.params.id}`)
     } else {
       const cow = await cowsStore.create(payload)
-      router.push(`/cows/${cow.id}`)
+      router.replace(`/cows/${cow.id}`)
     }
   } catch (err) {
     apiError.value = err.response?.data?.error || t('common.error')

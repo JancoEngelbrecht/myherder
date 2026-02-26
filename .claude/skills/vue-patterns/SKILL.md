@@ -153,6 +153,22 @@ Rules:
 - Organize keys by feature: `feature.section.label`
 - Keep translation files flat within each feature namespace
 
+## Post-Save Navigation
+
+After a successful save (create or edit), use `router.replace()` instead of `router.push()` to navigate away from the form. This replaces the form's history entry so the browser back button skips the form and goes to the previous meaningful page (e.g., the list or detail view).
+
+```typescript
+// WRONG — back button reopens the form
+await store.update(id, payload)
+router.push(`/items/${id}`)
+
+// RIGHT — back button skips past the form
+await store.update(id, payload)
+router.replace(`/items/${id}`)
+```
+
+Apply this to ALL form views (create, edit, log entry). Cancel actions can still use `router.push()` or `router.back()` since no state changed.
+
 ## Common Pitfalls
 
 - **Mutating props** — Always emit events, never modify props directly

@@ -104,6 +104,10 @@
     "isDry": "Tans Droog",
     "fromCalvingBanner": "Registreer kalf van kalfgeboorte. Alle velde kan gewysig word."
   },
+  "cowCard": {
+    "external": "Ekstern",
+    "aiSemen": "KI Saad"
+  },
   "cowDetail": {
     "info": "Inligting",
     "breed": "Ras",
@@ -245,7 +249,34 @@
   "sync": {
     "synced": "Gesinkroniseer",
     "syncing": "Sinkroniseer...",
-    "offline": "Vanlyn"
+    "offline": "Vanlyn",
+    "offlinePending": "Vanlyn ({count} hangend)",
+    "pendingCount": "Hangend ({count})",
+    "panelTitle": "Sinkronisasie Status",
+    "lastSync": "Laaste sinkronisasie",
+    "neverSynced": "Nog nooit gesinkroniseer",
+    "pendingItems": "Hangende Items",
+    "failedItems": "Mislukte Items",
+    "more": "meer",
+    "syncNow": "Sinkroniseer Nou",
+    "retryFailed": "Herprobeer Mislukte",
+    "clearFailed": "Verwyder Mislukte",
+    "staleWarning": "Data kan verouderd wees — koppel om te sinkroniseer",
+    "queueOverflow": "Baie veranderinge hangend — koppel binnekort om te sinkroniseer",
+    "offlineMode": "Vanlyn Modus",
+    "offlineBanner": "Jy werk vanlyn. Veranderinge sal sinkroniseer wanneer gekoppel.",
+    "cacheReset": "Plaaslike kas is teruggestel. Jou data sal hersinkroniseer vanaf die bediener.",
+    "cannotLogin": "Kan nie aanmeld nie — geen verbinding beskikbaar",
+    "entity": {
+      "cows": "Koeie",
+      "medications": "Medikasie",
+      "treatments": "Behandelings",
+      "healthIssues": "Gesondheidsprobleme",
+      "milkRecords": "Melkrekords",
+      "breedingEvents": "Teelgebeurtenisse",
+      "breedTypes": "Rastipes",
+      "issueTypes": "Probleemtipes"
+    }
   },
   "treatmentDetail": {
     "title": "Behandeling",
@@ -425,6 +456,16 @@
       "reject": "Nog Nie",
       "prompt": "Skakel {tag} na droogstatus oor?",
       "accepted": "Droogmaak aangeteken"
+    },
+    "eventTypes": {
+      "heat_observed": "Hits Waargeneem",
+      "ai_insemination": "KI Inseminasie",
+      "bull_service": "Buldiens",
+      "preg_check_positive": "Dragtigheidstoets +",
+      "preg_check_negative": "Dragtigheidstoets -",
+      "calving": "Kalwing",
+      "abortion": "Aborsie",
+      "dry_off": "Droogmaak"
     }
   },
   "placeholder": {
@@ -436,8 +477,12 @@
     "adminTools": "Admin Hulpmiddels",
     "medicationsDesc": "Bestuur medikasie en onttrekkingstydperke",
     "issueTypesDesc": "Stel gesondheidsprobleem tipes en kategorieë op",
-    "breedingEventTypesDesc": "Pas teelt geleentheid tipe name en ikone aan",
-    "breedTypesDesc": "Bestuur rastipes en hul tydsberekenings"
+"breedTypesDesc": "Bestuur rastipes en hul tydsberekenings",
+    "dataSync": "Data Sinkronisasie",
+    "forceSync": "Forseer Volle Sinkronisasie",
+    "forceSyncDesc": "Herlaai alle data van die bediener af",
+    "syncingNow": "Sinkroniseer data...",
+    "lastSync": "Laaste sinkronisasie"
   },
   "breedTypes": {
     "title": "Rastipes",
@@ -458,14 +503,5 @@
     "deleteConfirm": "Verwyder hierdie rastipe? Dit kan nie ongedaan gemaak word nie.",
     "deleteBlocked": "Kan nie verwyder nie: hierdie ras is aan {count} koei(e) toegewys.",
     "timingDefaults": "Tydsberekening & Fase Verstek"
-  },
-  "breedingEventTypes": {
-    "title": "Teelt Geleentheid Tipes",
-    "editTitle": "Wysig Geleentheid Tipe",
-    "name": "Naam",
-    "namePlaceholder": "bv. Hits Waargeneem",
-    "emoji": "Ikoon",
-    "code": "Kode (onveranderlik)",
-    "sortOrder": "Sorteer Volgorde"
   }
 }

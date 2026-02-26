@@ -150,6 +150,7 @@ function setLocale(lang) {
 }
 
 function getErrorMessage(err) {
+  if (err.message === 'offline-no-session') return t('sync.cannotLogin')
   const status = err.response?.status
   if (status === 423) return t('login.errorLocked')
   if (status === 401 || status === 400) return t('login.errorInvalid')

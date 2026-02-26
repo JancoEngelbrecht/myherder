@@ -29,8 +29,8 @@ app.use('/api/health-issues', require('./routes/healthIssues'))
 app.use('/api/issue-types', require('./routes/issueTypes'))
 app.use('/api/milk-records', require('./routes/milkRecords'))
 app.use('/api/breeding-events', require('./routes/breedingEvents'))
-
 app.use('/api/breed-types', require('./routes/breedTypes'))
+app.use('/api/sync', require('./routes/sync'))
 
 // Serve Vue SPA in production (no-op in test/development since client/dist may not exist)
 const clientDist = path.join(__dirname, '../client/dist')

@@ -24,7 +24,7 @@
             <span class="settings-arrow">›</span>
           </RouterLink>
 
-<RouterLink to="/admin/breed-types" class="settings-item">
+          <RouterLink to="/admin/breed-types" class="settings-item">
             <span class="settings-icon">🐄</span>
             <div class="settings-info">
               <span class="settings-name">{{ t('breedTypes.title') }}</span>
@@ -34,15 +34,51 @@
           </RouterLink>
         </div>
       </section>
+
+      <section class="section">
+        <h2 class="section-label">{{ t('settings.dataSync') }}</h2>
+        <div class="settings-list">
+          <button class="settings-item" :disabled="syncing" @click="forceSync">
+            <span class="settings-icon">{{ syncing ? '' : '' }}</span>
+            <div class="settings-info">
+              <span class="settings-name">{{ t('settings.forceSync') }}</span>
+              <span class="settings-desc">
+                {{ syncing ? t('settings.syncingNow') : t('settings.forceSyncDesc') }}
+              </span>
+              <span v-if="syncLastTime" class="settings-desc">
+                {{ t('settings.lastSync') }}: {{ formatSyncTime(syncLastTime) }}
+              </span>
+            </div>
+          </button>
+        </div>
+      </section>
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppHeader from '../../components/organisms/AppHeader.vue'
+import { initialSync, lastSyncTime as syncLastTime } from '../../services/syncManager.js'
 
 const { t } = useI18n()
+const syncing = ref(false)
+
+async function forceSync() {
+  syncing.value = true
+  try {
+    await initialSync(true)
+  } finally {
+    syncing.value = false
+  }
+}
+
+function formatSyncTime(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return d.toLocaleString()
+}
 </script>
 
 <style scoped>

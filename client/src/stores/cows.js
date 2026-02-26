@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { v4 as uuidv4 } from 'uuid'
 import api from '../services/api.js'
-import * as sync from '../services/syncManager.js'
+import db from '../db/indexedDB.js'
+import { enqueue, dequeueByEntityId, isOfflineError } from '../services/syncManager.js'
 
 /**
  * Compute life phase from age + sex, with optional breed-specific thresholds.
@@ -58,11 +60,9 @@ export const useCowsStore = defineStore('cows', () => {
   const total = ref(0)
   const loading = ref(false)
   const error = ref(null)
-  const syncStatus = ref('synced') // 'synced' | 'syncing' | 'offline'
 
   async function fetchAll(params = {}) {
     loading.value = true
-    syncStatus.value = 'syncing'
     error.value = null
     try {
       if (Object.keys(params).length > 0) {
@@ -72,17 +72,16 @@ export const useCowsStore = defineStore('cows', () => {
         total.value = parseInt(response.headers['x-total-count'], 10) || 0
       } else {
         // Full fetch — mirror to IndexedDB
-        cows.value = await sync.pullCows()
+        const { data } = await api.get('/cows')
+        await db.cows.bulkPut(data)
+        cows.value = data
       }
-      syncStatus.value = 'synced'
     } catch (err) {
-      if (sync.isOfflineError(err)) {
-        const local = await sync.getLocalCows()
+      if (isOfflineError(err)) {
+        const local = await db.cows.toArray()
         cows.value = local
-        syncStatus.value = 'offline'
       } else {
         error.value = err.response?.data?.error || 'Failed to load cows'
-        syncStatus.value = 'offline'
       }
     } finally {
       loading.value = false
@@ -91,36 +90,82 @@ export const useCowsStore = defineStore('cows', () => {
 
   async function fetchOne(id) {
     try {
-      return await sync.pullOneCow(id)
+      const { data: cow } = await api.get(`/cows/${id}`)
+      await db.cows.put(cow)
+      return cow
     } catch (err) {
-      const local = await sync.getLocalCow(id)
+      const local = await db.cows.get(id)
       if (local) return local
       throw err
     }
   }
 
   async function create(data) {
-    const response = await api.post('/cows', data)
-    const cow = response.data
-    cows.value.unshift(cow)
-    await sync.saveCowLocally(cow)
-    return cow
+    const now = new Date().toISOString()
+    const localCow = { id: uuidv4(), ...data, updated_at: now, created_at: now }
+
+    await db.cows.put(localCow)
+    await enqueue('cows', 'create', localCow.id, localCow)
+
+    try {
+      const { data: serverCow } = await api.post('/cows', data)
+      await db.cows.put(serverCow)
+      await dequeueByEntityId('cows', localCow.id)
+      cows.value.unshift(serverCow)
+      return serverCow
+    } catch (err) {
+      if (isOfflineError(err)) {
+        cows.value.unshift(localCow)
+        return localCow
+      }
+      await dequeueByEntityId('cows', localCow.id)
+      await db.cows.delete(localCow.id)
+      throw err
+    }
   }
 
   async function update(id, data) {
-    const response = await api.put(`/cows/${id}`, data)
-    const cow = response.data
-    const idx = cows.value.findIndex(c => c.id === String(id))
-    if (idx !== -1) cows.value[idx] = cow
-    await sync.saveCowLocally(cow)
-    return cow
+    const now = new Date().toISOString()
+    const existing = await db.cows.get(id)
+    const localCow = { ...existing, ...data, id, updated_at: now }
+
+    await db.cows.put(localCow)
+    await enqueue('cows', 'update', id, localCow)
+
+    try {
+      const { data: serverCow } = await api.put(`/cows/${id}`, data)
+      await db.cows.put(serverCow)
+      await dequeueByEntityId('cows', id)
+      const idx = cows.value.findIndex((c) => c.id === String(id))
+      if (idx !== -1) cows.value[idx] = serverCow
+      return serverCow
+    } catch (err) {
+      if (isOfflineError(err)) {
+        const idx = cows.value.findIndex((c) => c.id === String(id))
+        if (idx !== -1) cows.value[idx] = localCow
+        return localCow
+      }
+      await dequeueByEntityId('cows', id)
+      throw err
+    }
   }
 
   async function remove(id) {
-    await api.delete(`/cows/${id}`)
-    cows.value = cows.value.filter(c => c.id !== id)
-    await sync.removeCowLocally(id)
+    const backup = cows.value.find((c) => c.id === id)
+    cows.value = cows.value.filter((c) => c.id !== id)
+    await enqueue('cows', 'delete', id, { id })
+
+    try {
+      await api.delete(`/cows/${id}`)
+      await db.cows.delete(id)
+      await dequeueByEntityId('cows', id)
+    } catch (err) {
+      if (isOfflineError(err)) return
+      if (backup) cows.value.unshift(backup)
+      await dequeueByEntityId('cows', id)
+      throw err
+    }
   }
 
-  return { cows, total, loading, error, syncStatus, fetchAll, fetchOne, create, update, remove }
+  return { cows, total, loading, error, fetchAll, fetchOne, create, update, remove }
 })

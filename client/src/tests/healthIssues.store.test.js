@@ -16,10 +16,17 @@ vi.mock('../db/indexedDB.js', () => ({
     healthIssues: {
       bulkPut: vi.fn().mockResolvedValue(undefined),
       put: vi.fn().mockResolvedValue(undefined),
+      get: vi.fn().mockResolvedValue(undefined),
       delete: vi.fn().mockResolvedValue(undefined),
       where: vi.fn(() => ({ equals: vi.fn(() => ({ toArray: vi.fn().mockResolvedValue([]) })) })),
     },
   },
+}))
+
+vi.mock('../services/syncManager', () => ({
+  enqueue: vi.fn().mockResolvedValue(undefined),
+  dequeueByEntityId: vi.fn().mockResolvedValue(undefined),
+  isOfflineError: vi.fn().mockReturnValue(false),
 }))
 
 // setup.js creates a fresh Pinia before each test

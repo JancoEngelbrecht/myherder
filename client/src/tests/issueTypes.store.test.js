@@ -11,6 +11,24 @@ vi.mock('../services/api.js', () => ({
   },
 }))
 
+vi.mock('../db/indexedDB.js', () => ({
+  default: {
+    issueTypes: {
+      bulkPut: vi.fn().mockResolvedValue(undefined),
+      put: vi.fn().mockResolvedValue(undefined),
+      get: vi.fn().mockResolvedValue(undefined),
+      delete: vi.fn().mockResolvedValue(undefined),
+      toArray: vi.fn().mockResolvedValue([]),
+    },
+  },
+}))
+
+vi.mock('../services/syncManager', () => ({
+  enqueue: vi.fn().mockResolvedValue(undefined),
+  dequeueByEntityId: vi.fn().mockResolvedValue(undefined),
+  isOfflineError: vi.fn().mockReturnValue(false),
+}))
+
 // setup.js creates a fresh Pinia before each test
 
 describe('useIssueTypesStore', () => {

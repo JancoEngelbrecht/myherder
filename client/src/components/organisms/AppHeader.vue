@@ -13,7 +13,8 @@
     <div class="header-right">
       <slot name="right">
         <div class="header-actions">
-          <SyncIndicator />
+          <SyncIndicator @click="showSyncPanel = true" />
+          <SyncPanel :show="showSyncPanel" @close="showSyncPanel = false" />
           <button class="lang-toggle" :title="locale === 'en' ? 'Switch to Afrikaans' : 'Switch to English'" @click="toggleLang">
             {{ locale === 'en' ? 'AF' : 'EN' }}
           </button>
@@ -27,9 +28,13 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import SyncIndicator from '../atoms/SyncIndicator.vue'
+import SyncPanel from '../molecules/SyncPanel.vue'
+
+const showSyncPanel = ref(false)
 
 const props = defineProps({
   title: { type: String, default: 'MyHerder' },

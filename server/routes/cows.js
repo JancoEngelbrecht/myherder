@@ -50,31 +50,34 @@ async function findCowOrFail(id) {
 // GET /api/cows
 router.get('/', async (req, res, next) => {
   try {
-    const query = db('cows').whereNull('deleted_at');
+    const query = db('cows as c')
+      .leftJoin('breed_types as bt', 'c.breed_type_id', 'bt.id')
+      .select('c.*', 'bt.name as breed_type_name', 'bt.code as breed_type_code')
+      .whereNull('c.deleted_at');
 
     // Search with input length guard
     if (req.query.search) {
       const search = String(req.query.search).slice(0, MAX_SEARCH_LENGTH);
       const s = `%${search}%`;
       query.where(function () {
-        this.where('tag_number', 'like', s).orWhere('name', 'like', s);
+        this.where('c.tag_number', 'like', s).orWhere('c.name', 'like', s);
       });
     }
 
     if (req.query.status) {
-      query.where('status', req.query.status);
+      query.where('c.status', req.query.status);
     }
 
     if (req.query.sex) {
-      query.where('sex', req.query.sex);
+      query.where('c.sex', req.query.sex);
     }
 
     if (req.query.breed_type_id) {
-      query.where('breed_type_id', req.query.breed_type_id);
+      query.where('c.breed_type_id', req.query.breed_type_id);
     }
 
     if (req.query.is_dry !== undefined) {
-      query.where('is_dry', req.query.is_dry === 'true' || req.query.is_dry === '1');
+      query.where('c.is_dry', req.query.is_dry === 'true' || req.query.is_dry === '1');
     }
 
     // Pagination
@@ -82,8 +85,8 @@ router.get('/', async (req, res, next) => {
     const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, parseInt(String(req.query.limit), 10) || DEFAULT_PAGE_SIZE));
     const offset = (page - 1) * limit;
 
-    const [{ count: total }] = await query.clone().count('* as count');
-    const cows = await query.orderBy('tag_number').limit(limit).offset(offset);
+    const [{ count: total }] = await query.clone().clearSelect().count('* as count');
+    const cows = await query.orderBy('c.tag_number').limit(limit).offset(offset);
 
     res.set('X-Total-Count', String(total));
     res.json(cows);

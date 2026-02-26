@@ -1,7 +1,9 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
+import { v4 as uuidv4 } from 'uuid'
 import api from '../services/api'
 import db from '../db/indexedDB'
+import { enqueue, dequeueByEntityId, isOfflineError } from '../services/syncManager'
 
 export const useMedicationsStore = defineStore('medications', () => {
   const medications = ref([])
@@ -28,18 +30,53 @@ export const useMedicationsStore = defineStore('medications', () => {
   }
 
   async function create(data) {
-    const { data: created } = await api.post('/medications', data)
-    medications.value.push(created)
-    await db.medications.put(created)
-    return created
+    const now = new Date().toISOString()
+    const localMed = { id: uuidv4(), ...data, updated_at: now, created_at: now }
+
+    await db.medications.put(localMed)
+    await enqueue('medications', 'create', localMed.id, localMed)
+
+    try {
+      const { data: created } = await api.post('/medications', data)
+      await db.medications.put(created)
+      await dequeueByEntityId('medications', localMed.id)
+      medications.value.push(created)
+      return created
+    } catch (err) {
+      if (isOfflineError(err)) {
+        medications.value.push(localMed)
+        return localMed
+      }
+      await dequeueByEntityId('medications', localMed.id)
+      await db.medications.delete(localMed.id)
+      throw err
+    }
   }
 
   async function update(id, data) {
-    const { data: updated } = await api.put(`/medications/${id}`, data)
-    const idx = medications.value.findIndex((m) => m.id === id)
-    if (idx !== -1) medications.value[idx] = updated
-    await db.medications.put(updated)
-    return updated
+    const now = new Date().toISOString()
+    const existing = await db.medications.get(id)
+    const localMed = { ...existing, ...data, id, updated_at: now }
+
+    await db.medications.put(localMed)
+    await enqueue('medications', 'update', id, localMed)
+
+    try {
+      const { data: updated } = await api.put(`/medications/${id}`, data)
+      await db.medications.put(updated)
+      await dequeueByEntityId('medications', id)
+      const idx = medications.value.findIndex((m) => m.id === id)
+      if (idx !== -1) medications.value[idx] = updated
+      return updated
+    } catch (err) {
+      if (isOfflineError(err)) {
+        const idx = medications.value.findIndex((m) => m.id === id)
+        if (idx !== -1) medications.value[idx] = localMed
+        return localMed
+      }
+      await dequeueByEntityId('medications', id)
+      throw err
+    }
   }
 
   async function deactivate(id) {
@@ -55,19 +92,24 @@ export const useMedicationsStore = defineStore('medications', () => {
       notes: med.notes ?? null,
       is_active: false,
     }
-    const { data: updated } = await api.put(`/medications/${id}`, payload)
-    const idx = medications.value.findIndex((m) => m.id === id)
-    if (idx !== -1) {
-      medications.value[idx] = updated
-      await db.medications.put({ ...updated })
-    }
+    return update(id, payload)
   }
 
   async function remove(id) {
-    await api.delete(`/medications/${id}`)
-    const idx = medications.value.findIndex((m) => m.id === id)
-    if (idx !== -1) medications.value.splice(idx, 1)
-    await db.medications.delete(id)
+    const backup = medications.value.find((m) => m.id === id)
+    medications.value = medications.value.filter((m) => m.id !== id)
+    await enqueue('medications', 'delete', id, { id })
+
+    try {
+      await api.delete(`/medications/${id}`)
+      await db.medications.delete(id)
+      await dequeueByEntityId('medications', id)
+    } catch (err) {
+      if (isOfflineError(err)) return
+      if (backup) medications.value.push(backup)
+      await dequeueByEntityId('medications', id)
+      throw err
+    }
   }
 
   return { medications, total, loading, error, fetchAll, create, update, deactivate, remove }

@@ -25,6 +25,12 @@ vi.mock('../db/indexedDB.js', () => ({
   },
 }))
 
+vi.mock('../services/syncManager', () => ({
+  enqueue: vi.fn().mockResolvedValue(undefined),
+  dequeueByEntityId: vi.fn().mockResolvedValue(undefined),
+  isOfflineError: vi.fn().mockReturnValue(false),
+}))
+
 const RECORD = {
   id: 'rec-1',
   cow_id: 'cow-1',
@@ -208,7 +214,7 @@ describe('useMilkRecordsStore', () => {
   // ─── Race condition guard ─────────────────────────────────────────────────
 
   describe('race condition guard', () => {
-    it('discards a persist when session changed mid-debounce', async () => {
+    it('flushes pending write before switching session, then debounce is a no-op', async () => {
       api.get.mockResolvedValue({ data: [] })
       api.post.mockResolvedValue({ data: RECORD })
 
@@ -218,14 +224,24 @@ describe('useMilkRecordsStore', () => {
       // User types in morning session
       store.autoSave('cow-1', 12.5, 'morning', '2026-02-22')
 
-      // User switches to afternoon BEFORE debounce fires
+      // User switches to afternoon BEFORE debounce fires —
+      // fetchSession calls flushPending() which persists the morning data immediately
       await store.fetchSession('2026-02-22', 'afternoon')
 
-      // Debounce fires now — should be a no-op
-      await vi.runAllTimersAsync()
+      // POST was called once by flushPending (morning data saved, not lost)
+      expect(api.post).toHaveBeenCalledTimes(1)
+      expect(api.post).toHaveBeenCalledWith('/milk-records', expect.objectContaining({
+        cow_id: 'cow-1',
+        session: 'morning',
+        recording_date: '2026-02-22',
+      }))
 
-      // POST should not have been called (session mismatch)
+      // Debounce timer should have been cleared — no additional calls
+      api.post.mockClear()
+      await vi.runAllTimersAsync()
       expect(api.post).not.toHaveBeenCalled()
+
+      // Current session is afternoon, so morning record is not in reactive state
       expect(store.getRecord('cow-1')).toBeNull()
     })
   })

@@ -11,6 +11,8 @@ export default defineConfig(({ mode }) => ({
       manifest: false, // we use our own public/manifest.json
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // Import custom SW code for Background Sync
+        importScripts: ['sw-custom.js'],
         runtimeCaching: [
           {
             urlPattern: /^\/api\//,
