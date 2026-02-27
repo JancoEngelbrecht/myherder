@@ -50,7 +50,9 @@ Tests: `cd client && npm run test:run` (Vitest). Lint: `npm run lint` / `npm run
 - `affected_teats` stored as JSON string in SQLite — always `JSON.parse()` when reading
 - `GET /api/issue-types` — active only; `?all=1` for all; CRUD admin-only; DELETE blocked if `code` referenced in `health_issues`; `code` is immutable slug auto-generated from `name`
 - `GET /api/breed-types` — active only; `?all=1` for all; CRUD admin-only; DELETE blocked if cows reference breed; `code` is immutable slug auto-generated from `name`
-- `GET/POST /api/breeding-events`, `PATCH /:id` (admin), `PATCH /:id/dismiss` (any user), `DELETE /:id` (admin)
+- `GET /api/breeding-events?page=N&limit=N&event_type=X` — paginated; returns `{ data: [...], total: N }` (event_type accepts comma-separated values e.g. `ai_insemination,bull_service`)
+- `GET /api/breeding-events?cow_id=X` — plain array (no pagination; used by per-cow repro views)
+- `POST /api/breeding-events`, `PATCH /:id` (admin), `PATCH /:id/dismiss` (any user), `DELETE /:id` (admin)
 - `GET /api/breeding-events/upcoming` returns `{ heats, calvings, pregChecks, dryOffs, needsAttention }` — excludes dismissed events
 - Breeding auto-dates use breed-specific timings from `breed_types` table (gestation, heat cycle, preg check, dry-off days)
 - `GET /api/sync/health` — no auth, returns `{ ok, timestamp }` (connectivity check)

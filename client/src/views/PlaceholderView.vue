@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <AppHeader :title="routeTitle" />
+    <AppHeader :title="routeTitle" show-back back-to="/" />
     <div class="page-content">
       <div class="placeholder-content">
         <div class="placeholder-icon">{{ routeIcon }}</div>

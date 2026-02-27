@@ -666,6 +666,7 @@ All reports filterable by date range, exportable as PDF and Excel:
 ### Phase 4C: Breeding & Reproduction Tracking — COMPLETE
 **Goal:** Track full reproductive lifecycle.
 > Sub-plan: [plans/breeding-v2.md](plans/breeding-v2.md) — Enhanced breeding with configurable breed types, life phases, dry-off management (COMPLETE)
+> Sub-plan: [plans/breeding-hub-pagination.md](plans/breeding-hub-pagination.md) — Server-side pagination for Recent Events + collapsible upcoming alert categories
 
 | Step | Task | Details |
 |------|------|---------|

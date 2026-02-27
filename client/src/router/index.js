@@ -129,6 +129,12 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/breed/events',
+    name: 'breed-events',
+    component: () => import('../views/BreedingEventsView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/breed/log',
     name: 'breed-log',
     component: () => import('../views/LogBreedingView.vue'),
