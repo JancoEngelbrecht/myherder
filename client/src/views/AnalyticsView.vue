@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <AppHeader :title="t('analytics.title')" />
+    <AppHeader :title="t('analytics.title')" show-back back-to="/" />
 
     <div class="page-content">
       <!-- Herd Status breakdown -->
@@ -64,8 +64,12 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import api from '../services/api.js'
 import AppHeader from '../components/organisms/AppHeader.vue'
+import { useToast } from '../composables/useToast'
+import { extractApiError, resolveError } from '../utils/apiError'
+import { isOfflineError } from '../services/syncManager'
 
 const { t } = useI18n()
+const toast = useToast()
 
 const rawData = ref([])
 const loading = ref(true)
@@ -89,12 +93,18 @@ function barWidth(count) {
 onMounted(() => {
   api.get('/analytics/herd-summary')
     .then(r => { rawData.value = r.data.by_status || [] })
-    .catch(() => { rawData.value = [] })
+    .catch((err) => {
+      rawData.value = []
+      if (!isOfflineError(err)) toast.show(resolveError(extractApiError(err), t), 'error')
+    })
     .finally(() => { loading.value = false })
 
   api.get('/analytics/unhealthiest')
     .then(r => { unhealthiest.value = r.data || [] })
-    .catch(() => { unhealthiest.value = [] })
+    .catch((err) => {
+      unhealthiest.value = []
+      if (!isOfflineError(err)) toast.show(resolveError(extractApiError(err), t), 'error')
+    })
     .finally(() => { healthLoading.value = false })
 })
 </script>

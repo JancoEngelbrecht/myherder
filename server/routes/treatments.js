@@ -126,7 +126,7 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
   try {
     const { error, value } = schema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message })
+    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
 
     const cow = await db('cows').where({ id: value.cow_id }).whereNull('deleted_at').first()
     if (!cow) return res.status(404).json({ error: 'Cow not found' })

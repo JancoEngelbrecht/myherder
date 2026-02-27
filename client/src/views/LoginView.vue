@@ -27,7 +27,7 @@
 
       <!-- Error banner -->
       <Transition name="fade">
-        <div v-if="errorMsg" class="login-error">
+        <div v-if="errorMsg" class="error-box">
           {{ errorMsg }}
         </div>
       </Transition>
@@ -262,16 +262,6 @@ function handlePinLogin() {
   gap: 16px;
 }
 
-.login-error {
-  background: var(--danger-light);
-  color: var(--danger);
-  padding: 10px 14px;
-  border-radius: var(--radius);
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 4px;
-  border: 1px solid rgba(214,40,40,0.2);
-}
 
 /* PIN display */
 .pin-display {

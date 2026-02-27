@@ -74,7 +74,7 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', authorize('can_manage_medications'), async (req, res, next) => {
   try {
     const { error, value } = schema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message })
+    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
 
     const id = uuidv4()
     const now = new Date().toISOString()
@@ -93,7 +93,7 @@ router.put('/:id', authorize('can_manage_medications'), async (req, res, next) =
     if (!existing) return res.status(404).json({ error: 'Medication not found' })
 
     const { error, value } = schema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message })
+    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
 
     const now = new Date().toISOString()
     await db('medications').where({ id: req.params.id }).update({ ...value, updated_at: now })

@@ -163,7 +163,7 @@
         </div>
 
         <!-- API Error -->
-        <div v-if="apiError" class="api-error">{{ apiError }}</div>
+        <div v-if="apiError" class="error-box">{{ apiError }}</div>
 
         <!-- Actions -->
         <div class="form-actions">
@@ -188,6 +188,7 @@ import { useCowsStore } from '../stores/cows.js'
 import { useBreedTypesStore } from '../stores/breedTypes.js'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import CowSearchDropdown from '../components/molecules/CowSearchDropdown.vue'
+import { extractApiError, resolveError } from '../utils/apiError'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -289,7 +290,7 @@ async function handleSubmit() {
       router.replace(`/cows/${cow.id}`)
     }
   } catch (err) {
-    apiError.value = err.response?.data?.error || t('common.error')
+    apiError.value = resolveError(extractApiError(err), t)
   } finally {
     saving.value = false
   }
@@ -344,16 +345,6 @@ function handleCancel() {
   background: var(--primary-bg);
   border-color: var(--primary);
   color: var(--primary-dark);
-}
-
-.api-error {
-  background: var(--danger-light);
-  color: var(--danger);
-  padding: 10px 14px;
-  border-radius: var(--radius);
-  font-size: 0.875rem;
-  font-weight: 500;
-  border: 1px solid rgba(214,40,40,0.2);
 }
 
 .checkbox-label {

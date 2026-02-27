@@ -1,5 +1,7 @@
 import axios from 'axios'
 import db from '../db/indexedDB.js'
+import { useToast } from '../composables/useToast.js'
+import i18n from '../i18n/index.js'
 
 const api = axios.create({
   baseURL: '/api',
@@ -20,7 +22,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status
+
+    if (status === 401) {
       localStorage.removeItem('auth_token')
       // Also clear IndexedDB so hydrate() won't restore the invalid session
       try { await db.auth.delete('session') } catch { /* ignore */ }
@@ -28,6 +32,13 @@ api.interceptors.response.use(
         window.location.href = '/login'
       }
     }
+
+    // 403 — show global toast for permission denied
+    if (status === 403) {
+      const { show } = useToast()
+      show(i18n.global.t('errors.permissionDenied'), 'error')
+    }
+
     return Promise.reject(error)
   }
 )

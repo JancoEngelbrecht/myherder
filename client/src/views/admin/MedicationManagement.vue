@@ -241,6 +241,7 @@ import { useMedicationsStore } from '../../stores/medications'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import SearchInput from '../../components/atoms/SearchInput.vue'
 import PaginationBar from '../../components/atoms/PaginationBar.vue'
+import { extractApiError } from '../../utils/apiError'
 
 const store = useMedicationsStore()
 
@@ -355,7 +356,7 @@ async function save() {
     showForm.value = false
     editing.value = null
   } catch (err) {
-    formError.value = err.response?.data?.error || err.message
+    formError.value = extractApiError(err)
   } finally {
     saving.value = false
   }
@@ -373,7 +374,7 @@ async function doDeactivate() {
     await store.deactivate(deactivateTarget.value.id)
     deactivateTarget.value = null
   } catch (err) {
-    deactivateError.value = err.response?.data?.error || err.message
+    deactivateError.value = extractApiError(err)
   } finally {
     deactivating.value = false
   }
@@ -391,7 +392,7 @@ async function doDelete() {
     await store.remove(deleteTarget.value.id)
     deleteTarget.value = null
   } catch (err) {
-    deleteError.value = err.response?.data?.error || err.message
+    deleteError.value = extractApiError(err)
   } finally {
     deleting.value = false
   }
@@ -455,12 +456,6 @@ async function doDelete() {
 .form-actions .btn-secondary {
   width: auto;
   padding: 10px 20px;
-}
-
-.form-error {
-  color: var(--danger);
-  font-size: 0.85rem;
-  margin-top: 8px;
 }
 
 .search-bar {

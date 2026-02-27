@@ -142,6 +142,7 @@ import { useI18n } from 'vue-i18n'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import { useBreedTypesStore } from '../../stores/breedTypes'
+import { extractApiError, resolveError } from '../../utils/apiError'
 
 const { t } = useI18n()
 const store = useBreedTypesStore()
@@ -218,7 +219,7 @@ async function save() {
     formMode.value = null
     editing.value = null
   } catch (err) {
-    formError.value = err.response?.data?.error || err.message
+    formError.value = resolveError(extractApiError(err), t)
   } finally {
     saving.value = false
   }
@@ -235,8 +236,7 @@ async function executeDelete() {
     await store.remove(deleting.value.id)
     deleting.value = null
   } catch (err) {
-    const msg = err.response?.data?.error || err.message
-    deleteMessage.value = msg
+    deleteMessage.value = resolveError(extractApiError(err), t)
   } finally {
     deleteLoading.value = false
   }
@@ -329,12 +329,6 @@ async function executeDelete() {
 .form-actions .btn-secondary {
   width: auto;
   padding: 10px 20px;
-}
-
-.form-error {
-  color: var(--danger);
-  font-size: 0.85rem;
-  margin-top: 8px;
 }
 
 .spinner-wrap {

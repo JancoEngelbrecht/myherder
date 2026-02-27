@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import api from '../services/api'
 import db from '../db/indexedDB'
 import { enqueue, dequeueByEntityId, isOfflineError } from '../services/syncManager'
+import { extractApiError } from '../utils/apiError'
 
 const DEBOUNCE_MS = 1500
 
@@ -59,7 +60,7 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
       for (const row of local) {
         records[row.cow_id] = row
       }
-      error.value = err.message
+      error.value = extractApiError(err)
     } finally {
       loading.value = false
     }
@@ -71,7 +72,7 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
       await db.milkRecords.bulkPut(data)
       return data
     } catch (err) {
-      error.value = err.message
+      error.value = extractApiError(err)
       return db.milkRecords.where('cow_id').equals(cowId).toArray()
     }
   }
@@ -196,7 +197,7 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
       }
 
       syncStatus[cowId] = 'error'
-      error.value = err.message
+      error.value = extractApiError(err)
     }
   }
 

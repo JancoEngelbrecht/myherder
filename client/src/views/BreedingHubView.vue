@@ -1,21 +1,27 @@
 <template>
   <div class="page">
-    <AppHeader :title="t('breeding.hubTitle')" />
+    <AppHeader :title="t('breeding.hubTitle')" show-back back-to="/" />
 
     <div class="page-content">
+      <!-- Fetch error banner -->
+      <div v-if="breedingStore.error && !breedingStore.loading" class="fetch-error-banner">
+        {{ resolveError(breedingStore.error, t) }}
+      </div>
+
       <!-- Needs Attention -->
       <section v-if="breedingStore.upcoming.needsAttention.length" class="section attention-section">
         <h3 class="group-label attention-label">{{ t('breeding.needsAttention') }}</h3>
         <div
           v-for="item in breedingStore.upcoming.needsAttention"
-          :key="item.id"
-          class="alert-row card attention-row"
+          :key="`${item.id}-${item.alert_type}`"
+          class="attention-row card"
           @click="goToRepro(item.cow_id)"
         >
-          <span class="alert-cow mono">{{ item.tag_number }}</span>
-          <span v-if="item.cow_name" class="alert-name">{{ item.cow_name }}</span>
-          <span class="alert-badge overdue">{{ t('breeding.alert.overdue') }}</span>
-          <span class="spacer" />
+          <div class="attention-top">
+            <span class="alert-cow mono">{{ item.tag_number }}</span>
+            <span v-if="item.cow_name" class="alert-name">{{ item.cow_name }}</span>
+            <span class="alert-badge overdue">{{ overdueLabel(item.alert_type) }}</span>
+          </div>
           <button class="btn-secondary btn-sm-dismiss" @click.stop="openDismiss(item)">
             {{ t('breeding.dismiss') }}
           </button>
@@ -46,7 +52,7 @@
         <div v-if="breedingStore.upcoming.heats.length" class="alert-group">
           <h3 class="group-label">🔥 {{ t('breeding.upcoming.heats') }}</h3>
           <div
-            v-for="ev in breedingStore.upcoming.heats"
+            v-for="ev in visibleHeats"
             :key="ev.id"
             class="alert-row card"
             @click="goToRepro(ev.cow_id)"
@@ -56,13 +62,16 @@
             <span class="spacer" />
             <span class="alert-badge heat">{{ alertLabel(ev.expected_next_heat) }}</span>
           </div>
+          <button v-if="breedingStore.upcoming.heats.length > ALERT_PREVIEW" class="show-more-btn" @click="showAllAlerts.heats = !showAllAlerts.heats">
+            {{ showAllAlerts.heats ? t('breeding.showLess') : t('breeding.showAll', { count: breedingStore.upcoming.heats.length }) }}
+          </button>
         </div>
 
         <!-- Upcoming calvings -->
         <div v-if="breedingStore.upcoming.calvings.length" class="alert-group">
           <h3 class="group-label">🐮 {{ t('breeding.upcoming.calvings') }}</h3>
           <div
-            v-for="ev in breedingStore.upcoming.calvings"
+            v-for="ev in visibleCalvings"
             :key="ev.id"
             class="alert-row card"
             @click="goToRepro(ev.cow_id)"
@@ -72,13 +81,16 @@
             <span class="spacer" />
             <span class="alert-badge calving">{{ alertLabel(ev.expected_calving) }}</span>
           </div>
+          <button v-if="breedingStore.upcoming.calvings.length > ALERT_PREVIEW" class="show-more-btn" @click="showAllAlerts.calvings = !showAllAlerts.calvings">
+            {{ showAllAlerts.calvings ? t('breeding.showLess') : t('breeding.showAll', { count: breedingStore.upcoming.calvings.length }) }}
+          </button>
         </div>
 
         <!-- Upcoming preg checks -->
         <div v-if="breedingStore.upcoming.pregChecks.length" class="alert-group">
           <h3 class="group-label">🩺 {{ t('breeding.upcoming.pregChecks') }}</h3>
           <div
-            v-for="ev in breedingStore.upcoming.pregChecks"
+            v-for="ev in visiblePregChecks"
             :key="ev.id"
             class="alert-row card"
             @click="goToRepro(ev.cow_id)"
@@ -88,13 +100,16 @@
             <span class="spacer" />
             <span class="alert-badge check">{{ alertLabel(ev.expected_preg_check) }}</span>
           </div>
+          <button v-if="breedingStore.upcoming.pregChecks.length > ALERT_PREVIEW" class="show-more-btn" @click="showAllAlerts.pregChecks = !showAllAlerts.pregChecks">
+            {{ showAllAlerts.pregChecks ? t('breeding.showLess') : t('breeding.showAll', { count: breedingStore.upcoming.pregChecks.length }) }}
+          </button>
         </div>
 
         <!-- Upcoming dry-offs -->
         <div v-if="breedingStore.upcoming.dryOffs.length" class="alert-group">
           <h3 class="group-label">🌿 {{ t('breeding.upcoming.dryOffs') }}</h3>
           <div
-            v-for="ev in breedingStore.upcoming.dryOffs"
+            v-for="ev in visibleDryOffs"
             :key="ev.id"
             class="card dryoff-card"
           >
@@ -113,6 +128,9 @@
               </button>
             </div>
           </div>
+          <button v-if="breedingStore.upcoming.dryOffs.length > ALERT_PREVIEW" class="show-more-btn" @click="showAllAlerts.dryOffs = !showAllAlerts.dryOffs">
+            {{ showAllAlerts.dryOffs ? t('breeding.showLess') : t('breeding.showAll', { count: breedingStore.upcoming.dryOffs.length }) }}
+          </button>
         </div>
       </section>
 
@@ -127,35 +145,25 @@
         <p>{{ t('common.loading') }}</p>
       </div>
 
-      <!-- Recent events -->
-      <section v-if="breedingStore.events.length" class="section">
+      <!-- Recent events preview -->
+      <section v-if="recentEvents.length" class="section">
         <div class="section-header">
           <h2 class="section-label">{{ t('breeding.recentEvents') }}</h2>
-        </div>
-
-        <!-- Filter tabs -->
-        <div class="filter-chips">
-          <button
-            v-for="f in eventFilters"
-            :key="f.value"
-            class="chip"
-            :class="{ active: eventFilter === f.value }"
-            @click="eventFilter = f.value"
-          >{{ f.label }}</button>
+          <RouterLink to="/breed/events" class="view-all-link">
+            {{ t('breeding.viewAllEvents') }} →
+          </RouterLink>
         </div>
 
         <div class="events-list">
           <BreedingEventCard
-            v-for="ev in filteredEvents"
+            v-for="ev in recentEvents"
             :key="ev.id"
             :event="ev"
             :show-cow="true"
-            :show-delete="authStore.isAdmin"
+            :show-delete="false"
             @edit="goToEdit"
-            @delete="confirmDelete"
           />
         </div>
-        <p v-if="filteredEvents.length === 0" class="no-alerts">{{ t('breeding.noEvents') }}</p>
       </section>
 
       <div v-else-if="!breedingStore.loading" class="empty-state">
@@ -165,17 +173,6 @@
 
     <!-- FAB -->
     <RouterLink to="/breed/log" class="fab">+</RouterLink>
-
-    <!-- Confirm delete -->
-    <ConfirmDialog
-      :show="!!deleteTargetId"
-      :message="t('breeding.deleteConfirm')"
-      :confirm-label="t('common.delete')"
-      :cancel-label="t('common.cancel')"
-      :loading="deleting"
-      @confirm="doDelete"
-      @cancel="deleteTargetId = null"
-    />
 
     <!-- Dismiss dialog -->
     <ConfirmDialog
@@ -191,7 +188,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import AppHeader from '../components/organisms/AppHeader.vue'
@@ -199,29 +196,33 @@ import BreedingEventCard from '../components/molecules/BreedingEventCard.vue'
 import ConfirmDialog from '../components/molecules/ConfirmDialog.vue'
 import { useBreedingEventsStore } from '../stores/breedingEvents'
 import { useCowsStore } from '../stores/cows'
-import { useAuthStore } from '../stores/auth'
+import { useToast } from '../composables/useToast'
+import { extractApiError, resolveError } from '../utils/apiError'
+import { isOfflineError } from '../services/syncManager'
 
 const { t } = useI18n()
 const router = useRouter()
 const breedingStore = useBreedingEventsStore()
 const cowsStore = useCowsStore()
-const authStore = useAuthStore()
+const toast = useToast()
 
-const deleteTargetId = ref(null)
-const deleting = ref(false)
+// Dismiss dialog
 const dismissTarget = ref(null)
 const dismissing = ref(false)
-const eventFilter = ref('')
 
-const eventFilters = [
-  { value: '', label: t('cows.filterAll') },
-  { value: 'heat_observed', label: '🔥' },
-  { value: 'ai_insemination,bull_service', label: '🧬' },
-  { value: 'preg_check_positive,preg_check_negative', label: '🩺' },
-  { value: 'calving', label: '🐮' },
-  { value: 'dry_off', label: '🌿' },
-]
+// Recent events preview (last 3)
+const recentEvents = ref([])
 
+// Upcoming alert collapse — show 5 per category by default
+const ALERT_PREVIEW = 5
+const showAllAlerts = reactive({ heats: false, calvings: false, pregChecks: false, dryOffs: false })
+
+const visibleHeats      = computed(() => showAllAlerts.heats     ? breedingStore.upcoming.heats      : breedingStore.upcoming.heats.slice(0, ALERT_PREVIEW))
+const visibleCalvings   = computed(() => showAllAlerts.calvings  ? breedingStore.upcoming.calvings   : breedingStore.upcoming.calvings.slice(0, ALERT_PREVIEW))
+const visiblePregChecks = computed(() => showAllAlerts.pregChecks ? breedingStore.upcoming.pregChecks : breedingStore.upcoming.pregChecks.slice(0, ALERT_PREVIEW))
+const visibleDryOffs    = computed(() => showAllAlerts.dryOffs   ? breedingStore.upcoming.dryOffs    : breedingStore.upcoming.dryOffs.slice(0, ALERT_PREVIEW))
+
+// Stats
 const pregnantCount = computed(() =>
   cowsStore.cows.filter((c) => c.sex !== 'male' && c.status === 'pregnant').length,
 )
@@ -231,15 +232,18 @@ const openCount = computed(() =>
 )
 
 const dueSoonCount = computed(() => breedingStore.upcoming.calvings.length)
-
 const upcomingCount = computed(() => breedingStore.upcomingCount)
 
-const filteredEvents = computed(() => {
-  const all = breedingStore.events.slice(0, 50)
-  if (!eventFilter.value) return all.slice(0, 20)
-  const codes = eventFilter.value.split(',')
-  return all.filter((e) => codes.includes(e.event_type)).slice(0, 20)
-})
+const overdueLabels = {
+  heat: 'breeding.alert.overdueHeat',
+  preg_check: 'breeding.alert.overduePregCheck',
+  calving: 'breeding.alert.overdueCalving',
+  dry_off: 'breeding.alert.overdueDryOff',
+}
+
+function overdueLabel(alertType) {
+  return t(overdueLabels[alertType] || 'breeding.alert.overdue')
+}
 
 function alertLabel(dateStr) {
   if (!dateStr) return ''
@@ -261,10 +265,6 @@ function goToEdit(id) {
   router.push(`/breed/edit/${id}?from=/breed`)
 }
 
-function confirmDelete(id) {
-  deleteTargetId.value = id
-}
-
 function openDismiss(item) {
   dismissTarget.value = item
 }
@@ -273,6 +273,8 @@ async function doDismiss() {
   dismissing.value = true
   try {
     await breedingStore.dismissEvent(dismissTarget.value.id)
+  } catch (err) {
+    if (!isOfflineError(err)) toast.show(resolveError(extractApiError(err), t), 'error')
   } finally {
     dismissing.value = false
     dismissTarget.value = null
@@ -281,37 +283,25 @@ async function doDismiss() {
 
 async function acceptDryOff(ev) {
   try {
-    // Create dry_off breeding event
     await breedingStore.createEvent({
       cow_id: ev.cow_id,
       event_type: 'dry_off',
       event_date: new Date().toISOString().slice(0, 16),
     })
-    // Update cow is_dry flag
     await cowsStore.update(ev.cow_id, { is_dry: true })
-    // Refresh upcoming alerts
     await breedingStore.fetchUpcoming()
-  } catch {
-    // Silently fail — event card will stay if failed
-  }
-}
-
-async function doDelete() {
-  deleting.value = true
-  try {
-    await breedingStore.deleteEvent(deleteTargetId.value)
-  } finally {
-    deleting.value = false
-    deleteTargetId.value = null
+  } catch (err) {
+    if (!isOfflineError(err)) toast.show(resolveError(extractApiError(err), t), 'error')
   }
 }
 
 onMounted(async () => {
   if (cowsStore.cows.length === 0) await cowsStore.fetchAll()
-  await Promise.all([
-    breedingStore.fetchAll({ limit: 20 }),
+  const [eventsData] = await Promise.all([
+    breedingStore.fetchAll({ limit: 3 }),
     breedingStore.fetchUpcoming(),
   ])
+  recentEvents.value = (eventsData || []).slice(0, 3)
 })
 </script>
 
@@ -390,7 +380,8 @@ onMounted(async () => {
 .alert-row {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
   padding: 0.65rem 0.85rem;
   cursor: pointer;
   transition: box-shadow 0.15s;
@@ -448,7 +439,26 @@ onMounted(async () => {
 }
 
 .attention-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
   background: var(--surface);
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+
+.attention-row:active {
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+.attention-top {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .alert-badge.overdue {
@@ -468,36 +478,16 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 
-.filter-chips {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  scrollbar-width: none;
-}
-
-.filter-chips::-webkit-scrollbar {
-  display: none;
-}
-
-.chip {
-  flex-shrink: 0;
-  padding: 5px 12px;
-  border-radius: 20px;
-  border: 1.5px solid var(--border);
-  background: var(--surface);
-  color: var(--text-secondary);
-  font-size: 0.8rem;
+.view-all-link {
+  font-size: 0.82rem;
   font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  color: var(--primary);
+  text-decoration: none;
   white-space: nowrap;
 }
 
-.chip.active {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
+.view-all-link:hover {
+  text-decoration: underline;
 }
 
 .no-alerts {
@@ -544,5 +534,30 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
+}
+
+.show-more-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  text-align: left;
+}
+
+.show-more-btn:hover {
+  text-decoration: underline;
+}
+
+.fetch-error-banner {
+  background: var(--danger-light);
+  color: var(--danger);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid rgba(214, 40, 40, 0.2);
 }
 </style>

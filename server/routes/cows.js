@@ -47,12 +47,38 @@ async function findCowOrFail(id) {
 
 // --- Routes ---
 
+// ── Life-phase SQL CASE expression (plain string) ───
+// Mirrors client-side computeLifePhase() logic using breed-specific thresholds
+const LIFE_PHASE_SQL = `CASE
+    WHEN c.life_phase_override IS NOT NULL THEN c.life_phase_override
+    WHEN c.dob IS NULL AND c.sex = 'male' THEN 'bull'
+    WHEN c.dob IS NULL THEN 'cow'
+    WHEN c.sex = 'male' AND (julianday('now') - julianday(c.dob)) / 30.44 < COALESCE(bt.calf_max_months, 6) THEN 'calf'
+    WHEN c.sex = 'male' AND (julianday('now') - julianday(c.dob)) / 30.44 < COALESCE(bt.young_bull_min_months, 15) THEN 'young_bull'
+    WHEN c.sex = 'male' THEN 'bull'
+    WHEN (julianday('now') - julianday(c.dob)) / 30.44 < COALESCE(bt.calf_max_months, 6) THEN 'calf'
+    WHEN (julianday('now') - julianday(c.dob)) / 30.44 < COALESCE(bt.heifer_min_months, 15) THEN 'heifer'
+    ELSE 'cow'
+  END`;
+
+// ── Last calving date subquery (plain string) ───
+const LAST_CALVING_SQL = `(
+    SELECT MAX(be.event_date)
+    FROM breeding_events be
+    WHERE be.cow_id = c.id AND be.event_type = 'calving'
+  )`;
+
 // GET /api/cows
 router.get('/', async (req, res, next) => {
   try {
     const query = db('cows as c')
       .leftJoin('breed_types as bt', 'c.breed_type_id', 'bt.id')
-      .select('c.*', 'bt.name as breed_type_name', 'bt.code as breed_type_code')
+      .select(
+        'c.*',
+        'bt.name as breed_type_name',
+        'bt.code as breed_type_code',
+        db.raw(`${LAST_CALVING_SQL} as last_calving_date`)
+      )
       .whereNull('c.deleted_at');
 
     // Search with input length guard
@@ -78,6 +104,69 @@ router.get('/', async (req, res, next) => {
 
     if (req.query.is_dry !== undefined) {
       query.where('c.is_dry', req.query.is_dry === 'true' || req.query.is_dry === '1');
+    }
+
+    // Life phase filter (SQL-computed from dob/sex/breed thresholds)
+    if (req.query.life_phase) {
+      query.whereRaw(`${LIFE_PHASE_SQL} = ?`, [req.query.life_phase]);
+    }
+
+    // Pregnant filter (uses cow.status which is updated by breeding events)
+    if (req.query.pregnant !== undefined) {
+      if (req.query.pregnant === 'true' || req.query.pregnant === '1') {
+        query.where('c.status', 'pregnant');
+      } else {
+        query.whereNot('c.status', 'pregnant');
+      }
+    }
+
+    // Days in Milk range (days since last calving)
+    if (req.query.dim_min !== undefined || req.query.dim_max !== undefined) {
+      if (req.query.dim_min !== undefined) {
+        const dimMin = parseInt(String(req.query.dim_min), 10);
+        if (!isNaN(dimMin) && dimMin >= 0) {
+          query.whereRaw(`julianday('now') - julianday(${LAST_CALVING_SQL}) >= ?`, [dimMin]);
+        }
+      }
+      if (req.query.dim_max !== undefined) {
+        const dimMax = parseInt(String(req.query.dim_max), 10);
+        if (!isNaN(dimMax) && dimMax >= 0) {
+          query.whereRaw(`julianday('now') - julianday(${LAST_CALVING_SQL}) <= ?`, [dimMax]);
+        }
+      }
+    }
+
+    // Last calving date range
+    if (req.query.calving_after) {
+      query.whereRaw(`${LAST_CALVING_SQL} >= ?`, [req.query.calving_after]);
+    }
+    if (req.query.calving_before) {
+      query.whereRaw(`${LAST_CALVING_SQL} <= ?`, [req.query.calving_before]);
+    }
+
+    // Average daily milk yield range (last 7 days)
+    if (req.query.yield_min !== undefined || req.query.yield_max !== undefined) {
+      const yieldSub = `(
+        SELECT AVG(daily_total) FROM (
+          SELECT mr.recording_date, SUM(mr.litres) as daily_total
+          FROM milk_records mr
+          WHERE mr.cow_id = c.id
+            AND mr.recording_date >= date('now', '-7 days')
+          GROUP BY mr.recording_date
+        )
+      )`;
+      if (req.query.yield_min !== undefined) {
+        const yMin = parseFloat(String(req.query.yield_min));
+        if (!isNaN(yMin) && yMin >= 0) {
+          query.whereRaw(`${yieldSub} >= ?`, [yMin]);
+        }
+      }
+      if (req.query.yield_max !== undefined) {
+        const yMax = parseFloat(String(req.query.yield_max));
+        if (!isNaN(yMax) && yMax >= 0) {
+          query.whereRaw(`${yieldSub} <= ?`, [yMax]);
+        }
+      }
     }
 
     // Pagination
@@ -128,7 +217,7 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', authorize('can_manage_cows'), async (req, res, next) => {
   try {
     const { error, value } = cowSchema.validate(req.body);
-    if (error) return res.status(400).json({ error: error.details[0].message });
+    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') });
 
     const cow = { id: uuidv4(), ...value, created_by: req.user.id };
     await db('cows').insert(cow);
@@ -147,7 +236,7 @@ router.put('/:id', authorize('can_manage_cows'), async (req, res, next) => {
     await findCowOrFail(req.params.id);
 
     const { error, value } = cowUpdateSchema.validate(req.body);
-    if (error) return res.status(400).json({ error: error.details[0].message });
+    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') });
 
     await db('cows').where({ id: req.params.id }).update({ ...value, updated_at: new Date().toISOString() });
 

@@ -51,7 +51,7 @@ router.get('/health', (_req, res) => {
 router.post('/push', authenticate, async (req, res, next) => {
   try {
     const { error, value } = pushSchema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message })
+    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
 
     const { deviceId, changes } = value
     const results = []
@@ -89,7 +89,7 @@ router.post('/push', authenticate, async (req, res, next) => {
 router.get('/pull', authenticate, async (req, res, next) => {
   try {
     const { error, value } = pullQuerySchema.validate(req.query)
-    if (error) return res.status(400).json({ error: error.details[0].message })
+    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
 
     const data = await pullData(value.since, value.full === '1')
 

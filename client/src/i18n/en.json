@@ -59,7 +59,22 @@
     "filterMale": "Male",
     "advancedFilters": "Advanced Filters",
     "filterAllBreeds": "All Breeds",
-    "filterAllPhases": "All Phases"
+    "filterAllPhases": "All Phases",
+    "filterReadyToBreed": "Ready to Breed",
+    "filterNotPregnant": "Not Pregnant",
+    "filterDIMMin": "Min DIM",
+    "filterDIMMax": "Max DIM",
+    "filterDIM": "Days in Milk",
+    "filterCalvingDate": "Last Calving Date",
+    "filterCalvingFrom": "From",
+    "filterCalvingTo": "To",
+    "filterMilkYield": "Avg Daily Yield (L)",
+    "filterYieldMin": "Min",
+    "filterYieldMax": "Max",
+    "readyToBreedNote": "Filtered from current page",
+    "filterGroupHerd": "Herd",
+    "filterGroupBreeding": "Breeding",
+    "filterGroupProduction": "Production"
   },
   "lifePhase": {
     "calf": "Calf",
@@ -370,6 +385,8 @@
   "breeding": {
     "title": "Breeding & Reproduction",
     "hubTitle": "Breeding Hub",
+    "eventsTitle": "Breeding Events",
+    "viewAllEvents": "View All Events",
     "logTitle": "Log Breeding Event",
     "editTitle": "Edit Breeding Event",
     "reproTitle": "Reproduction",
@@ -389,7 +406,7 @@
     "keyDates": "Key Dates",
     "stats": {
       "pregnant": "Pregnant",
-      "open": "Open",
+      "open": "Ready to Breed",
       "dueSoon": "Due Soon"
     },
     "upcoming": {
@@ -404,7 +421,11 @@
       "calvingIn": "Calving in {days}d",
       "pregCheckIn": "Preg check in {days}d",
       "today": "Today",
-      "overdue": "Overdue"
+      "overdue": "Overdue",
+      "overdueHeat": "Overdue Heat",
+      "overduePregCheck": "Overdue Preg Check",
+      "overdueCalving": "Overdue Calving",
+      "overdueDryOff": "Overdue Dry-Off"
     },
     "dates": {
       "nextHeat": "Next Heat",
@@ -434,6 +455,8 @@
       "notes": "Notes",
       "notesPlaceholder": "Any additional notes...",
       "autoDatesPreview": "Auto-calculated dates",
+      "expectedCalving": "Expected Calving Date",
+      "expectedCalvingHint": "Pre-filled from last insemination. You can override.",
       "calfSex": "Calf Sex",
       "calfTagNumber": "Calf Tag Number",
       "calfTagPlaceholder": "e.g. MH-050",
@@ -457,6 +480,8 @@
       "prompt": "Transition {tag} to dry status?",
       "accepted": "Dry-off recorded"
     },
+    "showAll": "Show all ({count})",
+    "showLess": "Show less",
     "eventTypes": {
       "heat_observed": "Heat Observed",
       "ai_insemination": "AI Insemination",
@@ -483,6 +508,16 @@
     "forceSyncDesc": "Re-download all data from the server",
     "syncingNow": "Syncing data...",
     "lastSync": "Last sync"
+  },
+  "errors": {
+    "network": "No connection — please check your network",
+    "permissionDenied": "You don't have permission to do this",
+    "notFound": "Record not found",
+    "server": "Server error — please try again",
+    "generic": "Something went wrong",
+    "saveFailed": "Save failed — please try again",
+    "deleteFailed": "Delete failed — please try again",
+    "loadFailed": "Could not load data"
   },
   "breedTypes": {
     "title": "Breed Types",

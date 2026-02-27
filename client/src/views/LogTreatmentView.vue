@@ -148,7 +148,7 @@
           />
         </div>
 
-        <p v-if="submitError" class="submit-error">{{ submitError }}</p>
+        <p v-if="submitError" class="form-error">{{ submitError }}</p>
 
         <button type="submit" class="btn-primary btn-full" :disabled="submitting">
           {{ submitting ? $t('common.saving') : $t('treatments.logTreatment') }}
@@ -169,6 +169,7 @@ import { useIssueTypesStore } from '../stores/issueTypes'
 import { formatDate, formatDateTime } from '../utils/format'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import CowSearchDropdown from '../components/molecules/CowSearchDropdown.vue'
+import { extractApiError, resolveError } from '../utils/apiError'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -312,7 +313,7 @@ async function submit() {
     await treatmentsStore.create(payload)
     router.replace(backRoute)
   } catch (err) {
-    submitError.value = err.response?.data?.error || err.message
+    submitError.value = resolveError(extractApiError(err), t)
   } finally {
     submitting.value = false
   }
@@ -450,12 +451,6 @@ async function submit() {
   width: 18px;
   height: 18px;
   accent-color: var(--primary);
-}
-
-.submit-error {
-  color: var(--danger);
-  font-size: 0.85rem;
-  margin-bottom: 12px;
 }
 
 .btn-full {

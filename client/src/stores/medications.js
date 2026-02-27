@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import api from '../services/api'
 import db from '../db/indexedDB'
 import { enqueue, dequeueByEntityId, isOfflineError } from '../services/syncManager'
+import { extractApiError } from '../utils/apiError'
 
 export const useMedicationsStore = defineStore('medications', () => {
   const medications = ref([])
@@ -23,7 +24,7 @@ export const useMedicationsStore = defineStore('medications', () => {
     } catch (err) {
       const local = await db.medications.toArray()
       medications.value = includeInactive ? local : local.filter((m) => m.is_active)
-      error.value = err.message
+      error.value = extractApiError(err)
     } finally {
       loading.value = false
     }

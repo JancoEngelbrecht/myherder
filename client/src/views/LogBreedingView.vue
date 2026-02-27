@@ -112,6 +112,31 @@
           </div>
         </template>
 
+        <!-- Expected calving date (preg check positive only) -->
+        <template v-if="form.event_type === 'preg_check_positive'">
+          <div class="form-group">
+            <label>{{ t('breeding.form.expectedCalving') }}</label>
+            <input
+              v-model="form.expected_calving"
+              type="date"
+              class="form-input"
+            />
+            <span v-if="prefillSource" class="field-hint">{{ prefillSource }}</span>
+          </div>
+          <div v-if="computedDryOff" class="auto-dates-preview card">
+            <div class="preview-dates">
+              <div class="preview-item">
+                <span class="preview-key">🐮 {{ t('breeding.dates.calving') }}</span>
+                <span class="preview-val mono">{{ form.expected_calving }}</span>
+              </div>
+              <div class="preview-item">
+                <span class="preview-key">🌿 {{ t('breeding.dates.dryOff') }}</span>
+                <span class="preview-val mono">{{ computedDryOff }}</span>
+              </div>
+            </div>
+          </div>
+        </template>
+
         <!-- Calving details -->
         <template v-if="form.event_type === 'calving'">
           <div class="form-group">
@@ -201,7 +226,7 @@
         </div>
 
         <!-- Error -->
-        <p v-if="submitError" class="submit-error">{{ submitError }}</p>
+        <p v-if="submitError" class="form-error">{{ submitError }}</p>
 
         <button type="submit" class="btn-primary" :disabled="saving">
           {{ saving ? t('common.saving') : editMode ? t('common.save') : t('breeding.logEvent') }}
@@ -212,7 +237,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/organisms/AppHeader.vue'
@@ -222,6 +247,7 @@ import { BREEDING_EVENT_TYPES, getEventType } from '../config/breedingEventTypes
 import { useBreedTypesStore } from '../stores/breedTypes'
 import { useCowsStore } from '../stores/cows'
 import api from '../services/api'
+import { extractApiError, resolveError } from '../utils/apiError'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -257,6 +283,7 @@ const form = ref({
   calving_details: { calf_sex: null, calf_tag_number: '', calf_weight: null },
   cost: null,
   notes: '',
+  expected_calving: '',
 })
 
 const errors = ref({})
@@ -282,6 +309,43 @@ const selectedCowBreed = computed(() => {
   if (!cow?.breed_type_id) return null
   return breedTypesStore.getById(cow.breed_type_id)
 })
+
+// Find the latest insemination's expected_calving for the selected cow
+function findLatestInsemCalving(cowId) {
+  if (!cowId) return null
+  return breedingStore.events
+    .filter((e) => e.cow_id === cowId &&
+      ['ai_insemination', 'bull_service'].includes(e.event_type) &&
+      e.expected_calving)
+    .sort((a, b) => b.event_date.localeCompare(a.event_date))[0] ?? null
+}
+
+// Compute dry-off date from the entered expected calving date
+const computedDryOff = computed(() => {
+  if (!form.value.expected_calving) return null
+  const dryOffDays = selectedCowBreed.value?.dry_off_days ?? 60
+  const calving = new Date(form.value.expected_calving)
+  calving.setDate(calving.getDate() - dryOffDays)
+  return calving.toISOString().slice(0, 10)
+})
+
+// Hint text showing where the pre-filled date came from
+const prefillSource = computed(() => {
+  if (form.value.event_type !== 'preg_check_positive') return null
+  const insem = findLatestInsemCalving(form.value.cow_id)
+  if (insem) return t('breeding.form.expectedCalvingHint')
+  return null
+})
+
+// Pre-fill expected_calving from latest insemination when cow/event_type changes
+watch(
+  () => [form.value.cow_id, form.value.event_type],
+  ([cowId, eventType]) => {
+    if (eventType !== 'preg_check_positive' || editMode.value) return
+    const insem = findLatestInsemCalving(cowId)
+    form.value.expected_calving = insem?.expected_calving ?? ''
+  },
+)
 
 const autoDates = computed(() => {
   const { event_type, event_date } = form.value
@@ -354,9 +418,14 @@ async function submit() {
 
       if (form.value.event_type === 'calving') {
         const cd = form.value.calving_details
-        payload.calving_details = (cd.calf_sex || cd.calf_tag_number || cd.calf_weight) ? cd : null
+        payload.calving_details = (cd.calf_sex || cd.calf_tag_number || cd.calf_weight) ? { ...cd } : null
       } else {
         payload.calving_details = null
+      }
+
+      if (form.value.event_type === 'preg_check_positive') {
+        payload.expected_calving = form.value.expected_calving || null
+        payload.expected_dry_off = computedDryOff.value || null
       }
 
       await breedingStore.updateEvent(String(route.params.id), payload)
@@ -376,7 +445,12 @@ async function submit() {
 
       if (form.value.event_type === 'calving') {
         const cd = form.value.calving_details
-        payload.calving_details = (cd.calf_sex || cd.calf_tag_number || cd.calf_weight) ? cd : null
+        payload.calving_details = (cd.calf_sex || cd.calf_tag_number || cd.calf_weight) ? { ...cd } : null
+      }
+
+      if (form.value.event_type === 'preg_check_positive') {
+        payload.expected_calving = form.value.expected_calving || null
+        payload.expected_dry_off = computedDryOff.value || null
       }
 
       const created = await breedingStore.createEvent(payload)
@@ -402,7 +476,7 @@ async function submit() {
       }
     }
   } catch (err) {
-    submitError.value = err.response?.data?.error ?? err.message
+    submitError.value = resolveError(extractApiError(err), t)
   } finally {
     saving.value = false
   }
@@ -432,6 +506,7 @@ onMounted(async () => {
       form.value.inseminator = data.inseminator ?? ''
       form.value.sire_id = data.sire_id ?? ''
       form.value.preg_check_method = data.preg_check_method ?? null
+      form.value.expected_calving = data.expected_calving ?? ''
       form.value.cost = data.cost ?? null
       form.value.notes = data.notes ?? ''
 
@@ -591,9 +666,4 @@ onMounted(async () => {
   margin-top: 0.25rem;
 }
 
-.submit-error {
-  color: var(--danger);
-  font-size: 0.85rem;
-  margin-bottom: 0.75rem;
-}
 </style>

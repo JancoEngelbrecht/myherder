@@ -59,7 +59,22 @@
     "filterMale": "Manlik",
     "advancedFilters": "Gevorderde Filters",
     "filterAllBreeds": "Alle Rasse",
-    "filterAllPhases": "Alle Fases"
+    "filterAllPhases": "Alle Fases",
+    "filterReadyToBreed": "Gereed vir Teel",
+    "filterNotPregnant": "Nie Dragtig",
+    "filterDIMMin": "Min Dae in Melk",
+    "filterDIMMax": "Maks Dae in Melk",
+    "filterDIM": "Dae in Melk",
+    "filterCalvingDate": "Laaste Kalfsdatum",
+    "filterCalvingFrom": "Van",
+    "filterCalvingTo": "Tot",
+    "filterMilkYield": "Gem. Daaglikse Opbrengs (L)",
+    "filterYieldMin": "Min",
+    "filterYieldMax": "Maks",
+    "readyToBreedNote": "Gefiltreer van huidige bladsy",
+    "filterGroupHerd": "Kudde",
+    "filterGroupBreeding": "Teling",
+    "filterGroupProduction": "Produksie"
   },
   "lifePhase": {
     "calf": "Kalf",
@@ -370,6 +385,8 @@
   "breeding": {
     "title": "Teelt & Reproduksie",
     "hubTitle": "Teelt Sentrum",
+    "eventsTitle": "Teelt Geleenthede",
+    "viewAllEvents": "Sien Alle Geleenthede",
     "logTitle": "Aanteken Teelt Geleentheid",
     "editTitle": "Wysig Teelt Geleentheid",
     "reproTitle": "Reproduksie",
@@ -389,7 +406,7 @@
     "keyDates": "Sleuteldatums",
     "stats": {
       "pregnant": "Dragtig",
-      "open": "Oop",
+      "open": "Teelgereed",
       "dueSoon": "Binnekort"
     },
     "upcoming": {
@@ -404,7 +421,11 @@
       "calvingIn": "Kalf in {days}d",
       "pregCheckIn": "Toets in {days}d",
       "today": "Vandag",
-      "overdue": "Agterstallig"
+      "overdue": "Agterstallig",
+      "overdueHeat": "Agterstallige Hits",
+      "overduePregCheck": "Agterstallige Dragtigheidstoets",
+      "overdueCalving": "Agterstallige Kalf",
+      "overdueDryOff": "Agterstallige Droogmaak"
     },
     "dates": {
       "nextHeat": "Volgende Hits",
@@ -434,6 +455,8 @@
       "notes": "Notas",
       "notesPlaceholder": "Enige addisionele notas...",
       "autoDatesPreview": "Outomaties berekende datums",
+      "expectedCalving": "Verwagte Kalfdatum",
+      "expectedCalvingHint": "Vooraf ingevul vanaf laaste inseminasie. Jy kan dit oorskryf.",
       "calfSex": "Kalf Geslag",
       "calfTagNumber": "Kalf Oornommer",
       "calfTagPlaceholder": "bv. MH-050",
@@ -457,6 +480,8 @@
       "prompt": "Skakel {tag} na droogstatus oor?",
       "accepted": "Droogmaak aangeteken"
     },
+    "showAll": "Wys almal ({count})",
+    "showLess": "Wys minder",
     "eventTypes": {
       "heat_observed": "Hits Waargeneem",
       "ai_insemination": "KI Inseminasie",
@@ -483,6 +508,16 @@
     "forceSyncDesc": "Herlaai alle data van die bediener af",
     "syncingNow": "Sinkroniseer data...",
     "lastSync": "Laaste sinkronisasie"
+  },
+  "errors": {
+    "network": "Geen verbinding — kyk asseblief jou netwerk na",
+    "permissionDenied": "Jy het nie toestemming om dit te doen nie",
+    "notFound": "Rekord nie gevind nie",
+    "server": "Bedienerfout — probeer asseblief weer",
+    "generic": "Iets het verkeerd geloop",
+    "saveFailed": "Stoor het misluk — probeer asseblief weer",
+    "deleteFailed": "Skrap het misluk — probeer asseblief weer",
+    "loadFailed": "Kon nie data laai nie"
   },
   "breedTypes": {
     "title": "Rastipes",

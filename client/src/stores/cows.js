@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import api from '../services/api.js'
 import db from '../db/indexedDB.js'
 import { enqueue, dequeueByEntityId, isOfflineError } from '../services/syncManager.js'
+import { extractApiError } from '../utils/apiError.js'
 
 /**
  * Compute life phase from age + sex, with optional breed-specific thresholds.
@@ -81,7 +82,7 @@ export const useCowsStore = defineStore('cows', () => {
         const local = await db.cows.toArray()
         cows.value = local
       } else {
-        error.value = err.response?.data?.error || 'Failed to load cows'
+        error.value = extractApiError(err)
       }
     } finally {
       loading.value = false

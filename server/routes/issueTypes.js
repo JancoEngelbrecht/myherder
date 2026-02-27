@@ -66,7 +66,7 @@ router.get('/', async (req, res, next) => {
 router.post('/', authorize('admin'), async (req, res, next) => {
   try {
     const { error, value } = schema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message })
+    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
 
     const code = toCode(value.name)
     if (!code) return res.status(400).json({ error: 'Name produces an empty code' })
@@ -93,7 +93,7 @@ router.put('/:id', authorize('admin'), async (req, res, next) => {
     if (!existing) return res.status(404).json({ error: 'Issue type not found' })
 
     const { error, value } = schema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message })
+    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
 
     const now = new Date().toISOString()
     await db('issue_type_definitions')

@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import api from '../services/api'
 import db from '../db/indexedDB'
 import { enqueue, dequeueByEntityId, isOfflineError } from '../services/syncManager'
+import { extractApiError } from '../utils/apiError'
 
 export const useHealthIssuesStore = defineStore('healthIssues', () => {
   const issues = ref([])
@@ -29,7 +30,7 @@ export const useHealthIssuesStore = defineStore('healthIssues', () => {
     } catch (err) {
       const local = await db.healthIssues.where('cow_id').equals(cowId).toArray()
       issues.value = [...issues.value.filter((i) => i.cow_id !== cowId), ...local]
-      error.value = err.message
+      error.value = extractApiError(err)
       return local
     } finally {
       loadingByCow.value = false
@@ -48,7 +49,7 @@ export const useHealthIssuesStore = defineStore('healthIssues', () => {
     } catch (err) {
       const cached = issues.value.find((i) => i.id === id)
       if (cached) return cached
-      error.value = err.message
+      error.value = extractApiError(err)
       throw err
     } finally {
       loadingOne.value = false
@@ -57,7 +58,8 @@ export const useHealthIssuesStore = defineStore('healthIssues', () => {
 
   async function create(data) {
     const now = new Date().toISOString()
-    const localIssue = { id: uuidv4(), ...data, status: data.status || 'open', updated_at: now, created_at: now }
+    const plain = JSON.parse(JSON.stringify(data))
+    const localIssue = { id: uuidv4(), ...plain, status: plain.status || 'open', updated_at: now, created_at: now }
 
     await db.healthIssues.put(localIssue)
     await enqueue('healthIssues', 'create', localIssue.id, localIssue)
@@ -135,7 +137,7 @@ export const useHealthIssuesStore = defineStore('healthIssues', () => {
       allIssuesTotal.value = parseInt(response.headers['x-total-count'], 10) || 0
       return response.data
     } catch (err) {
-      error.value = err.message
+      error.value = extractApiError(err)
       throw err
     } finally {
       loadingAll.value = false

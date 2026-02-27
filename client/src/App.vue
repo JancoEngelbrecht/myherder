@@ -26,6 +26,7 @@
       </Transition>
     </RouterView>
     <BottomNav v-if="authStore.isAuthenticated" />
+    <ToastMessage />
   </template>
 </template>
 
@@ -35,6 +36,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from './stores/auth.js'
 import { useSyncStore } from './stores/sync.js'
 import BottomNav from './components/organisms/BottomNav.vue'
+import ToastMessage from './components/molecules/ToastMessage.vue'
 import { init as initSync, destroyListeners as destroySync } from './services/syncManager.js'
 import { dbRecovered, clearRecoveredFlag } from './db/indexedDB.js'
 

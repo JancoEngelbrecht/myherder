@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <AppHeader :title="t('milkRecording.title')" />
+    <AppHeader :title="t('milkRecording.title')" show-back back-to="/" />
 
     <div class="controls">
       <!-- Date picker -->
@@ -44,6 +44,11 @@
         v-model="searchQuery"
         :placeholder="t('milkRecording.search')"
       />
+    </div>
+
+    <!-- Error banner -->
+    <div v-if="milkStore.error && !milkStore.loading" class="fetch-error-banner">
+      {{ resolveError(milkStore.error, t) }}
     </div>
 
     <!-- Loading -->
@@ -92,6 +97,7 @@ import SearchInput from '../components/atoms/SearchInput.vue'
 import { useCowsStore } from '../stores/cows'
 import { useTreatmentsStore } from '../stores/treatments'
 import { useMilkRecordsStore } from '../stores/milkRecords'
+import { resolveError } from '../utils/apiError'
 
 const { t } = useI18n()
 
@@ -223,6 +229,17 @@ watch([selectedDate, selectedSession], loadRecords)
 </script>
 
 <style scoped>
+.fetch-error-banner {
+  background: var(--danger-light);
+  color: var(--danger);
+  padding: 10px 14px;
+  margin: 0 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid rgba(214, 40, 40, 0.2);
+}
+
 .controls {
   display: flex;
   flex-direction: column;

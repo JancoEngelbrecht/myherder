@@ -12,7 +12,10 @@ module.exports = function errorHandler(err, _req, res, _next) {
 
   // Joi / validation errors forwarded with status
   const status = err.status || 500;
-  const message = status === 500 ? 'Internal server error' : err.message;
+  const raw = status === 500
+    ? (process.env.NODE_ENV === 'production' ? 'Internal server error' : (err.message || 'Internal server error'))
+    : err.message;
+  const message = typeof raw === 'string' ? raw.replace(/['"]/g, '') : raw;
 
   res.status(status).json({ error: message });
 };

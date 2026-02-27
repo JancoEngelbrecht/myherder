@@ -259,6 +259,17 @@ a {
   font-size: 0.8125rem;
   color: var(--danger);
   font-weight: 500;
+  margin-top: 4px;
+}
+
+.error-box {
+  background: var(--danger-light);
+  color: var(--danger);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid rgba(214, 40, 40, 0.2);
 }
 
 .form-select {

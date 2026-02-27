@@ -187,8 +187,11 @@ import AppHeader from '../../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import SearchInput from '../../components/atoms/SearchInput.vue'
 import PaginationBar from '../../components/atoms/PaginationBar.vue'
+import { useToast } from '../../composables/useToast'
+import { extractApiError, resolveError } from '../../utils/apiError'
 
 const store = useIssueTypesStore()
+const toast = useToast()
 
 const searchQuery = ref('')
 const page = ref(1)
@@ -289,7 +292,7 @@ async function save() {
     showForm.value = false
     editing.value = null
   } catch (err) {
-    formError.value = err.response?.data?.error || err.message
+    formError.value = extractApiError(err)
   } finally {
     saving.value = false
   }
@@ -305,7 +308,7 @@ async function doDeactivate() {
     await store.update(deactivateTarget.value.id, { ...deactivateTarget.value, is_active: false })
     deactivateTarget.value = null
   } catch (err) {
-    console.error(err)
+    toast.show(extractApiError(err), 'error')
   } finally {
     deactivating.value = false
   }
@@ -315,7 +318,7 @@ async function doActivate(type) {
   try {
     await store.update(type.id, { ...type, is_active: true })
   } catch (err) {
-    console.error(err)
+    toast.show(extractApiError(err), 'error')
   }
 }
 
@@ -331,7 +334,7 @@ async function doDelete() {
     deleteTarget.value = null
   } catch (err) {
     deleteTarget.value = null
-    pageError.value = err.response?.data?.error || err.message
+    pageError.value = extractApiError(err)
   } finally {
     deleting.value = false
   }
@@ -464,12 +467,6 @@ async function doDelete() {
   width: 18px;
   height: 18px;
   accent-color: var(--primary);
-}
-
-.form-error {
-  color: var(--danger);
-  font-size: 0.85rem;
-  margin-top: 8px;
 }
 
 .form-actions {

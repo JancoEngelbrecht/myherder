@@ -101,7 +101,7 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
   try {
     const { error, value } = createSchema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message })
+    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
 
     const cow = await db('cows').where({ id: value.cow_id }).whereNull('deleted_at').first()
     if (!cow) return res.status(404).json({ error: 'Cow not found' })
@@ -134,7 +134,7 @@ router.post('/', async (req, res, next) => {
 router.patch('/:id/status', async (req, res, next) => {
   try {
     const { error, value } = statusSchema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message })
+    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
 
     const existing = await db('health_issues').where({ id: req.params.id }).first()
     if (!existing) return res.status(404).json({ error: 'Health issue not found' })
@@ -191,7 +191,7 @@ router.get('/:id/comments', async (req, res, next) => {
 router.post('/:id/comments', async (req, res, next) => {
   try {
     const { error, value } = commentSchema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message })
+    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
 
     const issue = await db('health_issues').where({ id: req.params.id }).first()
     if (!issue) return res.status(404).json({ error: 'Health issue not found' })

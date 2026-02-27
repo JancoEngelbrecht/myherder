@@ -4,9 +4,11 @@ import { v4 as uuidv4 } from 'uuid'
 import api from '../services/api'
 import db from '../db/indexedDB'
 import { enqueue, dequeueByEntityId, isOfflineError } from '../services/syncManager'
+import { extractApiError } from '../utils/apiError'
 
 export const useBreedingEventsStore = defineStore('breedingEvents', () => {
   const events = ref([])
+  const total = ref(0)
   const upcoming = reactive({ heats: [], calvings: [], pregChecks: [], dryOffs: [], needsAttention: [] })
   const loading = ref(false)
   const error = ref(null)
@@ -17,17 +19,27 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
     loading.value = true
     error.value = null
     try {
-      const { data } = await api.get('/breeding-events', { params: filters })
-      await db.breedingEvents.bulkPut(data)
-      if (!filters.cow_id) events.value = data
-      return data
+      const payload = (await api.get('/breeding-events', { params: filters })).data
+
+      if (filters.cow_id) {
+        // Plain array — per-cow repro view, no pagination
+        await db.breedingEvents.bulkPut(payload)
+        return payload
+      }
+
+      // Paginated response { data: [...], total: N }
+      await db.breedingEvents.bulkPut(payload.data)
+      events.value = payload.data
+      total.value = payload.total
+      return payload.data
     } catch (err) {
-      error.value = err.message
+      error.value = extractApiError(err)
       if (filters.cow_id) {
         return db.breedingEvents.where('cow_id').equals(filters.cow_id).toArray()
       }
       const local = await db.breedingEvents.orderBy('event_date').reverse().toArray()
       events.value = local
+      total.value = local.length
       return local
     } finally {
       loading.value = false
@@ -216,6 +228,7 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
 
   return {
     events,
+    total,
     upcoming,
     loading,
     error,

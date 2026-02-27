@@ -41,6 +41,8 @@ const createSchema = Joi.object({
   }).allow(null).default(null),
   cost: Joi.number().precision(2).min(0).allow(null).default(null),
   notes: Joi.string().max(2000).allow(null, '').default(null),
+  expected_calving: Joi.string().isoDate().allow(null, '').default(null),
+  expected_dry_off: Joi.string().isoDate().allow(null, '').default(null),
 })
 
 const updateSchema = Joi.object({
@@ -58,6 +60,8 @@ const updateSchema = Joi.object({
   }).allow(null).optional(),
   cost: Joi.number().precision(2).min(0).allow(null).optional(),
   notes: Joi.string().max(2000).allow(null, '').optional(),
+  expected_calving: Joi.string().isoDate().allow(null, '').optional(),
+  expected_dry_off: Joi.string().isoDate().allow(null, '').optional(),
 })
 
 // ── Auto-date calculation ─────────────────────────────────────────────────────
@@ -230,25 +234,49 @@ router.get('/upcoming', async (req, res, next) => {
   }
 })
 
-// GET /api/breeding-events?cow_id=X&event_type=X&limit=N
+// GET /api/breeding-events?cow_id=X&event_type=X&page=N&limit=N
+// - With cow_id: returns plain array (no pagination needed for per-cow views)
+// - Without cow_id: returns { data: [...], total: N } with server-side pagination
+// - event_type: single value or comma-separated (e.g. "ai_insemination,bull_service")
 router.get('/', async (req, res, next) => {
   try {
-    const { cow_id, event_type, limit } = req.query
+    const { cow_id, event_type } = req.query
+    const types = event_type ? event_type.split(',') : null
 
-    if (event_type) {
-      const validTypes = VALID_EVENT_TYPES
-      if (!validTypes.includes(event_type)) {
-        return res.status(400).json({ error: 'Invalid event_type' })
+    // Validate event_type values
+    if (types) {
+      for (const t of types) {
+        if (!VALID_EVENT_TYPES.includes(t)) {
+          return res.status(400).json({ error: `Invalid event_type: ${t}` })
+        }
       }
     }
 
-    const query = breedingQuery().orderBy('be.event_date', 'desc')
-    if (cow_id) query.where('be.cow_id', cow_id)
-    if (event_type) query.where('be.event_type', event_type)
-    if (limit) query.limit(Number(limit))
+    const applyTypeFilter = (q) => { if (types) q.whereIn('be.event_type', types) }
 
-    const rows = await query
-    res.json(rows.map(parseJsonFields))
+    // Per-cow query: plain array, no pagination
+    if (cow_id) {
+      const query = breedingQuery().orderBy('be.event_date', 'desc').where('be.cow_id', cow_id)
+      applyTypeFilter(query)
+      const rows = await query
+      return res.json(rows.map(parseJsonFields))
+    }
+
+    // Global list: server-side pagination
+    const page  = Math.max(1, parseInt(req.query.page)  || 1)
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20))
+    const offset = (page - 1) * limit
+
+    const [rows, [{ count }]] = await Promise.all([
+      breedingQuery().modify(applyTypeFilter).orderBy('be.event_date', 'desc').limit(limit).offset(offset),
+      db('breeding_events as be')
+        .join('cows as c', 'be.cow_id', 'c.id')
+        .whereNull('c.deleted_at')
+        .modify(applyTypeFilter)
+        .count('be.id as count'),
+    ])
+
+    res.json({ data: rows.map(parseJsonFields), total: Number(count) })
   } catch (err) {
     next(err)
   }
@@ -269,7 +297,7 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
   try {
     const { error, value } = createSchema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message })
+    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
 
     const validTypes = VALID_EVENT_TYPES
     if (!validTypes.includes(value.event_type)) {
@@ -288,6 +316,25 @@ router.post('/', async (req, res, next) => {
     // Use cow's breed type for breed-specific date calculations
     const breedTimings = await getBreedTimings(cow.breed_type_id)
     const autoDates = calcDates(value.event_type, value.event_date, breedTimings)
+
+    // Client-provided expected_calving/expected_dry_off override auto-calculated values
+    // (used by preg_check_positive form where farmer can enter/override the calving date)
+    if (value.expected_calving) {
+      autoDates.expected_calving = value.expected_calving
+      autoDates.expected_dry_off = value.expected_dry_off || null
+    } else if (value.event_type === 'preg_check_positive' && !autoDates.expected_calving) {
+      // Fallback: carry forward from the cow's latest insemination event
+      const latestInsem = await db('breeding_events')
+        .where({ cow_id: value.cow_id })
+        .whereIn('event_type', ['ai_insemination', 'bull_service'])
+        .whereNotNull('expected_calving')
+        .orderBy('event_date', 'desc')
+        .first()
+      if (latestInsem) {
+        autoDates.expected_calving = latestInsem.expected_calving
+        autoDates.expected_dry_off = latestInsem.expected_dry_off
+      }
+    }
     const id = uuidv4()
     const now = new Date().toISOString()
 
@@ -337,7 +384,7 @@ router.patch('/:id', async (req, res, next) => {
     if (!existing) return res.status(404).json({ error: 'Breeding event not found' })
 
     const { error, value } = updateSchema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message })
+    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
 
     if (value.event_type) {
       const validTypes = VALID_EVENT_TYPES
@@ -364,6 +411,8 @@ router.patch('/:id', async (req, res, next) => {
     if ('calving_details' in value) updates.calving_details = value.calving_details ? JSON.stringify(value.calving_details) : null
     if ('cost' in value) updates.cost = value.cost ?? null
     if ('notes' in value) updates.notes = value.notes || null
+    if ('expected_calving' in value) updates.expected_calving = value.expected_calving || null
+    if ('expected_dry_off' in value) updates.expected_dry_off = value.expected_dry_off || null
 
     await db('breeding_events').where({ id: req.params.id }).update(updates)
 

@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import api from '../services/api'
 import db from '../db/indexedDB'
 import { enqueue, dequeueByEntityId, isOfflineError } from '../services/syncManager'
+import { extractApiError } from '../utils/apiError'
 
 export const useTreatmentsStore = defineStore('treatments', () => {
   const treatments = ref([])
@@ -28,7 +29,7 @@ export const useTreatmentsStore = defineStore('treatments', () => {
     } catch (err) {
       const local = await db.treatments.where('cow_id').equals(cowId).toArray()
       treatments.value = [...treatments.value.filter((t) => t.cow_id !== cowId), ...local]
-      error.value = err.message
+      error.value = extractApiError(err)
       return local
     } finally {
       loadingByCow.value = false
@@ -57,7 +58,7 @@ export const useTreatmentsStore = defineStore('treatments', () => {
         }
       }
       withdrawalCows.value = Object.values(byCow)
-      error.value = err.message
+      error.value = extractApiError(err)
       return withdrawalCows.value
     } finally {
       loadingWithdrawal.value = false
@@ -101,7 +102,7 @@ export const useTreatmentsStore = defineStore('treatments', () => {
       // Fall back to cached data if available
       const cached = treatments.value.find((t) => t.id === id)
       if (cached) return cached
-      error.value = err.message
+      error.value = extractApiError(err)
       throw err
     } finally {
       loadingOne.value = false
