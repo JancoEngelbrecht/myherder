@@ -140,8 +140,8 @@
           </div>
         </div>
 
-        <!-- Reproduction (female only) -->
-        <div v-if="cow.sex !== 'male'" class="card treatment-card">
+        <!-- Reproduction (female only, breeding enabled) -->
+        <div v-if="flags.breeding && cow.sex !== 'male'" class="card treatment-card">
           <div class="treatment-header">
             <h3 class="section-label">{{ t('breeding.reproTitle') }}</h3>
             <RouterLink :to="`/cows/${cow.id}/repro`" class="view-all-link">
@@ -174,7 +174,7 @@
         </div>
 
         <!-- Health Issues (compact) -->
-        <div class="card treatment-card">
+        <div v-if="flags.healthIssues" class="card treatment-card">
           <div class="treatment-header">
             <h3 class="section-label">{{ t('healthIssues.title') }}</h3>
             <RouterLink :to="`/cows/${cow.id}/issues`" class="view-all-link">
@@ -205,7 +205,7 @@
         </div>
 
         <!-- Treatment History (compact) -->
-        <div class="card treatment-card">
+        <div v-if="flags.treatments" class="card treatment-card">
           <div class="treatment-header">
             <h3 class="section-label">{{ t('cowDetail.treatments') }}</h3>
             <RouterLink :to="`/cows/${cow.id}/treatments`" class="view-all-link">
@@ -237,8 +237,8 @@
           </template>
         </div>
 
-        <!-- Breeding action (female cows, all users) -->
-        <div v-if="cow.sex !== 'male'" class="action-row">
+        <!-- Breeding action (female cows, breeding enabled) -->
+        <div v-if="flags.breeding && cow.sex !== 'male'" class="action-row">
           <RouterLink :to="`/breed/log?cow_id=${cow.id}`" class="btn-secondary edit-link">
             🐂 {{ t('breeding.logEvent') }}
           </RouterLink>
@@ -279,6 +279,7 @@ import { useTreatmentsStore } from '../stores/treatments.js'
 import { useHealthIssuesStore } from '../stores/healthIssues.js'
 import { useIssueTypesStore } from '../stores/issueTypes.js'
 import { useBreedingEventsStore } from '../stores/breedingEvents.js'
+import { useFeatureFlagsStore } from '../stores/featureFlags.js'
 import { getEventType } from '../config/breedingEventTypes.js'
 import { formatDate, formatDateTime } from '../utils/format.js'
 import AppHeader from '../components/organisms/AppHeader.vue'
@@ -295,6 +296,9 @@ const issueTypesStore = useIssueTypesStore()
 const breedingEventsStore = useBreedingEventsStore()
 
 const breedTypesStore = useBreedTypesStore()
+const featureFlagsStore = useFeatureFlagsStore()
+
+const flags = computed(() => featureFlagsStore.flags)
 
 const cow = ref(null)
 const loading = ref(true)
@@ -357,11 +361,15 @@ async function load() {
   } finally {
     loading.value = false
   }
-  // Load treatments, issues, repro in background
+  // Load treatments, issues, repro in background (skip if module disabled)
   if (cow.value) {
-    treatmentsStore.fetchByCow(cow.value.id)
-    healthIssuesStore.fetchByCow(cow.value.id)
-    if (cow.value.sex !== 'male') {
+    if (featureFlagsStore.flags.treatments) {
+      treatmentsStore.fetchByCow(cow.value.id)
+    }
+    if (featureFlagsStore.flags.healthIssues) {
+      healthIssuesStore.fetchByCow(cow.value.id)
+    }
+    if (featureFlagsStore.flags.breeding && cow.value.sex !== 'male') {
       reproLoading.value = true
       breedingEventsStore.fetchForCow(cow.value.id)
         .then((events) => {
@@ -374,7 +382,7 @@ async function load() {
 
 onMounted(() => {
   load()
-  issueTypesStore.fetchAll()
+  if (featureFlagsStore.flags.healthIssues) issueTypesStore.fetchAll()
   if (breedTypesStore.activeTypes.length === 0) breedTypesStore.fetchActive().catch(() => {})
 })
 

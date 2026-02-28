@@ -156,6 +156,7 @@ function parseJsonFields(row) {
 router.get('/upcoming', async (req, res, next) => {
   try {
     const today = new Date().toISOString().slice(0, 10)
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
     const in7  = new Date(Date.now() + 7  * 86400000).toISOString().slice(0, 10)
     const in14 = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10)
     const past30 = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)
@@ -188,11 +189,11 @@ router.get('/upcoming', async (req, res, next) => {
       dateRangeQuery('expected_calving', today, in14),
       dateRangeQuery('expected_preg_check', today, in7),
       dateRangeQuery('expected_dry_off', today, in14, dryOffFilters),
-      // Overdue (past 30 days)
-      dateRangeQuery('expected_next_heat', past30, today),
-      dateRangeQuery('expected_calving', past30, today),
-      dateRangeQuery('expected_preg_check', past30, today),
-      dateRangeQuery('expected_dry_off', past30, today, dryOffFilters),
+      // Overdue (past 30 days, strictly before today)
+      dateRangeQuery('expected_next_heat', past30, yesterday),
+      dateRangeQuery('expected_calving', past30, yesterday),
+      dateRangeQuery('expected_preg_check', past30, yesterday),
+      dateRangeQuery('expected_dry_off', past30, yesterday, dryOffFilters),
     ])
 
     // Deduplicate: keep only the latest event per cow for each category
@@ -234,13 +235,17 @@ router.get('/upcoming', async (req, res, next) => {
   }
 })
 
-// GET /api/breeding-events?cow_id=X&event_type=X&page=N&limit=N
+// GET /api/breeding-events?cow_id=X&event_type=X&cow_status=X&date_from=X&date_to=X&page=N&limit=N
 // - With cow_id: returns plain array (no pagination needed for per-cow views)
 // - Without cow_id: returns { data: [...], total: N } with server-side pagination
 // - event_type: single value or comma-separated (e.g. "ai_insemination,bull_service")
+// - cow_status: 'active', 'pregnant', or 'dry' (dry filters on is_dry flag)
+// - date_from / date_to: ISO date strings to filter event_date range
+const VALID_COW_STATUSES = ['active', 'pregnant', 'dry']
+
 router.get('/', async (req, res, next) => {
   try {
-    const { cow_id, event_type } = req.query
+    const { cow_id, event_type, cow_status, date_from, date_to } = req.query
     const types = event_type ? event_type.split(',') : null
 
     // Validate event_type values
@@ -252,12 +257,28 @@ router.get('/', async (req, res, next) => {
       }
     }
 
+    // Validate cow_status
+    if (cow_status && !VALID_COW_STATUSES.includes(cow_status)) {
+      return res.status(400).json({ error: `Invalid cow_status: ${cow_status}` })
+    }
+
     const applyTypeFilter = (q) => { if (types) q.whereIn('be.event_type', types) }
+
+    const applyFilters = (q) => {
+      applyTypeFilter(q)
+      if (cow_status === 'dry') {
+        q.where('c.is_dry', true)
+      } else if (cow_status) {
+        q.where('c.status', cow_status)
+      }
+      if (date_from) q.where('be.event_date', '>=', date_from)
+      if (date_to) q.where('be.event_date', '<=', date_to)
+    }
 
     // Per-cow query: plain array, no pagination
     if (cow_id) {
       const query = breedingQuery().orderBy('be.event_date', 'desc').where('be.cow_id', cow_id)
-      applyTypeFilter(query)
+      applyFilters(query)
       const rows = await query
       return res.json(rows.map(parseJsonFields))
     }
@@ -268,11 +289,11 @@ router.get('/', async (req, res, next) => {
     const offset = (page - 1) * limit
 
     const [rows, [{ count }]] = await Promise.all([
-      breedingQuery().modify(applyTypeFilter).orderBy('be.event_date', 'desc').limit(limit).offset(offset),
+      breedingQuery().modify(applyFilters).orderBy('be.event_date', 'desc').limit(limit).offset(offset),
       db('breeding_events as be')
         .join('cows as c', 'be.cow_id', 'c.id')
         .whereNull('c.deleted_at')
-        .modify(applyTypeFilter)
+        .modify(applyFilters)
         .count('be.id as count'),
     ])
 
@@ -370,6 +391,35 @@ router.post('/', async (req, res, next) => {
 
     const created = await breedingQuery().where('be.id', id).first()
     res.status(201).json(parseJsonFields(created))
+  } catch (err) {
+    next(err)
+  }
+})
+
+// PATCH /api/breeding-events/dismiss-batch — dismiss multiple events at once
+// Must be defined before /:id to avoid Express matching "dismiss-batch" as :id
+router.patch('/dismiss-batch', async (req, res, next) => {
+  try {
+    const { ids, reason } = req.body
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'ids must be a non-empty array' })
+    }
+    if (ids.length > 100) {
+      return res.status(400).json({ error: 'Maximum 100 events per batch' })
+    }
+
+    const now = new Date().toISOString()
+    const updated = await db('breeding_events')
+      .whereIn('id', ids)
+      .whereNull('dismissed_at')
+      .update({
+        dismissed_at: now,
+        dismissed_by: req.user.id,
+        dismiss_reason: reason || null,
+        updated_at: now,
+      })
+
+    res.json({ dismissed: updated })
   } catch (err) {
     next(err)
   }

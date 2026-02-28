@@ -14,6 +14,7 @@ const CURRENT_SCHEMA = {
   issueTypes: 'id, code, is_active, sort_order',
   syncQueue: '++autoId, id, entityType, action, createdAt, attempts',
   syncMeta: 'key',
+  featureFlags: 'key',
 }
 
 // ── DB Instance ────────────────────────────────────────────────
@@ -26,6 +27,8 @@ function createDb() {
   instance.version(7).stores(CURRENT_SCHEMA)
   // v8: added attempts index on syncQueue
   instance.version(8).stores(CURRENT_SCHEMA)
+  // v9: added featureFlags table
+  instance.version(9).stores(CURRENT_SCHEMA)
   return instance
 }
 
@@ -67,7 +70,7 @@ function clearRecoveredFlag() {
  * Returns the deviceId string.
  */
 async function ensureDeviceId() {
-  let entry = await db.syncMeta.get('deviceId')
+  const entry = await db.syncMeta.get('deviceId')
   if (!entry) {
     const deviceId = crypto.randomUUID()
     await db.syncMeta.put({ key: 'deviceId', value: deviceId })

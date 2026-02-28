@@ -667,6 +667,8 @@ All reports filterable by date range, exportable as PDF and Excel:
 **Goal:** Track full reproductive lifecycle.
 > Sub-plan: [plans/breeding-v2.md](plans/breeding-v2.md) — Enhanced breeding with configurable breed types, life phases, dry-off management (COMPLETE)
 > Sub-plan: [plans/breeding-hub-pagination.md](plans/breeding-hub-pagination.md) — Server-side pagination for Recent Events + collapsible upcoming alert categories
+> Sub-plan: [plans/breeding-events-filters.md](plans/breeding-events-filters.md) — Advanced filters for breeding events list (cow search, cow status, date range)
+> Sub-plan: [plans/breeding-hub-redesign.md](plans/breeding-hub-redesign.md) — Simplify hub to dashboard with nav cards, new Notifications page with category filters
 
 | Step | Task | Details |
 |------|------|---------|
@@ -732,6 +734,9 @@ All reports filterable by date range, exportable as PDF and Excel:
 | 7.2 | User management UI | Add worker, set PIN, toggle permissions |
 | 7.3 | Medication management | Admin edits medication list |
 | 7.4 | App settings | Farm name, default language |
+| 7.4b | Feature flags | Module toggles (breeding, milk, health, treatments, analytics) |
+
+> Sub-plan: [plans/feature-flags.md](plans/feature-flags.md) (COMPLETE)
 | 7.5 | Data export | Full database backup |
 
 **Deliverable:** Full admin control over users, permissions, and settings.

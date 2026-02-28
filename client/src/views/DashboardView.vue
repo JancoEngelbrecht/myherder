@@ -43,37 +43,37 @@
             <span class="action-label">{{ t('dashboard.viewCows') }}</span>
           </RouterLink>
 
-          <RouterLink to="/analytics" class="action-card active-action">
+          <RouterLink v-if="flags.analytics" to="/analytics" class="action-card active-action">
             <span class="action-icon">📊</span>
             <span class="action-label">{{ t('dashboard.analytics') }}</span>
           </RouterLink>
 
-          <RouterLink to="/log/treatment" class="action-card active-action">
+          <RouterLink v-if="flags.treatments" to="/log/treatment" class="action-card active-action">
             <span class="action-icon">💉</span>
             <span class="action-label">{{ t('dashboard.addLog') }}</span>
           </RouterLink>
 
-          <RouterLink to="/log/issue" class="action-card active-action">
+          <RouterLink v-if="flags.healthIssues" to="/log/issue" class="action-card active-action">
             <span class="action-icon">🩺</span>
             <span class="action-label">{{ t('dashboard.logIssue') }}</span>
           </RouterLink>
 
-          <RouterLink to="/health-issues" class="action-card issues-action">
+          <RouterLink v-if="flags.healthIssues" to="/health-issues" class="action-card issues-action">
             <span class="action-icon">🚨</span>
             <span class="action-label">{{ t('dashboard.openIssues') }}</span>
           </RouterLink>
 
-          <RouterLink to="/withdrawal" class="action-card withdrawal-action">
+          <RouterLink v-if="flags.treatments" to="/withdrawal" class="action-card withdrawal-action">
             <span class="action-icon">🚫</span>
             <span class="action-label">{{ t('dashboard.withdrawal') }}</span>
           </RouterLink>
 
-          <RouterLink to="/milk" class="action-card">
+          <RouterLink v-if="flags.milkRecording" to="/milk" class="action-card">
             <span class="action-icon">🥛</span>
             <span class="action-label">{{ t('dashboard.recordMilk') }}</span>
           </RouterLink>
 
-          <RouterLink to="/breed" class="action-card active-action">
+          <RouterLink v-if="flags.breeding" to="/breed" class="action-card active-action">
             <span class="action-icon">🐂</span>
             <span class="action-label">{{ t('dashboard.breed') }}</span>
           </RouterLink>
@@ -84,14 +84,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth.js'
+import { useFeatureFlagsStore } from '../stores/featureFlags.js'
 import api from '../services/api.js'
 import AppHeader from '../components/organisms/AppHeader.vue'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
+const featureFlagsStore = useFeatureFlagsStore()
+
+const flags = computed(() => featureFlagsStore.flags)
 
 const summary = ref({ active: null, dry: null, pregnant: null, sick: null })
 const summaryLoading = ref(true)

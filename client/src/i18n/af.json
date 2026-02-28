@@ -386,19 +386,20 @@
     "title": "Teelt & Reproduksie",
     "hubTitle": "Teelt Sentrum",
     "eventsTitle": "Teelt Geleenthede",
-    "viewAllEvents": "Sien Alle Geleenthede",
     "logTitle": "Aanteken Teelt Geleentheid",
     "editTitle": "Wysig Teelt Geleentheid",
     "reproTitle": "Reproduksie",
     "logEvent": "Aanteken Geleentheid",
     "noEvents": "Geen teelt geleenthede aangeteken nie",
-    "recentEvents": "Onlangse Geleenthede",
+    "recentEvents": "Onlangse Aantekeninge",
     "viewAll": "Sien alles",
     "deleteConfirm": "Permanent verwyder hierdie teelt geleentheid?",
     "needsAttention": "Benodig Aandag",
     "dismiss": "Verwerp",
     "dismissReason": "Rede (opsioneel)",
     "dismissConfirm": "Verwerp hierdie waarskuwing? Dit sal nie weer verskyn nie.",
+    "dismissAll": "Verwerp Almal",
+    "dismissAllConfirm": "Verwerp al {count} agterstallige waarskuwings? Hulle sal nie weer verskyn nie.",
     "dismissed": "Verwerp",
     "gestationDays": "Dragtigheid",
     "gestationProgress": "{days} / 283 dae",
@@ -480,8 +481,31 @@
       "prompt": "Skakel {tag} na droogstatus oor?",
       "accepted": "Droogmaak aangeteken"
     },
+    "advancedFilters": "Gevorderde Filters",
+    "filterGroupCow": "Koei",
+    "filterGroupDate": "Datum",
+    "filterEventDate": "Gebeurtenis Datum",
+    "filterDry": "Droog",
     "showAll": "Wys almal ({count})",
     "showLess": "Wys minder",
+    "notificationsTitle": "Kennisgewings",
+    "notificationsCard": "Kennisgewings",
+    "recentEventsCard": "Onlangse Geleenthede",
+    "overdueCount": "{count} agterstallig",
+    "upcomingCount": "{count} aankomend",
+    "lastEvent": "Laaste: {type} — {tag}",
+    "filterAll": "Alles",
+    "filterHeats": "Hits",
+    "filterCalvings": "Kalwings",
+    "filterPregChecks": "Drag. Toetse",
+    "filterDryOffs": "Droogmaak",
+    "filterAnytime": "Enige Tyd",
+    "filterToday": "Vandag",
+    "filterTomorrow": "Môre",
+    "filterThisWeek": "Hierdie Week",
+    "filterNextWeek": "Volgende Week",
+    "upcomingHeader": "Aankomend",
+    "noNotifications": "Geen kennisgewings",
     "eventTypes": {
       "heat_observed": "Hits Waargeneem",
       "ai_insemination": "KI Inseminasie",
@@ -518,6 +542,30 @@
     "saveFailed": "Stoor het misluk — probeer asseblief weer",
     "deleteFailed": "Skrap het misluk — probeer asseblief weer",
     "loadFailed": "Kon nie data laai nie"
+  },
+  "featureFlags": {
+    "sectionTitle": "Modules",
+    "sectionDesc": "Aktiveer of deaktiveer app-modules",
+    "breeding": {
+      "name": "Teelt",
+      "desc": "Teelt sentrum, geleenthede en reproduksie opsporing"
+    },
+    "milkRecording": {
+      "name": "Melk Optekening",
+      "desc": "Daaglikse melk optekening en opbrengs opsporing"
+    },
+    "healthIssues": {
+      "name": "Gesondheidsprobleme",
+      "desc": "Gesondheidsprobleem aantekening en opsporing"
+    },
+    "treatments": {
+      "name": "Behandelings",
+      "desc": "Behandeling aantekening en onttrekking opsporing"
+    },
+    "analytics": {
+      "name": "Analise",
+      "desc": "Trop analise en verslagdoening"
+    }
   },
   "breedTypes": {
     "title": "Rastipes",

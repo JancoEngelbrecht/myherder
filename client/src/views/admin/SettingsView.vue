@@ -3,10 +3,10 @@
     <AppHeader :title="t('settings.title')" show-back back-to="/" />
 
     <div class="page-content">
-      <section class="section">
+      <section v-if="showAdminTools" class="section">
         <h2 class="section-label">{{ t('settings.adminTools') }}</h2>
         <div class="settings-list">
-          <RouterLink to="/admin/medications" class="settings-item">
+          <RouterLink v-if="flags.treatments" to="/admin/medications" class="settings-item">
             <span class="settings-icon">💊</span>
             <div class="settings-info">
               <span class="settings-name">{{ t('medications.title') }}</span>
@@ -15,7 +15,7 @@
             <span class="settings-arrow">›</span>
           </RouterLink>
 
-          <RouterLink to="/admin/issue-types" class="settings-item">
+          <RouterLink v-if="flags.healthIssues" to="/admin/issue-types" class="settings-item">
             <span class="settings-icon">🩺</span>
             <div class="settings-info">
               <span class="settings-name">{{ t('issueTypes.title') }}</span>
@@ -24,7 +24,7 @@
             <span class="settings-arrow">›</span>
           </RouterLink>
 
-          <RouterLink to="/admin/breed-types" class="settings-item">
+          <RouterLink v-if="flags.breeding" to="/admin/breed-types" class="settings-item">
             <span class="settings-icon">🐄</span>
             <div class="settings-info">
               <span class="settings-name">{{ t('breedTypes.title') }}</span>
@@ -32,6 +32,28 @@
             </div>
             <span class="settings-arrow">›</span>
           </RouterLink>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-label">{{ t('featureFlags.sectionTitle') }}</h2>
+        <p class="section-desc">{{ t('featureFlags.sectionDesc') }}</p>
+        <div class="settings-list">
+          <div v-for="flag in moduleFlags" :key="flag.key" class="settings-item">
+            <div class="settings-info">
+              <span class="settings-name">{{ t(`featureFlags.${flag.key}.name`) }}</span>
+              <span class="settings-desc">{{ t(`featureFlags.${flag.key}.desc`) }}</span>
+            </div>
+            <label class="toggle-switch">
+              <input
+                type="checkbox"
+                :checked="flags[flag.key]"
+                :disabled="flag.updating"
+                @change="toggleFlag(flag, $event)"
+              />
+              <span class="toggle-slider" />
+            </label>
+          </div>
         </div>
       </section>
 
@@ -57,13 +79,41 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import { initialSync, lastSyncTime as syncLastTime } from '../../services/syncManager.js'
+import { useFeatureFlagsStore } from '../../stores/featureFlags.js'
 
 const { t } = useI18n()
+const featureFlagsStore = useFeatureFlagsStore()
 const syncing = ref(false)
+
+const flags = computed(() => featureFlagsStore.flags)
+
+const moduleFlags = reactive([
+  { key: 'breeding', updating: false },
+  { key: 'milkRecording', updating: false },
+  { key: 'healthIssues', updating: false },
+  { key: 'treatments', updating: false },
+  { key: 'analytics', updating: false },
+])
+
+const showAdminTools = computed(() =>
+  flags.value.treatments || flags.value.healthIssues || flags.value.breeding,
+)
+
+async function toggleFlag(flag, event) {
+  const enabled = event.target.checked
+  flag.updating = true
+  try {
+    await featureFlagsStore.updateFlag(flag.key, enabled)
+  } catch {
+    // Reverted by the store — checkbox will reflect the correct state
+  } finally {
+    flag.updating = false
+  }
+}
 
 async function forceSync() {
   syncing.value = true
@@ -89,6 +139,12 @@ function formatSyncTime(iso) {
 .section-label {
   margin-bottom: 12px;
   display: block;
+}
+
+.section-desc {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
 }
 
 .settings-list {

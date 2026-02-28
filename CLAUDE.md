@@ -55,13 +55,15 @@ Tests: `cd client && npm run test:run` (Vitest). Lint: `npm run lint` / `npm run
 - `POST /api/breeding-events`, `PATCH /:id` (admin), `PATCH /:id/dismiss` (any user), `DELETE /:id` (admin)
 - `GET /api/breeding-events/upcoming` returns `{ heats, calvings, pregChecks, dryOffs, needsAttention }` — excludes dismissed events
 - Breeding auto-dates use breed-specific timings from `breed_types` table (gestation, heat cycle, preg check, dry-off days)
+- `GET /api/feature-flags` — returns all flags as `{ breeding, milkRecording, healthIssues, treatments, analytics }` (camelCase); DB stores snake_case keys
+- `PATCH /api/feature-flags` — admin only; body `{ flagKey: bool }` (camelCase); returns updated full flags object
 - `GET /api/sync/health` — no auth, returns `{ ok, timestamp }` (connectivity check)
 - `POST /api/sync/push` — batch push client changes; body `{ deviceId, changes: [{ entityType, action, id, data, updatedAt }] }`; returns `{ results: [{ id, entityType, status, serverData?, error? }] }`; LWW conflict resolution
 - `GET /api/sync/pull?since=<ISO>&full=1` — pull server data; returns `{ cows, medications, treatments, healthIssues, milkRecords, breedingEvents, breedTypes, issueTypes, deleted, syncedAt }`
 
 ## i18n
 
-Two locales: `en.json` and `af.json` in `client/src/i18n/`. Locale persisted to `localStorage('locale')`. All user-facing strings must have entries in both files. Keys are namespaced: `nav`, `login`, `dashboard`, `cows`, `cowForm`, `cowDetail`, `status`, `sex`, `analytics`, `common`, `sync`, `placeholder`.
+Two locales: `en.json` and `af.json` in `client/src/i18n/`. Locale persisted to `localStorage('locale')`. All user-facing strings must have entries in both files. Keys are namespaced: `nav`, `login`, `dashboard`, `cows`, `cowForm`, `cowDetail`, `status`, `sex`, `analytics`, `common`, `sync`, `placeholder`, `featureFlags`.
 
 ## Frontend Component Architecture (Atomic Design)
 
@@ -96,6 +98,7 @@ CSS custom properties defined in `client/src/style.css`:
 - Border radius: 12px default, 8px small, 16px large
 - Global utility classes: `.btn-primary`, `.btn-secondary`, `.btn-danger`, `.card`, `.badge`, `.badge-{status}`, `.form-group`, `.form-input`, `.page`, `.fab`, `.spinner`, `.empty-state`, `.mono`
 - Note: `.btn-*` classes all have `width: 100%` by default — override with `.btn-sm-pill` or scoped `width: auto`
+- **Filter chips:** `.filter-chips` (scrollable row) + `.chip` + `.chip-count` are global. Direct children of `.page-content` get full-bleed scroll (negative margins extend to viewport edges). Use `.filter-chips-wrap` for wrapping (non-scrolling) chip rows inside panels.
 
 ## Project Phases
 

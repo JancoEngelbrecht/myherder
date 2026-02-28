@@ -375,7 +375,78 @@ a {
   flex: 1;
   padding: 16px;
   padding-top: calc(var(--header-height) + 16px);
+  overflow-x: hidden;
   overflow-y: auto;
+}
+
+/* ===== Filter Chips ===== */
+
+/* Base: horizontally scrollable chip row */
+.filter-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+
+.filter-chips::-webkit-scrollbar {
+  display: none;
+}
+
+/* Full-bleed scroll: extend to viewport edges within .page-content */
+.page-content > .filter-chips:not(.filter-chips-wrap) {
+  margin-left: -16px;
+  margin-right: -16px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* Wrapping variant — no scroll, no full-bleed */
+.filter-chips-wrap {
+  flex-wrap: wrap;
+  overflow-x: visible;
+}
+
+.chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.chip.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.chip-count {
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100px;
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0 4px;
+}
+
+.chip.active .chip-count {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 /* FAB */
@@ -470,4 +541,53 @@ a {
 .slide-up-leave-to {
   transform: translateY(-4px);
   opacity: 0;
+}
+
+/* ===== Toggle Switch ===== */
+.toggle-switch {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-switch .toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: var(--border-strong);
+  border-radius: 14px;
+  transition: background 0.2s;
+}
+
+.toggle-switch .toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--primary);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+}
+
+.toggle-switch input:disabled + .toggle-slider {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

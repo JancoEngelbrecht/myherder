@@ -386,7 +386,6 @@
     "title": "Breeding & Reproduction",
     "hubTitle": "Breeding Hub",
     "eventsTitle": "Breeding Events",
-    "viewAllEvents": "View All Events",
     "logTitle": "Log Breeding Event",
     "editTitle": "Edit Breeding Event",
     "reproTitle": "Reproduction",
@@ -399,6 +398,8 @@
     "dismiss": "Dismiss",
     "dismissReason": "Reason (optional)",
     "dismissConfirm": "Dismiss this alert? It will not appear again.",
+    "dismissAll": "Dismiss All",
+    "dismissAllConfirm": "Dismiss all {count} overdue alerts? They will not appear again.",
     "dismissed": "Dismissed",
     "gestationDays": "Gestation",
     "gestationProgress": "{days} / 283 days",
@@ -480,8 +481,31 @@
       "prompt": "Transition {tag} to dry status?",
       "accepted": "Dry-off recorded"
     },
+    "advancedFilters": "Advanced Filters",
+    "filterGroupCow": "Cow",
+    "filterGroupDate": "Date",
+    "filterEventDate": "Event Date",
+    "filterDry": "Dry",
     "showAll": "Show all ({count})",
     "showLess": "Show less",
+    "notificationsTitle": "Notifications",
+    "notificationsCard": "Notifications",
+    "recentEventsCard": "Recent Events",
+    "overdueCount": "{count} overdue",
+    "upcomingCount": "{count} upcoming",
+    "lastEvent": "Last: {type} — {tag}",
+    "filterAll": "All",
+    "filterHeats": "Heats",
+    "filterCalvings": "Calvings",
+    "filterPregChecks": "Preg Checks",
+    "filterDryOffs": "Dry-Offs",
+    "filterAnytime": "Anytime",
+    "filterToday": "Today",
+    "filterTomorrow": "Tomorrow",
+    "filterThisWeek": "This Week",
+    "filterNextWeek": "Next Week",
+    "upcomingHeader": "Upcoming",
+    "noNotifications": "No notifications",
     "eventTypes": {
       "heat_observed": "Heat Observed",
       "ai_insemination": "AI Insemination",
@@ -518,6 +542,30 @@
     "saveFailed": "Save failed — please try again",
     "deleteFailed": "Delete failed — please try again",
     "loadFailed": "Could not load data"
+  },
+  "featureFlags": {
+    "sectionTitle": "Modules",
+    "sectionDesc": "Enable or disable app modules",
+    "breeding": {
+      "name": "Breeding",
+      "desc": "Breeding hub, events, and reproduction tracking"
+    },
+    "milkRecording": {
+      "name": "Milk Recording",
+      "desc": "Daily milk recording and yield tracking"
+    },
+    "healthIssues": {
+      "name": "Health Issues",
+      "desc": "Health issue logging and tracking"
+    },
+    "treatments": {
+      "name": "Treatments",
+      "desc": "Treatment logging and withdrawal tracking"
+    },
+    "analytics": {
+      "name": "Analytics",
+      "desc": "Herd analytics and reporting"
+    }
   },
   "breedTypes": {
     "title": "Breed Types",

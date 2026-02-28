@@ -1,7 +1,7 @@
 <template>
   <nav class="bottom-nav">
     <RouterLink
-      v-for="tab in tabs"
+      v-for="tab in visibleTabs"
       :key="tab.name"
       :to="tab.to"
       class="nav-tab"
@@ -14,19 +14,26 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
+import { useFeatureFlagsStore } from '../../stores/featureFlags.js'
 
 const { t } = useI18n()
 const route = useRoute()
+const featureFlagsStore = useFeatureFlagsStore()
 
-const tabs = [
-  { name: 'home',  to: '/',          icon: '🏠', labelKey: 'nav.home' },
-  { name: 'cows',  to: '/cows',      icon: '🐄', labelKey: 'nav.cows' },
-  { name: 'log',   to: '/log',       icon: '📋', labelKey: 'nav.log' },
-  { name: 'milk',  to: '/milk',      icon: '🥛', labelKey: 'nav.milk' },
-  { name: 'breed', to: '/breed',     icon: '🐂', labelKey: 'nav.breed' },
+const allTabs = [
+  { name: 'home',  to: '/',      icon: '🏠', labelKey: 'nav.home' },
+  { name: 'cows',  to: '/cows',  icon: '🐄', labelKey: 'nav.cows' },
+  { name: 'log',   to: '/log',   icon: '📋', labelKey: 'nav.log' },
+  { name: 'milk',  to: '/milk',  icon: '🥛', labelKey: 'nav.milk',  flag: 'milkRecording' },
+  { name: 'breed', to: '/breed', icon: '🐂', labelKey: 'nav.breed', flag: 'breeding' },
 ]
+
+const visibleTabs = computed(() =>
+  allTabs.filter((tab) => !tab.flag || featureFlagsStore.flags[tab.flag]),
+)
 
 function isActive(tab) {
   if (tab.name === 'home') return route.path === '/'

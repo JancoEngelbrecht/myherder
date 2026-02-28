@@ -13,7 +13,7 @@
       </div>
 
       <!-- Status filter chips -->
-      <div class="filter-chips">
+      <div class="filter-chips filter-chips-wrap">
         <button
           v-for="f in filters"
           :key="f.value"
@@ -300,45 +300,7 @@ loadCows()
 }
 
 .filter-chips {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 4px;
   margin-bottom: 16px;
-  margin-left: -16px;
-  margin-right: -16px;
-  padding-left: 16px;
-  padding-right: 16px;
-  scrollbar-width: none;
-}
-
-.filter-chips::-webkit-scrollbar {
-  display: none;
-}
-
-.filter-chips-wrap {
-  flex-wrap: wrap;
-  overflow-x: visible;
-}
-
-.chip {
-  flex-shrink: 0;
-  padding: 6px 14px;
-  border-radius: var(--radius-full);
-  border: 1.5px solid var(--border);
-  background: var(--surface);
-  color: var(--text-secondary);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-  white-space: nowrap;
-}
-
-.chip.active {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
 }
 
 .advanced-toggle {
@@ -412,11 +374,6 @@ loadCows()
   height: 1px;
   background: var(--border);
   margin: 0 0 12px;
-}
-
-.filter-chips-wrap {
-  flex-wrap: wrap;
-  overflow-x: visible;
 }
 
 .filter-select {

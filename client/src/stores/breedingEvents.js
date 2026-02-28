@@ -24,6 +24,8 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
       if (filters.cow_id) {
         // Plain array — per-cow repro view, no pagination
         await db.breedingEvents.bulkPut(payload)
+        events.value = payload
+        total.value = payload.length
         return payload
       }
 
@@ -175,6 +177,30 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
     }
   }
 
+  async function dismissBatch(ids, reason = '') {
+    const now = new Date().toISOString()
+
+    // Optimistic: mark all as dismissed locally
+    for (const id of ids) {
+      const existing = await db.breedingEvents.get(id)
+      if (existing) {
+        await db.breedingEvents.put({ ...existing, dismissed_at: now, dismiss_reason: reason, updated_at: now })
+      }
+    }
+
+    try {
+      await api.patch('/breeding-events/dismiss-batch', { ids, reason })
+      fetchUpcoming().catch(() => {})
+    } catch (err) {
+      if (!isOfflineError(err)) throw err
+      // Offline: enqueue individual dismiss updates
+      for (const id of ids) {
+        const local = await db.breedingEvents.get(id)
+        if (local) await enqueue('breedingEvents', 'update', id, local)
+      }
+    }
+  }
+
   // ── Delete ───────────────────────────────────────────────────────────────────
 
   async function deleteEvent(id) {
@@ -239,6 +265,7 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
     createEvent,
     updateEvent,
     dismissEvent,
+    dismissBatch,
     deleteEvent,
     latestForCow,
     daysBetween,

@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import api from '../services/api.js'
 import db from '../db/indexedDB.js'
 import { initialSync, isOfflineError } from '../services/syncManager.js'
+import { useFeatureFlagsStore } from './featureFlags.js'
 
 export const useAuthStore = defineStore('auth', () => {
   const token = ref(null)
@@ -64,6 +65,9 @@ export const useAuthStore = defineStore('auth', () => {
     isOfflineMode.value = false
     localStorage.setItem('auth_token', data.token)
     await db.auth.put({ key: 'session', token: data.token, user: data.user })
+    // Fetch feature flags in background (don't block login)
+    const featureFlagsStore = useFeatureFlagsStore()
+    featureFlagsStore.fetchFlags().catch(() => {})
     // Trigger initial sync in background (don't block login)
     initialSync().catch(() => {})
   }
