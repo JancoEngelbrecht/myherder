@@ -3,6 +3,7 @@ const { randomUUID: uuidv4 } = require('crypto')
 const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
+const authorize = require('../middleware/authorize')
 
 const router = express.Router()
 router.use(authenticate)
@@ -315,7 +316,7 @@ router.get('/:id', async (req, res, next) => {
 })
 
 // POST /api/breeding-events
-router.post('/', async (req, res, next) => {
+router.post('/', authorize('can_log_breeding'), async (req, res, next) => {
   try {
     const { error, value } = createSchema.validate(req.body)
     if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
@@ -398,7 +399,7 @@ router.post('/', async (req, res, next) => {
 
 // PATCH /api/breeding-events/dismiss-batch — dismiss multiple events at once
 // Must be defined before /:id to avoid Express matching "dismiss-batch" as :id
-router.patch('/dismiss-batch', async (req, res, next) => {
+router.patch('/dismiss-batch', authorize('can_log_breeding'), async (req, res, next) => {
   try {
     const { ids, reason } = req.body
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -481,8 +482,8 @@ router.patch('/:id', async (req, res, next) => {
   }
 })
 
-// PATCH /api/breeding-events/:id/dismiss — any authenticated user
-router.patch('/:id/dismiss', async (req, res, next) => {
+// PATCH /api/breeding-events/:id/dismiss
+router.patch('/:id/dismiss', authorize('can_log_breeding'), async (req, res, next) => {
   try {
     const existing = await db('breeding_events').where({ id: req.params.id }).first()
     if (!existing) return res.status(404).json({ error: 'Breeding event not found' })

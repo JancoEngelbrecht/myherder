@@ -1,11 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import AppHeader from '../components/organisms/AppHeader.vue'
+import { useAuthStore } from '../stores/auth.js'
 
 const mockRouter = { push: vi.fn(), back: vi.fn() }
 
 vi.mock('vue-router', () => ({
   useRouter: () => mockRouter,
+  RouterLink: {
+    template: '<a :href="to" class="router-link"><slot /></a>',
+    props: ['to'],
+  },
 }))
 
 // Mock cows store deps so SyncIndicator doesn't blow up
@@ -34,6 +39,7 @@ vi.mock('../services/syncManager.js', () => {
 
 vi.mock('../db/indexedDB.js', () => ({
   default: {
+    auth: { get: vi.fn().mockResolvedValue(null), put: vi.fn(), delete: vi.fn() },
     syncQueue: {
       where: vi.fn().mockReturnValue({ aboveOrEqual: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
       bulkDelete: vi.fn(),
@@ -42,6 +48,17 @@ vi.mock('../db/indexedDB.js', () => ({
 }))
 
 const stubs = { SyncIndicator: true, SyncPanel: true }
+
+function mountWithAuth(props = {}, user = null) {
+  if (user) {
+    const authStore = useAuthStore()
+    authStore.user = user
+  }
+  return mount(AppHeader, {
+    props,
+    global: { stubs },
+  })
+}
 
 describe('AppHeader', () => {
   beforeEach(() => {
@@ -92,5 +109,20 @@ describe('AppHeader', () => {
   it('shows the language toggle button', () => {
     const wrapper = mount(AppHeader, { global: { stubs } })
     expect(wrapper.find('.lang-toggle').exists()).toBe(true)
+  })
+
+  it('renders avatar initials when showAvatar is true', () => {
+    const wrapper = mountWithAuth(
+      { showAvatar: true },
+      { full_name: 'John Doe', username: 'johnd' },
+    )
+    const avatar = wrapper.find('.avatar-circle')
+    expect(avatar.exists()).toBe(true)
+    expect(avatar.text()).toBe('JD')
+  })
+
+  it('hides avatar when showAvatar is false (default)', () => {
+    const wrapper = mount(AppHeader, { global: { stubs } })
+    expect(wrapper.find('.avatar-circle').exists()).toBe(false)
   })
 })

@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <AppHeader :title="t('dashboard.title')" :show-settings="authStore.isAdmin" />
+    <AppHeader :title="t('dashboard.title')" show-avatar />
 
     <div class="page-content">
       <!-- Greeting -->
@@ -9,30 +9,24 @@
       </div>
 
       <!-- Herd Summary -->
-      <section class="section">
-        <h2 class="section-label">{{ t('dashboard.herdSummary') }}</h2>
-        <div v-if="!summaryLoading" class="stats-grid">
-          <div class="stat-card stat-active">
-            <div class="stat-count">{{ summary.active ?? '—' }}</div>
-            <div class="stat-label">{{ t('dashboard.active') }}</div>
-          </div>
-          <div class="stat-card stat-dry">
-            <div class="stat-count">{{ summary.dry ?? '—' }}</div>
-            <div class="stat-label">{{ t('dashboard.dry') }}</div>
-          </div>
-          <div class="stat-card stat-pregnant">
-            <div class="stat-count">{{ summary.pregnant ?? '—' }}</div>
-            <div class="stat-label">{{ t('dashboard.pregnant') }}</div>
-          </div>
-          <div class="stat-card stat-sick">
-            <div class="stat-count">{{ summary.sick ?? '—' }}</div>
-            <div class="stat-label">{{ t('dashboard.sick') }}</div>
-          </div>
+      <div v-if="!summaryLoading" class="stats-row">
+        <div class="stat-chip stat-active">
+          <span class="stat-count">{{ summary.active ?? '—' }}</span>
+          <span class="stat-label">{{ t('dashboard.active') }}</span>
         </div>
-        <div v-else class="stats-loading">
-          <div class="spinner" />
+        <div class="stat-chip stat-dry">
+          <span class="stat-count">{{ summary.dry ?? '—' }}</span>
+          <span class="stat-label">{{ t('dashboard.dry') }}</span>
         </div>
-      </section>
+        <div class="stat-chip stat-pregnant">
+          <span class="stat-count">{{ summary.pregnant ?? '—' }}</span>
+          <span class="stat-label">{{ t('dashboard.pregnant') }}</span>
+        </div>
+        <div class="stat-chip stat-sick">
+          <span class="stat-count">{{ summary.sick ?? '—' }}</span>
+          <span class="stat-label">{{ t('dashboard.sick') }}</span>
+        </div>
+      </div>
 
       <!-- Quick Actions -->
       <section class="section">
@@ -43,37 +37,37 @@
             <span class="action-label">{{ t('dashboard.viewCows') }}</span>
           </RouterLink>
 
-          <RouterLink v-if="flags.analytics" to="/analytics" class="action-card active-action">
+          <RouterLink v-if="flags.analytics && hasPermission('can_view_analytics')" to="/analytics" class="action-card active-action">
             <span class="action-icon">📊</span>
             <span class="action-label">{{ t('dashboard.analytics') }}</span>
           </RouterLink>
 
-          <RouterLink v-if="flags.treatments" to="/log/treatment" class="action-card active-action">
+          <RouterLink v-if="flags.treatments && hasPermission('can_log_treatments')" to="/log/treatment" class="action-card active-action">
             <span class="action-icon">💉</span>
             <span class="action-label">{{ t('dashboard.addLog') }}</span>
           </RouterLink>
 
-          <RouterLink v-if="flags.healthIssues" to="/log/issue" class="action-card active-action">
+          <RouterLink v-if="flags.healthIssues && hasPermission('can_log_issues')" to="/log/issue" class="action-card active-action">
             <span class="action-icon">🩺</span>
             <span class="action-label">{{ t('dashboard.logIssue') }}</span>
           </RouterLink>
 
-          <RouterLink v-if="flags.healthIssues" to="/health-issues" class="action-card issues-action">
+          <RouterLink v-if="flags.healthIssues && hasPermission('can_log_issues')" to="/health-issues" class="action-card issues-action">
             <span class="action-icon">🚨</span>
             <span class="action-label">{{ t('dashboard.openIssues') }}</span>
           </RouterLink>
 
-          <RouterLink v-if="flags.treatments" to="/withdrawal" class="action-card withdrawal-action">
+          <RouterLink v-if="flags.treatments && hasPermission('can_log_treatments')" to="/withdrawal" class="action-card withdrawal-action">
             <span class="action-icon">🚫</span>
             <span class="action-label">{{ t('dashboard.withdrawal') }}</span>
           </RouterLink>
 
-          <RouterLink v-if="flags.milkRecording" to="/milk" class="action-card">
+          <RouterLink v-if="flags.milkRecording && hasPermission('can_record_milk')" to="/milk" class="action-card">
             <span class="action-icon">🥛</span>
             <span class="action-label">{{ t('dashboard.recordMilk') }}</span>
           </RouterLink>
 
-          <RouterLink v-if="flags.breeding" to="/breed" class="action-card active-action">
+          <RouterLink v-if="flags.breeding && hasPermission('can_log_breeding')" to="/breed" class="action-card active-action">
             <span class="action-icon">🐂</span>
             <span class="action-label">{{ t('dashboard.breed') }}</span>
           </RouterLink>
@@ -96,11 +90,16 @@ const authStore = useAuthStore()
 const featureFlagsStore = useFeatureFlagsStore()
 
 const flags = computed(() => featureFlagsStore.flags)
+const { hasPermission } = authStore
 
 const summary = ref({ active: null, dry: null, pregnant: null, sick: null })
 const summaryLoading = ref(true)
 
 onMounted(async () => {
+  if (!hasPermission('can_view_analytics')) {
+    summaryLoading.value = false
+    return
+  }
   try {
     const r = await api.get('/analytics/herd-summary')
     // API returns { total, by_status: [{status, count}] }
@@ -140,39 +139,35 @@ onMounted(async () => {
   display: block;
 }
 
-/* Stats */
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+/* Stats row */
+.stats-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
 }
 
-.stats-loading {
+.stat-chip {
+  flex: 1;
   display: flex;
-  justify-content: center;
-  padding: 24px;
-}
-
-.stat-card {
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: var(--radius);
   border: 1px solid transparent;
 }
 
 .stat-count {
   font-family: var(--font-mono);
-  font-size: 2rem;
+  font-size: 1rem;
   font-weight: 700;
   line-height: 1;
 }
 
 .stat-label {
-  font-size: 0.8125rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   opacity: 0.8;
+  line-height: 1.1;
 }
 
 .stat-active { background: var(--success-light); color: var(--primary-dark); border-color: rgba(45,106,79,0.2); }

@@ -13,9 +13,13 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!token.value)
   const isAdmin = computed(() => user.value?.role === 'admin')
-  const canManageCows = computed(() =>
-    user.value?.role === 'admin' || (user.value?.permissions || []).includes('can_manage_cows')
-  )
+
+  function hasPermission(perm) {
+    if (user.value?.role === 'admin') return true
+    return (user.value?.permissions || []).includes(perm)
+  }
+
+  const canManageCows = computed(() => hasPermission('can_manage_cows'))
 
   async function hydrate() {
     if (hydrated.value) return
@@ -150,7 +154,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     token, user, hydrated, isOfflineMode,
-    isAuthenticated, isAdmin, canManageCows,
+    isAuthenticated, isAdmin, canManageCows, hasPermission,
     hydrate, login, loginPin, logout,
   }
 })

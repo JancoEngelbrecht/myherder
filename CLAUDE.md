@@ -32,7 +32,18 @@ Tests: `cd client && npm run test:run` (Vitest). Lint: `npm run lint` / `npm run
 
 **Offline/PWA:** `vite-plugin-pwa` with NetworkFirst strategy for `/api` routes (10s timeout). Dexie.js IndexedDB (`myherder_db`) stores `cows` and `auth` tables. The cows Pinia store falls back to IndexedDB when API calls fail.
 
-**Auth:** Two login modes — admin password (`POST /api/auth/login`, 24h JWT) and worker PIN (`POST /api/auth/login-pin`, 7d JWT). `POST /api/auth/refresh` renews a valid JWT (auto-called when <1h from expiry). Offline login falls back to cached JWT in IndexedDB if not expired. JWT payload includes `{ id, username, full_name, role, permissions[], language }`. Admin role bypasses permission checks; workers need specific permissions (e.g., `can_manage_cows`). Token stored in both localStorage and IndexedDB.
+**Auth:** Two login modes — admin password (`POST /api/auth/login`, 24h JWT) and worker PIN (`POST /api/auth/login-pin`, 7d JWT, PIN is exactly 4 digits). `POST /api/auth/refresh` renews a valid JWT (auto-called when <1h from expiry). Offline login falls back to cached JWT in IndexedDB if not expired. JWT payload includes `{ id, username, full_name, role, permissions[], language }`. Admin role bypasses permission checks; workers need specific permissions (e.g., `can_manage_cows`). Token stored in both localStorage and IndexedDB.
+
+**Permission Enforcement:** The `authorize(permission)` middleware in `server/middleware/authorize.js` gates write routes by permission. Admin role auto-bypasses. Route → permission mapping:
+| Permission | Routes gated |
+|---|---|
+| `can_record_milk` | POST/PUT/DELETE `/api/milk-records` |
+| `can_log_issues` | POST `/api/health-issues`, PATCH status, POST comments |
+| `can_log_treatments` | POST/DELETE `/api/treatments` |
+| `can_log_breeding` | POST `/api/breeding-events`, PATCH dismiss/dismiss-batch |
+| `can_view_analytics` | All `/api/analytics/*` (router.use level) |
+
+Frontend: `authStore.hasPermission(perm)` checks permission (admin always true). Routes use `meta.requiresPermission`. BottomNav and DashboardView hide items when worker lacks permission.
 
 ## API Conventions
 
@@ -40,11 +51,44 @@ Tests: `cd client && npm run test:run` (Vitest). Lint: `npm run lint` / `npm run
 - `GET /api/cows` returns a **plain array**, not `{ cows: [] }`
 - `GET /api/cows/:id` returns cow with `sire_name`/`dam_name` strings + `breed_type_name`/`breed_type_code` via left-joins
 - Cow date field is `dob`, not `date_of_birth`
-- `GET /api/analytics/herd-summary` returns `{ total, by_status: [{status, count}] }`
+- `GET /api/analytics/herd-summary` returns `{ total, by_status: [{status, count}], milking_count, dry_count, heifer_count, males, females, replacement_rate }`
+- `GET /api/analytics/unhealthiest?from&to` — top 10 cows by issue count; returns `[{ id, tag_number, name, sex, issue_count }]`
+- `GET /api/analytics/milk-trends?from&to` — monthly milk totals (default last 12 months); returns `{ months: [{ month, total_litres, record_count, avg_per_cow }] }`
+- `GET /api/analytics/top-producers?from&to` — top 10 cows by total litres; returns `[{ id, tag_number, name, total_litres, days_recorded, avg_daily_litres }]`
+- `GET /api/analytics/wasted-milk?from&to` — monthly discarded milk; returns `{ months: [{ month, discarded_litres, discard_count }], total_discarded }`
+- `GET /api/analytics/breeding-overview?from&to` — returns `{ pregnant_count, not_pregnant_count, repro_status: { pregnant, not_pregnant, bred_awaiting_check, dry, heifer_not_bred }, abortion_count, pregnancy_rate, calvings_by_month: [{ month, count }], avg_services_per_conception }`
+- `GET /api/analytics/breeding-activity?from&to` — monthly inseminations vs conceptions; returns `{ months: [{ month, inseminations, conceptions }] }`
+- `GET /api/analytics/treatment-costs?from&to` — monthly treatment spend; returns `{ months: [{ month, total_cost, treatment_count }], grand_total }`
+- `GET /api/analytics/seasonal-prediction` — top 3 predicted issue types for next 2 months; returns `{ predictions: [{ month, month_name, issues: [{ type, code, emoji, historical_avg }] }], years_of_data }`
+- `GET /api/analytics/daily-kpis` — today's snapshot: `{ litres_today, litres_7day_avg, cows_milked_today, cows_expected, active_health_issues, breeding_actions_due }`
+- `GET /api/analytics/litres-per-cow?from&to` — monthly avg litres per cow per day; returns `{ months: [{ month, avg_litres_per_cow_per_day, cow_count }] }`
+- `GET /api/analytics/bottom-producers?from&to` — bottom 10 cows by total litres; returns `[{ id, tag_number, name, total_litres, days_recorded, avg_daily_litres }]`
+- `GET /api/analytics/calving-interval?from&to` — avg days between successive calvings per cow; returns `{ avg_calving_interval_days, cow_count, intervals: [{ cow_id, tag_number, name, interval_days, calving_count }] }`
+- `GET /api/analytics/days-open?from&to` — avg days from calving to next confirmed pregnancy; returns `{ avg_days_open, cow_count, records: [{ cow_id, tag_number, name, days_open }] }`
+- `GET /api/analytics/conception-rate?from&to` — first-service conception rate; returns `{ first_service_rate, total_first_services, first_service_conceptions, by_month: [{ month, rate, total, conceptions }] }`
+- `GET /api/analytics/issue-frequency?from&to` — issue count by type + trend by month; returns `{ by_type: [{ code, name, emoji, count }], by_month: [{ month, counts: { code: count } }] }`
+- `GET /api/analytics/mastitis-rate?from&to` — mastitis cases per 100 cows per month; returns `{ months: [{ month, rate, cases, herd_size }], avg_rate }`
+- `GET /api/analytics/withdrawal-days?from&to` — milk withdrawal days lost per month; returns `{ months: [{ month, total_withdrawal_days, cows_affected }], grand_total_days }`
+- `GET /api/analytics/age-distribution` — count by age bracket + sex split; returns `{ brackets: [{ label, count, males, females }], total, males, females }`
+- `GET /api/analytics/breed-composition` — count by breed type; returns `{ breeds: [{ name, code, count }], total }`
+- `GET /api/analytics/mortality-rate?from&to` — sold + dead as % of herd per month; returns `{ months: [{ month, sold, dead, rate_pct }], total_lost, avg_rate_pct }`
+- `GET /api/analytics/herd-turnover?from&to` — monthly additions vs removals; returns `{ months: [{ month, additions, removals, net }], total_additions, total_removals }`
+- `GET /api/analytics/herd-size-trend?from&to` — cumulative herd size over time; returns `{ months: [{ month, total }] }`
+- `GET /api/analytics/health-resolution-stats?from&to` — combined health stat chips; returns `{ total_issues, resolved_count, cure_rate, avg_days_to_resolve, recurrence_rate, top_incidence: [{ code, name, emoji, rate }] }`
+- `GET /api/analytics/health-resolution-by-type?from&to` — avg resolution days per issue type; returns `{ by_type: [{ code, name, emoji, avg_days, count }] }`
+- `GET /api/analytics/health-recurrence?from&to` — per-type recurrence rate (60-day window); returns `{ by_type: [{ code, name, emoji, rate, resolved, recurred }] }`
+- `GET /api/analytics/health-cure-rate-trend?from&to` — monthly cure rate; returns `{ months: [{ month, rate, total, resolved }] }`
+- `GET /api/analytics/slowest-to-resolve?from&to` — top 10 cows by avg resolution time; returns `[{ id, tag_number, name, avg_days, issue_count }]`
 - Cows API supports `search`, `status`, `sex`, `breed_type_id`, `is_dry`, `page`, `limit` query params
 - Soft delete: `DELETE /api/cows/:id` sets `deleted_at` (admin only)
 - **Cow IDs are UUIDs** — never use `Number(route.params.id)`
 - `GET /api/medications` — active only; `?all=1` for all (admin)
+- `GET /api/milk-records` — **dual mode**: without `page`/`limit` returns plain array (legacy recording page); with `page`/`limit` returns `{ data: [...], total: N }` (history view). Optional filters: `date`, `from`/`to` (date range), `session`, `cow_id`, `recorded_by`. Sort: `sort=recording_date|litres|tag_number`, `order=asc|desc` (default: recording_date desc). Joined fields: `tag_number`, `cow_name`, `recorded_by_name`
+- `GET /api/milk-records/summary?date=YYYY-MM-DD` — session totals for a date
+- `GET /api/milk-records/:id` — single record with joins
+- `POST /api/milk-records` — create; auto-flags withdrawal; unique per cow/session/date (409 on duplicate)
+- `PUT /api/milk-records/:id` — update litres/discard; owner or admin only
+- `DELETE /api/milk-records/:id` — admin only
 - `GET /api/treatments?cow_id=X` — with medication/user names joined; `GET /api/treatments/withdrawal` — latest per cow on withdrawal; POST auto-calculates `withdrawal_end_milk`/`withdrawal_end_meat`
 - `GET/POST /api/health-issues`, `PATCH /api/health-issues/:id/status`, `DELETE /api/health-issues/:id`
 - `affected_teats` stored as JSON string in SQLite — always `JSON.parse()` when reading
@@ -60,10 +104,18 @@ Tests: `cd client && npm run test:run` (Vitest). Lint: `npm run lint` / `npm run
 - `GET /api/sync/health` — no auth, returns `{ ok, timestamp }` (connectivity check)
 - `POST /api/sync/push` — batch push client changes; body `{ deviceId, changes: [{ entityType, action, id, data, updatedAt }] }`; returns `{ results: [{ id, entityType, status, serverData?, error? }] }`; LWW conflict resolution
 - `GET /api/sync/pull?since=<ISO>&full=1` — pull server data; returns `{ cows, medications, treatments, healthIssues, milkRecords, breedingEvents, breedTypes, issueTypes, deleted, syncedAt }`
+- `GET /api/users` — admin only; returns all users (sanitized, no hashes). `?active_only=1` for active users only
+- `POST /api/users` — admin only; create user with `{ username, full_name, role, pin?, password?, permissions[], language }`
+- `PATCH /api/users/:id` — admin only; update user fields. Cannot change own role
+- `DELETE /api/users/:id` — admin only; soft-deactivates (sets `is_active: false`). Cannot deactivate self
+- `GET /api/settings` — **public** (no auth); returns key-value object `{ farm_name, default_language }`
+- `PATCH /api/settings` — admin only; upserts settings `{ farm_name?, default_language? }`
+- `GET /api/export` — admin only; JSON dump of all tables (hashes stripped)
+- `GET /api/audit-log` — admin only; paginated `{ data: [...], total }`. Filters: `entity_type`, `entity_id`, `user_id`, `action`, `from`, `to`
 
 ## i18n
 
-Two locales: `en.json` and `af.json` in `client/src/i18n/`. Locale persisted to `localStorage('locale')`. All user-facing strings must have entries in both files. Keys are namespaced: `nav`, `login`, `dashboard`, `cows`, `cowForm`, `cowDetail`, `status`, `sex`, `analytics`, `common`, `sync`, `placeholder`, `featureFlags`.
+Two locales: `en.json` and `af.json` in `client/src/i18n/`. Locale persisted to `localStorage('locale')`. All user-facing strings must have entries in both files. Keys are namespaced: `nav`, `login`, `dashboard`, `cows`, `cowForm`, `cowDetail`, `status`, `sex`, `analytics`, `common`, `sync`, `placeholder`, `featureFlags`, `users`, `settings`, `audit`, `profile`.
 
 ## Frontend Component Architecture (Atomic Design)
 

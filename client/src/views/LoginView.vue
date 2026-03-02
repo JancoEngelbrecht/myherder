@@ -3,6 +3,7 @@
     <div class="login-hero">
       <div class="login-logo">🐄</div>
       <h1 class="login-title">{{ t('login.title') }}</h1>
+      <p v-if="farmName" class="login-farm-name">{{ farmName }}</p>
       <p class="login-subtitle">{{ t('login.subtitle') }}</p>
     </div>
 
@@ -116,11 +117,12 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth.js'
 import { useCowsStore } from '../stores/cows.js'
+import api from '../services/api.js'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -128,6 +130,16 @@ const authStore = useAuthStore()
 const cowsStore = useCowsStore()
 
 const activeTab = ref('admin')
+const farmName = ref('')
+
+onMounted(async () => {
+  try {
+    const { data } = await api.get('/settings')
+    farmName.value = data.farm_name || ''
+  } catch {
+    // Silently ignore — farm name on login is optional
+  }
+})
 const loading = ref(false)
 const errorMsg = ref('')
 
@@ -213,6 +225,13 @@ function handlePinLogin() {
   font-weight: 700;
   color: #fff;
   letter-spacing: -0.02em;
+}
+
+.login-farm-name {
+  font-size: 1rem;
+  color: rgba(255,255,255,0.9);
+  font-weight: 500;
+  margin-top: 4px;
 }
 
 .login-subtitle {

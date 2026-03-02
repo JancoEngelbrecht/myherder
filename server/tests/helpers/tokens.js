@@ -22,7 +22,11 @@ function workerToken() {
     username: 'test_worker',
     full_name: 'Test Worker',
     role: 'worker',
-    permissions: ['can_manage_cows', 'can_manage_medications'],
+    permissions: [
+      'can_manage_cows', 'can_manage_medications',
+      'can_record_milk', 'can_log_issues', 'can_log_treatments',
+      'can_log_breeding', 'can_view_analytics',
+    ],
     language: 'en',
   }
   return `Bearer ${jwt.sign(payload, jwtSecret, { expiresIn: '1h' })}`

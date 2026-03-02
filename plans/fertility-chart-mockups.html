@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fertility Analytics — Chart Mockups</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: #F4F1EC;
+    color: #1a1a1a;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.25rem;
+    margin-bottom: 8px;
+    color: #2D6A4F;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 24px;
+  }
+  .divider {
+    border: none;
+    border-top: 3px solid #2D6A4F;
+    margin: 40px 0 24px;
+  }
+  .section-label {
+    text-align: center;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #2D6A4F;
+    margin-bottom: 16px;
+    font-weight: 700;
+  }
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 1px solid #E5E0D8;
+  }
+  .card h2 {
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+  }
+  .card .desc {
+    font-size: 0.75rem;
+    color: #777;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+  .chart-wrap {
+    position: relative;
+    height: 260px;
+  }
+  .stat-chips {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 0;
+  }
+  .stat-chip {
+    background: #fff;
+    border: 1px solid #E5E0D8;
+    border-radius: 12px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2D6A4F;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stat-value.warn { color: #E07C24; }
+  .stat-value.danger { color: #D62828; }
+  .stat-label {
+    font-size: 0.7rem;
+    color: #777;
+    margin-top: 2px;
+    display: block;
+  }
+  .filter-chips {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+  }
+  .chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid #E5E0D8;
+    background: #fff;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .chip.active {
+    background: #2D6A4F;
+    color: #fff;
+    border-color: #2D6A4F;
+  }
+  .doughnut-wrap {
+    position: relative;
+    height: 220px;
+    display: flex;
+    justify-content: center;
+  }
+  .compare-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .compare-row .card {
+    flex: 1;
+    margin-bottom: 0;
+  }
+  .compare-row .card h2 { font-size: 0.8rem; }
+  .tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .tag-new { background: #d4edda; color: #155724; }
+  .tag-improved { background: #fff3cd; color: #856404; }
+  .tag-current { background: #e2e3e5; color: #383d41; }
+</style>
+</head>
+<body>
+
+<h1>Fertility Analytics Mockups</h1>
+<p class="subtitle">Realistic sample data — open in browser to preview</p>
+
+<div class="filter-chips">
+  <button class="chip">3M</button>
+  <button class="chip">6M</button>
+  <button class="chip active">12M</button>
+  <button class="chip">24M</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<p class="section-label">1. Stat Chips <span class="tag tag-improved">Improved</span></p>
+<!-- ═══════════════════════════════════════════════ -->
+
+<div class="card">
+  <h2>Key Metrics</h2>
+  <p class="desc">Same 4 chips as before, plus 2 new ones: Pregnancy Rate and Abortion Rate. Color-coded against industry targets.</p>
+  <div class="stat-chips">
+    <div class="stat-chip">
+      <span class="stat-value">8</span>
+      <span class="stat-label">Pregnant</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-value warn">71</span>
+      <span class="stat-label">Open</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-value">52%</span>
+      <span class="stat-label">1st Service Rate</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-value">1.8</span>
+      <span class="stat-label">Services / Conception</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-value warn">18%</span>
+      <span class="stat-label">Pregnancy Rate <span class="tag tag-new">New</span></span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-value">3%</span>
+      <span class="stat-label">Abortion Rate <span class="tag tag-new">New</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<hr class="divider">
+<p class="section-label">2. Repro Status Doughnut <span class="tag tag-new">New</span></p>
+<!-- ═══════════════════════════════════════════════ -->
+
+<div class="card">
+  <h2>Reproduction Status</h2>
+  <p class="desc">At-a-glance breakdown of the female herd's reproductive status. Replaces the old pregnant/open numbers with a visual.</p>
+  <div class="doughnut-wrap">
+    <canvas id="reproStatusChart"></canvas>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<hr class="divider">
+<p class="section-label">3. Calving Interval Distribution <span class="tag tag-improved">Improved</span></p>
+<!-- ═══════════════════════════════════════════════ -->
+
+<div class="compare-row">
+  <div class="card">
+    <h2>Current <span class="tag tag-current">Now</span></h2>
+    <p class="desc">Per-cow bars — hard to read, no context</p>
+    <div class="chart-wrap">
+      <canvas id="calvingOld"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Proposed <span class="tag tag-improved">Better</span></h2>
+    <p class="desc">Distribution histogram with target line</p>
+    <div class="chart-wrap">
+      <canvas id="calvingNew"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<hr class="divider">
+<p class="section-label">4. Days Open Distribution <span class="tag tag-improved">Improved</span></p>
+<!-- ═══════════════════════════════════════════════ -->
+
+<div class="compare-row">
+  <div class="card">
+    <h2>Current <span class="tag tag-current">Now</span></h2>
+    <p class="desc">Per-cow bars</p>
+    <div class="chart-wrap">
+      <canvas id="daysOpenOld"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Proposed <span class="tag tag-improved">Better</span></h2>
+    <p class="desc">Distribution with target line at 120 days</p>
+    <div class="chart-wrap">
+      <canvas id="daysOpenNew"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<hr class="divider">
+<p class="section-label">5. Breeding Activity Timeline <span class="tag tag-new">New</span></p>
+<!-- ═══════════════════════════════════════════════ -->
+
+<div class="card">
+  <h2>Breeding Activity</h2>
+  <p class="desc">Monthly inseminations vs. confirmed pregnancies. Shows how active your breeding program is and how successful it is.</p>
+  <div class="chart-wrap">
+    <canvas id="breedingActivity"></canvas>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<hr class="divider">
+<p class="section-label">6. Conception Rate Trend <span class="tag tag-new">New</span></p>
+<!-- ═══════════════════════════════════════════════ -->
+
+<div class="card">
+  <h2>Conception Rate Trend</h2>
+  <p class="desc">Monthly 1st-service conception rate over time. See if management changes are improving results. Target line at 50%.</p>
+  <div class="chart-wrap">
+    <canvas id="conceptionTrend"></canvas>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<hr class="divider">
+<p class="section-label">7. Expected Calvings <span class="tag tag-current">Keep as-is</span></p>
+<!-- ═══════════════════════════════════════════════ -->
+
+<div class="card">
+  <h2>Expected Calvings</h2>
+  <p class="desc">This chart is already clear and useful — monthly expected calvings for planning ahead.</p>
+  <div class="chart-wrap">
+    <canvas id="expectedCalvings"></canvas>
+  </div>
+</div>
+
+
+<script>
+const green = '#2D6A4F';
+const purple = 'rgba(139, 92, 246, 0.85)';
+const purpleLight = 'rgba(139, 92, 246, 0.3)';
+const orange = '#E07C24';
+const red = '#D62828';
+const blue = 'rgba(59, 130, 246, 0.85)';
+const blueLight = 'rgba(59, 130, 246, 0.3)';
+const gray = '#ccc';
+
+const defaultFont = { family: "'DM Sans', system-ui, sans-serif", size: 11 };
+Chart.defaults.font = defaultFont;
+Chart.defaults.plugins.legend.display = false;
+
+// ── 2. Repro Status Doughnut ──────────────────────
+new Chart(document.getElementById('reproStatusChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Pregnant', 'Open (ready to breed)', 'Bred — awaiting check', 'Dry', 'Heifer (not yet bred)'],
+    datasets: [{
+      data: [8, 32, 12, 6, 21],
+      backgroundColor: [green, orange, blue, '#9CA3AF', purple],
+      borderWidth: 2,
+      borderColor: '#fff',
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '55%',
+    plugins: {
+      legend: {
+        display: true,
+        position: 'bottom',
+        labels: { boxWidth: 10, padding: 8, font: { size: 10 } }
+      }
+    }
+  }
+});
+
+// ── 3. Calving Interval — OLD ─────────────────────
+new Chart(document.getElementById('calvingOld'), {
+  type: 'bar',
+  data: {
+    labels: ['C002', 'C003', 'C001'],
+    datasets: [{
+      data: [950, 740, 780],
+      backgroundColor: purple,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: 'Days', font: { size: 9 } } },
+      x: { ticks: { font: { size: 9 } } }
+    }
+  }
+});
+
+// ── 3. Calving Interval — NEW (histogram) ─────────
+new Chart(document.getElementById('calvingNew'), {
+  type: 'bar',
+  data: {
+    labels: ['<365', '365–400', '400–450', '450–500', '500+'],
+    datasets: [{
+      data: [2, 5, 8, 3, 1],
+      backgroundColor: (ctx) => {
+        const labels = ['<365', '365–400', '400–450', '450–500', '500+'];
+        const i = ctx.dataIndex;
+        return i <= 1 ? green : i === 2 ? orange : red;
+      },
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: 'Cows', font: { size: 9 } }, ticks: { stepSize: 1 } },
+      x: { ticks: { font: { size: 9 } }, title: { display: true, text: 'Days', font: { size: 9 } } }
+    },
+    plugins: {
+      annotation: {
+        annotations: {
+          target: {
+            type: 'line', xMin: 1.5, xMax: 1.5,
+            borderColor: red, borderWidth: 2, borderDash: [6, 3],
+            label: {
+              display: true, content: 'Target 400d',
+              position: 'start', backgroundColor: red, font: { size: 9 }, padding: 3
+            }
+          }
+        }
+      }
+    }
+  }
+});
+
+// ── 4. Days Open — OLD ────────────────────────────
+new Chart(document.getElementById('daysOpenOld'), {
+  type: 'bar',
+  data: {
+    labels: ['C001', 'C004', 'C006', 'C009', 'C003'],
+    datasets: [{
+      data: [85, 135, 92, 210, 67],
+      backgroundColor: blue,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: 'Days', font: { size: 9 } } },
+      x: { ticks: { font: { size: 9 } } }
+    }
+  }
+});
+
+// ── 4. Days Open — NEW (histogram) ────────────────
+new Chart(document.getElementById('daysOpenNew'), {
+  type: 'bar',
+  data: {
+    labels: ['<60', '60–90', '90–120', '120–150', '150–200', '200+'],
+    datasets: [{
+      data: [3, 7, 6, 4, 2, 1],
+      backgroundColor: (ctx) => {
+        const i = ctx.dataIndex;
+        return i <= 2 ? green : i === 3 ? orange : red;
+      },
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: 'Cows', font: { size: 9 } }, ticks: { stepSize: 1 } },
+      x: { ticks: { font: { size: 9 } }, title: { display: true, text: 'Days', font: { size: 9 } } }
+    },
+    plugins: {
+      annotation: {
+        annotations: {
+          target: {
+            type: 'line', xMin: 2.5, xMax: 2.5,
+            borderColor: red, borderWidth: 2, borderDash: [6, 3],
+            label: {
+              display: true, content: 'Target 120d',
+              position: 'start', backgroundColor: red, font: { size: 9 }, padding: 3
+            }
+          }
+        }
+      }
+    }
+  }
+});
+
+// ── 5. Breeding Activity Timeline ─────────────────
+const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
+new Chart(document.getElementById('breedingActivity'), {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [
+      {
+        label: 'Inseminations',
+        data: [6, 8, 5, 9, 7, 4, 8, 6, 5, 7, 9, 3],
+        backgroundColor: purple,
+        borderRadius: 4,
+      },
+      {
+        label: 'Confirmed Pregnant',
+        data: [3, 4, 2, 5, 3, 2, 4, 3, 2, 4, 5, 1],
+        backgroundColor: green,
+        borderRadius: 4,
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } }
+    },
+    scales: {
+      y: { beginAtZero: true, stacked: false, title: { display: true, text: 'Events', font: { size: 10 } } },
+      x: { ticks: { font: { size: 10 } } }
+    }
+  }
+});
+
+// ── 6. Conception Rate Trend ──────────────────────
+new Chart(document.getElementById('conceptionTrend'), {
+  type: 'line',
+  data: {
+    labels: months,
+    datasets: [{
+      label: '1st Service Conception Rate',
+      data: [40, 45, 33, 55, 43, 50, 50, 50, 40, 57, 56, 33],
+      borderColor: green,
+      backgroundColor: 'rgba(45, 106, 79, 0.1)',
+      fill: true,
+      tension: 0.3,
+      pointRadius: 4,
+      pointBackgroundColor: green,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true, max: 100,
+        title: { display: true, text: '%', font: { size: 10 } },
+        ticks: { callback: v => v + '%' }
+      },
+      x: { ticks: { font: { size: 10 } } }
+    },
+    plugins: {
+      legend: { display: false },
+      annotation: {
+        annotations: {
+          target: {
+            type: 'line', yMin: 50, yMax: 50,
+            borderColor: orange, borderWidth: 2, borderDash: [6, 3],
+            label: {
+              display: true, content: 'Target 50%',
+              position: 'end', backgroundColor: orange, font: { size: 9 }, padding: 3
+            }
+          }
+        }
+      }
+    }
+  }
+});
+
+// ── 7. Expected Calvings ──────────────────────────
+new Chart(document.getElementById('expectedCalvings'), {
+  type: 'bar',
+  data: {
+    labels: ['Mar \'26', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+    datasets: [{
+      label: 'Expected Calvings',
+      data: [2, 3, 1, 4, 2, 1],
+      backgroundColor: purple,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      y: { beginAtZero: true, ticks: { stepSize: 1 } },
+      x: { ticks: { font: { size: 10 } } }
+    }
+  }
+});
+</script>
+
+</body>
+</html>

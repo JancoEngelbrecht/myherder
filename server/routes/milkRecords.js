@@ -3,12 +3,30 @@ const { randomUUID: uuidv4 } = require('crypto')
 const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
+const authorize = require('../middleware/authorize')
 
 const router = express.Router()
 router.use(authenticate)
 
 const VALID_SESSIONS = ['morning', 'afternoon', 'evening']
+const VALID_SORT_FIELDS = ['recording_date', 'litres', 'tag_number']
+const VALID_ORDERS = ['asc', 'desc']
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+
+// ── Validation ──────────────────────────────────────────────────────────────
+
+const querySchema = Joi.object({
+  date: Joi.string().pattern(ISO_DATE_RE),
+  from: Joi.string().pattern(ISO_DATE_RE),
+  to: Joi.string().pattern(ISO_DATE_RE),
+  session: Joi.string().valid(...VALID_SESSIONS),
+  cow_id: Joi.string().uuid(),
+  recorded_by: Joi.string().uuid(),
+  page: Joi.number().integer().min(1),
+  limit: Joi.number().integer().min(1).max(100),
+  sort: Joi.string().valid(...VALID_SORT_FIELDS),
+  order: Joi.string().valid(...VALID_ORDERS),
+})
 
 const createSchema = Joi.object({
   cow_id: Joi.string().uuid().required(),
@@ -42,23 +60,60 @@ function milkQuery() {
     )
 }
 
-// GET /api/milk-records?date=YYYY-MM-DD&session=morning&cow_id=X
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+function applyFilters(query, params) {
+  const { date, from, to, session, cow_id, recorded_by } = params
+  if (date) query.where('mr.recording_date', date)
+  if (from) query.where('mr.recording_date', '>=', from)
+  if (to) query.where('mr.recording_date', '<=', to)
+  if (session) query.where('mr.session', session)
+  if (cow_id) query.where('mr.cow_id', cow_id)
+  if (recorded_by) query.where('mr.recorded_by', recorded_by)
+}
+
+const SORT_COLUMN_MAP = {
+  recording_date: 'mr.recording_date',
+  litres: 'mr.litres',
+  tag_number: 'c.tag_number',
+}
+
+// ── Routes ──────────────────────────────────────────────────────────────────
+
+// GET /api/milk-records
+// Legacy: ?date&session&cow_id → plain array
+// Enhanced: ?from&to&recorded_by&page&limit&sort&order → { data, total }
 router.get('/', async (req, res, next) => {
   try {
-    const { date, session, cow_id } = req.query
+    const { error, value } = querySchema.validate(req.query, { allowUnknown: false })
+    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
 
-    if (date && !ISO_DATE_RE.test(date)) {
-      return res.status(400).json({ error: 'Invalid date format — expected YYYY-MM-DD' })
-    }
-    if (session && !VALID_SESSIONS.includes(session)) {
-      return res.status(400).json({ error: 'Invalid session — must be morning, afternoon or evening' })
+    const paginated = value.page != null || value.limit != null
+    const sortCol = SORT_COLUMN_MAP[value.sort || 'recording_date']
+    const order = value.order || 'desc'
+
+    const query = milkQuery().orderBy(sortCol, order)
+    applyFilters(query, value)
+
+    if (!paginated) {
+      // Legacy mode: default sort by tag_number asc for recording page
+      query.clear('order').orderBy('c.tag_number', 'asc')
+      return res.json(await query)
     }
 
-    const query = milkQuery().orderBy('c.tag_number', 'asc')
-    if (date) query.where('mr.recording_date', date)
-    if (session) query.where('mr.session', session)
-    if (cow_id) query.where('mr.cow_id', cow_id)
-    res.json(await query)
+    const page = value.page || 1
+    const limit = value.limit || 25
+
+    // Count total matching rows
+    const countQuery = db('milk_records as mr')
+      .join('cows as c', 'mr.cow_id', 'c.id')
+      .whereNull('c.deleted_at')
+    applyFilters(countQuery, value)
+    const [{ cnt }] = await countQuery.count('mr.id as cnt')
+
+    // Paginate
+    const data = await query.limit(limit).offset((page - 1) * limit)
+    res.json({ data, total: Number(cnt) })
   } catch (err) {
     next(err)
   }
@@ -114,7 +169,7 @@ router.get('/:id', async (req, res, next) => {
 })
 
 // POST /api/milk-records
-router.post('/', async (req, res, next) => {
+router.post('/', authorize('can_record_milk'), async (req, res, next) => {
   try {
     const { error, value } = createSchema.validate(req.body)
     if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
@@ -171,7 +226,7 @@ router.post('/', async (req, res, next) => {
 })
 
 // PUT /api/milk-records/:id
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', authorize('can_record_milk'), async (req, res, next) => {
   try {
     const { error, value } = updateSchema.validate(req.body)
     if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
@@ -214,7 +269,7 @@ router.put('/:id', async (req, res, next) => {
 })
 
 // DELETE /api/milk-records/:id — admin only
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', authorize('can_record_milk'), async (req, res, next) => {
   try {
     if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' })
 

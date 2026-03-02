@@ -18,9 +18,9 @@
           <button class="lang-toggle" :title="locale === 'en' ? 'Switch to Afrikaans' : 'Switch to English'" @click="toggleLang">
             {{ locale === 'en' ? 'AF' : 'EN' }}
           </button>
-          <button v-if="showSettings" class="btn-icon gear-btn" aria-label="Settings" @click="router.push('/settings')">
-            ⚙
-          </button>
+          <RouterLink v-if="showAvatar" to="/profile" class="avatar-circle" aria-label="Profile">
+            {{ initials }}
+          </RouterLink>
         </div>
       </slot>
     </div>
@@ -28,20 +28,25 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '../../stores/auth.js'
+import { getInitials } from '../../utils/initials.js'
 import SyncIndicator from '../atoms/SyncIndicator.vue'
 import SyncPanel from '../molecules/SyncPanel.vue'
 
 const showSyncPanel = ref(false)
+const authStore = useAuthStore()
 
 const props = defineProps({
   title: { type: String, default: 'MyHerder' },
   showBack: { type: Boolean, default: false },
   backTo: { type: String, default: null },
-  showSettings: { type: Boolean, default: false },
+  showAvatar: { type: Boolean, default: false },
 })
+
+const initials = computed(() => getInitials(authStore.user))
 
 const router = useRouter()
 const { locale } = useI18n()
@@ -144,7 +149,19 @@ function toggleLang() {
   background: var(--border);
 }
 
-.gear-btn {
-  font-size: 1.125rem;
+.avatar-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-decoration: none;
+  line-height: 1;
+  flex-shrink: 0;
 }
 </style>

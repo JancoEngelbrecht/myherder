@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Herd Health Analytics — KPI Mockups</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: #F4F1EC;
+    color: #1a1a1a;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.25rem;
+    margin-bottom: 8px;
+    color: #2D6A4F;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 24px;
+  }
+  .divider {
+    border: none;
+    border-top: 3px solid #2D6A4F;
+    margin: 40px 0 24px;
+  }
+  .section-label {
+    text-align: center;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #2D6A4F;
+    margin-bottom: 16px;
+    font-weight: 700;
+  }
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 1px solid #E5E0D8;
+  }
+  .card h2 {
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+  }
+  .card .desc {
+    font-size: 0.75rem;
+    color: #777;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+  .chart-wrap {
+    position: relative;
+    height: 260px;
+  }
+  .stat-chips {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 0;
+  }
+  .stat-chip {
+    background: #fff;
+    border: 1px solid #E5E0D8;
+    border-radius: 12px;
+    padding: 12px 8px;
+    text-align: center;
+  }
+  .stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2D6A4F;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stat-value.warn { color: #E07C24; }
+  .stat-value.danger { color: #D62828; }
+  .stat-label {
+    font-size: 0.7rem;
+    color: #777;
+    margin-top: 2px;
+    display: block;
+  }
+  .filter-chips {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+  }
+  .chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid #E5E0D8;
+    background: #fff;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .chip.active {
+    background: #2D6A4F;
+    color: #fff;
+    border-color: #2D6A4F;
+  }
+  .tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .tag-new { background: #d4edda; color: #155724; }
+  .tag-improved { background: #fff3cd; color: #856404; }
+  .tag-current { background: #e2e3e5; color: #383d41; }
+  .compare-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .compare-row .card {
+    flex: 1;
+    margin-bottom: 0;
+  }
+  .compare-row .card h2 { font-size: 0.8rem; }
+  .cow-list { display: flex; flex-direction: column; gap: 4px; }
+  .cow-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px; border-radius: 8px; background: #F9F8F6;
+    font-size: 0.85rem; text-decoration: none; color: inherit;
+  }
+  .cow-rank { font-size: 0.75rem; color: #999; width: 18px; text-align: right; font-family: 'JetBrains Mono', monospace; }
+  .cow-tag { font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+  .cow-name { flex: 1; color: #555; }
+  .cow-count { font-weight: 700; color: #D62828; font-family: 'JetBrains Mono', monospace; }
+  .cow-days { font-weight: 700; color: #E07C24; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+
+  .prediction-cards { display: flex; gap: 8px; }
+  .prediction-card {
+    flex: 1; background: #F9F8F6; border-radius: 8px; padding: 10px;
+  }
+  .prediction-month { font-size: 0.85rem; margin-bottom: 6px; color: #2D6A4F; }
+  .prediction-issue { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; margin-bottom: 3px; }
+  .prediction-avg { color: #999; font-size: 0.7rem; margin-left: auto; font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body>
+
+<h1>Kudde Gesondheid — KPI Mockups</h1>
+<p class="subtitle">Proposed enhancements to the Herd Health analytics page</p>
+
+<div class="filter-chips">
+  <button class="chip">3M</button>
+  <button class="chip">6M</button>
+  <button class="chip active">12M</button>
+  <button class="chip">24M</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<p class="section-label">1. Stat Chips <span class="tag tag-improved">Improved</span></p>
+<!-- ═══════════════════════════════════════════════ -->
+
+<div class="card">
+  <h2>Key Metrics — Current (2 chips)</h2>
+  <p class="desc">Currently only shows Open Issues and Mastitis Rate. Missing actionable KPIs about resolution, recurrence, and the other top diseases.</p>
+  <div class="stat-chips">
+    <div class="stat-chip">
+      <span class="stat-value">3</span>
+      <span class="stat-label">Oop Kwessies</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-value">9.63</span>
+      <span class="stat-label">Mastitis Koers</span>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Key Metrics — Proposed (8 chips)</h2>
+  <p class="desc">Replace single Mastitis Rate with top 3 disease incidence rates (per 100 cows/month). Add Cure Rate, Avg Resolution Time, Recurrence Rate. All dynamically calculated from the top 3 most frequent issue types.</p>
+  <div class="stat-chips" style="grid-template-columns: 1fr 1fr;">
+    <div class="stat-chip">
+      <span class="stat-value">3</span>
+      <span class="stat-label">Open Issues</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-value">78%</span>
+      <span class="stat-label">Cure Rate <span class="tag tag-new">New</span></span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-value warn">6.3d</span>
+      <span class="stat-label">Avg Days to Resolve <span class="tag tag-new">New</span></span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-value danger">14%</span>
+      <span class="stat-label">Recurrence Rate <span class="tag tag-new">New</span></span>
+    </div>
+  </div>
+  <div style="margin-top: 8px; padding: 8px; background: #F9F8F6; border-radius: 8px;">
+    <p style="font-size: 0.7rem; color: #777; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Top 3 Incidence Rates (per 100 cows/month)</p>
+    <div class="stat-chips" style="grid-template-columns: 1fr 1fr 1fr;">
+      <div class="stat-chip" style="border-color: #D62828;">
+        <span class="stat-value danger">9.6</span>
+        <span class="stat-label">🦠 Mastitis <span class="tag tag-improved">Kept</span></span>
+      </div>
+      <div class="stat-chip" style="border-color: #E07C24;">
+        <span class="stat-value warn">5.1</span>
+        <span class="stat-label">🦿 Lameness <span class="tag tag-new">New</span></span>
+      </div>
+      <div class="stat-chip">
+        <span class="stat-value">2.8</span>
+        <span class="stat-label">🫁 Respiratory <span class="tag tag-new">New</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<hr class="divider">
+<p class="section-label">2. Issue Frequency by Type <span class="tag tag-current">Keep</span></p>
+<!-- ═══════════════════════════════════════════════ -->
+
+<div class="card">
+  <h2>Kwessie Frekwensie per Tipe</h2>
+  <p class="desc">Horizontal bar chart — already clear and useful. Keep as-is.</p>
+  <div class="chart-wrap">
+    <canvas id="issueFrequency"></canvas>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<hr class="divider">
+<p class="section-label">3. Resolution Time by Type <span class="tag tag-new">New</span></p>
+<!-- ═══════════════════════════════════════════════ -->
+
+<div class="card">
+  <h2>Average Resolution Time by Issue Type</h2>
+  <p class="desc">How long each issue type takes to resolve on average. Highlights which conditions are hardest to treat. Target line at 7 days.</p>
+  <div class="chart-wrap">
+    <canvas id="resolutionByType"></canvas>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<hr class="divider">
+<p class="section-label">4. Resolution Rate Trend <span class="tag tag-new">New</span></p>
+<!-- ═══════════════════════════════════════════════ -->
+
+<div class="card">
+  <h2>Cure Rate Over Time</h2>
+  <p class="desc">Monthly % of issues that get resolved. Shows whether health management is improving or declining. Target 80%+.</p>
+  <div class="chart-wrap">
+    <canvas id="cureRateTrend"></canvas>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<hr class="divider">
+<p class="section-label">5. Recurrence Rate by Type <span class="tag tag-new">New</span></p>
+<!-- ═══════════════════════════════════════════════ -->
+
+<div class="card">
+  <h2>Recurrence Rate (same cow, same type within 60 days)</h2>
+  <p class="desc">% of resolved issues where the same cow gets the same issue again within 60 days. High recurrence = environmental or management problem, not just bad luck.</p>
+  <div class="chart-wrap">
+    <canvas id="recurrenceByType"></canvas>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<hr class="divider">
+<p class="section-label">6. Issue Trend by Month <span class="tag tag-current">Keep</span></p>
+<!-- ═══════════════════════════════════════════════ -->
+
+<div class="card">
+  <h2>Kwessie Neiging per Maand</h2>
+  <p class="desc">Stacked bar chart showing issue counts by type per month. Already useful for spotting seasonal patterns.</p>
+  <div class="chart-wrap">
+    <canvas id="issueTrend"></canvas>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<hr class="divider">
+<p class="section-label">7. Top 3 Disease Incidence Trend <span class="tag tag-improved">Improved</span></p>
+<!-- ═══════════════════════════════════════════════ -->
+
+<div class="compare-row">
+  <div class="card">
+    <h2>Current <span class="tag tag-current">Now</span></h2>
+    <p class="desc">Mastitis only — ignores other key diseases</p>
+    <div class="chart-wrap">
+      <canvas id="mastitisOld"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Proposed <span class="tag tag-improved">Better</span></h2>
+    <p class="desc">Top 3 diseases on one chart — track all at once</p>
+    <div class="chart-wrap">
+      <canvas id="mastitisNew"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<hr class="divider">
+<p class="section-label">8. Treatment Cost / Cow Trend <span class="tag tag-improved">Improved</span></p>
+<!-- ═══════════════════════════════════════════════ -->
+
+<div class="card">
+  <h2>Treatment Cost per Cow (Normalized)</h2>
+  <p class="desc">Currently shows raw total spend. Normalizing by herd size makes it meaningful as the herd grows/shrinks. Shows spend per head per month.</p>
+  <div class="chart-wrap">
+    <canvas id="costPerCow"></canvas>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<hr class="divider">
+<p class="section-label">9. Slowest to Resolve (Cows) <span class="tag tag-new">New</span></p>
+<!-- ═══════════════════════════════════════════════ -->
+
+<div class="card">
+  <h2>Slowest to Resolve — Top 5 Cows</h2>
+  <p class="desc">Cows with the longest average resolution time. Complements "Unhealthiest Cows" (which shows count). This shows <em>which cows have the hardest-to-treat problems</em>.</p>
+  <div class="cow-list">
+    <div class="cow-item">
+      <span class="cow-rank">1</span>
+      <span class="cow-tag">ZAR-042</span>
+      <span class="cow-name">Bessie</span>
+      <span class="cow-days">18.5d avg</span>
+    </div>
+    <div class="cow-item">
+      <span class="cow-rank">2</span>
+      <span class="cow-tag">ZAR-017</span>
+      <span class="cow-name">Daisy</span>
+      <span class="cow-days">14.2d avg</span>
+    </div>
+    <div class="cow-item">
+      <span class="cow-rank">3</span>
+      <span class="cow-tag">ZAR-089</span>
+      <span class="cow-name">Rosie</span>
+      <span class="cow-days">11.8d avg</span>
+    </div>
+    <div class="cow-item">
+      <span class="cow-rank">4</span>
+      <span class="cow-tag">ZAR-005</span>
+      <span class="cow-name">Stella</span>
+      <span class="cow-days">9.3d avg</span>
+    </div>
+    <div class="cow-item">
+      <span class="cow-rank">5</span>
+      <span class="cow-tag">ZAR-031</span>
+      <span class="cow-name">—</span>
+      <span class="cow-days">8.7d avg</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<hr class="divider">
+<p class="section-label">10. Unhealthiest Cows <span class="tag tag-current">Keep</span></p>
+<!-- ═══════════════════════════════════════════════ -->
+
+<div class="card">
+  <h2>Unhealthiest Cows — Top 5</h2>
+  <p class="desc">Already useful. Links to cow detail. Keep as-is.</p>
+  <div class="cow-list">
+    <div class="cow-item">
+      <span class="cow-rank">1</span>
+      <span class="cow-tag">ZAR-017</span>
+      <span class="cow-name">Daisy</span>
+      <span class="cow-count">12</span>
+    </div>
+    <div class="cow-item">
+      <span class="cow-rank">2</span>
+      <span class="cow-tag">ZAR-042</span>
+      <span class="cow-name">Bessie</span>
+      <span class="cow-count">9</span>
+    </div>
+    <div class="cow-item">
+      <span class="cow-rank">3</span>
+      <span class="cow-tag">ZAR-089</span>
+      <span class="cow-name">Rosie</span>
+      <span class="cow-count">7</span>
+    </div>
+    <div class="cow-item">
+      <span class="cow-rank">4</span>
+      <span class="cow-tag">ZAR-005</span>
+      <span class="cow-name">Stella</span>
+      <span class="cow-count">6</span>
+    </div>
+    <div class="cow-item">
+      <span class="cow-rank">5</span>
+      <span class="cow-tag">ZAR-031</span>
+      <span class="cow-name">—</span>
+      <span class="cow-count">5</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<hr class="divider">
+<p class="section-label">11. Seasonal Predictions <span class="tag tag-current">Keep</span></p>
+<!-- ═══════════════════════════════════════════════ -->
+
+<div class="card">
+  <h2>Seasonal Predictions</h2>
+  <p class="desc">Already unique and useful. Keep as-is.</p>
+  <div class="prediction-cards">
+    <div class="prediction-card">
+      <h3 class="prediction-month">April</h3>
+      <div class="prediction-issue">
+        <span>🦠</span> <span>Mastitis</span> <span class="prediction-avg">8.2 avg/mo</span>
+      </div>
+      <div class="prediction-issue">
+        <span>🦿</span> <span>Lameness</span> <span class="prediction-avg">4.1 avg/mo</span>
+      </div>
+      <div class="prediction-issue">
+        <span>🫁</span> <span>Respiratory</span> <span class="prediction-avg">2.8 avg/mo</span>
+      </div>
+    </div>
+    <div class="prediction-card">
+      <h3 class="prediction-month">May</h3>
+      <div class="prediction-issue">
+        <span>🦠</span> <span>Mastitis</span> <span class="prediction-avg">7.5 avg/mo</span>
+      </div>
+      <div class="prediction-issue">
+        <span>🤒</span> <span>Fever</span> <span class="prediction-avg">3.6 avg/mo</span>
+      </div>
+      <div class="prediction-issue">
+        <span>🦿</span> <span>Lameness</span> <span class="prediction-avg">3.2 avg/mo</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+const green = '#2D6A4F';
+const greenLight = 'rgba(45, 106, 79, 0.15)';
+const orange = '#E07C24';
+const orangeLight = 'rgba(224, 124, 36, 0.15)';
+const red = '#D62828';
+const redLight = 'rgba(214, 40, 40, 0.15)';
+const blue = 'rgba(59, 130, 246, 0.85)';
+const blueLight = 'rgba(59, 130, 246, 0.15)';
+const purple = 'rgba(139, 92, 246, 0.85)';
+const gray = '#9CA3AF';
+
+const defaultFont = { family: "'DM Sans', system-ui, sans-serif", size: 11 };
+Chart.defaults.font = defaultFont;
+Chart.defaults.plugins.legend.display = false;
+
+const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
+
+// ── 2. Issue Frequency (keep) ─────────────────────
+new Chart(document.getElementById('issueFrequency'), {
+  type: 'bar',
+  data: {
+    labels: ['🦠 Mastitis', '🦿 Lameness', '🫁 Respiratory', '🤢 Digestive', '👁 Eye', '🤒 Fever', '🥛 Bad Milk'],
+    datasets: [{
+      data: [245, 120, 72, 58, 48, 42, 35],
+      backgroundColor: red,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      x: { beginAtZero: true },
+      y: { ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+// ── 3. Resolution Time by Type (NEW) ──────────────
+new Chart(document.getElementById('resolutionByType'), {
+  type: 'bar',
+  data: {
+    labels: ['🦿 Lameness', '🫁 Respiratory', '🦠 Mastitis', '🤢 Digestive', '👁 Eye', '🤒 Fever', '🥛 Bad Milk'],
+    datasets: [{
+      data: [12.3, 8.7, 6.1, 5.4, 4.2, 3.8, 2.1],
+      backgroundColor: (ctx) => {
+        const v = [12.3, 8.7, 6.1, 5.4, 4.2, 3.8, 2.1][ctx.dataIndex];
+        return v > 7 ? red : v > 5 ? orange : green;
+      },
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      x: {
+        beginAtZero: true,
+        title: { display: true, text: 'Avg Days', font: { size: 10 } }
+      },
+      y: { ticks: { font: { size: 11 } } }
+    },
+    plugins: {
+      annotation: {
+        annotations: {
+          target: {
+            type: 'line', xMin: 7, xMax: 7,
+            borderColor: red, borderWidth: 2, borderDash: [6, 3],
+            label: {
+              display: true, content: 'Target 7d',
+              position: 'end', backgroundColor: red, font: { size: 9 }, padding: 3
+            }
+          }
+        }
+      }
+    }
+  }
+});
+
+// ── 4. Cure Rate Trend (NEW) ──────────────────────
+new Chart(document.getElementById('cureRateTrend'), {
+  type: 'line',
+  data: {
+    labels: months,
+    datasets: [{
+      label: 'Cure Rate',
+      data: [72, 68, 75, 80, 77, 82, 85, 79, 74, 81, 78, 83],
+      borderColor: green,
+      backgroundColor: greenLight,
+      fill: true,
+      tension: 0.3,
+      pointRadius: 4,
+      pointBackgroundColor: green,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      y: {
+        min: 50, max: 100,
+        title: { display: true, text: '%', font: { size: 10 } },
+        ticks: { callback: v => v + '%' }
+      },
+      x: { ticks: { font: { size: 10 } } }
+    },
+    plugins: {
+      annotation: {
+        annotations: {
+          target: {
+            type: 'line', yMin: 80, yMax: 80,
+            borderColor: orange, borderWidth: 2, borderDash: [6, 3],
+            label: {
+              display: true, content: 'Target 80%',
+              position: 'end', backgroundColor: orange, font: { size: 9 }, padding: 3
+            }
+          }
+        }
+      }
+    }
+  }
+});
+
+// ── 5. Recurrence Rate by Type (NEW) ──────────────
+new Chart(document.getElementById('recurrenceByType'), {
+  type: 'bar',
+  data: {
+    labels: ['🦠 Mastitis', '🦿 Lameness', '🫁 Respiratory', '🤢 Digestive', '👁 Eye', '🤒 Fever'],
+    datasets: [{
+      data: [22, 18, 8, 6, 4, 3],
+      backgroundColor: (ctx) => {
+        const v = [22, 18, 8, 6, 4, 3][ctx.dataIndex];
+        return v > 15 ? red : v > 10 ? orange : green;
+      },
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      x: {
+        beginAtZero: true, max: 30,
+        title: { display: true, text: '% Recurrence (60 days)', font: { size: 10 } },
+        ticks: { callback: v => v + '%' }
+      },
+      y: { ticks: { font: { size: 11 } } }
+    },
+    plugins: {
+      annotation: {
+        annotations: {
+          target: {
+            type: 'line', xMin: 10, xMax: 10,
+            borderColor: red, borderWidth: 2, borderDash: [6, 3],
+            label: {
+              display: true, content: 'Concern >10%',
+              position: 'end', backgroundColor: red, font: { size: 9 }, padding: 3
+            }
+          }
+        }
+      }
+    }
+  }
+});
+
+// ── 6. Issue Trend by Month (keep) ────────────────
+new Chart(document.getElementById('issueTrend'), {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [
+      { label: 'Mastitis', data: [18, 22, 20, 16, 14, 19, 21, 17, 15, 20, 23, 18], backgroundColor: red, borderRadius: 4 },
+      { label: 'Lameness', data: [8, 10, 12, 9, 7, 11, 10, 8, 6, 9, 11, 10], backgroundColor: orange, borderRadius: 4 },
+      { label: 'Respiratory', data: [4, 6, 5, 3, 8, 7, 4, 5, 9, 6, 4, 5], backgroundColor: blue, borderRadius: 4 },
+      { label: 'Other', data: [5, 4, 6, 7, 5, 3, 6, 4, 5, 7, 4, 6], backgroundColor: gray, borderRadius: 4 },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      y: { beginAtZero: true, stacked: true },
+      x: { stacked: true, ticks: { font: { size: 10 } } }
+    },
+    plugins: {
+      legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 6, font: { size: 9 } } }
+    }
+  }
+});
+
+// ── 7a. Mastitis Rate OLD ─────────────────────────
+new Chart(document.getElementById('mastitisOld'), {
+  type: 'line',
+  data: {
+    labels: months.slice(0, 6),
+    datasets: [{
+      data: [8.2, 10.1, 9.5, 7.8, 6.9, 9.1],
+      borderColor: red,
+      backgroundColor: redLight,
+      fill: true, tension: 0.3,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: 'per 100', font: { size: 8 } } },
+      x: { ticks: { font: { size: 8 } } }
+    }
+  }
+});
+
+// ── 7b. Top 3 Disease Incidence NEW ───────────────
+new Chart(document.getElementById('mastitisNew'), {
+  type: 'line',
+  data: {
+    labels: months.slice(0, 6),
+    datasets: [
+      {
+        label: 'Mastitis',
+        data: [8.2, 10.1, 9.5, 7.8, 6.9, 9.1],
+        borderColor: red,
+        backgroundColor: 'transparent',
+        tension: 0.3, pointRadius: 3,
+      },
+      {
+        label: 'Lameness',
+        data: [4.5, 5.2, 6.1, 4.8, 3.9, 5.5],
+        borderColor: orange,
+        backgroundColor: 'transparent',
+        tension: 0.3, pointRadius: 3,
+      },
+      {
+        label: 'Respiratory',
+        data: [2.1, 3.4, 2.8, 1.9, 3.8, 2.5],
+        borderColor: blue,
+        backgroundColor: 'transparent',
+        tension: 0.3, pointRadius: 3,
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: 'per 100', font: { size: 8 } } },
+      x: { ticks: { font: { size: 8 } } }
+    },
+    plugins: {
+      legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 4, font: { size: 8 } } }
+    }
+  }
+});
+
+// ── 8. Treatment Cost per Cow (NEW) ───────────────
+new Chart(document.getElementById('costPerCow'), {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [{
+      label: 'R / cow',
+      data: [38, 45, 52, 41, 36, 48, 55, 43, 39, 47, 42, 44],
+      backgroundColor: (ctx) => {
+        const v = [38, 45, 52, 41, 36, 48, 55, 43, 39, 47, 42, 44][ctx.dataIndex];
+        return v > 50 ? red : v > 40 ? orange : green;
+      },
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: 'R / cow', font: { size: 10 } }
+      },
+      x: { ticks: { font: { size: 10 } } }
+    },
+    plugins: {
+      annotation: {
+        annotations: {
+          target: {
+            type: 'line', yMin: 45, yMax: 45,
+            borderColor: orange, borderWidth: 2, borderDash: [6, 3],
+            label: {
+              display: true, content: 'Budget R45',
+              position: 'end', backgroundColor: orange, font: { size: 9 }, padding: 3
+            }
+          }
+        }
+      }
+    }
+  }
+});
+
+</script>
+
+</body>
+</html>

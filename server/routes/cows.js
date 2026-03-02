@@ -4,6 +4,7 @@ const { randomUUID: uuidv4 } = require('crypto');
 const db = require('../config/database');
 const auth = require('../middleware/auth');
 const authorize = require('../middleware/authorize');
+const { logAudit } = require('../services/auditService');
 
 const router = express.Router();
 router.use(auth);
@@ -223,6 +224,7 @@ router.post('/', authorize('can_manage_cows'), async (req, res, next) => {
     await db('cows').insert(cow);
 
     const created = await db('cows').where({ id: cow.id }).first();
+    logAudit({ userId: req.user.id, action: 'create', entityType: 'cow', entityId: cow.id, newValues: created });
     res.status(201).json(created);
   } catch (err) {
     // Unique constraint errors are handled centrally by errorHandler
@@ -233,7 +235,7 @@ router.post('/', authorize('can_manage_cows'), async (req, res, next) => {
 // PUT /api/cows/:id
 router.put('/:id', authorize('can_manage_cows'), async (req, res, next) => {
   try {
-    await findCowOrFail(req.params.id);
+    const oldCow = await findCowOrFail(req.params.id);
 
     const { error, value } = cowUpdateSchema.validate(req.body);
     if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') });
@@ -241,6 +243,7 @@ router.put('/:id', authorize('can_manage_cows'), async (req, res, next) => {
     await db('cows').where({ id: req.params.id }).update({ ...value, updated_at: new Date().toISOString() });
 
     const updated = await db('cows').where({ id: req.params.id }).first();
+    logAudit({ userId: req.user.id, action: 'update', entityType: 'cow', entityId: req.params.id, oldValues: oldCow, newValues: updated });
     res.json(updated);
   } catch (err) {
     next(err);
@@ -250,9 +253,10 @@ router.put('/:id', authorize('can_manage_cows'), async (req, res, next) => {
 // DELETE /api/cows/:id — soft delete, admin only
 router.delete('/:id', authorize('admin'), async (req, res, next) => {
   try {
-    await findCowOrFail(req.params.id);
+    const cow = await findCowOrFail(req.params.id);
 
     await db('cows').where({ id: req.params.id }).update({ deleted_at: new Date().toISOString() });
+    logAudit({ userId: req.user.id, action: 'delete', entityType: 'cow', entityId: req.params.id, oldValues: cow });
     res.json({ message: 'Cow deleted' });
   } catch (err) {
     next(err);

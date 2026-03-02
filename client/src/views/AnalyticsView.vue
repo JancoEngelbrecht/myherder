@@ -3,128 +3,284 @@
     <AppHeader :title="t('analytics.title')" show-back back-to="/" />
 
     <div class="page-content">
-      <!-- Herd Status breakdown -->
-      <section class="section">
-        <h2 class="section-label">{{ t('analytics.herdStatus') }}</h2>
+      <!-- Offline banner -->
+      <div v-if="offline" class="offline-banner">
+        <span>📡</span>
+        <span>{{ t('analytics.connectToView') }}</span>
+      </div>
 
-        <div v-if="loading" class="center-spinner"><div class="spinner" /></div>
+      <template v-if="!offline">
+        <!-- Daily KPI cards -->
+        <section class="kpi-section">
+          <h2 class="analytics-title">{{ t('analytics.landing.todaySnapshot') }}</h2>
 
-        <div v-else class="status-list">
-          <div
-            v-for="item in statusBreakdown"
-            :key="item.status"
-            class="status-row"
-          >
-            <div class="status-info">
-              <span class="badge" :class="`badge-${item.status}`">
-                {{ t(`status.${item.status}`) }}
-              </span>
+          <div v-if="loading" class="center-spinner"><div class="spinner" /></div>
+
+          <div v-else class="kpi-grid">
+            <!-- Total Herd -->
+            <div class="kpi-card">
+              <div class="kpi-value mono">{{ totalHerd }}</div>
+              <div class="kpi-label">{{ t('analytics.landing.totalHerd') }}</div>
             </div>
-            <div class="status-bar-wrap">
-              <div
-                class="status-bar"
-                :class="`bar-${item.status}`"
-                :style="{ width: barWidth(item.count) }"
-              />
+
+            <!-- Litres Today -->
+            <div v-if="flags.milkRecording" class="kpi-card">
+              <div class="kpi-value mono">{{ kpis.litres_today }}</div>
+              <div class="kpi-label">{{ t('analytics.landing.litresToday') }}</div>
+              <div class="kpi-compare mono" :class="litresTrendPct >= 0 ? 'trend-up' : 'trend-down'">
+                {{ litresTrendPct >= 0 ? '▲' : '▼' }} {{ Math.abs(litresTrendPct) }}% {{ t('analytics.landing.vs7dayAvg') }}
+              </div>
             </div>
-            <div class="status-count mono">{{ item.count }}</div>
+
+            <!-- Cows Milked -->
+            <div v-if="flags.milkRecording" class="kpi-card">
+              <div class="kpi-value mono">{{ kpis.cows_milked_today }}</div>
+              <div class="kpi-label">{{ t('analytics.landing.cowsMilked') }}</div>
+              <div class="kpi-compare mono" :class="cowsDiff >= 0 ? 'trend-up' : 'trend-down'">
+                {{ cowsDiff >= 0 ? '+' : '' }}{{ cowsDiff }} {{ t('analytics.landing.vsExpected') }}
+              </div>
+            </div>
+
+            <!-- Active Health Issues -->
+            <div v-if="flags.healthIssues" class="kpi-card">
+              <div class="kpi-value mono" :class="kpis.active_health_issues > 0 ? 'value-warn' : ''">
+                {{ kpis.active_health_issues }}
+              </div>
+              <div class="kpi-label">{{ t('analytics.landing.activeIssues') }}</div>
+            </div>
+
+            <!-- Breeding Due -->
+            <div v-if="flags.breeding" class="kpi-card">
+              <div class="kpi-value mono" :class="kpis.breeding_actions_due > 0 ? 'value-info' : ''">
+                {{ kpis.breeding_actions_due }}
+              </div>
+              <div class="kpi-label">{{ t('analytics.landing.breedingDue') }}</div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- Health Alerts -->
-      <section class="section">
-        <h2 class="section-label">{{ t('analytics.unhealthiest') }}</h2>
-        <div v-if="healthLoading" class="center-spinner"><div class="spinner" /></div>
-        <div v-else-if="unhealthiest.length === 0" class="empty-health">
-          <span class="empty-icon">✅</span>
-          <span class="empty-text">{{ t('analytics.noAlerts') }}</span>
-        </div>
-        <div v-else class="health-list">
-          <RouterLink
-            v-for="cow in unhealthiest"
-            :key="cow.id"
-            :to="`/cows/${cow.id}`"
-            class="health-item"
-          >
-            <span>{{ cow.sex === 'male' ? '🐂' : '🐄' }}</span>
-            <span class="mono health-tag">{{ cow.tag_number }}</span>
-            <span class="health-name">{{ cow.name || '—' }}</span>
-            <span class="health-count mono">{{ cow.issue_count }}</span>
-          </RouterLink>
-        </div>
-      </section>
+        <!-- Herd Status breakdown -->
+        <section class="analytics-card">
+          <h2 class="analytics-title">{{ t('analytics.herdStatus') }}</h2>
+
+          <div v-if="statusLoading" class="center-spinner"><div class="spinner" /></div>
+
+          <div v-else class="status-list">
+            <div
+              v-for="item in statusBreakdown"
+              :key="item.status"
+              class="status-row"
+            >
+              <div class="status-info">
+                <span class="badge" :class="`badge-${item.status}`">
+                  {{ t(`status.${item.status}`) }}
+                </span>
+              </div>
+              <div class="status-bar-wrap">
+                <div
+                  class="status-bar"
+                  :class="`bar-${item.status}`"
+                  :style="{ width: barWidth(item.count) }"
+                />
+              </div>
+              <div class="status-count mono">{{ item.count }}</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Category navigation -->
+        <section class="categories-section">
+          <h2 class="analytics-title">{{ t('analytics.categories.title') }}</h2>
+
+          <div class="categories-grid">
+            <RouterLink
+              v-if="flags.milkRecording || flags.treatments"
+              to="/analytics/financial"
+              class="category-card"
+            >
+              <div class="category-icon-wrap category-icon-financial">📈</div>
+              <div class="category-text">
+                <div class="category-name">{{ t('analytics.categories.financial') }}</div>
+                <div class="category-desc">{{ t('analytics.categories.financialDesc') }}</div>
+              </div>
+              <div class="category-arrow">›</div>
+            </RouterLink>
+
+            <RouterLink
+              v-if="flags.breeding"
+              to="/analytics/fertility"
+              class="category-card"
+            >
+              <div class="category-icon-wrap category-icon-fertility">🐄</div>
+              <div class="category-text">
+                <div class="category-name">{{ t('analytics.categories.fertility') }}</div>
+                <div class="category-desc">{{ t('analytics.categories.fertilityDesc') }}</div>
+              </div>
+              <div class="category-arrow">›</div>
+            </RouterLink>
+
+            <RouterLink
+              v-if="flags.healthIssues || flags.treatments"
+              to="/analytics/health"
+              class="category-card"
+            >
+              <div class="category-icon-wrap category-icon-health">🩺</div>
+              <div class="category-text">
+                <div class="category-name">{{ t('analytics.categories.health') }}</div>
+                <div class="category-desc">{{ t('analytics.categories.healthDesc') }}</div>
+              </div>
+              <div class="category-arrow">›</div>
+            </RouterLink>
+
+            <RouterLink to="/analytics/structure" class="category-card">
+              <div class="category-icon-wrap category-icon-structure">🥧</div>
+              <div class="category-text">
+                <div class="category-name">{{ t('analytics.categories.structure') }}</div>
+                <div class="category-desc">{{ t('analytics.categories.structureDesc') }}</div>
+              </div>
+              <div class="category-arrow">›</div>
+            </RouterLink>
+          </div>
+        </section>
+      </template>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import api from '../services/api.js'
 import AppHeader from '../components/organisms/AppHeader.vue'
-import { useToast } from '../composables/useToast'
-import { extractApiError, resolveError } from '../utils/apiError'
-import { isOfflineError } from '../services/syncManager'
+import { useAnalytics } from '../composables/useAnalytics.js'
+import '../assets/analytics.css'
 
-const { t } = useI18n()
-const toast = useToast()
+const { offline, flags, handleError, t } = useAnalytics()
 
-const rawData = ref([])
+// ── State ─────────────────────────────────────────────
+
 const loading = ref(true)
-const unhealthiest = ref([])
-const healthLoading = ref(true)
+const statusLoading = ref(true)
+
+const kpis = ref({
+  litres_today: 0,
+  litres_7day_avg: 0,
+  cows_milked_today: 0,
+  cows_expected: 0,
+  active_health_issues: 0,
+  breeding_actions_due: 0,
+})
+
+const totalHerd = ref(0)
+const rawStatus = ref([])
+
+// ── Computed ──────────────────────────────────────────
+
+const litresTrendPct = computed(() => {
+  const avg = kpis.value.litres_7day_avg
+  if (avg === 0) return 0
+  return Math.round(((kpis.value.litres_today - avg) / avg) * 100)
+})
+
+const cowsDiff = computed(() =>
+  kpis.value.cows_milked_today - kpis.value.cows_expected
+)
 
 const statusBreakdown = computed(() => {
   const allStatuses = ['active', 'dry', 'pregnant', 'sick', 'sold', 'dead']
   return allStatuses.map(status => {
-    const found = rawData.value.find(d => d.status === status)
+    const found = rawStatus.value.find(d => d.status === status)
     return { status, count: found ? found.count : 0 }
   })
 })
 
 const maxCount = computed(() => Math.max(...statusBreakdown.value.map(d => d.count), 1))
 
+// ── Helpers ───────────────────────────────────────────
+
 function barWidth(count) {
   return `${Math.max(4, (count / maxCount.value) * 100)}%`
 }
 
+// ── Fetch data ────────────────────────────────────────
+
 onMounted(() => {
-  api.get('/analytics/herd-summary')
-    .then(r => { rawData.value = r.data.by_status || [] })
-    .catch((err) => {
-      rawData.value = []
-      if (!isOfflineError(err)) toast.show(resolveError(extractApiError(err), t), 'error')
-    })
+  api.get('/analytics/daily-kpis')
+    .then(r => { kpis.value = r.data })
+    .catch(handleError)
     .finally(() => { loading.value = false })
 
-  api.get('/analytics/unhealthiest')
-    .then(r => { unhealthiest.value = r.data || [] })
-    .catch((err) => {
-      unhealthiest.value = []
-      if (!isOfflineError(err)) toast.show(resolveError(extractApiError(err), t), 'error')
+  api.get('/analytics/herd-summary')
+    .then(r => {
+      rawStatus.value = r.data.by_status || []
+      totalHerd.value = r.data.total || 0
     })
-    .finally(() => { healthLoading.value = false })
+    .catch(handleError)
+    .finally(() => { statusLoading.value = false })
 })
 </script>
 
 <style scoped>
-.section {
-  margin-bottom: 24px;
+/* Daily KPIs */
+.kpi-section {
+  margin-bottom: 16px;
 }
 
-.section-label {
-  display: block;
-  margin-bottom: 12px;
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
 }
 
-.center-spinner {
+.kpi-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 14px 12px;
   display: flex;
-  justify-content: center;
-  padding: 32px;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: var(--shadow-card);
 }
 
+.kpi-value {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1.2;
+}
+
+.kpi-value.value-warn {
+  color: var(--danger);
+}
+
+.kpi-value.value-info {
+  color: var(--info, #3A86FF);
+}
+
+.kpi-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  text-align: center;
+}
+
+.kpi-compare {
+  display: block;
+  font-size: 0.6875rem;
+  margin-top: 4px;
+}
+
+.trend-up {
+  color: var(--primary);
+}
+
+.trend-down {
+  color: var(--danger);
+}
+
+/* Herd status bars */
 .status-list {
   display: flex;
   flex-direction: column;
@@ -172,63 +328,74 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-/* Health alerts */
-.empty-health {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 16px;
-  background: var(--success-light);
-  border-radius: var(--radius);
+/* Category navigation */
+.categories-section {
+  margin-bottom: 16px;
 }
 
-.empty-icon {
-  font-size: 1.25rem;
-}
-
-.empty-text {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--primary-dark);
-}
-
-.health-list {
+.categories-grid {
   display: flex;
   flex-direction: column;
+  gap: 10px;
 }
 
-.health-item {
+.category-card {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
+  gap: 14px;
+  padding: 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
   text-decoration: none;
   color: var(--text);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.category-card:active {
+  transform: scale(0.98);
+}
+
+.category-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.375rem;
+  flex-shrink: 0;
+}
+
+.category-icon-financial { background: #E8F5E9; }
+.category-icon-fertility { background: #EDE7F6; }
+.category-icon-health { background: #E3F2FD; }
+.category-icon-structure { background: #FFF3E0; }
+
+.category-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.category-name {
+  display: block;
+  font-weight: 700;
   font-size: 0.9375rem;
 }
 
-.health-item:last-child {
-  border-bottom: none;
+.category-desc {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
 }
 
-.health-tag {
-  font-size: 0.8125rem;
-  color: var(--primary);
-  font-weight: 600;
-}
-
-.health-name {
-  flex: 1;
-  font-weight: 500;
-}
-
-.health-count {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--danger);
-  background: var(--danger-light);
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
+.category-arrow {
+  font-size: 1.5rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  font-weight: 300;
 }
 </style>

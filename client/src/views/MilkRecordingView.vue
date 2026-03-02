@@ -28,8 +28,8 @@
         </button>
       </div>
 
-      <!-- Time picker — only shown for past dates -->
-      <div v-if="!isToday" class="time-row">
+      <!-- Time picker — always shown -->
+      <div class="time-row">
         <label class="control-label">{{ t('milkRecording.sessionTime') }}</label>
         <input
           v-model="selectedTime"
@@ -44,6 +44,13 @@
         v-model="searchQuery"
         :placeholder="t('milkRecording.search')"
       />
+    </div>
+
+    <!-- View history link -->
+    <div class="history-link-row">
+      <router-link to="/milk/history" class="history-link">
+        {{ t('milkRecording.viewHistory') }} →
+      </router-link>
     </div>
 
     <!-- Error banner -->
@@ -113,10 +120,18 @@ const sessions = [
 
 const sessionDefaultTimes = { morning: '06:00', afternoon: '12:00', evening: '18:00' }
 
+function roundToQuarter() {
+  const now = new Date()
+  const mins = Math.round(now.getMinutes() / 15) * 15
+  const h = mins === 60 ? now.getHours() + 1 : now.getHours()
+  const m = mins === 60 ? 0 : mins
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
+
 const today = new Date().toISOString().slice(0, 10)
 const selectedDate = ref(today)
 const selectedSession = ref('morning')
-const selectedTime = ref(sessionDefaultTimes.morning)
+const selectedTime = ref(roundToQuarter())
 const searchQuery = ref('')
 
 const isToday = computed(() => selectedDate.value === today)
@@ -188,25 +203,20 @@ function handleUpdate(cowId, litres) {
   const onWithdrawal = isOnWithdrawal(cowId)
   const endDate = withdrawalEndDate(cowId)
   const discardReason = onWithdrawal && endDate
-    ? `Medication withdrawal until ${new Date(endDate).toLocaleDateString()}`
+    ? t('milkRecording.withdrawalDiscard', { date: new Date(endDate).toLocaleDateString() })
     : null
-  const sessionTime = isToday.value ? null : selectedTime.value
 
-  milkStore.autoSave(cowId, litres, selectedSession.value, selectedDate.value, onWithdrawal, discardReason, sessionTime)
+  milkStore.autoSave(cowId, litres, selectedSession.value, selectedDate.value, onWithdrawal, discardReason, selectedTime.value)
 }
 
 function setSession(session) {
   selectedSession.value = session
-  if (!isToday.value) {
-    selectedTime.value = sessionDefaultTimes[session]
-  }
+  selectedTime.value = isToday.value ? roundToQuarter() : sessionDefaultTimes[session]
   // watcher handles loadRecords
 }
 
 function onDateChange() {
-  if (!isToday.value) {
-    selectedTime.value = sessionDefaultTimes[selectedSession.value]
-  }
+  selectedTime.value = isToday.value ? roundToQuarter() : sessionDefaultTimes[selectedSession.value]
   // watcher handles loadRecords
 }
 
@@ -313,6 +323,18 @@ watch([selectedDate, selectedSession], loadRecords)
   gap: 0.6rem;
   padding: 0.75rem 1rem;
   padding-bottom: 5rem;
+}
+
+.history-link-row {
+  padding: 0 1rem;
+  text-align: right;
+}
+
+.history-link {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
 }
 
 .summary-footer {

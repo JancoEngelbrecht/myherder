@@ -87,6 +87,14 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
     // making records[cowId] belong to a different context.
     const existingId = records[cowId]?.id ?? null
 
+    // Optimistically update the local record so the input reflects the user's
+    // typing immediately instead of waiting for the debounce + API round-trip.
+    if (records[cowId]) {
+      records[cowId] = { ...records[cowId], litres, milk_discarded: discarded, discard_reason: discardReason }
+    } else {
+      records[cowId] = { cow_id: cowId, litres, session, recording_date: date, milk_discarded: discarded, discard_reason: discardReason }
+    }
+
     // Keep pendingData up-to-date with the latest values so flushPending can
     // fire an immediate write if the user navigates away before the debounce fires.
     pendingData[cowId] = { litres, session, date, discarded, discardReason, sessionTime, existingId }

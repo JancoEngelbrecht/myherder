@@ -3,6 +3,7 @@ const { randomUUID: uuidv4 } = require('crypto')
 const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
+const authorize = require('../middleware/authorize')
 const { calcWithdrawalDates } = require('../services/withdrawalService')
 
 const router = express.Router()
@@ -123,7 +124,7 @@ router.get('/:id', async (req, res, next) => {
 })
 
 // POST /api/treatments
-router.post('/', async (req, res, next) => {
+router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
   try {
     const { error, value } = schema.validate(req.body)
     if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
@@ -199,7 +200,7 @@ router.post('/', async (req, res, next) => {
 })
 
 // DELETE /api/treatments/:id — admin only
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', authorize('can_log_treatments'), async (req, res, next) => {
   try {
     if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' })
 

@@ -25,7 +25,7 @@ const routes = [
     path: '/cows/new',
     name: 'cow-new',
     component: () => import('../views/CowFormView.vue'),
-    meta: { requiresAuth: true, requiresManage: true },
+    meta: { requiresAuth: true, requiresPermission: 'can_manage_cows' },
   },
   {
     path: '/cows/:id',
@@ -37,67 +37,85 @@ const routes = [
     path: '/cows/:id/treatments',
     name: 'cow-treatments',
     component: () => import('../views/CowTreatmentHistoryView.vue'),
-    meta: { requiresAuth: true, requiresModule: 'treatments' },
+    meta: { requiresAuth: true, requiresModule: 'treatments', requiresPermission: 'can_log_treatments' },
   },
   {
     path: '/cows/:id/edit',
     name: 'cow-edit',
     component: () => import('../views/CowFormView.vue'),
-    meta: { requiresAuth: true, requiresManage: true },
+    meta: { requiresAuth: true, requiresPermission: 'can_manage_cows' },
   },
   {
     path: '/analytics',
     name: 'analytics',
     component: () => import('../views/AnalyticsView.vue'),
-    meta: { requiresAuth: true, requiresModule: 'analytics' },
+    meta: { requiresAuth: true, requiresModule: 'analytics', requiresPermission: 'can_view_analytics' },
   },
   {
-    path: '/log',
-    name: 'log',
-    component: () => import('../views/PlaceholderView.vue'),
-    meta: { requiresAuth: true },
+    path: '/analytics/financial',
+    name: 'analytics-financial',
+    component: () => import('../views/analytics/FinancialView.vue'),
+    meta: { requiresAuth: true, requiresModule: 'analytics', requiresPermission: 'can_view_analytics' },
+  },
+  {
+    path: '/analytics/fertility',
+    name: 'analytics-fertility',
+    component: () => import('../views/analytics/FertilityView.vue'),
+    meta: { requiresAuth: true, requiresModule: 'analytics', requiresPermission: 'can_view_analytics' },
+  },
+  {
+    path: '/analytics/health',
+    name: 'analytics-health',
+    component: () => import('../views/analytics/HealthView.vue'),
+    meta: { requiresAuth: true, requiresModule: 'analytics', requiresPermission: 'can_view_analytics' },
+  },
+  {
+    path: '/analytics/structure',
+    name: 'analytics-structure',
+    component: () => import('../views/analytics/StructureView.vue'),
+    meta: { requiresAuth: true, requiresModule: 'analytics', requiresPermission: 'can_view_analytics' },
   },
   {
     path: '/log/treatment',
     name: 'log-treatment',
     component: () => import('../views/LogTreatmentView.vue'),
-    meta: { requiresAuth: true, requiresModule: 'treatments' },
+    meta: { requiresAuth: true, requiresModule: 'treatments', requiresPermission: 'can_log_treatments' },
   },
   {
     path: '/log/issue',
     name: 'log-issue',
     component: () => import('../views/LogIssueView.vue'),
-    meta: { requiresAuth: true, requiresModule: 'healthIssues' },
+    meta: { requiresAuth: true, requiresModule: 'healthIssues', requiresPermission: 'can_log_issues' },
   },
   {
     path: '/treatments/:id',
     name: 'treatment-detail',
     component: () => import('../views/TreatmentDetailView.vue'),
-    meta: { requiresAuth: true, requiresModule: 'treatments' },
+    meta: { requiresAuth: true, requiresModule: 'treatments', requiresPermission: 'can_log_treatments' },
   },
   {
     path: '/cows/:id/issues',
     name: 'cow-issues',
     component: () => import('../views/CowIssueHistoryView.vue'),
-    meta: { requiresAuth: true, requiresModule: 'healthIssues' },
+    meta: { requiresAuth: true, requiresModule: 'healthIssues', requiresPermission: 'can_log_issues' },
   },
   {
     path: '/issues/:id',
     name: 'issue-detail',
     component: () => import('../views/IssueDetailView.vue'),
-    meta: { requiresAuth: true, requiresModule: 'healthIssues' },
+    meta: { requiresAuth: true, requiresModule: 'healthIssues', requiresPermission: 'can_log_issues' },
   },
   {
     path: '/health-issues',
     name: 'open-issues',
     component: () => import('../views/OpenIssuesView.vue'),
-    meta: { requiresAuth: true, requiresModule: 'healthIssues' },
+    meta: { requiresAuth: true, requiresModule: 'healthIssues', requiresPermission: 'can_log_issues' },
   },
   {
     path: '/withdrawal',
     name: 'withdrawal',
     component: () => import('../views/WithdrawalListView.vue'),
-    meta: { requiresAuth: true, requiresModule: 'treatments' },
+    meta: { requiresAuth: true, requiresModule: 'treatments', requiresPermission: 'can_log_treatments' },
   },
   {
     path: '/settings',
@@ -121,37 +139,55 @@ const routes = [
     path: '/milk',
     name: 'milk',
     component: () => import('../views/MilkRecordingView.vue'),
-    meta: { requiresAuth: true, requiresModule: 'milkRecording' },
+    meta: { requiresAuth: true, requiresModule: 'milkRecording', requiresPermission: 'can_record_milk' },
+  },
+  {
+    path: '/milk/history',
+    name: 'milk-history',
+    component: () => import('../views/MilkHistoryView.vue'),
+    meta: { requiresAuth: true, requiresModule: 'milkRecording', requiresPermission: 'can_record_milk' },
   },
   {
     path: '/breed',
     name: 'breed',
     component: () => import('../views/BreedingHubView.vue'),
-    meta: { requiresAuth: true, requiresModule: 'breeding' },
+    meta: { requiresAuth: true, requiresModule: 'breeding', requiresPermission: 'can_log_breeding' },
   },
   {
     path: '/breed/notifications',
     name: 'breed-notifications',
     component: () => import('../views/BreedingNotificationsView.vue'),
-    meta: { requiresAuth: true, requiresModule: 'breeding' },
+    meta: { requiresAuth: true, requiresModule: 'breeding', requiresPermission: 'can_log_breeding' },
   },
   {
     path: '/breed/events',
     name: 'breed-events',
     component: () => import('../views/BreedingEventsView.vue'),
-    meta: { requiresAuth: true, requiresModule: 'breeding' },
+    meta: { requiresAuth: true, requiresModule: 'breeding', requiresPermission: 'can_log_breeding' },
   },
   {
     path: '/breed/log',
     name: 'breed-log',
     component: () => import('../views/LogBreedingView.vue'),
-    meta: { requiresAuth: true, requiresModule: 'breeding' },
+    meta: { requiresAuth: true, requiresModule: 'breeding', requiresPermission: 'can_log_breeding' },
   },
   {
     path: '/breed/edit/:id',
     name: 'breed-edit',
     component: () => import('../views/LogBreedingView.vue'),
     meta: { requiresAuth: true, requiresAdmin: true, requiresModule: 'breeding' },
+  },
+  {
+    path: '/admin/users',
+    name: 'user-management',
+    component: () => import('../views/admin/UserManagement.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
+    path: '/admin/audit-log',
+    name: 'audit-log',
+    component: () => import('../views/admin/AuditLogView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
     path: '/admin/breed-types',
@@ -163,7 +199,13 @@ const routes = [
     path: '/cows/:id/repro',
     name: 'cow-repro',
     component: () => import('../views/CowReproView.vue'),
-    meta: { requiresAuth: true, requiresModule: 'breeding' },
+    meta: { requiresAuth: true, requiresModule: 'breeding', requiresPermission: 'can_log_breeding' },
+  },
+  {
+    path: '/profile',
+    name: 'profile',
+    component: () => import('../views/ProfileView.vue'),
+    meta: { requiresAuth: true },
   },
   {
     path: '/:pathMatch(.*)*',
@@ -196,11 +238,11 @@ router.beforeEach(async (to) => {
     return { name: 'login' }
   }
 
-  if (to.meta.requiresManage && !authStore.canManageCows) {
-    return { name: 'cow-list' }
+  if (to.meta.requiresAdmin && !authStore.isAdmin) {
+    return { name: 'dashboard' }
   }
 
-  if (to.meta.requiresAdmin && !authStore.isAdmin) {
+  if (to.meta.requiresPermission && !authStore.hasPermission(to.meta.requiresPermission)) {
     return { name: 'dashboard' }
   }
 

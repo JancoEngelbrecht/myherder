@@ -29,7 +29,30 @@
       "Bash(git status -u)",
       "Bash(git add server/middleware/errorHandler.js server/routes/breedTypes.js server/routes/breedingEvents.js server/routes/cows.js server/routes/healthIssues.js server/routes/issueTypes.js server/routes/medications.js server/routes/milkRecords.js server/routes/sync.js server/routes/treatments.js client/src/utils/apiError.js client/src/composables/useToast.js client/src/components/molecules/ToastMessage.vue client/src/i18n/en.json client/src/i18n/af.json client/src/stores/breedingEvents.js client/src/stores/healthIssues.js client/src/stores/milkRecords.js client/src/stores/treatments.js client/src/stores/medications.js client/src/stores/cows.js client/src/services/api.js client/src/App.vue client/src/style.css client/src/views/BreedingHubView.vue client/src/views/AnalyticsView.vue client/src/views/MilkRecordingView.vue client/src/views/LogBreedingView.vue client/src/views/LogIssueView.vue client/src/views/LogTreatmentView.vue client/src/views/CowFormView.vue client/src/views/LoginView.vue client/src/views/admin/IssueTypeManagement.vue client/src/views/admin/BreedTypeManagement.vue client/src/views/admin/MedicationManagement.vue)",
       "Bash(git commit:*)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(npx jest --config server/jest.config.js --testPathPattern analytics)",
+      "Bash(npx jest server/tests/analytics.test.js)",
+      "Bash(npx vitest run src/tests/analytics/FertilityView.test.js)",
+      "Bash(npx jest tests/analytics.test.js --no-coverage)",
+      "Bash(npx vitest run src/tests/analytics/FertilityView.test.js --reporter=verbose)",
+      "Bash(npx vitest run --reporter=verbose)",
+      "Read(//c/Users/JancoEngelbrecht/.claude/plans/**)",
+      "Bash(npx jest server/tests/analytics.test.js --no-coverage)",
+      "Bash(npx jest --config server/jest.config.js --verbose)",
+      "Bash(npx jest --verbose)",
+      "Bash(npx vitest run src/tests/analytics/StructureView.test.js)",
+      "Bash(npx vitest run)",
+      "Bash(npx jest tests/milkRecords.test.js --no-coverage)",
+      "Bash(npx jest server/tests/milkRecords.test.js --no-coverage)",
+      "Bash(npx jest --no-coverage)",
+      "Bash(npm run lint:fix)",
+      "Bash(npx vitest run src/tests/MilkRecordCard.test.js src/tests/MilkHistoryView.test.js)",
+      "Bash(npx vitest run src/tests/MilkHistoryView.test.js)",
+      "Bash(npx vitest run src/tests/MilkRecordingView.test.js)",
+      "Bash(npx vitest run src/tests/MilkEntryCard.test.js)",
+      "Bash(npx vitest run src/tests/ProfileView.test.js)",
+      "Bash(npx vitest run src/tests/ProfileView.test.js src/tests/AppHeader.test.js)",
+      "Bash(npx vitest run src/tests/AppHeader.test.js)"
     ]
   }
 }

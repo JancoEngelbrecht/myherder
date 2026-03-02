@@ -98,7 +98,7 @@ router.get('/:id', async (req, res, next) => {
 })
 
 // POST /api/health-issues
-router.post('/', async (req, res, next) => {
+router.post('/', authorize('can_log_issues'), async (req, res, next) => {
   try {
     const { error, value } = createSchema.validate(req.body)
     if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
@@ -131,7 +131,7 @@ router.post('/', async (req, res, next) => {
 })
 
 // PATCH /api/health-issues/:id/status
-router.patch('/:id/status', async (req, res, next) => {
+router.patch('/:id/status', authorize('can_log_issues'), async (req, res, next) => {
   try {
     const { error, value } = statusSchema.validate(req.body)
     if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
@@ -188,7 +188,7 @@ router.get('/:id/comments', async (req, res, next) => {
 })
 
 // POST /api/health-issues/:id/comments
-router.post('/:id/comments', async (req, res, next) => {
+router.post('/:id/comments', authorize('can_log_issues'), async (req, res, next) => {
   try {
     const { error, value } = commentSchema.validate(req.body)
     if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })

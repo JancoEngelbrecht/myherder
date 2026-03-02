@@ -1,0 +1,248 @@
+/* ===== Shared Analytics Styles ===== */
+/* Imported by all analytics views to avoid CSS duplication */
+
+/* Card container */
+.analytics-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-card);
+}
+
+/* Section title — uses a unique name to avoid .section-label global conflict */
+.analytics-title {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Loading spinner */
+.center-spinner {
+  display: flex;
+  justify-content: center;
+  padding: 32px;
+}
+
+/* Subtitle under chart titles */
+.chart-subtitle {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+/* Chart container */
+.chart-wrap {
+  position: relative;
+  height: 220px;
+}
+
+/* No data message */
+.empty-state-mini {
+  text-align: center;
+  padding: 24px 16px;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+/* Offline warning */
+.offline-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: var(--warning-light);
+  border-radius: var(--radius);
+  font-weight: 600;
+  color: var(--warning);
+  margin-bottom: 16px;
+}
+
+/* ── Stat Chips ─────────────────────────────────────── */
+
+.stat-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.stat-chip {
+  flex: 1;
+  min-width: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1.2;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* ── Cow ranking lists ──────────────────────────────── */
+
+.cow-list,
+.producers-list {
+  margin-top: 12px;
+}
+
+.cow-item,
+.producer-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--text);
+  font-size: 0.875rem;
+}
+
+.cow-item:last-child,
+.producer-item:last-child {
+  border-bottom: none;
+}
+
+.cow-rank,
+.producer-rank {
+  width: 20px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.cow-tag,
+.producer-tag {
+  font-size: 0.8125rem;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.cow-name,
+.producer-name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.cow-count {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.cow-count.warn,
+.producer-avg.warn {
+  color: var(--danger);
+}
+
+.producer-avg {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* ── Prediction cards ───────────────────────────────── */
+
+.prediction-cards {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.prediction-card {
+  flex: 1;
+  min-width: 200px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+
+.prediction-month {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.prediction-issue {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  font-size: 0.8125rem;
+}
+
+.prediction-type {
+  flex: 1;
+  font-weight: 500;
+}
+
+.prediction-avg {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* ── Stat value color variants ─────────────────────────── */
+
+.stat-value.warn { color: var(--warning); }
+.stat-value.danger { color: var(--danger); }
+
+/* ── Incidence sub-panel ──────────────────────────────── */
+
+.incidence-panel {
+  margin-top: 8px;
+  padding: 8px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+}
+
+.incidence-panel .panel-label {
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.stat-chips-3col {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.stat-chips-3col .stat-chip {
+  flex: 1;
+  min-width: 80px;
+}
+
+/* ── Cow days (slowest-to-resolve value) ──────────────── */
+
+.cow-days {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--warning);
+}
+
+/* ── Doughnut chart variant ─────────────────────────── */
+
+.doughnut-wrap {
+  height: 260px;
+}

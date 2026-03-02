@@ -28,7 +28,11 @@ async function seedUsers(db) {
       full_name: 'Test Worker',
       role: 'worker',
       pin_hash: bcrypt.hashSync(WORKER_PIN, 4),
-      permissions: JSON.stringify(['can_manage_cows', 'can_manage_medications']),
+      permissions: JSON.stringify([
+        'can_manage_cows', 'can_manage_medications',
+        'can_record_milk', 'can_log_issues', 'can_log_treatments',
+        'can_log_breeding', 'can_view_analytics',
+      ]),
       language: 'en',
       is_active: true,
       failed_attempts: 0,

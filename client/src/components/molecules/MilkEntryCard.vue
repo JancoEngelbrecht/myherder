@@ -18,16 +18,18 @@
       <div class="input-row">
         <div class="input-wrapper">
           <input
+            ref="inputRef"
             type="number"
             class="form-input litres-input"
             :class="{ 'input-withdrawal': onWithdrawal }"
-            :value="inputValue"
             :disabled="isDisabled"
             min="0"
             max="999.99"
             step="0.5"
             placeholder="0.0"
             @input="handleInput"
+            @focus="onFocus"
+            @blur="onBlur"
           />
           <span class="unit-label">L</span>
         </div>
@@ -39,7 +41,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -54,12 +56,37 @@ const props = defineProps({
 
 const emit = defineEmits(['update'])
 
+const inputRef = ref(null)
+const focused = ref(false)
+
 const isDisabled = computed(() => props.cow.status === 'dry')
 
-// Dry cows never show a stale record value — their input is disabled and shows no pre-fill
-const inputValue = computed(() => {
-  if (isDisabled.value) return ''
-  return props.record !== null ? props.record.litres : ''
+// Sync the DOM input value from the record prop, but ONLY when the user
+// is not actively editing. This prevents Vue's DOM patching from resetting
+// the browser's number-input state and eating keystrokes.
+watch(() => props.record?.litres, (val) => {
+  if (focused.value || !inputRef.value) return
+  inputRef.value.value = val != null ? val : ''
+}, { immediate: false })
+
+function onFocus() {
+  focused.value = true
+}
+
+function onBlur() {
+  focused.value = false
+  // Sync from record on blur in case the API responded with a slightly different value
+  if (inputRef.value) {
+    const litres = props.record?.litres
+    inputRef.value.value = litres != null ? litres : ''
+  }
+}
+
+// Populate initial value when the component mounts with an existing record
+onMounted(() => {
+  if (inputRef.value && props.record && !isDisabled.value) {
+    inputRef.value.value = props.record.litres
+  }
 })
 
 const cardClass = computed(() => ({

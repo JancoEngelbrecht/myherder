@@ -87,6 +87,33 @@ describe('useAuthStore', () => {
     })
   })
 
+  describe('hasPermission', () => {
+    it('returns true for admin regardless of permissions array', () => {
+      const store = useAuthStore()
+      store.user = { role: 'admin', permissions: [] }
+      expect(store.hasPermission('can_record_milk')).toBe(true)
+      expect(store.hasPermission('can_view_analytics')).toBe(true)
+    })
+
+    it('returns true for worker with the specific permission', () => {
+      const store = useAuthStore()
+      store.user = { role: 'worker', permissions: ['can_record_milk', 'can_log_issues'] }
+      expect(store.hasPermission('can_record_milk')).toBe(true)
+      expect(store.hasPermission('can_log_issues')).toBe(true)
+    })
+
+    it('returns false for worker without the permission', () => {
+      const store = useAuthStore()
+      store.user = { role: 'worker', permissions: ['can_record_milk'] }
+      expect(store.hasPermission('can_view_analytics')).toBe(false)
+    })
+
+    it('returns false when user is null', () => {
+      const store = useAuthStore()
+      expect(store.hasPermission('can_record_milk')).toBe(false)
+    })
+  })
+
   describe('login', () => {
     it('sets token and user on the store after successful login', async () => {
       api.post.mockResolvedValue({

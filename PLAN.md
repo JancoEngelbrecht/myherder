@@ -569,177 +569,145 @@ All reports filterable by date range, exportable as PDF and Excel:
 
 ## Phased Build Plan
 
-### Phase 1: Foundation (Backend Core + Auth + Cow Registry + Basic Analytics) — COMPLETE
-**Goal:** Server runs, admin can log in, manage cows, see basic stats.
+### Phases 1–5: COMPLETE
 
-| Step | Task | Details |
-|------|------|---------|
-| 1.1 | Project scaffolding | Init package.json, install deps, folder structure |
-| 1.2 | Database setup | Knex config, migrations for users + cows tables |
-| 1.3 | Express server | Basic server, env config, error handling middleware |
-| 1.4 | Auth system | Login routes, bcrypt, JWT, auth middleware, PIN login |
-| 1.5 | Cow CRUD API | GET/POST/PUT/DELETE /api/cows with validation |
-| 1.6 | Basic analytics API | Total cows by status, unhealthiest cows (most issues in 90d) |
-| 1.7 | Seed data | Admin user, sample cows for testing |
-| 1.8 | Test with Postman/curl | Verify all endpoints work |
+All core features are built and working:
+- **Phase 1**: Backend foundation (Express, Knex, Auth, Cow CRUD, basic analytics)
+- **Phase 2**: Vue 3 PWA frontend (cow registry, IndexedDB, i18n)
+- **Phase 3**: Medications, treatments, withdrawal engine
+- **Phase 4**: Health issue logging (quick log, teat selector, issue types)
+- **Phase 4B**: Milk recording (auto-save, withdrawal alerts, discard tracking)
+- **Phase 4C**: Breeding & reproduction (breeding hub, auto-dates, breed types, life phases, dry-off, post-calving flow)
+- **Phase 5**: Offline sync engine (queue, push/pull, background sync, offline login)
+- **Cross-cutting**: Feature flags, code quality tooling, breeding hub redesign
 
-**Deliverable:** Working API with auth, cow management, and basic stats.
+Completed sub-plans: [breeding-v2](plans/breeding-v2.md), [offline-sync](plans/offline-sync.md), [feature-flags](plans/feature-flags.md), [breeding-hub-redesign](plans/breeding-hub-redesign.md)
 
 ---
 
-### Phase 2: Frontend Shell + Cow Registry UI — COMPLETE
-**Goal:** Installable PWA where admin can log in, manage cows, see basic analytics.
+### Phase 7: Admin Settings + User Management — NOT STARTED (do first)
+**Goal:** Admin can manage users, permissions, app settings, data export, and audit trail.
 
-| Step | Task | Details |
-|------|------|---------|
-| 2.1 | Vue 3 project setup | Vite, Router, Pinia, vue-i18n |
-| 2.2 | PWA configuration | manifest.json, service worker, icons |
-| 2.3 | i18n setup | English + Afrikaans translation files |
-| 2.4 | Login page | Admin login + worker PIN login, language toggle |
-| 2.5 | Bottom navigation | Home, Cows, Log, Milk, Breed tabs |
-| 2.6 | Cow list view | Show all cows, search by tag/name, status badges |
-| 2.7 | Cow add/edit forms | Tag number, name, breed, DOB, sex, status |
-| 2.8 | Cow lineage fields | Searchable CowSearchDropdown for Sire and Dam |
-| 2.9 | Cow detail view | Info, parents (linked), offspring list |
-| 2.10 | Basic analytics view | Total cows by status, unhealthiest cows list |
-| 2.11 | IndexedDB setup | Dexie.js wrapper, cow table mirroring |
-| 2.12 | Basic sync | Pull cows from server → IndexedDB on login |
-| 2.13 | Build + deploy config | Vue build outputs to client/dist, Express serves it |
+> Sub-plan: [plans/phase-7-admin.md](plans/phase-7-admin.md)
 
-**Deliverable:** Installable app. Login, manage cows with lineage, basic stats. Works on PC and phone.
+| Sub-phase | Scope |
+|-----------|-------|
+| 7.1 | User CRUD API (GET/POST/PATCH/DELETE /api/users) |
+| 7.2 | User Management UI (list, add/edit worker, PIN, permissions checkboxes) |
+| 7.3 | App Settings (farm name, default language — migration + API + UI) |
+| 7.4 | Data Export (JSON dump download, admin-only) |
+| 7.5 | Audit Log (migration + helper + API + admin viewer UI) |
+
+Already complete from earlier phases: Medication management (Phase 3), Feature flags
+
+**Deliverable:** Full admin control — manage workers, set permissions, configure farm, export data, audit trail.
 
 ---
 
-### Phase 3: Medications + Treatments + Withdrawal Engine — COMPLETE
-**Goal:** Core treatment workflow with automatic withdrawal calculations.
+### Phase 6A: Analytics Charts — NOT STARTED
+**Goal:** Full analytics view with charts. Dashboard unchanged. Reports deferred to 6B.
 
-| Step | Task | Details |
-|------|------|---------|
-| 3.1 | Medications API + migration | CRUD for medications table |
-| 3.2 | Treatments API + migration | CRUD with auto withdrawal date calculation |
-| 3.3 | Withdrawal calculation service | treatment_date + medication.withdrawal_milk_hours = withdrawal_end |
-| 3.4 | Medication management UI (admin) | Add/edit medications with withdrawal periods |
-| 3.5 | Treatment logging UI | Select cow → select medication → auto-fill dosage → see withdrawal preview → save |
-| 3.6 | Withdrawal alert screen | BIG RED list of cows on withdrawal with countdowns |
-| 3.7 | Cow detail: treatment history | All treatments for a cow with withdrawal status |
-| 3.8 | IndexedDB for medications + treatments | Offline storage + sync |
+> Sub-plan: [plans/phase-6a-analytics.md](plans/phase-6a-analytics.md)
 
-**Deliverable:** Full treatment workflow. Red warnings for withdrawal cows.
+| Sub-phase | Scope |
+|-----------|-------|
+| 6A.1 | Analytics API — 7 endpoints (unhealthiest, milk trends, top producers, wasted milk, breeding overview, treatment costs, seasonal predictor) |
+| 6A.2 | Install chart.js + vue-chartjs |
+| 6A.3 | Enhanced AnalyticsView — chart sections for each metric, feature-flag gated |
+
+**Deliverable:** Rich analytics dashboard with charts, trends, and predictions.
 
 ---
 
-### Phase 4: Health Issue Logging (Quick Log) — COMPLETE
-**Goal:** Workers can log health issues in 10 seconds with big buttons.
+### Phase 6C: Analytics Time Range Filter Chips — NOT STARTED
 
-| Step | Task | Details |
-|------|------|---------|
-| 4.1 | Health issues API + migration | CRUD endpoints |
-| 4.2 | Quick log UI | Big icon buttons for each issue type |
-| 4.3 | Cow selector (fast) | CowSearchDropdown — type tag or search name |
-| 4.4 | Severity selector | Three big buttons: Low / Medium / High |
-| 4.5 | Teat selector (conditional) | When mastitis/bad_milk/teat-related: 4 teat buttons (FL, FR, RL, RR) with udder diagram. Stored as JSON |
-| 4.6 | Optional notes | Short text input |
-| 4.7 | Link issue to treatment | When logging treatment, optionally link to open issue |
-| 4.8 | Issue status tracking | Open → Treating → Resolved |
-| 4.9 | IndexedDB for issues | Offline logging + sync |
-
-**Deliverable:** Workers log issues in ~10 seconds. Syncs when back online.
+> Sub-plan: [plans/phase-6c-analytics-time-filter.md](plans/phase-6c-analytics-time-filter.md)
 
 ---
 
-### Phase 4B: Milk Production Recording — COMPLETE
-**Goal:** Workers record daily milk. Auto-saves. Withdrawal flash alerts.
+### Phase 6D: Herd Health Analytics Enhancement — COMPLETE
 
-| Step | Task | Details |
-|------|------|---------|
-| 4B.1 | Milk records API + migration | CRUD with unique constraint per cow/session/date |
-| 4B.2 | Milk recording UI | Search cow by tag/name. Session tabs. Per-cow litres input. **NO SAVE BUTTON** — auto-saves (debounced 1.5s). "✓ Saved" badge per row |
-| 4B.3 | Withdrawal flash alert | Cow on withdrawal → card flashes RED with warning bar. Litres auto-marked as discarded |
-| 4B.4 | Discard tracking | milk_discarded = TRUE with auto-filled reason |
-| 4B.5 | Milk production history | Per-cow litres over time. Farm daily/weekly/monthly totals |
-| 4B.6 | IndexedDB for milk records | Offline recording + sync |
-
-**Deliverable:** Milk recording with zero friction. Withdrawal alerts at the moment they matter.
+> Sub-plan: [plans/phase-6d-health-kpis.md](plans/phase-6d-health-kpis.md) (COMPLETE)
 
 ---
 
-### Phase 4C: Breeding & Reproduction Tracking — COMPLETE
-**Goal:** Track full reproductive lifecycle.
-> Sub-plan: [plans/breeding-v2.md](plans/breeding-v2.md) — Enhanced breeding with configurable breed types, life phases, dry-off management (COMPLETE)
-> Sub-plan: [plans/breeding-hub-pagination.md](plans/breeding-hub-pagination.md) — Server-side pagination for Recent Events + collapsible upcoming alert categories
-> Sub-plan: [plans/breeding-events-filters.md](plans/breeding-events-filters.md) — Advanced filters for breeding events list (cow search, cow status, date range)
-> Sub-plan: [plans/breeding-hub-redesign.md](plans/breeding-hub-redesign.md) — Simplify hub to dashboard with nav cards, new Notifications page with category filters
+### Phase 6E: Herd Structure Analytics Enhancement — COMPLETE
 
-| Step | Task | Details |
-|------|------|---------|
-| 4C.1 | Breeding events API + migration | CRUD for breeding_events table |
-| 4C.2 | Auto-calculation service | On AI/bull service: next heat (+21d), preg check (+35d), calving (+283d), dry-off (calving -60d) |
-| 4C.3 | Breeding Hub view | Quick action buttons (Log Heat, Log AI, Log Bull Service, Log Preg Check). Stats (pregnant/open/due soon). Upcoming alerts with countdowns. Recent events |
-| 4C.4 | Log breeding event UI | Searchable cow selector (pre-filled from cow detail). Big buttons for event type. AI fields. Auto-calculated dates shown |
-| 4C.5 | Heat prediction alerts | Last heat/calving + 21d cycle → predict expected heats. Show on dashboard + breeding hub |
-| 4C.6 | Cow reproduction detail | Gestation progress bar, key dates, cycle history, lifetime stats. Accessible from cow detail page |
-| 4C.7 | Calving countdown alerts | Alerts at 14d, 7d, 3d before expected calving |
-| 4C.8 | Cow detail integration | Female cows: repro summary section (tappable → full timeline). "Log Event for This Cow" button |
-| 4C.9 | IndexedDB for breeding events | Offline logging + sync |
-
-**Deliverable:** Full reproductive management with predictions, gestation tracking, calving alerts.
+> Sub-plan: [plans/phase-6e-structure-kpis.md](plans/phase-6e-structure-kpis.md) (COMPLETE)
 
 ---
 
-### Phase 5: Offline Sync Engine (Hardening) — COMPLETE
-**Goal:** Bulletproof offline. No data loss ever.
-> Sub-plan: [plans/offline-sync.md](plans/offline-sync.md) — Full sync engine implementation (COMPLETE)
+### Phase 8: Milk Recording History & Refinement — NOT STARTED
 
-| Step | Task | Details |
-|------|------|---------|
-| 5.1 | Sync queue system | Queue all offline writes in IndexedDB |
-| 5.2 | Background sync | Service Worker triggers sync when online |
-| 5.3 | Conflict resolution | Last-write-wins with timestamp comparison |
-| 5.4 | Sync status UI | Green (synced), yellow (pending), red (failed) |
-| 5.5 | Retry logic | Exponential backoff for failed syncs |
-| 5.6 | Full data pull | On first login or force refresh, pull all data |
-| 5.7 | Sync log | Track sync events for debugging |
-| 5.8 | Offline login | Cached JWT + user profile works without server |
+> Sub-plan: [plans/phase-8-milk-history.md](plans/phase-8-milk-history.md)
 
-**Deliverable:** App works offline for days. Syncs automatically when connected.
+**Goal:** Split milk feature into recording (fast entry) + history (audit trail). Fix time picker UX.
+
+| Step | Task |
+|------|------|
+| 8.1 | Backend: paginated milk records API with date range/user filters |
+| 8.2 | Frontend: Milk History view + MilkRecordCard molecule |
+| 8.3 | Recording page: always-show time picker, UX clarity |
+| 8.4 | Polish, dead code removal, docs, final test pass |
+
+**Deliverable:** Two complementary milk pages — fast recording + filterable audit trail.
 
 ---
 
-### Phase 6: Full Analytics + Dashboard + Reports — NOT STARTED
-**Goal:** Complete analytics, enhanced dashboard, audit-ready exports.
+### Phase 11: Permission Enforcement & PIN Fix — IN PROGRESS
 
-| Step | Task | Details |
-|------|------|---------|
-| 6.1 | Full analytics API | All aggregation endpoints |
-| 6.2 | Analytics view | Seasonal predictor, milk trends, top performers, wasted milk, breeding overview, costs |
-| 6.3 | Dashboard (enhanced) | Withdrawal alerts, expected heats, calving due, recent issues, quick actions |
-| 6.4 | Report generation API | PDF (pdfkit) and Excel (exceljs) |
-| 6.5 | Treatment history report | Filterable by date, cow, medication |
-| 6.6 | Withdrawal compliance report | Proof withdrawal periods respected |
-| 6.7 | Medication usage report | Usage quantities and costs |
-| 6.8 | Milk production report | Litres, averages, trends |
-| 6.9 | Breeding report | AI events, pregnancy rates, calving |
-| 6.10 | Report UI | Select type → filters → download PDF/Excel |
+> Sub-plan: [plans/phase-11-permissions-pin-fix.md](plans/phase-11-permissions-pin-fix.md)
 
-**Deliverable:** Full analytics + audit-ready reports.
+**Goal:** Fix PIN length mismatch (standardize to 4 digits) and enforce worker permissions across backend routes, frontend router, and navigation UI.
+
+| Step | Task |
+|------|------|
+| 11.1 | Standardize PIN to 4 digits (backend Joi, frontend form, i18n) |
+| 11.2 | Backend permission enforcement (authorize middleware on write routes + analytics) |
+| 11.3 | Frontend router permission guard (requiresPermission meta + auth store hasPermission) |
+| 11.4 | Frontend navigation filtering (BottomNav + DashboardView permission checks) |
+| 11.5 | Tests (backend permission tests, updated frontend tests) |
+| 11.6 | i18n, CLAUDE.md, MEMORY.md cleanup |
+
+**Deliverable:** Workers only see and can use features they have permission for; PINs consistently 4 digits.
 
 ---
 
-### Phase 7: Admin Settings + User Management — NOT STARTED
-**Goal:** Father controls users, permissions, settings.
+### Phase 9A: Milk History Filters & Pagination — NOT STARTED
 
-| Step | Task | Details |
-|------|------|---------|
-| 7.1 | User management API | CRUD users, set permissions |
-| 7.2 | User management UI | Add worker, set PIN, toggle permissions |
-| 7.3 | Medication management | Admin edits medication list |
-| 7.4 | App settings | Farm name, default language |
-| 7.4b | Feature flags | Module toggles (breeding, milk, health, treatments, analytics) |
+> Sub-plan: [plans/phase-9a-milk-history-filters.md](plans/phase-9a-milk-history-filters.md)
 
-> Sub-plan: [plans/feature-flags.md](plans/feature-flags.md) (COMPLETE)
-| 7.5 | Data export | Full database backup |
+**Goal:** Enhance Milk History with proper pagination, cow search, and custom date range filters.
 
-**Deliverable:** Full admin control over users, permissions, and settings.
+| Step | Task |
+|------|------|
+| 9A.1 | Backend: add `total_litres` to paginated milk records response |
+| 9A.2 | Frontend: replace "load more" with prev/next pagination |
+| 9A.3 | Frontend: cow search filter (CowSearchDropdown) |
+| 9A.4 | Frontend: custom date range + "All" time filter |
+| 9A.5 | Styling & UX polish |
+| 9A.6 | Update & expand client tests |
+| 9A.7 | Final review: refactor, dead code, efficiency audit |
+
+**Deliverable:** Milk History with accurate totals, page navigation, cow filter, and flexible date controls.
+
+---
+
+### Phase 6B: Report Exports — DEFERRED
+**Goal:** Audit-ready PDF/Excel reports for all farm data.
+
+| Step | Task |
+|------|------|
+| 6B.1 | Report generation API (pdfkit + exceljs) |
+| 6B.2 | Treatment history report |
+| 6B.3 | Withdrawal compliance report |
+| 6B.4 | Medication usage report |
+| 6B.5 | Milk production report |
+| 6B.6 | Breeding & reproduction report |
+| 6B.7 | Herd health summary report |
+| 6B.8 | Report UI (select type, filters, download) |
+
+**Deliverable:** Downloadable PDF/Excel reports for compliance and record-keeping.
 
 ---
 
