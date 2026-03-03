@@ -234,9 +234,11 @@ import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import { useAuthStore } from '../../stores/auth'
 import api from '../../services/api'
 import { extractApiError, resolveError } from '../../utils/apiError'
+import { useToast } from '../../composables/useToast'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
+const toast = useToast()
 
 const currentUserId = computed(() => authStore.user?.id)
 
@@ -375,7 +377,7 @@ async function executePermanentDelete() {
     deleting.value = null
     await fetchUsers()
   } catch (err) {
-    deleteMessage.value = resolveError(extractApiError(err), t)
+    toast.show(resolveError(extractApiError(err), t), 'error')
   } finally {
     deleteLoading.value = false
   }

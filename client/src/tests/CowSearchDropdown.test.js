@@ -94,16 +94,16 @@ describe('CowSearchDropdown', () => {
     expect(wrapper.find('.selected-cow').exists()).toBe(false)
   })
 
-  it('filters results by sexFilter prop client-side', async () => {
-    const mixed = [
-      { id: 'c1', tag_number: 'M-001', name: 'Bull', sex: 'male' },
+  it('passes sexFilter to API as server-side filter', async () => {
+    const females = [
       { id: 'c2', tag_number: 'F-001', name: 'Cow', sex: 'female' },
     ]
-    api.get.mockResolvedValue({ data: mixed })
+    api.get.mockResolvedValue({ data: females })
     const wrapper = mount(CowSearchDropdown, { props: { sexFilter: 'female' } })
     await wrapper.find('input').setValue('00')
     vi.runAllTimers()
     await flushPromises()
+    expect(api.get).toHaveBeenCalledWith('/cows', { params: { search: '00', sex: 'female' } })
     const items = wrapper.findAll('.dropdown-item')
     expect(items).toHaveLength(1)
     expect(items[0].text()).toContain('F-001')

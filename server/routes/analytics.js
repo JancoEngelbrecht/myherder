@@ -36,6 +36,8 @@ function defaultRange(from, to) {
 
 /** Milliseconds per day */
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
+const RECURRENCE_WINDOW_DAYS = 60;
+const PREDICTION_MONTHS = 2;
 
 /** SQLite-compatible month extraction: YYYY-MM — returns raw SQL string */
 function monthExpr(col) {
@@ -357,7 +359,7 @@ router.get('/breeding-overview', async (req, res, next) => {
       .where('status', 'pregnant')
       .count('* as count')
       .first();
-    const pregnant_count = pregnantRow?.count || 0;
+    const pregnant_count = Number(pregnantRow?.count || 0);
 
     // ── Repro status categories (current herd snapshot) ──────────
     // All active females (base population)
@@ -554,10 +556,10 @@ router.get('/breeding-activity', async (req, res, next) => {
 // GET /api/analytics/treatment-costs
 router.get('/treatment-costs', async (req, res, next) => {
   try {
-    const { start, end } = defaultRange(req.query.from, req.query.to);
+    const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
     const rows = await db('treatments')
-      .whereBetween('treatment_date', [start, end])
+      .whereBetween('treatment_date', [start, endTs])
       .select(db.raw(`${monthExpr('treatment_date')} as month`))
       .sum('cost as total_cost')
       .count('* as treatment_count')
@@ -611,7 +613,7 @@ router.get('/seasonal-prediction', async (req, res, next) => {
     const now = new Date();
     const predictions = [];
 
-    for (let offset = 1; offset <= 2; offset++) {
+    for (let offset = 1; offset <= PREDICTION_MONTHS; offset++) {
       const futureDate = new Date(now.getFullYear(), now.getMonth() + offset, 1);
       const calMonth = futureDate.getMonth() + 1;
       const monthName = futureDate.toLocaleString('en', { month: 'long' });
@@ -733,7 +735,7 @@ router.get('/calving-interval', async (req, res, next) => {
       let totalDays = 0;
       for (let i = 1; i < cow.dates.length; i++) {
         const diff = new Date(cow.dates[i]) - new Date(cow.dates[i - 1]);
-        totalDays += Math.round(diff / (1000 * 60 * 60 * 24));
+        totalDays += Math.round(diff / MS_PER_DAY);
       }
       const interval_days = Math.round(totalDays / (cow.dates.length - 1));
       intervals.push({
@@ -801,7 +803,7 @@ router.get('/days-open', async (req, res, next) => {
       seen.add(key);
 
       const days_open = Math.round(
-        (new Date(nextCheck) - new Date(calving.event_date)) / (1000 * 60 * 60 * 24)
+        (new Date(nextCheck) - new Date(calving.event_date)) / MS_PER_DAY
       );
       records.push({
         cow_id: calving.cow_id,
@@ -883,10 +885,10 @@ router.get('/conception-rate', async (req, res, next) => {
 // GET /api/analytics/issue-frequency
 router.get('/issue-frequency', async (req, res, next) => {
   try {
-    const { start, end } = defaultRange(req.query.from, req.query.to);
+    const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
     const issues = await db('health_issues')
-      .whereBetween('observed_at', [start, end])
+      .whereBetween('observed_at', [start, endTs])
       .select('issue_types', 'observed_at');
 
     const defMap = await getIssueTypeDefMap();
@@ -930,7 +932,7 @@ router.get('/issue-frequency', async (req, res, next) => {
 // GET /api/analytics/mastitis-rate
 router.get('/mastitis-rate', async (req, res, next) => {
   try {
-    const { start, end } = defaultRange(req.query.from, req.query.to);
+    const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
     // Current herd size — single snapshot count of non-deleted cows
     const herdRow = await db('cows')
@@ -940,8 +942,8 @@ router.get('/mastitis-rate', async (req, res, next) => {
     const herd_size = Number(herdRow?.count) || 0;
 
     const rows = await db('health_issues')
-      .whereBetween('observed_at', [start, end])
-      .where('issue_types', 'like', '%mastitis%')
+      .whereBetween('observed_at', [start, endTs])
+      .where('issue_types', 'like', '%"mastitis"%')
       .select(db.raw(`${monthExpr('observed_at')} as month`))
       .count('* as cases')
       .groupByRaw(monthExpr('observed_at'))
@@ -968,10 +970,10 @@ router.get('/mastitis-rate', async (req, res, next) => {
 // GET /api/analytics/withdrawal-days
 router.get('/withdrawal-days', async (req, res, next) => {
   try {
-    const { start, end } = defaultRange(req.query.from, req.query.to);
+    const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
     const rows = await db('treatments')
-      .whereBetween('treatment_date', [start, end])
+      .whereBetween('treatment_date', [start, endTs])
       .whereNotNull('withdrawal_end_milk')
       .select(
         db.raw(`${monthExpr('treatment_date')} as month`),
@@ -1039,7 +1041,7 @@ router.get('/age-distribution', async (req, res, next) => {
         bracket = 'Unknown';
       } else {
         const dob = new Date(row.dob);
-        const ageYears = (today - dob) / (1000 * 60 * 60 * 24 * 365.25);
+        const ageYears = (today - dob) / (MS_PER_DAY * 365.25);
         if (ageYears < 1)      bracket = '0-1yr';
         else if (ageYears < 2) bracket = '1-2yr';
         else if (ageYears < 5) bracket = '2-5yr';
@@ -1095,7 +1097,7 @@ router.get('/breed-composition', async (req, res, next) => {
 // GET /api/analytics/mortality-rate
 router.get('/mortality-rate', async (req, res, next) => {
   try {
-    const { start, end } = defaultRange(req.query.from, req.query.to);
+    const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
     const [{ herd_size }] = await db('cows')
       .whereNull('deleted_at')
@@ -1106,7 +1108,7 @@ router.get('/mortality-rate', async (req, res, next) => {
     const rows = await db('cows')
       .whereNull('deleted_at')
       .whereIn('status', ['sold', 'dead'])
-      .whereBetween('updated_at', [start, end])
+      .whereBetween('updated_at', [start, endTs])
       .select(
         db.raw(`${monthExpr('updated_at')} as month`),
         'status'
@@ -1290,7 +1292,7 @@ router.get('/health-resolution-stats', async (req, res, next) => {
     let recurred = 0;
     for (const r of resolved) {
       const resolvedMs = new Date(r.resolved_at).getTime();
-      const windowEnd = resolvedMs + 60 * MS_PER_DAY;
+      const windowEnd = resolvedMs + RECURRENCE_WINDOW_DAYS * MS_PER_DAY;
       const cowIssues = byCow[r.cow_id] || [];
       const hasRecurrence = cowIssues.some(other =>
         other.id !== r.id &&
@@ -1408,7 +1410,7 @@ router.get('/health-recurrence', async (req, res, next) => {
     const byCode = {}; // { code: { resolved: 0, recurred: 0 } }
     for (const r of resolved) {
       const resolvedMs = new Date(r.resolved_at).getTime();
-      const windowEnd = resolvedMs + 60 * MS_PER_DAY;
+      const windowEnd = resolvedMs + RECURRENCE_WINDOW_DAYS * MS_PER_DAY;
       const cowIssues = byCowIdx[r.cow_id] || [];
 
       for (const code of r._codes) {

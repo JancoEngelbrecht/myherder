@@ -815,7 +815,7 @@ describe('GET /api/analytics/calving-interval', () => {
     await createBreedingEvent(cowId, { event_type: 'calving', event_date: date2 })
 
     const res = await request(app)
-      .get('/api/analytics/calving-interval')
+      .get('/api/analytics/calving-interval?from=2022-01-01&to=2023-12-31')
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)

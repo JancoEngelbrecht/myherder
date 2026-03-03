@@ -17,7 +17,6 @@
     "chart.js": "^4.5.1",
     "chartjs-plugin-annotation": "^3.1.0",
     "dexie": "^4.0.10",
-    "myherder": "file:..",
     "pinia": "^2.3.0",
     "vue": "^3.5.13",
     "vue-chartjs": "^5.3.3",

@@ -232,11 +232,6 @@ onMounted(async () => {
   box-shadow: none;
 }
 
-.disabled-action {
-  opacity: 0.6;
-  cursor: default;
-}
-
 .action-icon {
   font-size: 2rem;
   line-height: 1;

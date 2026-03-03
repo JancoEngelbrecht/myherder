@@ -10,6 +10,7 @@
       "project": ["src/**/*.{js,vue}"]
     }
   },
-  "ignoreDependencies": ["better-sqlite3", "mysql2", "myherder"],
+  "ignoreDependencies": ["better-sqlite3", "mysql2"],
+  "ignore": ["server/config/env.js"],
   "ignoreExportsUsedInFile": true
 }

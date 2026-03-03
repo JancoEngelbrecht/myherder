@@ -4,6 +4,7 @@ const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const authorize = require('../middleware/authorize')
+const { requireAdmin } = require('../middleware/authorize')
 const { calcWithdrawalDates } = require('../services/withdrawalService')
 
 const router = express.Router()
@@ -200,9 +201,8 @@ router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
 })
 
 // DELETE /api/treatments/:id — admin only
-router.delete('/:id', authorize('can_log_treatments'), async (req, res, next) => {
+router.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' })
 
     const existing = await db('treatments').where({ id: req.params.id }).first()
     if (!existing) return res.status(404).json({ error: 'Treatment not found' })

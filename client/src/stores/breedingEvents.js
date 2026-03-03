@@ -74,7 +74,7 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
         for (const e of arr) {
           if (!map[e.cow_id] || e.event_date > map[e.cow_id].event_date) map[e.cow_id] = e
         }
-        return Object.values(map).sort((a, b) => a[field].localeCompare(b[field]))
+        return Object.values(map).sort((a, b) => (a[field] || '').localeCompare(b[field] || ''))
       }
 
       upcoming.heats = latestPerCow(
@@ -180,10 +180,12 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
   async function dismissBatch(ids, reason = '') {
     const now = new Date().toISOString()
 
-    // Optimistic: mark all as dismissed locally
+    // Snapshot for rollback
+    const snapshots = []
     for (const id of ids) {
       const existing = await db.breedingEvents.get(id)
       if (existing) {
+        snapshots.push({ ...existing })
         await db.breedingEvents.put({ ...existing, dismissed_at: now, dismiss_reason: reason, updated_at: now })
       }
     }
@@ -192,7 +194,13 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
       await api.patch('/breeding-events/dismiss-batch', { ids, reason })
       fetchUpcoming().catch(() => {})
     } catch (err) {
-      if (!isOfflineError(err)) throw err
+      if (!isOfflineError(err)) {
+        // Rollback optimistic updates
+        for (const snap of snapshots) {
+          await db.breedingEvents.put(snap)
+        }
+        throw err
+      }
       // Offline: enqueue individual dismiss updates
       for (const id of ids) {
         const local = await db.breedingEvents.get(id)

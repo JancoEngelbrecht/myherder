@@ -1,6 +1,5 @@
 import 'fake-indexeddb/auto'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import Dexie from 'dexie'
 
 // Mock api.js before importing syncManager
 vi.mock('../services/api.js', () => ({

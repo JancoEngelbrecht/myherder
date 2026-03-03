@@ -2,7 +2,7 @@ const express = require('express')
 const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
-const authorize = require('../middleware/authorize')
+const { requireAdmin } = require('../middleware/authorize')
 const {
   getFarmName,
   formatDate,
@@ -14,7 +14,7 @@ const {
 
 const router = express.Router()
 router.use(authenticate)
-router.use(authorize('admin'))
+router.use(requireAdmin)
 
 // ── Validation ──────────────────────────────────────────────
 
@@ -148,17 +148,17 @@ async function getWithdrawalData(from, to) {
 
   const rows = treatments.map((t) => {
     const meds = medsMap[t.id] || []
-    const treatDate = formatDate(t.treatment_date)
-    const withdrawEnd = formatDate(t.withdrawal_end_milk)
-    const wdDays = Math.ceil((new Date(withdrawEnd) - new Date(treatDate)) / MS_PER_DAY)
+    const wdDays = t.withdrawal_end_milk
+      ? Math.ceil((new Date(t.withdrawal_end_milk) - new Date(t.treatment_date)) / MS_PER_DAY)
+      : 0
 
     return {
       tag_number: t.tag_number,
       cow_name: t.cow_name || '—',
-      treatment_date: treatDate,
+      treatment_date: formatDate(t.treatment_date),
       medications: meds.map((m) => m.name).join(', ') || '—',
       active_ingredients: meds.map((m) => m.active_ingredient).filter(Boolean).join(', ') || '—',
-      withdrawal_end_milk: withdrawEnd,
+      withdrawal_end_milk: t.withdrawal_end_milk ? formatDate(t.withdrawal_end_milk) : '—',
       withdrawal_end_meat: t.withdrawal_end_meat ? formatDate(t.withdrawal_end_meat) : '—',
       withdrawal_days: wdDays,
       administered_by: t.administered_by_name,

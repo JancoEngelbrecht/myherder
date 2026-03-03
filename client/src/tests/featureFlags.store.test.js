@@ -12,6 +12,7 @@ vi.mock('../services/api.js', () => ({
 const { mockFeatureFlagsTable } = vi.hoisted(() => ({
   mockFeatureFlagsTable: {
     put: vi.fn().mockResolvedValue(undefined),
+    bulkPut: vi.fn().mockResolvedValue(undefined),
     toArray: vi.fn().mockResolvedValue([]),
   },
 }))
@@ -59,8 +60,13 @@ describe('useFeatureFlagsStore', () => {
       const store = useFeatureFlagsStore()
       await store.fetchFlags()
 
-      expect(mockFeatureFlagsTable.put).toHaveBeenCalledTimes(5)
-      expect(mockFeatureFlagsTable.put).toHaveBeenCalledWith({ key: 'breeding', enabled: true })
+      expect(mockFeatureFlagsTable.bulkPut).toHaveBeenCalledWith([
+        { key: 'breeding', enabled: true },
+        { key: 'milkRecording', enabled: true },
+        { key: 'healthIssues', enabled: true },
+        { key: 'treatments', enabled: true },
+        { key: 'analytics', enabled: true },
+      ])
     })
 
     it('falls back to IndexedDB when API fails', async () => {
@@ -126,7 +132,7 @@ describe('useFeatureFlagsStore', () => {
       const store = useFeatureFlagsStore()
       await store.updateFlag('analytics', false)
 
-      expect(mockFeatureFlagsTable.put).toHaveBeenCalled()
+      expect(mockFeatureFlagsTable.bulkPut).toHaveBeenCalled()
     })
 
     it('reverts state on API failure', async () => {

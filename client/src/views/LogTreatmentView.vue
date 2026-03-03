@@ -183,7 +183,7 @@ const medications = computed(() => medicationsStore.medications)
 
 const prefillCowId = route.query.cow_id || ''
 const prefillHealthIssueId = route.query.health_issue_id || ''
-const backRoute = prefillCowId ? `/cows/${prefillCowId}` : '/log'
+const backRoute = prefillCowId ? `/cows/${prefillCowId}` : '/'
 
 const form = ref({
   cow_id: prefillCowId,

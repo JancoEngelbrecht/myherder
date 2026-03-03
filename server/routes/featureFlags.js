@@ -2,7 +2,7 @@ const express = require('express')
 const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
-const authorize = require('../middleware/authorize')
+const { requireAdmin } = require('../middleware/authorize')
 
 const router = express.Router()
 router.use(authenticate)
@@ -54,7 +54,7 @@ router.get('/', async (_req, res, next) => {
 })
 
 // PATCH /api/feature-flags — admin only
-router.patch('/', authorize('admin'), async (req, res, next) => {
+router.patch('/', requireAdmin, async (req, res, next) => {
   try {
     const { error, value } = updateSchema.validate(req.body)
     if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })

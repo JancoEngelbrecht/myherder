@@ -2,7 +2,7 @@ const express = require('express')
 const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
-const authorize = require('../middleware/authorize')
+const { requireAdmin } = require('../middleware/authorize')
 const { logAudit } = require('../services/auditService')
 
 const router = express.Router()
@@ -35,7 +35,7 @@ router.get('/', async (_req, res, next) => {
 })
 
 // PATCH /api/settings — admin only; upserts settings
-router.patch('/', authenticate, authorize('admin'), async (req, res, next) => {
+router.patch('/', authenticate, requireAdmin, async (req, res, next) => {
   try {
     const { error, value } = patchSchema.validate(req.body)
     if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })

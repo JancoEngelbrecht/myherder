@@ -253,7 +253,7 @@ onMounted(async () => {
     if (q.dob) form.dob = String(q.dob)
     if (q.dam_id) form.dam_id = String(q.dam_id)
     if (q.sire_id) form.sire_id = String(q.sire_id)
-    if (q.breed_type_id) form.breed_type_id = String(q.breed_type_id)
+    if (q.breed_type_id) form.breed_type_id = q.breed_type_id
   }
 })
 

@@ -131,12 +131,11 @@ const error = ref('')
 const showDeleteDialog = ref(false)
 const deleting = ref(false)
 
-const now = new Date()
 const isMilkActive = computed(
-  () => treatment.value?.withdrawal_end_milk && new Date(treatment.value.withdrawal_end_milk) > now,
+  () => treatment.value?.withdrawal_end_milk && new Date(treatment.value.withdrawal_end_milk) > new Date(),
 )
 const isMeatActive = computed(
-  () => treatment.value?.withdrawal_end_meat && new Date(treatment.value.withdrawal_end_meat) > now,
+  () => treatment.value?.withdrawal_end_meat && new Date(treatment.value.withdrawal_end_meat) > new Date(),
 )
 
 async function load() {

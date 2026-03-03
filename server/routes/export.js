@@ -1,11 +1,11 @@
 const express = require('express')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
-const authorize = require('../middleware/authorize')
+const { requireAdmin } = require('../middleware/authorize')
 
 const router = express.Router()
 router.use(authenticate)
-router.use(authorize('admin'))
+router.use(requireAdmin)
 
 // ── Helpers ──────────────────────────────────────────────────
 

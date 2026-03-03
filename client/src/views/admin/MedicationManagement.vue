@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <AppHeader :title="$t('medications.title')" show-back back-to="/" />
+    <AppHeader :title="$t('medications.title')" show-back back-to="/settings" />
 
     <div class="page-content med-content">
       <!-- Add / Edit Form -->
@@ -205,33 +205,27 @@
     <!-- FAB -->
     <button v-if="!showForm" class="fab" :title="$t('medications.addMedication')" @click="openAdd">+</button>
 
-    <!-- Delete confirmation -->
-    <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
-      <div class="modal card">
-        <p>{{ $t('medications.deleteConfirm', { name: deleteTarget.name }) }}</p>
-        <p v-if="deleteError" class="form-error">{{ deleteError }}</p>
-        <div class="modal-actions">
-          <button class="btn-secondary" @click="deleteTarget = null">{{ $t('common.cancel') }}</button>
-          <button class="btn-danger" :disabled="deleting" @click="doDelete">
-            {{ deleting ? $t('common.saving') : $t('common.delete') }}
-          </button>
-        </div>
-      </div>
-    </div>
+    <!-- Delete ConfirmDialog -->
+    <ConfirmDialog
+      :show="!!deleteTarget"
+      :message="deleteTarget ? $t('medications.deleteConfirm', { name: deleteTarget.name }) : ''"
+      :confirm-label="$t('common.delete')"
+      :cancel-label="$t('common.cancel')"
+      :loading="deleting"
+      @confirm="doDelete"
+      @cancel="deleteTarget = null"
+    />
 
-    <!-- Deactivate confirmation -->
-    <div v-if="deactivateTarget" class="modal-overlay" @click.self="deactivateTarget = null">
-      <div class="modal card">
-        <p>{{ $t('medications.deactivateConfirm', { name: deactivateTarget.name }) }}</p>
-        <p v-if="deactivateError" class="form-error">{{ deactivateError }}</p>
-        <div class="modal-actions">
-          <button class="btn-secondary" @click="deactivateTarget = null">{{ $t('common.cancel') }}</button>
-          <button class="btn-danger" :disabled="deactivating" @click="doDeactivate">
-            {{ deactivating ? $t('common.saving') : $t('medications.deactivate') }}
-          </button>
-        </div>
-      </div>
-    </div>
+    <!-- Deactivate ConfirmDialog -->
+    <ConfirmDialog
+      :show="!!deactivateTarget"
+      :message="deactivateTarget ? $t('medications.deactivateConfirm', { name: deactivateTarget.name }) : ''"
+      :confirm-label="$t('medications.deactivate')"
+      :cancel-label="$t('common.cancel')"
+      :loading="deactivating"
+      @confirm="doDeactivate"
+      @cancel="deactivateTarget = null"
+    />
   </div>
 </template>
 
@@ -239,6 +233,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useMedicationsStore } from '../../stores/medications'
 import AppHeader from '../../components/organisms/AppHeader.vue'
+import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import SearchInput from '../../components/atoms/SearchInput.vue'
 import PaginationBar from '../../components/atoms/PaginationBar.vue'
 import { extractApiError } from '../../utils/apiError'
@@ -562,38 +557,4 @@ async function doDelete() {
   color: var(--text-secondary);
 }
 
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 16px;
-}
-
-.modal {
-  max-width: 400px;
-  width: 100%;
-  padding: 24px;
-}
-
-.modal > p:first-child {
-  margin: 0 0 16px;
-  font-size: 0.95rem;
-}
-
-.modal-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-}
-
-.modal-actions .btn-primary,
-.modal-actions .btn-secondary,
-.modal-actions .btn-danger {
-  width: auto;
-  padding: 10px 20px;
-}
 </style>

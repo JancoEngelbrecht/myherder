@@ -171,4 +171,4 @@ function tableToEntity(table) {
   return table
 }
 
-module.exports = { processChange, pullData, logSync, ENTITY_MAP }
+module.exports = { processChange, pullData, logSync }

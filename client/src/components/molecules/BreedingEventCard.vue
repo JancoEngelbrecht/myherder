@@ -38,7 +38,7 @@
       </div>
     </div>
 
-    <div class="event-chevron">›</div>
+    <div v-if="showCow" class="event-chevron">›</div>
   </div>
 </template>
 
@@ -81,7 +81,8 @@ const calvingDetails = computed(() => {
   if (props.event.event_type !== 'calving') return null
   const d = props.event.calving_details
   if (!d) return null
-  return typeof d === 'string' ? JSON.parse(d) : d
+  if (typeof d !== 'string') return d
+  try { return JSON.parse(d) } catch { return null }
 })
 
 const metaText = computed(() => {

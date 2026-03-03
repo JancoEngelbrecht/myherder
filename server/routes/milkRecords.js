@@ -4,6 +4,7 @@ const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const authorize = require('../middleware/authorize')
+const { requireAdmin } = require('../middleware/authorize')
 
 const router = express.Router()
 router.use(authenticate)
@@ -269,9 +270,8 @@ router.put('/:id', authorize('can_record_milk'), async (req, res, next) => {
 })
 
 // DELETE /api/milk-records/:id — admin only
-router.delete('/:id', authorize('can_record_milk'), async (req, res, next) => {
+router.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' })
 
     const existing = await db('milk_records').where({ id: req.params.id }).first()
     if (!existing) return res.status(404).json({ error: 'Milk record not found' })

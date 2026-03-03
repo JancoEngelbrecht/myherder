@@ -149,7 +149,6 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
 import api from '../services/api.js'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import { useAnalytics } from '../composables/useAnalytics.js'

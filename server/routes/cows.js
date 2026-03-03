@@ -4,6 +4,7 @@ const { randomUUID: uuidv4 } = require('crypto');
 const db = require('../config/database');
 const auth = require('../middleware/auth');
 const authorize = require('../middleware/authorize');
+const { requireAdmin } = require('../middleware/authorize');
 const { logAudit } = require('../services/auditService');
 
 const router = express.Router();
@@ -251,7 +252,7 @@ router.put('/:id', authorize('can_manage_cows'), async (req, res, next) => {
 });
 
 // DELETE /api/cows/:id — soft delete, admin only
-router.delete('/:id', authorize('admin'), async (req, res, next) => {
+router.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
     const cow = await findCowOrFail(req.params.id);
 

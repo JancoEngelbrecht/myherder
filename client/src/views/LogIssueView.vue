@@ -110,7 +110,7 @@ const healthIssuesStore = useHealthIssuesStore()
 const issueTypesStore = useIssueTypesStore()
 
 const prefillCowId = route.query.cow_id || ''
-const backRoute = prefillCowId ? `/cows/${prefillCowId}` : '/log'
+const backRoute = prefillCowId ? `/cows/${prefillCowId}` : '/'
 
 const issueTypes = computed(() => issueTypesStore.activeTypes)
 

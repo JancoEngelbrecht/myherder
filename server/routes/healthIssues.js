@@ -4,6 +4,7 @@ const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const authorize = require('../middleware/authorize')
+const { requireAdmin } = require('../middleware/authorize')
 
 const router = express.Router()
 router.use(authenticate)
@@ -155,7 +156,7 @@ router.patch('/:id/status', authorize('can_log_issues'), async (req, res, next) 
 })
 
 // DELETE /api/health-issues/:id — admin only
-router.delete('/:id', authorize('admin'), async (req, res, next) => {
+router.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
     const existing = await db('health_issues').where({ id: req.params.id }).first()
     if (!existing) return res.status(404).json({ error: 'Health issue not found' })
@@ -219,7 +220,7 @@ router.post('/:id/comments', authorize('can_log_issues'), async (req, res, next)
 })
 
 // DELETE /api/health-issues/:id/comments/:commentId — admin only
-router.delete('/:id/comments/:commentId', authorize('admin'), async (req, res, next) => {
+router.delete('/:id/comments/:commentId', requireAdmin, async (req, res, next) => {
   try {
     const existing = await db('health_issue_comments').where({ id: req.params.commentId }).first()
     if (!existing) return res.status(404).json({ error: 'Comment not found' })

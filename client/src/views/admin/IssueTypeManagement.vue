@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <AppHeader :title="$t('issueTypes.title')" show-back back-to="/" />
+    <AppHeader :title="$t('issueTypes.title')" show-back back-to="/settings" />
 
     <div class="page-content it-content">
       <!-- Add / Edit Form -->
@@ -188,7 +188,7 @@ import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import SearchInput from '../../components/atoms/SearchInput.vue'
 import PaginationBar from '../../components/atoms/PaginationBar.vue'
 import { useToast } from '../../composables/useToast'
-import { extractApiError, resolveError } from '../../utils/apiError'
+import { extractApiError } from '../../utils/apiError'
 
 const store = useIssueTypesStore()
 const toast = useToast()

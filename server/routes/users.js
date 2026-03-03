@@ -4,12 +4,12 @@ const Joi = require('joi')
 const bcrypt = require('bcryptjs')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
-const authorize = require('../middleware/authorize')
+const { requireAdmin } = require('../middleware/authorize')
 const { logAudit } = require('../services/auditService')
 
 const router = express.Router()
 router.use(authenticate)
-router.use(authorize('admin'))
+router.use(requireAdmin)
 
 // ── Validation ───────────────────────────────────────────────
 
@@ -74,7 +74,7 @@ router.get('/', async (req, res, next) => {
   try {
     const query = db('users').whereNull('deleted_at').orderBy('full_name')
 
-    if (req.query.active === '1') {
+    if (req.query.active_only === '1' || req.query.active === '1') {
       query.where({ is_active: true })
     } else if (req.query.active === '0') {
       query.where({ is_active: false })

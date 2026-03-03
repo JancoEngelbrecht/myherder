@@ -1,4 +1,4 @@
-module.exports = function authorize(permission) {
+function authorize(permission) {
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -11,4 +11,12 @@ module.exports = function authorize(permission) {
 
     return res.status(403).json({ error: 'Insufficient permissions' });
   };
-};
+}
+
+function requireAdmin(req, res, next) {
+  if (req.user && req.user.role === 'admin') return next();
+  return res.status(403).json({ error: 'Admin access required' });
+}
+
+module.exports = authorize;
+module.exports.requireAdmin = requireAdmin;

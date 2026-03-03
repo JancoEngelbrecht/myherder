@@ -174,8 +174,9 @@ async function handleLogin(loginFn, onError) {
   loading.value = true
   try {
     await loginFn()
-    await cowsStore.fetchAll()
     router.push('/')
+    // Non-blocking — failure is OK, offline fallback will handle it
+    cowsStore.fetchAll().catch(() => {})
   } catch (err) {
     errorMsg.value = getErrorMessage(err)
     onError?.()

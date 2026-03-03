@@ -156,11 +156,16 @@ function parseJsonFields(row) {
 // - All categories exclude dismissed events and deduplicate to latest event per cow
 router.get('/upcoming', async (req, res, next) => {
   try {
+    const MS_PER_DAY = 1000 * 60 * 60 * 24
+    const UPCOMING_HEAT_DAYS = 7
+    const UPCOMING_CALVING_DAYS = 14
+    const OVERDUE_LOOKBACK_DAYS = 30
+
     const today = new Date().toISOString().slice(0, 10)
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
-    const in7  = new Date(Date.now() + 7  * 86400000).toISOString().slice(0, 10)
-    const in14 = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10)
-    const past30 = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)
+    const yesterday = new Date(Date.now() - MS_PER_DAY).toISOString().slice(0, 10)
+    const in7  = new Date(Date.now() + UPCOMING_HEAT_DAYS  * MS_PER_DAY).toISOString().slice(0, 10)
+    const in14 = new Date(Date.now() + UPCOMING_CALVING_DAYS * MS_PER_DAY).toISOString().slice(0, 10)
+    const past30 = new Date(Date.now() - OVERDUE_LOOKBACK_DAYS * MS_PER_DAY).toISOString().slice(0, 10)
 
     // Base query: join cow+sire+user, exclude dismissed events
     const baseQuery = () => breedingQuery().whereNull('be.dismissed_at')

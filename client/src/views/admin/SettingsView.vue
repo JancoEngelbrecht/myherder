@@ -148,7 +148,7 @@
         <h2 class="section-label">{{ t('settings.dataSync') }}</h2>
         <div class="settings-list">
           <button class="settings-item" :disabled="syncing" @click="forceSync">
-            <span class="settings-icon">{{ syncing ? '' : '' }}</span>
+            <span class="settings-icon">{{ syncing ? '⏳' : '🔄' }}</span>
             <div class="settings-info">
               <span class="settings-name">{{ t('settings.forceSync') }}</span>
               <span class="settings-desc">

@@ -282,6 +282,7 @@ const initialSyncProgress = ref(null) // null = not syncing, string = current st
 
 async function initialSync(forceFull = false) {
   if (isSyncing.value) return
+  isSyncing.value = true
 
   try {
     initialSyncProgress.value = 'pushing'
@@ -296,6 +297,7 @@ async function initialSync(forceFull = false) {
     // Offline — allow app to continue with cached data
     initialSyncProgress.value = null
   } finally {
+    isSyncing.value = false
     await refreshPendingCount()
   }
 }

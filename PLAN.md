@@ -712,6 +712,83 @@ Already complete from earlier phases: Medication management (Phase 3), Feature f
 
 ---
 
+### Phase 12: Codebase Audit — Quality, Performance, Tests, Architecture
+
+**Goal:** Deep audit-driven cleanup. Zero lint errors, zero dead code, fix N+1 queries, achieve 100% file-level test coverage, split oversized files.
+
+#### Phase 12A: Quick Wins — NOT STARTED
+> Sub-plan: [plans/phase-12a-quick-wins.md](plans/phase-12a-quick-wins.md)
+
+| Step | Task |
+|------|------|
+| 12A.1 | Fix 7 ESLint errors → 0 |
+| 12A.2 | Fix 2 knip dead exports |
+| 12A.3 | Fix 4 pre-existing test failures |
+| 12A.4 | Remove dead code snippets (no-op `.then()`, dead fallbacks) |
+| 12A.5 | Extract magic numbers to named constants |
+| 12A.6 | Fix dual permission check in milkRecords DELETE |
+
+#### Phase 12B: Performance — NOT STARTED
+> Sub-plan: [plans/phase-12b-performance.md](plans/phase-12b-performance.md)
+
+| Step | Task |
+|------|------|
+| 12B.1 | Fix N+1: milk-trends (12 queries → 1) |
+| 12B.2 | Fix N+1: breeding-overview + conception-rate (batch services query) |
+| 12B.3 | Fix memory aggregation: herd-summary (JS loops → SQL aggregates) |
+| 12B.4 | Add Joi query validation: cows.js GET |
+| 12B.5 | Add Joi query validation: healthIssues.js GET |
+| 12B.6 | Remove redundant re-fetches after INSERT |
+
+#### Phase 12C: Test Coverage Tier 1 — NOT STARTED
+> Sub-plan: [plans/phase-12c-test-coverage-tier1.md](plans/phase-12c-test-coverage-tier1.md)
+
+| Step | Task |
+|------|------|
+| 12C.1 | Backend: sync.js route + syncService.js (~15 tests) |
+| 12C.2 | Backend: breedTypes.js route (~12 tests) |
+| 12C.3 | Backend: featureFlags.js route (~6 tests) |
+| 12C.4 | Frontend store: breedTypes.js (~10 tests) |
+| 12C.5 | Frontend store: medications.js (~8 tests) |
+| 12C.6 | Frontend store: treatments.js (~10 tests) |
+| 12C.7 | Frontend view: CowFormView.vue (~12 tests) |
+| 12C.8 | Frontend view: LogBreedingView.vue (~10 tests) |
+| 12C.9 | Frontend view: LogIssueView.vue (~8 tests) |
+| 12C.10 | Frontend view: LogTreatmentView.vue (~8 tests) |
+
+**Deliverable:** ~99 new tests covering sync engine, untested CRUD, all data-entry forms.
+
+#### Phase 12D: Test Coverage Tier 2 — NOT STARTED
+> Sub-plan: [plans/phase-12d-test-coverage-tier2.md](plans/phase-12d-test-coverage-tier2.md)
+
+| Step | Task |
+|------|------|
+| 12D.1 | Views: Dashboard, Login, CowList (~22 tests) |
+| 12D.2 | Views: CowDetail, IssueDetail, TreatmentDetail, history views (~28 tests) |
+| 12D.3 | Views: CowRepro, BreedingEvents (~8 tests) |
+| 12D.4 | Views: Admin management (BreedType, IssueType, Medication, Settings) (~18 tests) |
+| 12D.5 | Components: ConfirmDialog, TeatSelector, BreedingEventCard, SyncPanel, SearchInput, PaginationBar, ToastMessage (~35 tests) |
+| 12D.6 | Utilities: apiError, initials, useToast, useAnalytics (~21 tests) |
+
+**Deliverable:** ~140 new tests. 100% file-level coverage (every source file has tests).
+
+#### Phase 12E: Architecture — NOT STARTED
+> Sub-plan: [plans/phase-12e-architecture.md](plans/phase-12e-architecture.md)
+
+| Step | Task |
+|------|------|
+| 12E.1 | Plan analytics.js split into 5 category files |
+| 12E.2 | Create shared helpers.js |
+| 12E.3 | Create kpi.js, financial.js, fertility.js, health.js, structure.js |
+| 12E.4 | Create analytics/index.js router mount |
+| 12E.5 | Update app mount (verify no changes needed) |
+| 12E.6 | Split analytics.test.js into 5 category test files |
+| 12E.7 | Delete old monolithic files |
+
+**Deliverable:** analytics.js (1,522 lines) → 5 files under 500 lines each. Same 109 tests, reorganized.
+
+---
+
 ## Key Library Choices
 
 | Purpose | Library | Why |

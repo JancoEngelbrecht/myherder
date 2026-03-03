@@ -27,9 +27,7 @@ export const useFeatureFlagsStore = defineStore('featureFlags', () => {
 
   async function persistToIndexedDB(flagsObj) {
     const entries = Object.entries(flagsObj).map(([key, enabled]) => ({ key, enabled }))
-    for (const entry of entries) {
-      await db.featureFlags.put({ ...entry })
-    }
+    await db.featureFlags.bulkPut(entries)
   }
 
   async function loadFromIndexedDB() {

@@ -107,13 +107,9 @@ async function search() {
   showDropdown.value = true
   try {
     const params = { search: query.value }
+    if (props.sexFilter) params.sex = props.sexFilter
     const r = await api.get('/cows', { params })
-    let rows = r.data.cows || r.data
-    // Filter by sex client-side since API doesn't support it
-    if (props.sexFilter) {
-      rows = rows.filter(c => c.sex === props.sexFilter)
-    }
-    results.value = rows.slice(0, 8)
+    results.value = r.data.slice(0, 8)
   } catch {
     results.value = []
   } finally {

@@ -38,6 +38,7 @@ const pushSchema = Joi.object({
 const pullQuerySchema = Joi.object({
   since: Joi.string().isoDate().optional(),
   full: Joi.string().valid('1').optional(),
+  deviceId: Joi.string().uuid().optional(),
 })
 
 // ── Routes ──────────────────────────────────────────────────────
@@ -55,7 +56,6 @@ router.post('/push', authenticate, async (req, res, next) => {
 
     const { deviceId, changes } = value
     const results = []
-    let appliedCount = 0
     let errorCount = 0
 
     for (const change of changes) {
@@ -68,7 +68,6 @@ router.post('/push', authenticate, async (req, res, next) => {
       )
       results.push(result)
 
-      if (result.status === 'applied') appliedCount++
       if (result.status === 'error') errorCount++
     }
 
@@ -98,8 +97,8 @@ router.get('/pull', authenticate, async (req, res, next) => {
       .filter(([key]) => key !== 'syncedAt' && key !== 'deleted')
       .reduce((sum, [, records]) => sum + (Array.isArray(records) ? records.length : 0), 0)
 
-    // Use a fallback device ID for pull logging since client may not send one
-    await logSync(req.user.id, 'pull', 'pull', totalRecords, 'success')
+    const deviceId = value.deviceId || 'unknown'
+    await logSync(req.user.id, deviceId, 'pull', totalRecords, 'success')
 
     res.json(data)
   } catch (err) {

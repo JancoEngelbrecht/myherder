@@ -1,11 +1,11 @@
 const express = require('express')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
-const authorize = require('../middleware/authorize')
+const { requireAdmin } = require('../middleware/authorize')
 
 const router = express.Router()
 router.use(authenticate)
-router.use(authorize('admin'))
+router.use(requireAdmin)
 
 // ── Constants ────────────────────────────────────────────────
 
@@ -51,7 +51,7 @@ router.get('/', async (req, res, next) => {
     }
 
     const countQuery = query.clone().clearSelect().clearOrder().count('* as count').first()
-    const [{ count: total }] = await db.raw(countQuery.toQuery()).then((r) => r)
+    const [{ count: total }] = await db.raw(countQuery.toQuery())
 
     const rows = await query
       .orderBy('audit_log.created_at', 'desc')
@@ -59,10 +59,13 @@ router.get('/', async (req, res, next) => {
       .offset(offset)
 
     // Parse JSON fields
+    const safeJsonParse = (str) => {
+      try { return JSON.parse(str) } catch { return null }
+    }
     const data = rows.map((row) => ({
       ...row,
-      old_values: row.old_values ? JSON.parse(row.old_values) : null,
-      new_values: row.new_values ? JSON.parse(row.new_values) : null,
+      old_values: row.old_values ? safeJsonParse(row.old_values) : null,
+      new_values: row.new_values ? safeJsonParse(row.new_values) : null,
     }))
 
     res.json({ data, total: Number(total) })

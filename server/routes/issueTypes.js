@@ -3,7 +3,7 @@ const { randomUUID: uuidv4 } = require('crypto')
 const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
-const authorize = require('../middleware/authorize')
+const { requireAdmin } = require('../middleware/authorize')
 
 const router = express.Router()
 router.use(authenticate)
@@ -63,7 +63,7 @@ router.get('/', async (req, res, next) => {
 })
 
 // POST /api/issue-types — admin only
-router.post('/', authorize('admin'), async (req, res, next) => {
+router.post('/', requireAdmin, async (req, res, next) => {
   try {
     const { error, value } = schema.validate(req.body)
     if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
@@ -87,7 +87,7 @@ router.post('/', authorize('admin'), async (req, res, next) => {
 })
 
 // PUT /api/issue-types/:id — admin only (code is immutable after creation)
-router.put('/:id', authorize('admin'), async (req, res, next) => {
+router.put('/:id', requireAdmin, async (req, res, next) => {
   try {
     const existing = await db('issue_type_definitions').where({ id: req.params.id }).first()
     if (!existing) return res.status(404).json({ error: 'Issue type not found' })
@@ -107,7 +107,7 @@ router.put('/:id', authorize('admin'), async (req, res, next) => {
 })
 
 // DELETE /api/issue-types/:id — admin only; blocked if any health issues reference this code
-router.delete('/:id', authorize('admin'), async (req, res, next) => {
+router.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
     const existing = await db('issue_type_definitions').where({ id: req.params.id }).first()
     if (!existing) return res.status(404).json({ error: 'Issue type not found' })

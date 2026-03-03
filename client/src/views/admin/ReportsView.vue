@@ -101,11 +101,12 @@ const canGenerate = computed(() => selectedReport.value && dateFrom.value && dat
 
 async function generate() {
   if (!canGenerate.value) return
-  generating.value = true
-  error.value = ''
 
   const report = reportTypes.find((r) => r.key === selectedReport.value)
   if (!report) return
+
+  generating.value = true
+  error.value = ''
 
   try {
     const res = await api.get(`/reports/${report.slug}`, {

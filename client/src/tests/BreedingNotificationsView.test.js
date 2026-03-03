@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
-import { reactive, ref } from 'vue'
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -98,7 +97,7 @@ describe('BreedingNotificationsView', () => {
     await flushPromises()
 
     const chips = wrapper.findAll('.chip')
-    expect(chips.length).toBe(9) // 5 category + 4 time filter chips
+    expect(chips.length).toBe(10) // 5 category + 5 time filter chips
 
     // All chip count = needsAttention(1) + heats(1) + calvings(1)
     expect(chips[0].text()).toContain('3')
@@ -184,7 +183,8 @@ describe('BreedingNotificationsView', () => {
     // Dialog initially hidden
     expect(wrapper.find('.confirm-dialog').attributes('data-show')).toBe('false')
 
-    await wrapper.find('.btn-sm-dismiss').trigger('click')
+    // Click the per-row dismiss button (second .btn-sm-dismiss; first is "Dismiss All")
+    await wrapper.findAll('.btn-sm-dismiss')[1].trigger('click')
 
     // After clicking dismiss, the show prop should be truthy
     expect(wrapper.find('.confirm-dialog').attributes('data-show')).toBe('true')

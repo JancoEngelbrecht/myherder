@@ -154,6 +154,8 @@ import { useBreedingEventsStore } from '../stores/breedingEvents'
 import { useCowsStore } from '../stores/cows'
 import { useAuthStore } from '../stores/auth'
 import { useBreedTypesStore } from '../stores/breedTypes'
+import { useToast } from '../composables/useToast'
+import { extractApiError, resolveError } from '../utils/apiError'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -162,6 +164,7 @@ const breedingStore = useBreedingEventsStore()
 const cowsStore = useCowsStore()
 const authStore = useAuthStore()
 const breedTypesStore = useBreedTypesStore()
+const toast = useToast()
 
 const cowId = computed(() => route.params.id)
 const cowEvents = ref([])
@@ -235,9 +238,13 @@ function confirmDelete(id) {
 
 async function doDelete() {
   deleting.value = true
+  const snapshot = [...cowEvents.value]
   try {
-    await breedingStore.deleteEvent(deleteTargetId.value)
     cowEvents.value = cowEvents.value.filter((e) => e.id !== deleteTargetId.value)
+    await breedingStore.deleteEvent(deleteTargetId.value)
+  } catch (err) {
+    cowEvents.value = snapshot
+    toast.show(resolveError(extractApiError(err), t), 'error')
   } finally {
     deleting.value = false
     deleteTargetId.value = null

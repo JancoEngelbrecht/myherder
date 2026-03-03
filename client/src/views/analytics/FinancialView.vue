@@ -133,7 +133,6 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { RouterLink } from 'vue-router'
 import { Line, Bar } from 'vue-chartjs'
 import '../../utils/chartSetup.js'
 import '../../assets/analytics.css'

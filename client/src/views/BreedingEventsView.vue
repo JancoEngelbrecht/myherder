@@ -113,10 +113,13 @@ import CowSearchDropdown from '../components/molecules/CowSearchDropdown.vue'
 import PaginationBar from '../components/atoms/PaginationBar.vue'
 import { useBreedingEventsStore } from '../stores/breedingEvents'
 import { useAuthStore } from '../stores/auth'
+import { useToast } from '../composables/useToast'
+import { extractApiError, resolveError } from '../utils/apiError'
 
 const { t } = useI18n()
 const router = useRouter()
 const breedingStore = useBreedingEventsStore()
+const toast = useToast()
 const authStore = useAuthStore()
 
 // Pagination
@@ -208,6 +211,8 @@ async function doDelete() {
   try {
     await breedingStore.deleteEvent(deleteTargetId.value)
     fetchEvents()
+  } catch (err) {
+    toast.show(resolveError(extractApiError(err), t), 'error')
   } finally {
     deleting.value = false
     deleteTargetId.value = null

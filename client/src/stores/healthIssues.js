@@ -149,23 +149,38 @@ export const useHealthIssuesStore = defineStore('healthIssues', () => {
   }
 
   async function fetchComments(issueId) {
-    const { data } = await api.get(`/health-issues/${issueId}/comments`)
-    comments.value = { ...comments.value, [issueId]: data }
-    return data
+    try {
+      const { data } = await api.get(`/health-issues/${issueId}/comments`)
+      comments.value = { ...comments.value, [issueId]: data }
+      return data
+    } catch (err) {
+      error.value = extractApiError(err)
+      return []
+    }
   }
 
   async function addComment(issueId, text) {
-    const { data } = await api.post(`/health-issues/${issueId}/comments`, { comment: text })
-    const list = comments.value[issueId] || []
-    comments.value = { ...comments.value, [issueId]: [...list, data] }
-    return data
+    try {
+      const { data } = await api.post(`/health-issues/${issueId}/comments`, { comment: text })
+      const list = comments.value[issueId] || []
+      comments.value = { ...comments.value, [issueId]: [...list, data] }
+      return data
+    } catch (err) {
+      error.value = extractApiError(err)
+      throw err
+    }
   }
 
   async function removeComment(issueId, commentId) {
-    await api.delete(`/health-issues/${issueId}/comments/${commentId}`)
-    comments.value = {
-      ...comments.value,
-      [issueId]: (comments.value[issueId] || []).filter((c) => c.id !== commentId),
+    try {
+      await api.delete(`/health-issues/${issueId}/comments/${commentId}`)
+      comments.value = {
+        ...comments.value,
+        [issueId]: (comments.value[issueId] || []).filter((c) => c.id !== commentId),
+      }
+    } catch (err) {
+      error.value = extractApiError(err)
+      throw err
     }
   }
 

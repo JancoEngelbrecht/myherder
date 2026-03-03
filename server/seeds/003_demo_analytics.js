@@ -72,12 +72,6 @@ exports.seed = async function (knex) {
     return factors[month] || 1.0;
   }
 
-  // Health issue probability multiplier by month (winter = more issues)
-  function seasonalHealthFactor(month) {
-    const factors = [0, 0.7, 0.6, 0.8, 0.9, 1.2, 1.4, 1.5, 1.3, 1.0, 0.8, 0.7, 0.7];
-    return factors[month] || 1.0;
-  }
-
   // Breed-specific base daily litres (per session — 2 sessions/day)
   function breedBaseLitres(breed) {
     switch (breed) {
