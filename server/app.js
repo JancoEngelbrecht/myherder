@@ -35,6 +35,7 @@ app.use('/api/feature-flags', require('./routes/featureFlags'))
 app.use('/api/users', require('./routes/users'))
 app.use('/api/settings', require('./routes/appSettings'))
 app.use('/api/export', require('./routes/export'))
+app.use('/api/reports', require('./routes/reports'))
 app.use('/api/audit-log', require('./routes/auditLog'))
 
 // Serve Vue SPA in production (no-op in test/development since client/dist may not exist)

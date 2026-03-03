@@ -693,21 +693,22 @@ Already complete from earlier phases: Medication management (Phase 3), Feature f
 
 ---
 
-### Phase 6B: Report Exports — DEFERRED
+### Phase 6B: Report Exports — COMPLETE
+> Sub-plan: [plans/phase-6b-reports.md](plans/phase-6b-reports.md) (COMPLETE)
+
 **Goal:** Audit-ready PDF/Excel reports for all farm data.
 
 | Step | Task |
 |------|------|
 | 6B.1 | Report generation API (pdfkit + exceljs) |
-| 6B.2 | Treatment history report |
-| 6B.3 | Withdrawal compliance report |
-| 6B.4 | Medication usage report |
-| 6B.5 | Milk production report |
-| 6B.6 | Breeding & reproduction report |
-| 6B.7 | Herd health summary report |
-| 6B.8 | Report UI (select type, filters, download) |
+| 6B.2 | Withdrawal compliance report |
+| 6B.3 | Treatment history report |
+| 6B.4 | Discarded milk report |
+| 6B.5 | Medication usage, milk production, breeding, herd health reports |
+| 6B.6 | Report UI (ReportsView.vue — select type, filters, download) |
+| 6B.7 | Polish, docs, memory updates |
 
-**Deliverable:** Downloadable PDF/Excel reports for compliance and record-keeping.
+**Deliverable:** 7 downloadable PDF/Excel reports for compliance and record-keeping. 35 server tests, 11 client tests.
 
 ---
 

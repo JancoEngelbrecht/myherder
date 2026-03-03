@@ -688,6 +688,7 @@
 "breedTypesDesc": "Manage breed types and their timing defaults",
     "usersDesc": "Manage users, roles, and permissions",
     "auditLogDesc": "View change history for users, cows, and settings",
+    "reportsDesc": "Generate PDF and Excel reports for audits and analysis",
     "appSettings": "App Settings",
     "farmName": "Farm Name",
     "farmNamePlaceholder": "e.g. Green Pastures Farm",
@@ -837,5 +838,45 @@
     "settings": "Settings",
     "roleAdmin": "Admin",
     "roleWorker": "Worker"
+  },
+  "reports": {
+    "title": "Reports",
+    "selectReport": "Select Report",
+    "dateRange": "Date Range",
+    "from": "From",
+    "to": "To",
+    "format": "Format",
+    "generate": "Generate Report",
+    "generating": "Generating…",
+    "types": {
+      "withdrawalCompliance": {
+        "name": "Withdrawal Compliance",
+        "desc": "Verify milk was properly discarded during medication withdrawal periods"
+      },
+      "treatmentHistory": {
+        "name": "Treatment History",
+        "desc": "Complete traceability of all treatments, medications, costs and vet visits"
+      },
+      "discardedMilk": {
+        "name": "Discarded Milk",
+        "desc": "Accountability log of all discarded milk with reasons"
+      },
+      "medicationUsage": {
+        "name": "Medication Usage",
+        "desc": "Usage frequency and cost breakdown per medication"
+      },
+      "milkProduction": {
+        "name": "Milk Production",
+        "desc": "Per-cow production summary with daily and session averages"
+      },
+      "breeding": {
+        "name": "Breeding & Reproduction",
+        "desc": "All breeding events including inseminations, preg checks and calvings"
+      },
+      "herdHealth": {
+        "name": "Herd Health Summary",
+        "desc": "Health issues, severity, resolution times and linked treatments"
+      }
+    }
   }
 }

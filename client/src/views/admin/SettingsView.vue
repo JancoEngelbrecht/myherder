@@ -50,6 +50,15 @@
             </div>
             <span class="settings-arrow">›</span>
           </RouterLink>
+
+          <RouterLink to="/admin/reports" class="settings-item">
+            <span class="settings-icon">📄</span>
+            <div class="settings-info">
+              <span class="settings-name">{{ t('reports.title') }}</span>
+              <span class="settings-desc">{{ t('settings.reportsDesc') }}</span>
+            </div>
+            <span class="settings-arrow">›</span>
+          </RouterLink>
         </div>
       </section>
 

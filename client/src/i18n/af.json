@@ -688,6 +688,7 @@
 "breedTypesDesc": "Bestuur rastipes en hul tydsberekenings",
     "usersDesc": "Bestuur gebruikers, rolle en toestemmings",
     "auditLogDesc": "Sien veranderingsgeskiedenis vir gebruikers, koeie en instellings",
+    "reportsDesc": "Genereer PDF- en Excel-verslae vir oudits en ontleding",
     "appSettings": "App Instellings",
     "farmName": "Plaasnaam",
     "farmNamePlaceholder": "bv. Groen Weiding Plaas",
@@ -837,5 +838,45 @@
     "settings": "Instellings",
     "roleAdmin": "Admin",
     "roleWorker": "Werker"
+  },
+  "reports": {
+    "title": "Verslae",
+    "selectReport": "Kies Verslag",
+    "dateRange": "Datumreeks",
+    "from": "Van",
+    "to": "Tot",
+    "format": "Formaat",
+    "generate": "Genereer Verslag",
+    "generating": "Genereer tans…",
+    "types": {
+      "withdrawalCompliance": {
+        "name": "Onttrekking-nakoming",
+        "desc": "Verifieer dat melk behoorlik weggegooi is tydens medikasie-onttrekkingsperiodes"
+      },
+      "treatmentHistory": {
+        "name": "Behandelingsgeskiedenis",
+        "desc": "Volledige naspeurbaarheid van alle behandelings, medikasie, koste en veeartsenbesoeke"
+      },
+      "discardedMilk": {
+        "name": "Weggegooi Melk",
+        "desc": "Verantwoordingslog van alle weggegooi melk met redes"
+      },
+      "medicationUsage": {
+        "name": "Medikasiegebruik",
+        "desc": "Gebruiksfrekwensie en koste-uiteensetting per medikasie"
+      },
+      "milkProduction": {
+        "name": "Melkproduksie",
+        "desc": "Per-koei produksie-opsomming met daaglikse en sessie-gemiddeldes"
+      },
+      "breeding": {
+        "name": "Teling & Voortplanting",
+        "desc": "Alle telingsgebeurtenisse insluitend inseminasies, dragtigheidstoetse en kalwings"
+      },
+      "herdHealth": {
+        "name": "Kudde-gesondheidsopsomming",
+        "desc": "Gesondheidskwessies, erns, oplossingstye en gekoppelde behandelings"
+      }
+    }
   }
 }

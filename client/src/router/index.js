@@ -196,6 +196,12 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true, requiresModule: 'breeding' },
   },
   {
+    path: '/admin/reports',
+    name: 'reports',
+    component: () => import('../views/admin/ReportsView.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
     path: '/cows/:id/repro',
     name: 'cow-repro',
     component: () => import('../views/CowReproView.vue'),

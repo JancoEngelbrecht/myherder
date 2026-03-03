@@ -11,6 +11,7 @@ const { v4: uuidv4 } = require('uuid');
  */
 exports.seed = async function (knex) {
   // ── Wipe existing demo data ──────────────────────────────────────────────
+  await knex('treatment_medications').del();
   await knex('treatments').del();
   await knex('health_issues').del();
   await knex('milk_records').del();
@@ -301,7 +302,19 @@ exports.seed = async function (knex) {
     'Vitamins B-complex':              [15, 35],
   };
 
+  // Sample treatment notes per issue type
+  const treatmentNotes = {
+    mastitis:    ['Swelling in affected quarter', 'Milk clots observed', 'Repeat treatment after 48h', 'Mild case, responding well', 'SCC test elevated'],
+    lameness:    ['Hoof trimmed and cleaned', 'Abscess drained', 'Swelling in left rear', 'Improving after 2 days', 'Stone bruise on sole'],
+    respiratory: ['Nasal discharge, laboured breathing', 'Coughing for 3 days', 'Isolated from herd', 'Temperature 40.2°C', 'Mild pneumonia suspected'],
+    digestive:   ['Off feed for 2 days', 'Rumen sounds reduced', 'Possible grain overload', 'Appetite returning'],
+    fever:       ['Temperature 40.5°C', 'Lethargic, not eating', 'Monitor overnight', 'Responded well to treatment'],
+    eye:         ['Pinkeye, left eye cloudy', 'Tearing and swelling', 'Fly irritation likely cause', 'Eye patch applied'],
+    bad_milk:    ['Abnormal milk consistency', 'Flakes in foremilk', 'CMT positive', 'Recheck in 3 days'],
+  };
+
   const treatments = [];
+  const treatmentMeds = [];
 
   for (const issue of Object.values(healthIssueIndex)) {
     // 85% of issues get treated
@@ -346,9 +359,15 @@ exports.seed = async function (knex) {
         withdrawalEndMeat = isoDatetime(wt);
       }
 
+      // ~60% of treatments get a note
+      const notePool = treatmentNotes[issue.issueCode] || ['General supportive care'];
+      const note = Math.random() < 0.6 ? pick(notePool) : null;
+
+      const treatmentId = uuidv4();
       treatments.push({
-        id: uuidv4(),
+        id: treatmentId,
         cow_id: issue.cow_id,
+        health_issue_id: issue.id,
         medication_id: med.id,
         administered_by: pick(reporters),
         dosage: med.default_dosage || '5ml',
@@ -358,15 +377,24 @@ exports.seed = async function (knex) {
         withdrawal_end_meat: withdrawalEndMeat,
         is_vet_visit: isVet ? 1 : 0,
         vet_name: isVet ? pick(['Dr. H. Botha', 'Dr. P. van Niekerk', 'Dr. S. Dlamini']) : null,
-        notes: null,
+        notes: note,
         created_at: isoDatetime(treatDate),
         updated_at: isoDatetime(treatDate),
+      });
+      treatmentMeds.push({
+        id: uuidv4(),
+        treatment_id: treatmentId,
+        medication_id: med.id,
+        dosage: med.default_dosage || '5ml',
       });
     }
   }
 
   for (let i = 0; i < treatments.length; i += 100) {
     await knex.batchInsert('treatments', treatments.slice(i, i + 100), 100);
+  }
+  for (let i = 0; i < treatmentMeds.length; i += 100) {
+    await knex.batchInsert('treatment_medications', treatmentMeds.slice(i, i + 100), 100);
   }
 
   // Now update milk records that fall within withdrawal periods
@@ -764,7 +792,7 @@ exports.seed = async function (knex) {
   console.log(`[demo-analytics] Seeded:`);
   console.log(`  ${milkRecords.length.toLocaleString()} milk records`);
   console.log(`  ${healthIssues.length} health issues`);
-  console.log(`  ${treatments.length} treatments`);
+  console.log(`  ${treatments.length} treatments (${treatmentMeds.length} medication links)`);
   console.log(`  ${breedingEvents.length} breeding events (historical cycles)`);
    
 };
