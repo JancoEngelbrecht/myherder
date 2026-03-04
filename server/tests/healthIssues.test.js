@@ -524,3 +524,15 @@ describe('DELETE /api/health-issues/:id/comments/:commentId', () => {
     expect(res.status).toBe(404)
   })
 })
+
+// ─── Query Validation (12B.5) ───────────────────────────────────────────────
+
+describe('GET /api/health-issues query validation', () => {
+  it('returns 400 for invalid status value', async () => {
+    const res = await request(app)
+      .get('/api/health-issues?status=invalid')
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(400)
+  })
+})

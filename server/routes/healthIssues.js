@@ -54,9 +54,20 @@ const MAX_SEARCH_LENGTH = 100
 const DEFAULT_PAGE_SIZE = 20
 const MAX_PAGE_SIZE = 100
 
+const issueQuerySchema = Joi.object({
+  cow_id: Joi.string().uuid(),
+  status: Joi.string().valid('open', 'treating', 'resolved'),
+  search: Joi.string().max(100).allow(''),
+  page: Joi.number().integer().min(1),
+  limit: Joi.number().integer().min(1).max(100),
+})
+
 // GET /api/health-issues
 router.get('/', async (req, res, next) => {
   try {
+    const { error: qError } = issueQuerySchema.validate(req.query, { allowUnknown: false })
+    if (qError) return res.status(400).json({ error: qError.details[0].message.replace(/['"]/g, '') })
+
     const query = issueQuery().orderBy('h.observed_at', 'desc')
     if (req.query.cow_id) query.where('h.cow_id', req.query.cow_id)
     if (req.query.status) query.where('h.status', req.query.status)

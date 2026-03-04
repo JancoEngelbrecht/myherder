@@ -1,4 +1,5 @@
 const express = require('express')
+const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const { requireAdmin } = require('../middleware/authorize')
@@ -11,13 +12,27 @@ router.use(requireAdmin)
 
 const DEFAULT_PAGE_SIZE = 25
 const MAX_PAGE_SIZE = 100
-const MAX_FILTER_LENGTH = 100
+
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}/
+const auditQuerySchema = Joi.object({
+  page: Joi.number().integer().min(1),
+  limit: Joi.number().integer().min(1).max(100),
+  entity_type: Joi.string().max(100),
+  entity_id: Joi.string().max(100),
+  user_id: Joi.string().max(100),
+  action: Joi.string().max(100),
+  from: Joi.string().pattern(ISO_DATE_RE),
+  to: Joi.string().pattern(ISO_DATE_RE),
+})
 
 // ── Routes ───────────────────────────────────────────────────
 
 // GET /api/audit-log — paginated, filterable audit log
 router.get('/', async (req, res, next) => {
   try {
+    const { error: qError } = auditQuerySchema.validate(req.query, { allowUnknown: false })
+    if (qError) return res.status(400).json({ error: qError.details[0].message.replace(/['"]/g, '') })
+
     const page = Math.max(1, parseInt(String(req.query.page), 10) || 1)
     const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, parseInt(String(req.query.limit), 10) || DEFAULT_PAGE_SIZE))
     const offset = (page - 1) * limit
@@ -30,18 +45,18 @@ router.get('/', async (req, res, next) => {
         'users.full_name as user_full_name',
       )
 
-    // Filters
+    // Filters (Joi-validated above — no manual slicing needed)
     if (req.query.entity_type) {
-      query.where('audit_log.entity_type', String(req.query.entity_type).slice(0, MAX_FILTER_LENGTH))
+      query.where('audit_log.entity_type', req.query.entity_type)
     }
     if (req.query.entity_id) {
-      query.where('audit_log.entity_id', String(req.query.entity_id).slice(0, MAX_FILTER_LENGTH))
+      query.where('audit_log.entity_id', req.query.entity_id)
     }
     if (req.query.user_id) {
-      query.where('audit_log.user_id', String(req.query.user_id).slice(0, MAX_FILTER_LENGTH))
+      query.where('audit_log.user_id', req.query.user_id)
     }
     if (req.query.action) {
-      query.where('audit_log.action', String(req.query.action).slice(0, MAX_FILTER_LENGTH))
+      query.where('audit_log.action', req.query.action)
     }
     if (req.query.from) {
       query.where('audit_log.created_at', '>=', String(req.query.from))

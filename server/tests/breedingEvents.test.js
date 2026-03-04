@@ -309,3 +309,14 @@ describe('DELETE /api/breeding-events/:id', () => {
     expect(res.status).toBe(403)
   })
 })
+
+// ─── Query Validation (12B.8) ───────────────────────────────────────────────
+
+describe('GET /api/breeding-events query validation', () => {
+  it('returns 400 for invalid date_from', async () => {
+    const res = await request(app)
+      .get('/api/breeding-events?date_from=bad')
+      .set('Authorization', adminToken())
+    expect(res.status).toBe(400)
+  })
+})

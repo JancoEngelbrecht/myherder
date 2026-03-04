@@ -181,3 +181,14 @@ describe('DELETE /api/medications/:id', () => {
     expect(res.status).toBe(404)
   })
 })
+
+// ─── Query Validation (12B.8) ───────────────────────────────────────────────
+
+describe('GET /api/medications query validation', () => {
+  it('returns 400 for unknown query param', async () => {
+    const res = await request(app)
+      .get('/api/medications?bogus=1')
+      .set('Authorization', adminToken())
+    expect(res.status).toBe(400)
+  })
+})

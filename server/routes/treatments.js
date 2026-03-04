@@ -79,9 +79,16 @@ async function enrichWithMedications(rows) {
   })
 }
 
+const treatmentQuerySchema = Joi.object({
+  cow_id: Joi.string().uuid(),
+})
+
 // GET /api/treatments — list, optionally filtered by cow
 router.get('/', async (req, res, next) => {
   try {
+    const { error: qError } = treatmentQuerySchema.validate(req.query, { allowUnknown: false })
+    if (qError) return res.status(400).json({ error: qError.details[0].message.replace(/['"]/g, '') })
+
     const query = treatmentQuery().orderBy('t.treatment_date', 'desc')
     if (req.query.cow_id) query.where('t.cow_id', req.query.cow_id)
     res.json(await enrichWithMedications(await query))
@@ -94,19 +101,27 @@ router.get('/', async (req, res, next) => {
 router.get('/withdrawal', async (req, res, next) => {
   try {
     const now = new Date().toISOString()
+
+    // Subquery: get the MAX withdrawal_end_milk per cow (the "worst" active withdrawal)
+    const maxPerCow = db('treatments')
+      .join('cows', 'treatments.cow_id', 'cows.id')
+      .where('cows.sex', 'female')
+      .where('treatments.withdrawal_end_milk', '>', now)
+      .whereNull('cows.deleted_at')
+      .select('treatments.cow_id')
+      .max('treatments.withdrawal_end_milk as max_end')
+      .groupBy('treatments.cow_id')
+      .as('sub')
+
+    // Join back to get full treatment row for each cow's latest withdrawal
     const rows = await treatmentQuery()
-      .where('c.sex', 'female')
-      .where('t.withdrawal_end_milk', '>', now)
+      .join(maxPerCow, function () {
+        this.on('t.cow_id', 'sub.cow_id')
+          .andOn('t.withdrawal_end_milk', 'sub.max_end')
+      })
       .orderBy('t.withdrawal_end_milk', 'asc')
 
-    // Keep the treatment with the latest (worst) milk withdrawal end per cow
-    const byCow = {}
-    for (const row of rows) {
-      if (!byCow[row.cow_id] || row.withdrawal_end_milk > byCow[row.cow_id].withdrawal_end_milk) {
-        byCow[row.cow_id] = row
-      }
-    }
-    res.json(await enrichWithMedications(Object.values(byCow)))
+    res.json(await enrichWithMedications(rows))
   } catch (err) {
     next(err)
   }

@@ -1,8 +1,14 @@
-# Phase 12E: Architecture — Split analytics.js
+# Phase 12E: Architecture — Split Large Route Files
 
-**Goal:** Split the 1,522-line `server/routes/analytics.js` into 4 focused category files for maintainability. Mirror the split in test files. No functional changes — pure refactor.
+**Goal:** Split monolithic route files into focused category files for maintainability. No functional changes — pure refactor.
 
-**Estimated effort:** 1 session
+| File | Lines | Action | Priority |
+|------|-------|--------|----------|
+| `analytics.js` | 1,549 | Split into 5 category files + helpers | P1 |
+| `reports.js` | 694 | Split into 3 category files + shared index | P2 |
+| `breedingEvents.js` | 540 | Extract calcDates + Joi schemas to helper files | P3 |
+
+**Estimated effort:** 2 sessions
 
 ---
 
@@ -155,12 +161,79 @@ After all tests pass:
 
 ---
 
+## 12E.8 — Split `reports.js` (694 lines, P2)
+
+**Found in repo audit:** `server/routes/reports.js` at 694 lines is the second-largest route file. Contains 7 report endpoints + shared `generateReport()` helper + `validateQuery()`.
+
+### Target: 4 files
+
+```
+server/routes/reports/
+  index.js              # Router mount point (auth + requireAdmin), shared validateQuery + generateReport
+  treatment.js          # withdrawal-compliance, treatment-history
+  production.js         # discarded-milk, milk-production
+  herd.js               # medication-usage, breeding, herd-health
+```
+
+### Implementation
+
+**`reports/index.js`** — Mount point + shared helpers:
+- Move `querySchema`, `validateQuery()`, `generateReport()` here
+- Import and use sub-routers
+
+**`reports/treatment.js`** (~200 lines):
+- `/withdrawal-compliance` handler
+- `/treatment-history` handler
+
+**`reports/production.js`** (~180 lines):
+- `/discarded-milk` handler
+- `/milk-production` handler
+
+**`reports/herd.js`** (~250 lines):
+- `/medication-usage` handler
+- `/breeding` handler
+- `/herd-health` handler
+
+**Test file:** Keep as single `server/tests/reports.test.js` (35 tests) — no split needed since tests are already organized by endpoint and share the same DB fixtures.
+
+---
+
+## 12E.9 — Extract `breedingEvents.js` Helpers (540 lines, P3)
+
+**Found in repo audit:** `server/routes/breedingEvents.js` at 540 lines. Heavy Joi schemas (~100 lines) and `calcDates()` helper (~60 lines) inflate the route file.
+
+### Target: Extract helpers, keep single route file
+
+```
+server/routes/breedingEvents.js      # Route handlers only (~350 lines after extraction)
+server/helpers/breedingCalc.js        # calcDates() + breed timing constants
+server/helpers/breedingSchemas.js     # Joi schemas (createSchema, updateSchema, querySchema, etc.)
+```
+
+### Implementation
+
+**`server/helpers/breedingCalc.js`** (~80 lines):
+- `calcDates(eventType, eventDate, breedTimings)` function
+- Any breed-timing constants or helpers used by calcDates
+
+**`server/helpers/breedingSchemas.js`** (~100 lines):
+- `createSchema`, `updateSchema`, `querySchema`, `dismissSchema`
+- Shared Joi custom validators (e.g. date patterns)
+
+**`breedingEvents.js`** shrinks to ~350 lines — route handlers only.
+
+**Test file:** Keep as single `server/tests/breedingEvents.test.js` (25 tests) — no split needed.
+
+---
+
 ## Verification Checklist
 
-- [ ] All 109 analytics tests pass (same tests, just reorganized)
+- [ ] All 111 analytics tests pass (same tests, just reorganized)
+- [ ] All 35 reports tests pass (same tests, routes unchanged)
+- [ ] All 25 breedingEvents tests pass (same tests, routes unchanged)
 - [ ] `npm run lint` → 0 errors
 - [ ] `npm run knip` → no new unused exports
 - [ ] API responses identical (no functional change)
-- [ ] `server/app.js` mount unchanged
-- [ ] Old monolithic files deleted
-- [ ] No file exceeds 500 lines
+- [ ] `server/app.js` mount unchanged for analytics + reports
+- [ ] Old monolithic `server/routes/analytics.js` deleted
+- [ ] No route file exceeds 500 lines

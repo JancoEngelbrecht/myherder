@@ -25,9 +25,19 @@ const MAX_SEARCH_LENGTH = 100
 const DEFAULT_PAGE_SIZE = 20
 const MAX_PAGE_SIZE = 100
 
+const medicationQuerySchema = Joi.object({
+  all: Joi.string().valid('0', '1'),
+  search: Joi.string().max(100).allow(''),
+  page: Joi.number().integer().min(1),
+  limit: Joi.number().integer().min(1).max(100),
+})
+
 // GET /api/medications — active only by default; pass ?all=1 for all
 router.get('/', async (req, res, next) => {
   try {
+    const { error: qError } = medicationQuerySchema.validate(req.query, { allowUnknown: false })
+    if (qError) return res.status(400).json({ error: qError.details[0].message.replace(/['"]/g, '') })
+
     const query = db('medications')
       .where(req.query.all === '1' ? {} : { is_active: true })
       .orderBy('name')
@@ -78,9 +88,12 @@ router.post('/', authorize('can_manage_medications'), async (req, res, next) => 
 
     const id = uuidv4()
     const now = new Date().toISOString()
-    await db('medications').insert({ id, ...value, created_at: now, updated_at: now })
-    const created = await db('medications').where({ id }).first()
-    res.status(201).json(created)
+    const record = { id, ...value, created_at: now, updated_at: now }
+    await db('medications').insert(record)
+    // Coerce booleans to 0/1 to match SQLite's stored representation
+    const response = { ...record }
+    if (response.is_active !== undefined) response.is_active = response.is_active ? 1 : 0
+    res.status(201).json(response)
   } catch (err) {
     next(err)
   }

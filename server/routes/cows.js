@@ -31,6 +31,28 @@ const cowSchema = Joi.object({
 
 const cowUpdateSchema = cowSchema.fork('tag_number', (s) => s.optional());
 
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+const cowQuerySchema = Joi.object({
+  search: Joi.string().max(100).allow(''),
+  status: Joi.string().valid('active', 'dry', 'pregnant', 'sick', 'sold', 'dead'),
+  sex: Joi.string().valid('female', 'male'),
+  breed_type_id: Joi.string().max(36),
+  is_dry: Joi.string().valid('0', '1', 'true', 'false'),
+  life_phase: Joi.string().valid('calf', 'heifer', 'cow', 'young_bull', 'bull'),
+  pregnant: Joi.string().valid('0', '1', 'true', 'false'),
+  dim_min: Joi.number().integer().min(0),
+  dim_max: Joi.number().integer().min(0),
+  calving_after: Joi.string().pattern(ISO_DATE_RE),
+  calving_before: Joi.string().pattern(ISO_DATE_RE),
+  yield_min: Joi.number().min(0),
+  yield_max: Joi.number().min(0),
+  page: Joi.number().integer().min(1),
+  limit: Joi.number().integer().min(1).max(100),
+  sort: Joi.string().valid('tag_number', 'name', 'dob', 'status'),
+  order: Joi.string().valid('asc', 'desc'),
+});
+
 const MAX_SEARCH_LENGTH = 100;
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
@@ -73,6 +95,9 @@ const LAST_CALVING_SQL = `(
 // GET /api/cows
 router.get('/', async (req, res, next) => {
   try {
+    const { error: qError } = cowQuerySchema.validate(req.query, { allowUnknown: false });
+    if (qError) return res.status(400).json({ error: qError.details[0].message.replace(/['"]/g, '') });
+
     const query = db('cows as c')
       .leftJoin('breed_types as bt', 'c.breed_type_id', 'bt.id')
       .select(
@@ -221,12 +246,16 @@ router.post('/', authorize('can_manage_cows'), async (req, res, next) => {
     const { error, value } = cowSchema.validate(req.body);
     if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') });
 
-    const cow = { id: uuidv4(), ...value, created_by: req.user.id };
+    const now = new Date().toISOString();
+    const cow = { id: uuidv4(), ...value, created_by: req.user.id, created_at: now, updated_at: now };
     await db('cows').insert(cow);
 
-    const created = await db('cows').where({ id: cow.id }).first();
-    logAudit({ userId: req.user.id, action: 'create', entityType: 'cow', entityId: cow.id, newValues: created });
-    res.status(201).json(created);
+    // Coerce booleans to 0/1 to match SQLite's stored representation
+    const response = { ...cow };
+    if (response.is_external !== undefined) response.is_external = response.is_external ? 1 : 0;
+    if (response.is_dry !== undefined) response.is_dry = response.is_dry ? 1 : 0;
+    logAudit({ userId: req.user.id, action: 'create', entityType: 'cow', entityId: cow.id, newValues: response });
+    res.status(201).json(response);
   } catch (err) {
     // Unique constraint errors are handled centrally by errorHandler
     next(err);

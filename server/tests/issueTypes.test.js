@@ -274,3 +274,14 @@ describe('DELETE /api/issue-types/:id', () => {
     expect(res.status).toBe(403)
   })
 })
+
+// ─── Query Validation (12B.8) ───────────────────────────────────────────────
+
+describe('GET /api/issue-types query validation', () => {
+  it('returns 400 for unknown query param', async () => {
+    const res = await request(app)
+      .get('/api/issue-types?bogus=1')
+      .set('Authorization', adminToken())
+    expect(res.status).toBe(400)
+  })
+})

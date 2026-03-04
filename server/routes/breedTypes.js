@@ -34,11 +34,18 @@ function toCode(name) {
     .slice(0, 50)
 }
 
+const breedTypeQuerySchema = Joi.object({
+  all: Joi.string().valid('0', '1'),
+})
+
 // ── Routes ───────────────────────────────────────────────────────────────────
 
 // GET /api/breed-types — active only by default; ?all=1 for all
 router.get('/', async (req, res, next) => {
   try {
+    const { error: qError } = breedTypeQuerySchema.validate(req.query, { allowUnknown: false })
+    if (qError) return res.status(400).json({ error: qError.details[0].message.replace(/['"]/g, '') })
+
     const query = db('breed_types')
       .where(req.query.all === '1' ? {} : { is_active: true })
       .orderBy('sort_order')
@@ -67,9 +74,10 @@ router.post('/', requireAdmin, async (req, res, next) => {
 
     const id = uuidv4()
     const now = new Date().toISOString()
-    await db('breed_types').insert({ id, code, ...value, created_at: now, updated_at: now })
-    const created = await db('breed_types').where({ id }).first()
-    res.status(201).json(created)
+    const record = { id, code, ...value, created_at: now, updated_at: now }
+    await db('breed_types').insert(record)
+    // Coerce booleans to 0/1 to match SQLite's stored representation
+    res.status(201).json({ ...record, is_active: record.is_active ? 1 : 0 })
   } catch (err) {
     next(err)
   }

@@ -377,3 +377,14 @@ describe('DELETE /api/treatments/:id', () => {
     expect(res.status).toBe(404)
   })
 })
+
+// ─── Query Validation (12B.8) ───────────────────────────────────────────────
+
+describe('GET /api/treatments query validation', () => {
+  it('returns 400 for invalid cow_id', async () => {
+    const res = await request(app)
+      .get('/api/treatments?cow_id=not-a-uuid')
+      .set('Authorization', adminToken())
+    expect(res.status).toBe(400)
+  })
+})

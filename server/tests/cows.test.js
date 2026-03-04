@@ -222,3 +222,23 @@ describe('DELETE /api/cows/:id', () => {
     expect(res.status).toBe(403)
   })
 })
+
+// ─── Query Validation (12B.4) ───────────────────────────────────────────────
+
+describe('GET /api/cows query validation', () => {
+  it('returns 400 for invalid status value', async () => {
+    const res = await request(app)
+      .get('/api/cows?status=invalid')
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 for unknown query param', async () => {
+    const res = await request(app)
+      .get('/api/cows?nonexistent=1')
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(400)
+  })
+})

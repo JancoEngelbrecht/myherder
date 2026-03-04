@@ -131,26 +131,30 @@ router.get('/summary', async (req, res, next) => {
       .join('cows as c', 'mr.cow_id', 'c.id')
       .whereNull('c.deleted_at')
       .where('mr.recording_date', date)
-      .select('mr.session', 'mr.litres', 'mr.milk_discarded')
+      .select(
+        'mr.session',
+        db.raw('SUM(mr.litres) as total'),
+        db.raw('COUNT(*) as count'),
+        db.raw('SUM(CASE WHEN mr.milk_discarded = 1 THEN mr.litres ELSE 0 END) as discarded'),
+      )
+      .groupBy('mr.session')
 
+    const round = (n) => Math.round(n * 100) / 100
     const empty = () => ({ total: 0, discarded: 0, count: 0 })
     const summary = { morning: empty(), afternoon: empty(), evening: empty(), day: empty() }
 
     for (const row of rows) {
-      const litres = Number(row.litres)
-      const s = summary[row.session]
-      s.total += litres
-      s.count++
-      if (row.milk_discarded) s.discarded += litres
-      summary.day.total += litres
-      summary.day.count++
-      if (row.milk_discarded) summary.day.discarded += litres
+      const total = Number(row.total) || 0
+      const discarded = Number(row.discarded) || 0
+      const count = Number(row.count) || 0
+      summary[row.session] = { total: round(total), discarded: round(discarded), count }
+      summary.day.total += total
+      summary.day.discarded += discarded
+      summary.day.count += count
     }
 
-    for (const key of Object.keys(summary)) {
-      summary[key].total = Math.round(summary[key].total * 100) / 100
-      summary[key].discarded = Math.round(summary[key].discarded * 100) / 100
-    }
+    summary.day.total = round(summary.day.total)
+    summary.day.discarded = round(summary.day.discarded)
 
     res.json({ date, sessions: summary })
   } catch (err) {

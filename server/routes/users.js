@@ -118,7 +118,7 @@ router.post('/', async (req, res, next) => {
       role: value.role,
       language: value.language,
       permissions: JSON.stringify(value.role === 'admin' ? ALL_PERMISSIONS : value.permissions),
-      is_active: true,
+      is_active: 1,
       failed_attempts: 0,
       created_at: now,
       updated_at: now,
@@ -132,8 +132,7 @@ router.post('/', async (req, res, next) => {
     }
 
     await db('users').insert(record)
-    const created = await db('users').where({ id }).first()
-    const sanitized = sanitizeUser(created)
+    const sanitized = sanitizeUser(record)
     logAudit({ userId: req.user.id, action: 'create', entityType: 'user', entityId: id, newValues: sanitized })
     res.status(201).json(sanitized)
   } catch (err) {

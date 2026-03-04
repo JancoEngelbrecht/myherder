@@ -168,4 +168,11 @@ describe('GET /api/audit-log', () => {
     expect(res.body.data[0]).toHaveProperty('user_username')
     expect(res.body.data[0]).toHaveProperty('user_full_name')
   })
+
+  it('returns 400 for unknown query param', async () => {
+    const res = await request(app)
+      .get('/api/audit-log?bogus=1')
+      .set('Authorization', adminToken())
+    expect(res.status).toBe(400)
+  })
 })

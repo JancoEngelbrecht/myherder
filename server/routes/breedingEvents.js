@@ -1,121 +1,16 @@
 const express = require('express')
 const { randomUUID: uuidv4 } = require('crypto')
-const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const authorize = require('../middleware/authorize')
+const { calcDates, getBreedTimings } = require('../helpers/breedingCalc')
+const {
+  STATUS_TRANSITIONS, VALID_EVENT_TYPES, VALID_COW_STATUSES,
+  createSchema, updateSchema, breedingQuerySchema,
+} = require('../helpers/breedingSchemas')
 
 const router = express.Router()
 router.use(authenticate)
-
-const PREG_CHECK_METHODS = ['manual', 'ultrasound', 'blood_test']
-
-// Status transitions triggered by certain event types
-const STATUS_TRANSITIONS = {
-  preg_check_positive: 'pregnant',
-  calving: 'active',
-  preg_check_negative: 'active',
-  abortion: 'active',
-}
-
-// Fixed workflow event types — not configurable
-const VALID_EVENT_TYPES = [
-  'heat_observed', 'ai_insemination', 'bull_service',
-  'preg_check_positive', 'preg_check_negative',
-  'calving', 'abortion', 'dry_off',
-]
-
-const createSchema = Joi.object({
-  cow_id: Joi.string().uuid().required(),
-  event_type: Joi.string().required(),
-  event_date: Joi.string().isoDate().required(),
-  sire_id: Joi.string().uuid().allow(null, '').default(null),
-  semen_id: Joi.string().max(100).allow(null, '').default(null),
-  inseminator: Joi.string().max(100).allow(null, '').default(null),
-  heat_signs: Joi.array().items(Joi.string()).allow(null).default(null),
-  preg_check_method: Joi.string().valid(...PREG_CHECK_METHODS).allow(null).default(null),
-  calving_details: Joi.object({
-    calf_sex: Joi.string().valid('male', 'female').allow(null),
-    calf_tag_number: Joi.string().max(50).allow(null, ''),
-    calf_weight: Joi.number().min(0).max(999).allow(null),
-    complications: Joi.string().max(2000).allow(null, ''),
-  }).allow(null).default(null),
-  cost: Joi.number().precision(2).min(0).allow(null).default(null),
-  notes: Joi.string().max(2000).allow(null, '').default(null),
-  expected_calving: Joi.string().isoDate().allow(null, '').default(null),
-  expected_dry_off: Joi.string().isoDate().allow(null, '').default(null),
-})
-
-const updateSchema = Joi.object({
-  event_type: Joi.string().optional(),
-  event_date: Joi.string().isoDate().optional(),
-  sire_id: Joi.string().uuid().allow(null, '').optional(),
-  semen_id: Joi.string().max(100).allow(null, '').optional(),
-  inseminator: Joi.string().max(100).allow(null, '').optional(),
-  preg_check_method: Joi.string().valid(...PREG_CHECK_METHODS).allow(null).optional(),
-  calving_details: Joi.object({
-    calf_sex: Joi.string().valid('male', 'female').allow(null),
-    calf_tag_number: Joi.string().max(50).allow(null, ''),
-    calf_weight: Joi.number().min(0).max(999).allow(null),
-    complications: Joi.string().max(2000).allow(null, ''),
-  }).allow(null).optional(),
-  cost: Joi.number().precision(2).min(0).allow(null).optional(),
-  notes: Joi.string().max(2000).allow(null, '').optional(),
-  expected_calving: Joi.string().isoDate().allow(null, '').optional(),
-  expected_dry_off: Joi.string().isoDate().allow(null, '').optional(),
-})
-
-// ── Auto-date calculation ─────────────────────────────────────────────────────
-
-function calcDates(eventType, eventDate, breedTimings = {}) {
-  const base = new Date(eventDate)
-  const heatCycleDays = breedTimings.heat_cycle_days ?? 21
-  const pregCheckDays = breedTimings.preg_check_days ?? 35
-  const gestationDays = breedTimings.gestation_days ?? 283
-  const dryOffDays = breedTimings.dry_off_days ?? 60
-
-  const addDays = (n) => {
-    const d = new Date(base)
-    d.setDate(d.getDate() + n)
-    return d.toISOString().slice(0, 10)
-  }
-
-  if (['heat_observed', 'ai_insemination', 'bull_service'].includes(eventType)) {
-    const result = {
-      expected_next_heat: addDays(heatCycleDays),
-      expected_preg_check: addDays(pregCheckDays),
-      expected_calving: null,
-      expected_dry_off: null,
-    }
-
-    if (['ai_insemination', 'bull_service'].includes(eventType)) {
-      const calvingDate = new Date(base)
-      calvingDate.setDate(calvingDate.getDate() + gestationDays)
-      const dryOffDate = new Date(calvingDate)
-      dryOffDate.setDate(dryOffDate.getDate() - dryOffDays)
-      result.expected_calving = calvingDate.toISOString().slice(0, 10)
-      result.expected_dry_off = dryOffDate.toISOString().slice(0, 10)
-    }
-
-    return result
-  }
-
-  return {
-    expected_next_heat: null,
-    expected_preg_check: null,
-    expected_calving: null,
-    expected_dry_off: null,
-  }
-}
-
-// Look up breed-specific timing values by breed_type_id.
-// Returns the full breed_types row, or {} if no breed is assigned.
-// Used by POST/PATCH handlers to pass breed timings into calcDates().
-async function getBreedTimings(breedTypeId) {
-  if (!breedTypeId) return {}
-  const breed = await db('breed_types').where({ id: breedTypeId }).first()
-  return breed || {}
-}
 
 // ── Query helpers ─────────────────────────────────────────────────────────────
 
@@ -247,10 +142,11 @@ router.get('/upcoming', async (req, res, next) => {
 // - event_type: single value or comma-separated (e.g. "ai_insemination,bull_service")
 // - cow_status: 'active', 'pregnant', or 'dry' (dry filters on is_dry flag)
 // - date_from / date_to: ISO date strings to filter event_date range
-const VALID_COW_STATUSES = ['active', 'pregnant', 'dry']
-
 router.get('/', async (req, res, next) => {
   try {
+    const { error: qError } = breedingQuerySchema.validate(req.query, { allowUnknown: false })
+    if (qError) return res.status(400).json({ error: qError.details[0].message.replace(/['"]/g, '') })
+
     const { cow_id, event_type, cow_status, date_from, date_to } = req.query
     const types = event_type ? event_type.split(',') : null
 

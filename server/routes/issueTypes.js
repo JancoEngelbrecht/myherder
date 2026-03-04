@@ -29,9 +29,19 @@ const MAX_SEARCH_LENGTH = 100
 const DEFAULT_PAGE_SIZE = 20
 const MAX_PAGE_SIZE = 100
 
+const issueTypeQuerySchema = Joi.object({
+  all: Joi.string().valid('0', '1'),
+  search: Joi.string().max(100).allow(''),
+  page: Joi.number().integer().min(1),
+  limit: Joi.number().integer().min(1).max(100),
+})
+
 // GET /api/issue-types — active only by default; ?all=1 for all
 router.get('/', async (req, res, next) => {
   try {
+    const { error: qError } = issueTypeQuerySchema.validate(req.query, { allowUnknown: false })
+    if (qError) return res.status(400).json({ error: qError.details[0].message.replace(/['"]/g, '') })
+
     const query = db('issue_type_definitions')
       .where(req.query.all === '1' ? {} : { is_active: true })
       .orderBy('sort_order')
@@ -78,9 +88,10 @@ router.post('/', requireAdmin, async (req, res, next) => {
 
     const id = uuidv4()
     const now = new Date().toISOString()
-    await db('issue_type_definitions').insert({ id, code, ...value, created_at: now, updated_at: now })
-    const created = await db('issue_type_definitions').where({ id }).first()
-    res.status(201).json(created)
+    const record = { id, code, ...value, created_at: now, updated_at: now }
+    await db('issue_type_definitions').insert(record)
+    // Coerce booleans to 0/1 to match SQLite's stored representation
+    res.status(201).json({ ...record, is_active: record.is_active ? 1 : 0, requires_teat_selection: record.requires_teat_selection ? 1 : 0 })
   } catch (err) {
     next(err)
   }
