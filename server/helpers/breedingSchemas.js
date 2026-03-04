@@ -1,4 +1,5 @@
 const Joi = require('joi')
+const { ISO_DATE_RE } = require('./constants')
 
 const PREG_CHECK_METHODS = ['manual', 'ultrasound', 'blood_test']
 
@@ -24,7 +25,7 @@ const createSchema = Joi.object({
   sire_id: Joi.string().uuid().allow(null, '').default(null),
   semen_id: Joi.string().max(100).allow(null, '').default(null),
   inseminator: Joi.string().max(100).allow(null, '').default(null),
-  heat_signs: Joi.array().items(Joi.string()).allow(null).default(null),
+  heat_signs: Joi.array().items(Joi.string().max(100)).max(20).allow(null).default(null),
   preg_check_method: Joi.string().valid(...PREG_CHECK_METHODS).allow(null).default(null),
   calving_details: Joi.object({
     calf_sex: Joi.string().valid('male', 'female').allow(null),
@@ -58,7 +59,6 @@ const updateSchema = Joi.object({
 })
 
 const VALID_COW_STATUSES = ['active', 'pregnant', 'dry']
-const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
 const breedingQuerySchema = Joi.object({
   cow_id: Joi.string().uuid(),

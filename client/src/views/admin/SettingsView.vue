@@ -166,15 +166,17 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted } from 'vue'
+import { ref, computed, reactive, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import { initialSync, lastSyncTime as syncLastTime } from '../../services/syncManager.js'
 import { useFeatureFlagsStore } from '../../stores/featureFlags.js'
+import { useToast } from '../../composables/useToast.js'
 import api from '../../services/api.js'
 
 const { t } = useI18n()
 const featureFlagsStore = useFeatureFlagsStore()
+const toast = useToast()
 const syncing = ref(false)
 
 // Data export
@@ -192,7 +194,7 @@ async function exportData() {
     a.click()
     URL.revokeObjectURL(url)
   } catch {
-    // error handled by api interceptor
+    toast.show(t('common.error'), 'error')
   } finally {
     exporting.value = false
   }
@@ -218,9 +220,9 @@ onMounted(async () => {
 
 async function saveAppSettings() {
   try {
-    const payload = {
-      farm_name: farmName.value,
-      default_language: defaultLang.value,
+    const payload = { default_language: defaultLang.value }
+    if (farmName.value.trim()) {
+      payload.farm_name = farmName.value.trim()
     }
     if (milkPrice.value !== '') {
       payload.milk_price_per_litre = String(milkPrice.value)
@@ -230,9 +232,11 @@ async function saveAppSettings() {
     clearTimeout(saveTimeout)
     saveTimeout = setTimeout(() => { settingsSaved.value = false }, 2000)
   } catch {
-    // error handled by api interceptor
+    toast.show(t('common.error'), 'error')
   }
 }
+
+onUnmounted(() => clearTimeout(saveTimeout))
 
 const flags = computed(() => featureFlagsStore.flags)
 

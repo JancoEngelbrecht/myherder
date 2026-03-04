@@ -3,6 +3,7 @@ const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const { requireAdmin } = require('../middleware/authorize')
+const { ISO_DATE_RE, parsePagination, joiMsg } = require('../helpers/constants')
 
 const router = express.Router()
 router.use(authenticate)
@@ -10,10 +11,6 @@ router.use(requireAdmin)
 
 // ── Constants ────────────────────────────────────────────────
 
-const DEFAULT_PAGE_SIZE = 25
-const MAX_PAGE_SIZE = 100
-
-const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}/
 const auditQuerySchema = Joi.object({
   page: Joi.number().integer().min(1),
   limit: Joi.number().integer().min(1).max(100),
@@ -31,11 +28,9 @@ const auditQuerySchema = Joi.object({
 router.get('/', async (req, res, next) => {
   try {
     const { error: qError } = auditQuerySchema.validate(req.query, { allowUnknown: false })
-    if (qError) return res.status(400).json({ error: qError.details[0].message.replace(/['"]/g, '') })
+    if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
-    const page = Math.max(1, parseInt(String(req.query.page), 10) || 1)
-    const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, parseInt(String(req.query.limit), 10) || DEFAULT_PAGE_SIZE))
-    const offset = (page - 1) * limit
+    const { limit, offset } = parsePagination(req.query)
 
     const query = db('audit_log')
       .leftJoin('users', 'audit_log.user_id', 'users.id')
@@ -65,8 +60,8 @@ router.get('/', async (req, res, next) => {
       query.where('audit_log.created_at', '<=', String(req.query.to))
     }
 
-    const countQuery = query.clone().clearSelect().clearOrder().count('* as count').first()
-    const [{ count: total }] = await db.raw(countQuery.toQuery())
+    const countResult = await query.clone().clearSelect().clearOrder().count('* as count').first()
+    const total = Number(countResult.count)
 
     const rows = await query
       .orderBy('audit_log.created_at', 'desc')
@@ -83,7 +78,7 @@ router.get('/', async (req, res, next) => {
       new_values: row.new_values ? safeJsonParse(row.new_values) : null,
     }))
 
-    res.json({ data, total: Number(total) })
+    res.json({ data, total })
   } catch (err) {
     next(err)
   }

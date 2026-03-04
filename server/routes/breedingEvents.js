@@ -1,16 +1,35 @@
 const express = require('express')
 const { randomUUID: uuidv4 } = require('crypto')
+const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const authorize = require('../middleware/authorize')
+const { requireAdmin } = authorize
 const { calcDates, getBreedTimings } = require('../helpers/breedingCalc')
+const { joiMsg } = require('../helpers/constants')
 const {
   STATUS_TRANSITIONS, VALID_EVENT_TYPES, VALID_COW_STATUSES,
   createSchema, updateSchema, breedingQuerySchema,
 } = require('../helpers/breedingSchemas')
 
+const dismissBatchSchema = Joi.object({
+  ids: Joi.array().items(Joi.string().uuid()).min(1).max(100).required(),
+  reason: Joi.string().max(500).allow(null, '').optional(),
+})
+
+const dismissSchema = Joi.object({
+  reason: Joi.string().max(500).allow(null, '').optional(),
+})
+
 const router = express.Router()
 router.use(authenticate)
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const MS_PER_DAY = 1000 * 60 * 60 * 24
+const UPCOMING_HEAT_DAYS = 7
+const UPCOMING_CALVING_DAYS = 14
+const OVERDUE_LOOKBACK_DAYS = 30
 
 // ── Query helpers ─────────────────────────────────────────────────────────────
 
@@ -51,11 +70,6 @@ function parseJsonFields(row) {
 // - All categories exclude dismissed events and deduplicate to latest event per cow
 router.get('/upcoming', async (req, res, next) => {
   try {
-    const MS_PER_DAY = 1000 * 60 * 60 * 24
-    const UPCOMING_HEAT_DAYS = 7
-    const UPCOMING_CALVING_DAYS = 14
-    const OVERDUE_LOOKBACK_DAYS = 30
-
     const today = new Date().toISOString().slice(0, 10)
     const yesterday = new Date(Date.now() - MS_PER_DAY).toISOString().slice(0, 10)
     const in7  = new Date(Date.now() + UPCOMING_HEAT_DAYS  * MS_PER_DAY).toISOString().slice(0, 10)
@@ -144,10 +158,10 @@ router.get('/upcoming', async (req, res, next) => {
 // - date_from / date_to: ISO date strings to filter event_date range
 router.get('/', async (req, res, next) => {
   try {
-    const { error: qError } = breedingQuerySchema.validate(req.query, { allowUnknown: false })
-    if (qError) return res.status(400).json({ error: qError.details[0].message.replace(/['"]/g, '') })
+    const { error: qError, value: qValue } = breedingQuerySchema.validate(req.query, { allowUnknown: false })
+    if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
-    const { cow_id, event_type, cow_status, date_from, date_to } = req.query
+    const { cow_id, event_type, cow_status, date_from, date_to } = qValue
     const types = event_type ? event_type.split(',') : null
 
     // Validate event_type values
@@ -186,8 +200,8 @@ router.get('/', async (req, res, next) => {
     }
 
     // Global list: server-side pagination
-    const page  = Math.max(1, parseInt(req.query.page)  || 1)
-    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20))
+    const page  = Math.max(1, Number(qValue.page)  || 1)
+    const limit = Math.min(100, Math.max(1, Number(qValue.limit) || 20))
     const offset = (page - 1) * limit
 
     const [rows, [{ count }]] = await Promise.all([
@@ -220,10 +234,9 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', authorize('can_log_breeding'), async (req, res, next) => {
   try {
     const { error, value } = createSchema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
+    if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    const validTypes = VALID_EVENT_TYPES
-    if (!validTypes.includes(value.event_type)) {
+    if (!VALID_EVENT_TYPES.includes(value.event_type)) {
       return res.status(400).json({ error: `Invalid event_type: ${value.event_type}` })
     }
 
@@ -302,14 +315,10 @@ router.post('/', authorize('can_log_breeding'), async (req, res, next) => {
 // Must be defined before /:id to avoid Express matching "dismiss-batch" as :id
 router.patch('/dismiss-batch', authorize('can_log_breeding'), async (req, res, next) => {
   try {
-    const { ids, reason } = req.body
-    if (!Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ error: 'ids must be a non-empty array' })
-    }
-    if (ids.length > 100) {
-      return res.status(400).json({ error: 'Maximum 100 events per batch' })
-    }
+    const { error: batchError, value: batchValue } = dismissBatchSchema.validate(req.body)
+    if (batchError) return res.status(400).json({ error: batchError.details[0].message.replace(/['"]/g, '') })
 
+    const { ids, reason } = batchValue
     const now = new Date().toISOString()
     const updated = await db('breeding_events')
       .whereIn('id', ids)
@@ -328,21 +337,16 @@ router.patch('/dismiss-batch', authorize('can_log_breeding'), async (req, res, n
 })
 
 // PATCH /api/breeding-events/:id — admin only
-router.patch('/:id', async (req, res, next) => {
+router.patch('/:id', requireAdmin, async (req, res, next) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' })
-
     const existing = await db('breeding_events').where({ id: req.params.id }).first()
     if (!existing) return res.status(404).json({ error: 'Breeding event not found' })
 
     const { error, value } = updateSchema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
+    if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    if (value.event_type) {
-      const validTypes = VALID_EVENT_TYPES
-      if (!validTypes.includes(value.event_type)) {
-        return res.status(400).json({ error: `Invalid event_type: ${value.event_type}` })
-      }
+    if (value.event_type && !VALID_EVENT_TYPES.includes(value.event_type)) {
+      return res.status(400).json({ error: `Invalid event_type: ${value.event_type}` })
     }
 
     const eventType = value.event_type ?? existing.event_type
@@ -386,6 +390,9 @@ router.patch('/:id', async (req, res, next) => {
 // PATCH /api/breeding-events/:id/dismiss
 router.patch('/:id/dismiss', authorize('can_log_breeding'), async (req, res, next) => {
   try {
+    const { error: dError, value: dValue } = dismissSchema.validate(req.body)
+    if (dError) return res.status(400).json({ error: dError.details[0].message.replace(/['"]/g, '') })
+
     const existing = await db('breeding_events').where({ id: req.params.id }).first()
     if (!existing) return res.status(404).json({ error: 'Breeding event not found' })
 
@@ -393,7 +400,7 @@ router.patch('/:id/dismiss', authorize('can_log_breeding'), async (req, res, nex
     await db('breeding_events').where({ id: req.params.id }).update({
       dismissed_at: now,
       dismissed_by: req.user.id,
-      dismiss_reason: req.body.reason || null,
+      dismiss_reason: dValue.reason || null,
       updated_at: now,
     })
 
@@ -405,10 +412,8 @@ router.patch('/:id/dismiss', authorize('can_log_breeding'), async (req, res, nex
 })
 
 // DELETE /api/breeding-events/:id — admin only
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' })
-
     const existing = await db('breeding_events').where({ id: req.params.id }).first()
     if (!existing) return res.status(404).json({ error: 'Breeding event not found' })
 

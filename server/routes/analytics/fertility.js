@@ -13,14 +13,6 @@ router.get('/breeding-overview', async (req, res, next) => {
   try {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
-    // Count pregnant cows (status = pregnant) — current herd snapshot
-    const pregnantRow = await db('cows')
-      .whereNull('deleted_at')
-      .where('status', 'pregnant')
-      .count('* as count')
-      .first();
-    const pregnant_count = Number(pregnantRow?.count || 0);
-
     // ── Repro status categories (current herd snapshot) ──────────
     // All active females (base population)
     const activeFemales = await db('cows')
@@ -30,6 +22,9 @@ router.get('/breeding-overview', async (req, res, next) => {
       .select('id', 'status', 'is_dry');
 
     const femaleIds = activeFemales.map(c => c.id);
+
+    // Derive pregnant count from activeFemales — avoids a redundant query
+    const pregnant_count = activeFemales.filter(f => f.status === 'pregnant').length;
 
     // Pregnant = status pregnant
     const pregnantIds = new Set(activeFemales.filter(c => c.status === 'pregnant').map(c => c.id));
@@ -133,7 +128,7 @@ router.get('/breeding-overview', async (req, res, next) => {
 
     const calvings_by_month = calvingRows.map(r => ({
       month: r.month,
-      count: r.count,
+      count: Number(r.count),
     }));
 
     // ── Avg services per conception (scoped to from/to) ──────────
@@ -395,8 +390,13 @@ router.get('/days-open', async (req, res, next) => {
 // GET /api/analytics/seasonal-prediction
 router.get('/seasonal-prediction', async (req, res, next) => {
   try {
-    // Get all health issues with their issue types (JSON array) and observed_at month
+    // Bound the query to 3 years of history to prevent unbounded full-table scans
+    const THREE_YEARS_AGO = new Date();
+    THREE_YEARS_AGO.setFullYear(THREE_YEARS_AGO.getFullYear() - 3);
+    const lookbackStart = THREE_YEARS_AGO.toISOString();
+
     const issues = await db('health_issues')
+      .where('observed_at', '>=', lookbackStart)
       .select('issue_types', 'observed_at');
 
     // Build a map: { calendarMonth -> { issueCode -> count } }
@@ -417,7 +417,8 @@ router.get('/seasonal-prediction', async (req, res, next) => {
       }
     }
 
-    const totalYears = yearsSet.size || 1;
+    // Cap years_of_data at 3 to match the lookback window
+    const totalYears = Math.min(yearsSet.size || 1, 3);
 
     const defMap = await getIssueTypeDefMap();
 

@@ -80,16 +80,28 @@ router.get('/daily-kpis', async (req, res, next) => {
 // GET /api/analytics/herd-summary
 router.get('/herd-summary', async (req, res, next) => {
   try {
-    // Single-query SQL aggregation for counts
-    const [summary] = await db('cows')
-      .whereNull('deleted_at')
-      .select(
-        db.raw('COUNT(*) as total'),
-        db.raw("SUM(CASE WHEN sex = 'male' THEN 1 ELSE 0 END) as males"),
-        db.raw("SUM(CASE WHEN sex = 'female' THEN 1 ELSE 0 END) as females"),
-        db.raw("SUM(CASE WHEN sex = 'female' AND (is_dry = 1 OR status = 'dry') THEN 1 ELSE 0 END) as dry_count"),
-        db.raw("SUM(CASE WHEN sex = 'female' AND is_dry = 0 AND status != 'dry' AND status IN ('active','pregnant','sick') THEN 1 ELSE 0 END) as milking_count"),
-      );
+    // Run aggregation, status breakdown, and female IDs for heifer calc in parallel
+    const [[summary], statusRows, femaleIds] = await Promise.all([
+      db('cows')
+        .whereNull('deleted_at')
+        .select(
+          db.raw('COUNT(*) as total'),
+          db.raw("SUM(CASE WHEN sex = 'male' THEN 1 ELSE 0 END) as males"),
+          db.raw("SUM(CASE WHEN sex = 'female' THEN 1 ELSE 0 END) as females"),
+          db.raw("SUM(CASE WHEN sex = 'female' AND (is_dry = 1 OR status = 'dry') THEN 1 ELSE 0 END) as dry_count"),
+          db.raw("SUM(CASE WHEN sex = 'female' AND is_dry = 0 AND status != 'dry' AND status IN ('active','pregnant','sick') THEN 1 ELSE 0 END) as milking_count"),
+        ),
+      db('cows')
+        .whereNull('deleted_at')
+        .select('status')
+        .count('* as count')
+        .groupBy('status'),
+      db('cows')
+        .whereNull('deleted_at')
+        .where('sex', 'female')
+        .whereNotIn('status', ['sold', 'dead'])
+        .pluck('id'),
+    ]);
 
     const total = Number(summary.total) || 0;
     const males = Number(summary.males) || 0;
@@ -97,32 +109,18 @@ router.get('/herd-summary', async (req, res, next) => {
     const dry_count = Number(summary.dry_count) || 0;
     const milking_count = Number(summary.milking_count) || 0;
 
-    // by_status breakdown
-    const statusRows = await db('cows')
-      .whereNull('deleted_at')
-      .select('status')
-      .count('* as count')
-      .groupBy('status');
     const by_status = statusRows.map(r => ({ status: r.status, count: Number(r.count) }));
 
     // Heifer count: females with zero calving events, excluding sold/dead
     let heifer_count = 0;
-    if (females > 0) {
-      const femaleIds = await db('cows')
-        .whereNull('deleted_at')
-        .where('sex', 'female')
-        .whereNotIn('status', ['sold', 'dead'])
-        .pluck('id');
+    if (femaleIds.length > 0) {
+      const cowsWithCalvings = await db('breeding_events')
+        .whereIn('cow_id', femaleIds)
+        .where('event_type', 'calving')
+        .distinct('cow_id')
+        .pluck('cow_id');
 
-      if (femaleIds.length > 0) {
-        const cowsWithCalvings = await db('breeding_events')
-          .whereIn('cow_id', femaleIds)
-          .where('event_type', 'calving')
-          .distinct('cow_id')
-          .pluck('cow_id');
-
-        heifer_count = femaleIds.length - cowsWithCalvings.length;
-      }
+      heifer_count = femaleIds.length - cowsWithCalvings.length;
     }
 
     const replacement_rate = milking_count > 0 ? round2((heifer_count / milking_count) * 100) : 0;

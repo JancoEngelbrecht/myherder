@@ -789,6 +789,79 @@ Already complete from earlier phases: Medication management (Phase 3), Feature f
 
 ---
 
+### Phase 13: Security, Performance & Quality Hardening
+
+Post-audit fixes organized by priority level.
+
+#### Phase 13A: Critical Security Fixes — NOT STARTED
+> Sub-plan: [plans/phase-13a-critical-security.md](plans/phase-13a-critical-security.md)
+
+| Step | Task |
+|------|------|
+| 13A.1 | Sync push permission bypass — add per-entity role checks + field allowlists |
+| 13A.2 | Password login account lockout — port PIN lockout logic to password handler |
+| 13A.3 | JWT secret hardening — require strong secret in all non-test environments |
+| 13A.4 | CORS default restriction — never allow wide-open CORS |
+
+**Deliverable:** All critical security holes closed. Sync endpoint enforces permissions. Login lockout on both methods.
+
+#### Phase 13B: High Priority Fixes — NOT STARTED
+> Sub-plan: [plans/phase-13b-high-priority.md](plans/phase-13b-high-priority.md)
+
+| Step | Task |
+|------|------|
+| 13B.1 | Missing database indexes — recording_date, preg_check, dry_off, dismissed_at, audit/sync logs |
+| 13B.2 | Unbounded seasonal prediction query — add 3-year lookback |
+| 13B.3 | Treatments N+1 medication lookup — batch-fetch validation |
+| 13B.4 | Treatments pagination — add page/limit support |
+| 13B.5 | SQLite Number() coercion — fix 4 analytics endpoints returning string counts |
+| 13B.6 | Soft-deleted users accessible via ID — add whereNull guards |
+
+**Deliverable:** Performance bottlenecks resolved. All endpoints return correct types. Data access properly bounded.
+
+#### Phase 13C: Medium Priority Cleanup — NOT STARTED
+> Sub-plan: [plans/phase-13c-medium-cleanup.md](plans/phase-13c-medium-cleanup.md)
+
+| Step | Task |
+|------|------|
+| 13C.1 | Inline admin checks → requireAdmin middleware |
+| 13C.2 | Extract shared helpers (toCode, ISO_DATE_RE, pagination) |
+| 13C.3 | logAudit() await consistency |
+| 13C.4 | SettingsView timeout cleanup on unmount |
+| 13C.5 | MilkRecordingView withdrawal map O(1) optimization |
+| 13C.6 | Double authorize import cleanup (5 files) |
+| 13C.7 | Sync error message sanitization |
+| 13C.8 | dismiss-batch + heat_signs Joi validation |
+| 13C.9 | MilkRecords store debounce cleanup |
+| 13C.10 | getIssueTypeDefMap() 60-second cache |
+
+**Deliverable:** Consistent patterns, no dead code, proper cleanup, optimized hot paths.
+
+---
+
+### Phase 14: Multi-Tenancy — NOT STARTED
+
+**Goal:** Transform MyHerder from single-tenant to multi-tenant SaaS. Single database with row-level isolation via `farm_id`. Single domain login with farm code. Super-admin role with TOTP 2FA for cross-farm management.
+
+> Sub-plan: [plans/multi-tenancy.md](plans/multi-tenancy.md)
+
+| Phase | Scope |
+|-------|-------|
+| 14.1 (Phase 1) | Database foundation — `farms` table, `farm_id` columns, unique constraint updates, token versioning, 2FA columns, migration 027 with backfill |
+| 14.2 (Phase 2) | Tenant middleware + scoped queries — `tenantScope.js`, `req.scoped()`, update all 26 routes + analytics + reports + services |
+| 14.3 (Phase 3) | Auth changes — farm code login, super-admin 2FA flow (TOTP setup/verify), token_version in JWT, frontend login view + new 2FA views |
+| 14.4 (Phase 4) | Session management — token revocation endpoint, UserManagement revoke UI, super-admin session visibility |
+| 14.5 (Phase 5) | Frontend IndexedDB isolation — farm-scoped DB name, logout cleanup, login re-init, service worker updates |
+| 14.6 (Phase 6) | Super-admin panel — Farm CRUD API, farm seeding service, Enter Farm functionality, FarmListView/FarmDetailView/CreateFarmView |
+| 14.7 (Phase 7) | Cross-tenant isolation tests — `tenantIsolation.test.js`, verify no data leakage across all CRUD + analytics endpoints |
+| 14.8 (Phase 8) | Production migration path — zero-downtime strategy, rollback plan, post-deploy checklist |
+
+**New dependencies:** `otpauth` (TOTP), `qrcode` (frontend QR rendering)
+
+**Deliverable:** Multiple farms share one deployment. Each farm's data is fully isolated. Super-admin can manage all farms with 2FA-protected access. Stolen device sessions can be revoked instantly.
+
+---
+
 ## Key Library Choices
 
 | Purpose | Library | Why |

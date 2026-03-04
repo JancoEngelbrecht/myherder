@@ -98,8 +98,10 @@ function onFocus() {
   }
 }
 
+let blurTimer = null
+
 function onBlur() {
-  setTimeout(() => { showDropdown.value = false }, 200)
+  blurTimer = setTimeout(() => { showDropdown.value = false }, 200)
 }
 
 async function search() {
@@ -130,7 +132,10 @@ function clear() {
   emit('update:modelValue', null)
 }
 
-onUnmounted(() => clearTimeout(debounceTimer))
+onUnmounted(() => {
+  clearTimeout(debounceTimer)
+  clearTimeout(blurTimer)
+})
 </script>
 
 <style scoped>

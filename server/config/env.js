@@ -2,16 +2,73 @@ require('dotenv').config({ quiet: true });
 
 const nodeEnv = process.env.NODE_ENV || 'development';
 const isProduction = nodeEnv === 'production';
+const isTest = nodeEnv === 'test';
+const isDevelopment = !isProduction && !isTest;
 
-if (isProduction && !process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET environment variable is required in production');
+const JWT_SECRET_MIN_LENGTH = 32;
+const DEFAULT_JWT_SECRET = 'dev-secret-change-in-production-32chars';
+
+// ── JWT Secret Validation ────────────────────────────────────────
+//
+// - test: allow default (predictable secret required for token generation in tests)
+// - development: warn loudly but allow fallback
+// - production/staging: require a strong secret or refuse to start
+
+let jwtSecret;
+
+if (isTest) {
+  // Tests need a stable, predictable secret
+  jwtSecret = process.env.JWT_SECRET || DEFAULT_JWT_SECRET;
+} else if (isProduction) {
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < JWT_SECRET_MIN_LENGTH) {
+    throw new Error(
+      `JWT_SECRET is required in production and must be at least ${JWT_SECRET_MIN_LENGTH} characters. ` +
+      'Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"'
+    );
+  }
+  jwtSecret = process.env.JWT_SECRET;
+} else {
+  // development (or any other env)
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < JWT_SECRET_MIN_LENGTH) {
+    process.stderr.write(
+      '\n[WARNING] JWT_SECRET is not set or is less than 32 characters. ' +
+      'Using insecure default. Set JWT_SECRET in your .env file before deploying.\n\n'
+    );
+    jwtSecret = DEFAULT_JWT_SECRET;
+  } else {
+    jwtSecret = process.env.JWT_SECRET;
+  }
+}
+
+// ── CORS Origins ─────────────────────────────────────────────────
+//
+// - development: default to localhost dev origins
+// - production: require explicit ALLOWED_ORIGINS or refuse to start
+
+let corsOrigins;
+
+if (isProduction) {
+  if (!process.env.ALLOWED_ORIGINS) {
+    throw new Error(
+      'ALLOWED_ORIGINS environment variable is required in production. ' +
+      'Set it to a comma-separated list of allowed origins, e.g. ALLOWED_ORIGINS=https://yourdomain.com'
+    );
+  }
+  corsOrigins = process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim());
+} else if (process.env.ALLOWED_ORIGINS) {
+  corsOrigins = process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim());
+} else {
+  // Default to safe localhost origins for dev and test
+  corsOrigins = ['http://localhost:5173', 'http://localhost:3000'];
 }
 
 module.exports = {
   port: parseInt(process.env.PORT, 10) || 3000,
   nodeEnv,
   isProduction,
-  jwtSecret: process.env.JWT_SECRET || 'dev-secret-change-in-production',
+  isDevelopment,
+  isTest,
+  jwtSecret,
   dbPath: process.env.DB_PATH || './dev.sqlite3',
 
   // Auth configuration
@@ -22,8 +79,9 @@ module.exports = {
   lockoutDuration: parseInt(process.env.LOCKOUT_DURATION, 10) || 15 * 60 * 1000,
   lockoutThreshold: parseInt(process.env.LOCKOUT_THRESHOLD, 10) || 5,
 
-  // CORS
-  allowedOrigins: process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',')
-    : null,
+  // CORS — always a non-null array
+  corsOrigins,
+
+  // Legacy alias (kept for any existing code that imports allowedOrigins)
+  allowedOrigins: corsOrigins,
 };

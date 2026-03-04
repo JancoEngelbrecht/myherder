@@ -4,7 +4,8 @@ const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const authorize = require('../middleware/authorize')
-const { requireAdmin } = require('../middleware/authorize')
+const { requireAdmin } = authorize
+const { ISO_DATE_RE, joiMsg } = require('../helpers/constants')
 
 const router = express.Router()
 router.use(authenticate)
@@ -12,7 +13,6 @@ router.use(authenticate)
 const VALID_SESSIONS = ['morning', 'afternoon', 'evening']
 const VALID_SORT_FIELDS = ['recording_date', 'litres', 'tag_number']
 const VALID_ORDERS = ['asc', 'desc']
-const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
 // ── Validation ──────────────────────────────────────────────────────────────
 
@@ -87,7 +87,7 @@ const SORT_COLUMN_MAP = {
 router.get('/', async (req, res, next) => {
   try {
     const { error, value } = querySchema.validate(req.query, { allowUnknown: false })
-    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
+    if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const paginated = value.page != null || value.limit != null
     const sortCol = SORT_COLUMN_MAP[value.sort || 'recording_date']
@@ -177,7 +177,7 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', authorize('can_record_milk'), async (req, res, next) => {
   try {
     const { error, value } = createSchema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
+    if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const cow = await db('cows').where({ id: value.cow_id }).whereNull('deleted_at').first()
     if (!cow) return res.status(404).json({ error: 'Cow not found' })
@@ -234,7 +234,7 @@ router.post('/', authorize('can_record_milk'), async (req, res, next) => {
 router.put('/:id', authorize('can_record_milk'), async (req, res, next) => {
   try {
     const { error, value } = updateSchema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
+    if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const existing = await db('milk_records').where({ id: req.params.id }).first()
     if (!existing) return res.status(404).json({ error: 'Milk record not found' })

@@ -388,3 +388,64 @@ describe('GET /api/treatments query validation', () => {
     expect(res.status).toBe(400)
   })
 })
+
+// ─── 13B.4: GET /api/treatments pagination ──────────────────────────────────
+
+describe('GET /api/treatments pagination (13B.4)', () => {
+  beforeAll(async () => {
+    // Create a fresh cow + medication and 3 treatments to paginate through
+    const cowId = await createCow()
+    const medId = await createMedication()
+    for (let i = 0; i < 3; i++) {
+      await postTreatment({
+        cow_id: cowId,
+        medications: [{ medication_id: medId }],
+        treatment_date: `2026-03-0${i + 1}T10:00:00.000Z`,
+      })
+    }
+  })
+
+  it('returns { data, total } when page and limit are provided', async () => {
+    const res = await request(app)
+      .get('/api/treatments?page=1&limit=2')
+      .set('Authorization', adminToken())
+    expect(res.status).toBe(200)
+    expect(res.body).toHaveProperty('data')
+    expect(res.body).toHaveProperty('total')
+    expect(Array.isArray(res.body.data)).toBe(true)
+    expect(res.body.data.length).toBeLessThanOrEqual(2)
+    expect(typeof res.body.total).toBe('number')
+  })
+
+  it('returns plain array when page/limit are omitted (backward compatible)', async () => {
+    const res = await request(app)
+      .get('/api/treatments')
+      .set('Authorization', adminToken())
+    expect(res.status).toBe(200)
+    expect(Array.isArray(res.body)).toBe(true)
+  })
+
+  it('paginates: page 2 returns different rows than page 1', async () => {
+    const p1 = await request(app)
+      .get('/api/treatments?page=1&limit=1')
+      .set('Authorization', adminToken())
+    const p2 = await request(app)
+      .get('/api/treatments?page=2&limit=1')
+      .set('Authorization', adminToken())
+    expect(p1.body.data[0]?.id).not.toBe(p2.body.data[0]?.id)
+  })
+
+  it('returns 400 for invalid sort column', async () => {
+    const res = await request(app)
+      .get('/api/treatments?page=1&limit=10&sort=invalid_col')
+      .set('Authorization', adminToken())
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 for invalid order direction', async () => {
+    const res = await request(app)
+      .get('/api/treatments?page=1&limit=10&order=sideways')
+      .set('Authorization', adminToken())
+    expect(res.status).toBe(400)
+  })
+})

@@ -82,74 +82,77 @@ const milkProductionColumns = [
 ]
 
 async function getMilkProductionData(from, to) {
-  const records = await db('milk_records as mr')
+  const endTs = to + 'T23:59:59'
+
+  // Per-cow aggregation via SQL — avoids loading all raw records into memory
+  const cowRows = await db('milk_records as mr')
     .join('cows as c', 'mr.cow_id', 'c.id')
+    .whereBetween('mr.recording_date', [from, endTs])
     .whereNull('c.deleted_at')
-    .where('mr.recording_date', '>=', from)
-    .where('mr.recording_date', '<=', to)
-    .select('mr.cow_id', 'mr.recording_date', 'mr.session', 'mr.litres', 'c.tag_number', 'c.name as cow_name')
-    .orderBy('c.tag_number')
+    .select(
+      'mr.cow_id',
+      'c.tag_number',
+      'c.name as cow_name',
+      db.raw('SUM(mr.litres) as total_litres'),
+      db.raw('COUNT(DISTINCT mr.recording_date) as days_recorded'),
+      db.raw("SUM(CASE WHEN mr.session = 'morning' THEN mr.litres ELSE 0 END) as morning_total"),
+      db.raw("SUM(CASE WHEN mr.session = 'morning' THEN 1 ELSE 0 END) as morning_count"),
+      db.raw("SUM(CASE WHEN mr.session = 'afternoon' THEN mr.litres ELSE 0 END) as afternoon_total"),
+      db.raw("SUM(CASE WHEN mr.session = 'afternoon' THEN 1 ELSE 0 END) as afternoon_count"),
+      db.raw("SUM(CASE WHEN mr.session = 'evening' THEN mr.litres ELSE 0 END) as evening_total"),
+      db.raw("SUM(CASE WHEN mr.session = 'evening' THEN 1 ELSE 0 END) as evening_count"),
+    )
+    .groupBy('mr.cow_id')
+    .orderBy('total_litres', 'desc')
 
-  const grouped = {}
-  let herdTotal = 0
-  const herdSession = { morning: { sum: 0, count: 0 }, afternoon: { sum: 0, count: 0 }, evening: { sum: 0, count: 0 } }
+  const sessionAvg = (total, count) =>
+    Number(count) > 0 ? (Number(total) / Number(count)).toFixed(2) : '—'
 
-  for (const r of records) {
-    const entry = grouped[r.cow_id] ??= {
-      tag_number: r.tag_number, cow_name: r.cow_name || '—',
-      total: 0, dates: new Set(),
-      morning: { sum: 0, count: 0 }, afternoon: { sum: 0, count: 0 }, evening: { sum: 0, count: 0 },
-    }
-    const litres = Number(r.litres) || 0
-    entry.total += litres
-    entry.dates.add(r.recording_date)
-    if (entry[r.session]) {
-      entry[r.session].sum += litres
-      entry[r.session].count++
-    }
-    if (herdSession[r.session]) {
-      herdSession[r.session].sum += litres
-      herdSession[r.session].count++
-    }
-    herdTotal += litres
-  }
-
-  const cowList = Object.values(grouped).sort((a, b) => b.total - a.total)
-  const rows = cowList.map((g) => {
-    const days = g.dates.size
-    const sessionAvg = (s) => s.count ? (s.sum / s.count).toFixed(2) : '—'
+  const rows = cowRows.map((r) => {
+    const totalLitres = Number(r.total_litres) || 0
+    const daysRecorded = Number(r.days_recorded) || 0
     return {
-      tag_number: g.tag_number,
-      cow_name: g.cow_name,
-      total_litres: g.total.toFixed(2),
-      days_recorded: days,
-      avg_daily: days ? (g.total / days).toFixed(2) : '—',
-      morning_avg: sessionAvg(g.morning),
-      afternoon_avg: sessionAvg(g.afternoon),
-      evening_avg: sessionAvg(g.evening),
+      tag_number: r.tag_number,
+      cow_name: r.cow_name || '—',
+      total_litres: totalLitres.toFixed(2),
+      days_recorded: daysRecorded,
+      avg_daily: daysRecorded > 0 ? (totalLitres / daysRecorded).toFixed(2) : '—',
+      morning_avg: sessionAvg(r.morning_total, r.morning_count),
+      afternoon_avg: sessionAvg(r.afternoon_total, r.afternoon_count),
+      evening_avg: sessionAvg(r.evening_total, r.evening_count),
     }
   })
 
-  // Average of each cow's avg daily litres (what a typical cow produces per day)
+  // Herd summary: total litres, mean of per-cow avg daily (same semantics as original)
+  let herdTotal = 0
   let avgDailySum = 0
   let avgDailyCount = 0
-  for (const g of cowList) {
-    const days = g.dates.size
-    if (days) { avgDailySum += g.total / days; avgDailyCount++ }
+  for (const r of cowRows) {
+    const totalLitres = Number(r.total_litres) || 0
+    const daysRecorded = Number(r.days_recorded) || 0
+    herdTotal += totalLitres
+    if (daysRecorded > 0) { avgDailySum += totalLitres / daysRecorded; avgDailyCount++ }
   }
-  const herdAvgDaily = avgDailyCount ? (avgDailySum / avgDailyCount).toFixed(2) : '0.00'
-  const sessionTotalAvg = (s) => s.count ? (s.sum / s.count).toFixed(2) : '—'
+  const herdAvgDaily = avgDailyCount > 0 ? (avgDailySum / avgDailyCount).toFixed(2) : '0.00'
+
+  // Session herd averages: avg litres per record across all cows (matches original sum/count)
+  const herdMorningTotal = cowRows.reduce((s, r) => s + Number(r.morning_total), 0)
+  const herdMorningCount = cowRows.reduce((s, r) => s + Number(r.morning_count), 0)
+  const herdAfternoonTotal = cowRows.reduce((s, r) => s + Number(r.afternoon_total), 0)
+  const herdAfternoonCount = cowRows.reduce((s, r) => s + Number(r.afternoon_count), 0)
+  const herdEveningTotal = cowRows.reduce((s, r) => s + Number(r.evening_total), 0)
+  const herdEveningCount = cowRows.reduce((s, r) => s + Number(r.evening_count), 0)
 
   return {
     rows,
     summaryRow: {
       tag_number: 'TOTAL',
       total_litres: herdTotal.toFixed(2),
-      days_recorded: `${cowList.length} cows`,
+      days_recorded: `${cowRows.length} cows`,
       avg_daily: herdAvgDaily,
-      morning_avg: sessionTotalAvg(herdSession.morning),
-      afternoon_avg: sessionTotalAvg(herdSession.afternoon),
-      evening_avg: sessionTotalAvg(herdSession.evening),
+      morning_avg: sessionAvg(herdMorningTotal, herdMorningCount),
+      afternoon_avg: sessionAvg(herdAfternoonTotal, herdAfternoonCount),
+      evening_avg: sessionAvg(herdEveningTotal, herdEveningCount),
     },
   }
 }

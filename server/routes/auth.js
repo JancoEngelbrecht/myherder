@@ -25,6 +25,12 @@ const loginLimiter = rateLimit({
   message: { error: 'Too many login attempts, try again later' }
 });
 
+const refreshLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: { error: 'Too many refresh attempts, please try again later' },
+});
+
 function buildUserResponse(user) {
   let permissions = user.permissions;
   if (typeof permissions === 'string') {
@@ -38,6 +44,42 @@ function buildUserResponse(user) {
     permissions,
     language: user.language
   };
+}
+
+// ── Shared Lockout Helper ────────────────────────────────────────────────────
+
+function isLockedOut(user) {
+  return user.locked_until && new Date(user.locked_until) > new Date();
+}
+
+/**
+ * Check if account is currently locked; if not, apply lockout after failed attempt.
+ * Returns a 423 response object if locked, or null if the caller should continue.
+ *
+ * Usage:
+ *   const lockResult = await checkAndApplyLockout(user, isValidCredential, res);
+ *   if (lockResult) return; // response already sent
+ */
+async function checkAndApplyLockout(user, credentialValid, res) {
+  // Check existing lockout before verifying credentials
+  if (isLockedOut(user)) {
+    res.status(423).json({ error: 'Account temporarily locked' });
+    return true;
+  }
+
+  if (!credentialValid) {
+    const attempts = (user.failed_attempts || 0) + 1;
+    const update = { failed_attempts: attempts };
+    if (attempts >= lockoutThreshold) {
+      update.locked_until = new Date(Date.now() + lockoutDuration).toISOString();
+    }
+    await db('users').where({ id: user.id }).update(update);
+    return false;
+  }
+
+  // Successful login — clear lockout state
+  await db('users').where({ id: user.id }).update({ failed_attempts: 0, locked_until: null });
+  return false;
 }
 
 // POST /api/auth/login — password login
@@ -56,17 +98,22 @@ router.post('/login', loginLimiter, async (req, res, next) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    // Check lockout before expensive bcrypt compare
+    if (isLockedOut(user)) {
+      return res.status(423).json({ error: 'Account temporarily locked' });
+    }
+
     const valid = await bcrypt.compare(password, user.password_hash);
+
+    const locked = await checkAndApplyLockout(user, valid, res);
+    if (locked) return;
+
     if (!valid) {
-      await db('users').where({ id: user.id }).update({
-        failed_attempts: (user.failed_attempts || 0) + 1
-      });
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    await db('users').where({ id: user.id }).update({ failed_attempts: 0 });
-
     const userPayload = buildUserResponse(user);
+    userPayload.login_type = 'password';
     const token = jwt.sign(userPayload, jwtSecret, { expiresIn: jwtExpiryPassword });
 
     res.json({ token, user: userPayload });
@@ -91,25 +138,22 @@ router.post('/login-pin', loginLimiter, async (req, res, next) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Check lockout
-    if (user.locked_until && new Date(user.locked_until) > new Date()) {
+    // Check lockout before expensive bcrypt compare
+    if (isLockedOut(user)) {
       return res.status(423).json({ error: 'Account temporarily locked' });
     }
 
     const valid = await bcrypt.compare(String(pin), user.pin_hash);
+
+    const locked = await checkAndApplyLockout(user, valid, res);
+    if (locked) return;
+
     if (!valid) {
-      const attempts = (user.failed_attempts || 0) + 1;
-      const update = { failed_attempts: attempts };
-      if (attempts >= lockoutThreshold) {
-        update.locked_until = new Date(Date.now() + lockoutDuration).toISOString();
-      }
-      await db('users').where({ id: user.id }).update(update);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    await db('users').where({ id: user.id }).update({ failed_attempts: 0, locked_until: null });
-
     const userPayload = buildUserResponse(user);
+    userPayload.login_type = 'pin';
     const token = jwt.sign(userPayload, jwtSecret, { expiresIn: jwtExpiryPin });
 
     res.json({ token, user: userPayload });
@@ -119,7 +163,7 @@ router.post('/login-pin', loginLimiter, async (req, res, next) => {
 });
 
 // POST /api/auth/refresh — refresh JWT using current valid token
-router.post('/refresh', async (req, res, next) => {
+router.post('/refresh', refreshLimiter, async (req, res, next) => {
   try {
     const header = req.headers.authorization;
     if (!header || !header.startsWith('Bearer ')) {
@@ -140,8 +184,10 @@ router.post('/refresh', async (req, res, next) => {
     }
 
     const userPayload = buildUserResponse(user);
-    // Determine original expiry type from token claims
-    const expiry = decoded.role === 'admin' ? jwtExpiryPassword : jwtExpiryPin;
+    // Preserve original login type; fall back to role-based inference for legacy tokens
+    userPayload.login_type = decoded.login_type || (decoded.role === 'admin' ? 'password' : 'pin');
+    const expiry = (decoded.login_type === 'password' || (!decoded.login_type && decoded.role === 'admin'))
+      ? jwtExpiryPassword : jwtExpiryPin;
     const token = jwt.sign(userPayload, jwtSecret, { expiresIn: expiry });
 
     res.json({ token, user: userPayload });

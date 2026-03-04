@@ -23,7 +23,7 @@ router.get('/milk-trends', async (req, res, next) => {
     const months = rows.map(row => ({
       month: row.month,
       total_litres: round2(Number(row.total_litres) || 0),
-      record_count: row.record_count,
+      record_count: Number(row.record_count),
       avg_per_cow: round2((Number(row.total_litres) || 0) / (Number(row.cow_count) || 1)),
     }));
 
@@ -58,9 +58,9 @@ router.get('/top-producers', async (req, res, next) => {
       tag_number: r.tag_number,
       name: r.name,
       total_litres: round2(Number(r.total_litres) || 0),
-      days_recorded: r.days_recorded,
-      avg_daily_litres: r.days_recorded > 0
-        ? round2((Number(r.total_litres) || 0) / r.days_recorded)
+      days_recorded: Number(r.days_recorded),
+      avg_daily_litres: Number(r.days_recorded) > 0
+        ? round2((Number(r.total_litres) || 0) / Number(r.days_recorded))
         : 0,
     }));
 
@@ -87,7 +87,7 @@ router.get('/wasted-milk', async (req, res, next) => {
     const months = rows.map(r => ({
       month: r.month,
       discarded_litres: round2(Number(r.discarded_litres) || 0),
-      discard_count: r.discard_count,
+      discard_count: Number(r.discard_count),
     }));
 
     const total_discarded = round2(months.reduce((sum, m) => sum + m.discarded_litres, 0));
@@ -114,7 +114,7 @@ router.get('/treatment-costs', async (req, res, next) => {
     const months = rows.map(r => ({
       month: r.month,
       total_cost: round2(Number(r.total_cost) || 0),
-      treatment_count: r.treatment_count,
+      treatment_count: Number(r.treatment_count),
     }));
 
     const grand_total = round2(months.reduce((sum, m) => sum + m.total_cost, 0));
@@ -177,9 +177,9 @@ router.get('/bottom-producers', async (req, res, next) => {
       tag_number: r.tag_number,
       name: r.name,
       total_litres: round2(Number(r.total_litres) || 0),
-      days_recorded: r.days_recorded,
-      avg_daily_litres: r.days_recorded > 0
-        ? round2((Number(r.total_litres) || 0) / r.days_recorded)
+      days_recorded: Number(r.days_recorded),
+      avg_daily_litres: Number(r.days_recorded) > 0
+        ? round2((Number(r.total_litres) || 0) / Number(r.days_recorded))
         : 0,
     }));
 

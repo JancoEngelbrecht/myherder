@@ -310,6 +310,64 @@ describe('DELETE /api/breeding-events/:id', () => {
   })
 })
 
+// ─── dismiss-batch Joi validation (13C.8) ────────────────────────────────────
+
+describe('PATCH /api/breeding-events/dismiss-batch validation', () => {
+  it('returns 400 when ids is missing', async () => {
+    const res = await request(app)
+      .patch('/api/breeding-events/dismiss-batch')
+      .set('Authorization', adminToken())
+      .send({ reason: 'test' })
+    expect(res.status).toBe(400)
+    expect(res.body.error).toBeDefined()
+  })
+
+  it('returns 400 when ids contains a non-UUID string', async () => {
+    const res = await request(app)
+      .patch('/api/breeding-events/dismiss-batch')
+      .set('Authorization', adminToken())
+      .send({ ids: ['not-a-uuid'], reason: 'test' })
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when reason exceeds 500 chars', async () => {
+    const cowId = await createCow()
+    const evId = await createBreedingEvent(cowId)
+    const res = await request(app)
+      .patch('/api/breeding-events/dismiss-batch')
+      .set('Authorization', adminToken())
+      .send({ ids: [evId], reason: 'x'.repeat(501) })
+    expect(res.status).toBe(400)
+  })
+
+  it('dismisses multiple valid UUIDs successfully', async () => {
+    const cowId = await createCow()
+    const evId1 = await createBreedingEvent(cowId)
+    const evId2 = await createBreedingEvent(cowId)
+
+    const res = await request(app)
+      .patch('/api/breeding-events/dismiss-batch')
+      .set('Authorization', adminToken())
+      .send({ ids: [evId1, evId2], reason: 'Batch test' })
+    expect(res.status).toBe(200)
+    expect(res.body.dismissed).toBe(2)
+  })
+})
+
+// ─── dismiss reason length validation (13C.8) ────────────────────────────────
+
+describe('PATCH /api/breeding-events/:id/dismiss reason validation', () => {
+  it('returns 400 when reason exceeds 500 chars', async () => {
+    const cowId = await createCow()
+    const evId = await createBreedingEvent(cowId)
+    const res = await request(app)
+      .patch(`/api/breeding-events/${evId}/dismiss`)
+      .set('Authorization', adminToken())
+      .send({ reason: 'y'.repeat(501) })
+    expect(res.status).toBe(400)
+  })
+})
+
 // ─── Query Validation (12B.8) ───────────────────────────────────────────────
 
 describe('GET /api/breeding-events query validation', () => {

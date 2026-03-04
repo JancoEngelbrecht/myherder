@@ -2,8 +2,8 @@ const { randomUUID } = require('crypto')
 const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
-const { seedUsers } = require('./helpers/setup')
-const { adminToken } = require('./helpers/tokens')
+const { WORKER_ID, seedUsers } = require('./helpers/setup')
+const { adminToken, workerToken } = require('./helpers/tokens')
 
 beforeAll(async () => {
   await db.migrate.latest()
@@ -218,6 +218,40 @@ describe('POST /api/sync/push', () => {
     expect(res.status).toBe(400)
   })
 
+  it('returns generic error message (not raw DB details) for invalid data', async () => {
+    // Send a cow create with a duplicate tag_number to trigger a DB constraint error.
+    // The server should log internally but only return a generic message to the client.
+    const id = randomUUID()
+    const now = new Date().toISOString()
+    await db('cows').insert({
+      id: randomUUID(),
+      tag_number: 'DUP-TAG-SYNC',
+      sex: 'female', status: 'active', created_at: now, updated_at: now,
+    })
+
+    const res = await request(app)
+      .post('/api/sync/push')
+      .set('Authorization', adminToken())
+      .send({
+        deviceId: randomUUID(),
+        changes: [{
+          entityType: 'cows',
+          action: 'create',
+          id,
+          data: { tag_number: 'DUP-TAG-SYNC', name: 'Dup Cow', sex: 'female', status: 'active' },
+          updatedAt: now,
+        }],
+      })
+
+    expect(res.status).toBe(200)
+    const result = res.body.results[0]
+    expect(result.status).toBe('error')
+    // Must not leak column names or SQL details
+    expect(result.error).toBe('Failed to apply change')
+    expect(result.error).not.toMatch(/UNIQUE/i)
+    expect(result.error).not.toMatch(/tag_number/i)
+  })
+
   it('handles mixed batch (some succeed, some fail)', async () => {
     const cowId = await createCow()
     const now = new Date().toISOString()
@@ -249,6 +283,185 @@ describe('POST /api/sync/push', () => {
     expect(res.body.results).toHaveLength(2)
     expect(res.body.results[0].status).toBe('applied')
     expect(res.body.results[1].status).toBe('error')
+  })
+})
+
+// ─── POST /api/sync/push — permission checks ───────────────────────────────────
+
+describe('POST /api/sync/push — permission checks', () => {
+  it('worker cannot sync breedTypes changes (admin-only entity)', async () => {
+    const id = randomUUID()
+    const res = await request(app)
+      .post('/api/sync/push')
+      .set('Authorization', workerToken())
+      .send({
+        deviceId: randomUUID(),
+        changes: [
+          {
+            entityType: 'breedTypes',
+            action: 'create',
+            id,
+            data: { name: 'Test Breed', code: 'test_breed', gestation_days: 283 },
+            updatedAt: new Date().toISOString(),
+          },
+        ],
+      })
+
+    expect(res.status).toBe(200)
+    expect(res.body.results[0].status).toBe('error')
+    expect(res.body.results[0].error).toBe('Insufficient permissions')
+
+    // Verify the row was NOT created
+    const row = await db('breed_types').where({ id }).first()
+    expect(row).toBeUndefined()
+  })
+
+  it('worker cannot sync issueTypes changes (admin-only entity)', async () => {
+    const id = randomUUID()
+    const res = await request(app)
+      .post('/api/sync/push')
+      .set('Authorization', workerToken())
+      .send({
+        deviceId: randomUUID(),
+        changes: [
+          {
+            entityType: 'issueTypes',
+            action: 'create',
+            id,
+            data: { name: 'Bad Issue', code: 'bad_issue', emoji: '🦠' },
+            updatedAt: new Date().toISOString(),
+          },
+        ],
+      })
+
+    expect(res.status).toBe(200)
+    expect(res.body.results[0].status).toBe('error')
+    expect(res.body.results[0].error).toBe('Insufficient permissions')
+  })
+
+  it('worker cannot sync medications changes (admin-only entity)', async () => {
+    const id = randomUUID()
+    const res = await request(app)
+      .post('/api/sync/push')
+      .set('Authorization', workerToken())
+      .send({
+        deviceId: randomUUID(),
+        changes: [
+          {
+            entityType: 'medications',
+            action: 'create',
+            id,
+            data: { name: 'Bad Meds', unit: 'ml', withdrawal_milk_days: 0 },
+            updatedAt: new Date().toISOString(),
+          },
+        ],
+      })
+
+    expect(res.status).toBe(200)
+    expect(res.body.results[0].status).toBe('error')
+    expect(res.body.results[0].error).toBe('Insufficient permissions')
+  })
+
+  it('worker with can_record_milk can sync milkRecords', async () => {
+    // Insert a cow so the FK resolves
+    const cowId = randomUUID()
+    const now = new Date().toISOString()
+    await db('cows').insert({
+      id: cowId, tag_number: `PERM-${cowId.slice(0, 6)}`, name: 'Perm Cow',
+      sex: 'female', status: 'active', created_at: now, updated_at: now,
+    })
+
+    const recordId = randomUUID()
+    const res = await request(app)
+      .post('/api/sync/push')
+      .set('Authorization', workerToken())
+      .send({
+        deviceId: randomUUID(),
+        changes: [
+          {
+            entityType: 'milkRecords',
+            action: 'create',
+            id: recordId,
+            data: {
+              cow_id: cowId,
+              recording_date: '2024-01-15',
+              session: 'morning',
+              litres: 12.5,
+              milk_discarded: 0,
+              recorded_by: WORKER_ID,
+            },
+            updatedAt: now,
+          },
+        ],
+      })
+
+    expect(res.status).toBe(200)
+    expect(res.body.results[0].status).toBe('applied')
+  })
+
+  it('admin can sync breedTypes changes', async () => {
+    const id = randomUUID()
+    const now = new Date().toISOString()
+    const res = await request(app)
+      .post('/api/sync/push')
+      .set('Authorization', adminToken())
+      .send({
+        deviceId: randomUUID(),
+        changes: [
+          {
+            entityType: 'breedTypes',
+            action: 'create',
+            id,
+            data: {
+              name: 'Admin Breed',
+              code: `admin_breed_${id.slice(0, 6)}`,
+              gestation_days: 283,
+              is_active: true,
+              created_at: now,
+              updated_at: now,
+            },
+            updatedAt: now,
+          },
+        ],
+      })
+
+    expect(res.status).toBe(200)
+    expect(res.body.results[0].status).toBe('applied')
+  })
+
+  it('strips unknown fields from payload before writing', async () => {
+    const cowId = randomUUID()
+    const now = new Date().toISOString()
+    const res = await request(app)
+      .post('/api/sync/push')
+      .set('Authorization', adminToken())
+      .send({
+        deviceId: randomUUID(),
+        changes: [
+          {
+            entityType: 'cows',
+            action: 'create',
+            id: cowId,
+            data: {
+              tag_number: `STRIP-${cowId.slice(0, 6)}`,
+              name: 'Strip Test',
+              sex: 'female',
+              status: 'active',
+              __unknownField: 'should be dropped',
+              injectedColumn: 'DROP ME',
+            },
+            updatedAt: now,
+          },
+        ],
+      })
+
+    expect(res.status).toBe(200)
+    expect(res.body.results[0].status).toBe('applied')
+    // The unknown fields must not appear on the saved row
+    const row = await db('cows').where({ id: cowId }).first()
+    expect(row).toBeDefined()
+    expect(row['__unknownField']).toBeUndefined()
+    expect(row['injectedColumn']).toBeUndefined()
   })
 })
 

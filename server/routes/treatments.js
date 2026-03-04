@@ -4,8 +4,9 @@ const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const authorize = require('../middleware/authorize')
-const { requireAdmin } = require('../middleware/authorize')
+const { requireAdmin } = authorize
 const { calcWithdrawalDates } = require('../services/withdrawalService')
+const { joiMsg, MAX_PAGE_SIZE } = require('../helpers/constants')
 
 const router = express.Router()
 router.use(authenticate)
@@ -79,18 +80,57 @@ async function enrichWithMedications(rows) {
   })
 }
 
+const VALID_SORT_COLS = ['treatment_date', 'cost', 'tag_number', 'cow_name']
+
 const treatmentQuerySchema = Joi.object({
   cow_id: Joi.string().uuid(),
+  page: Joi.number().integer().min(1),
+  limit: Joi.number().integer().min(1).max(MAX_PAGE_SIZE),
+  sort: Joi.string().valid(...VALID_SORT_COLS),
+  order: Joi.string().valid('asc', 'desc'),
 })
 
 // GET /api/treatments — list, optionally filtered by cow
+// Without page/limit: returns plain array (backward compatible)
+// With page/limit: returns { data: [...], total: N }
 router.get('/', async (req, res, next) => {
   try {
-    const { error: qError } = treatmentQuerySchema.validate(req.query, { allowUnknown: false })
-    if (qError) return res.status(400).json({ error: qError.details[0].message.replace(/['"]/g, '') })
+    const { error: qError, value: q } = treatmentQuerySchema.validate(req.query, { allowUnknown: false })
+    if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
-    const query = treatmentQuery().orderBy('t.treatment_date', 'desc')
-    if (req.query.cow_id) query.where('t.cow_id', req.query.cow_id)
+    const sortCol = q.sort || 'treatment_date'
+    const sortDir = q.order || 'desc'
+    // Map user-facing sort columns to their qualified names
+    const colMap = {
+      treatment_date: 't.treatment_date',
+      cost: 't.cost',
+      tag_number: 'c.tag_number',
+      cow_name: 'c.name',
+    }
+    const orderCol = colMap[sortCol] || 't.treatment_date'
+
+    const usePagination = q.page !== undefined && q.limit !== undefined
+
+    if (usePagination) {
+      const page = q.page
+      const limit = q.limit
+      const offset = (page - 1) * limit
+
+      const countQuery = db('treatments as t')
+        .join('cows as c', 't.cow_id', 'c.id')
+        .whereNull('c.deleted_at')
+      if (q.cow_id) countQuery.where('t.cow_id', q.cow_id)
+      const [{ total }] = await countQuery.count('t.id as total')
+
+      const dataQuery = treatmentQuery().orderBy(orderCol, sortDir).limit(limit).offset(offset)
+      if (q.cow_id) dataQuery.where('t.cow_id', q.cow_id)
+
+      const rows = await enrichWithMedications(await dataQuery)
+      return res.json({ data: rows, total: Number(total) })
+    }
+
+    const query = treatmentQuery().orderBy(orderCol, sortDir)
+    if (q.cow_id) query.where('t.cow_id', q.cow_id)
     res.json(await enrichWithMedications(await query))
   } catch (err) {
     next(err)
@@ -143,21 +183,32 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
   try {
     const { error, value } = schema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
+    if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const cow = await db('cows').where({ id: value.cow_id }).whereNull('deleted_at').first()
     if (!cow) return res.status(404).json({ error: 'Cow not found' })
 
     const isMale = cow.sex === 'male'
 
-    // Validate all medications and compute max withdrawal dates across all of them
+    // Batch-fetch all medications in a single query and build a lookup map
+    const medIds = value.medications.map((item) => item.medication_id)
+    const medRows = await db('medications').whereIn('id', medIds).where('is_active', true)
+    const medMap = new Map(medRows.map((m) => [m.id, m]))
+
+    // Validate all IDs exist before inserting anything
+    for (const item of value.medications) {
+      if (!medMap.has(item.medication_id)) {
+        return res.status(404).json({ error: `Medication not found or inactive: ${item.medication_id}` })
+      }
+    }
+
+    // Compute max withdrawal dates across all medications
     let maxMilk = null
     let maxMeat = null
     const medRecords = []
 
     for (const item of value.medications) {
-      const med = await db('medications').where({ id: item.medication_id, is_active: true }).first()
-      if (!med) return res.status(404).json({ error: `Medication not found or inactive: ${item.medication_id}` })
+      const med = medMap.get(item.medication_id)
 
       const { withdrawalEndMilk, withdrawalEndMeat } = calcWithdrawalDates(
         value.treatment_date,

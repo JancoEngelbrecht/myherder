@@ -86,10 +86,10 @@
     <!-- Summary footer — counts only active (milkable) cows -->
     <div v-if="!milkStore.loading && activeCows.length > 0" class="summary-footer">
       {{ t('milkRecording.summary', {
-        recorded: summaryRecorded,
+        recorded: summary.recorded,
         total: activeCows.length,
-        litres: summaryLitres,
-        discarded: summaryDiscarded,
+        litres: summary.litres,
+        discarded: summary.discarded,
       }) }}
     </div>
   </div>
@@ -123,8 +123,9 @@ const sessionDefaultTimes = { morning: '06:00', afternoon: '12:00', evening: '18
 function roundToQuarter() {
   const now = new Date()
   const mins = Math.round(now.getMinutes() / 15) * 15
-  const h = mins === 60 ? now.getHours() + 1 : now.getHours()
-  const m = mins === 60 ? 0 : mins
+  let h = mins === 60 ? now.getHours() + 1 : now.getHours()
+  let m = mins === 60 ? 0 : mins
+  if (h >= 24) { h = 23; m = 45 }
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 }
 
@@ -138,15 +139,15 @@ const isToday = computed(() => selectedDate.value === today)
 
 // ── Qualifying cows (female only, active/dry, sorted active first) ────────────
 
-const activeCows = computed(() =>
-  cowsStore.cows.filter((c) => c.sex !== 'male' && c.status === 'active'),
-)
-
 const qualifyingCows = computed(() => {
   const active = cowsStore.cows.filter((c) => c.sex !== 'male' && c.status === 'active')
   const dry = cowsStore.cows.filter((c) => c.sex !== 'male' && c.status === 'dry')
   return [...active, ...dry]
 })
+
+const activeCows = computed(() =>
+  qualifyingCows.value.filter((c) => c.status === 'active'),
+)
 
 const filteredCows = computed(() => {
   const q = searchQuery.value.toLowerCase().trim()
@@ -160,13 +161,21 @@ const filteredCows = computed(() => {
 
 // ── Withdrawal helpers ────────────────────────────────────────────────────────
 
+// O(1) lookup: indexed by cow_id
+const withdrawalMap = computed(() => {
+  const map = {}
+  for (const w of treatmentsStore.withdrawalCows) {
+    map[w.cow_id] = w
+  }
+  return map
+})
+
 function isOnWithdrawal(cowId) {
-  return treatmentsStore.withdrawalCows.some((w) => w.cow_id === cowId)
+  return cowId in withdrawalMap.value
 }
 
 function withdrawalEndDate(cowId) {
-  const w = treatmentsStore.withdrawalCows.find((w) => w.cow_id === cowId)
-  return w ? w.withdrawal_end_milk : null
+  return withdrawalMap.value[cowId]?.withdrawal_end_milk ?? null
 }
 
 // ── Summary — based on active (milkable) cows only, within current filter ─────
@@ -175,27 +184,18 @@ const summaryActiveCows = computed(() =>
   filteredCows.value.filter((c) => c.status === 'active'),
 )
 
-const summaryRecorded = computed(() =>
-  summaryActiveCows.value.filter((c) => {
+const summary = computed(() => {
+  let recorded = 0, litres = 0, discarded = 0
+  for (const c of summaryActiveCows.value) {
     const r = milkStore.getRecord(c.id)
-    return r !== null
-  }).length,
-)
-
-const summaryLitres = computed(() => {
-  const total = summaryActiveCows.value.reduce((sum, c) => {
-    const r = milkStore.getRecord(c.id)
-    return sum + (r ? Number(r.litres) : 0)
-  }, 0)
-  return Math.round(total * 100) / 100
+    if (r) {
+      recorded++
+      litres += Number(r.litres) || 0
+      if (r.milk_discarded) discarded++
+    }
+  }
+  return { recorded, litres: Math.round(litres * 100) / 100, discarded }
 })
-
-const summaryDiscarded = computed(() =>
-  summaryActiveCows.value.filter((c) => {
-    const r = milkStore.getRecord(c.id)
-    return r && r.milk_discarded
-  }).length,
-)
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 

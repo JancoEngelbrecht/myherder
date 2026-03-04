@@ -32,7 +32,12 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
     loading.value = true
     error.value = null
 
-    // Flush any pending debounced writes BEFORE switching context and querying.
+    // Cancel all outstanding debounce timers before switching context so no
+    // stale writes fire after the session clears.
+    Object.values(debounceTimers).forEach(clearTimeout)
+    Object.keys(debounceTimers).forEach((k) => delete debounceTimers[k])
+
+    // Flush any remaining pending writes BEFORE switching context and querying.
     // currentDate/currentSession still hold the OLD values here, so _persist's
     // second guard will match and correctly update records for the old context
     // (which we're about to clear anyway).
@@ -110,6 +115,7 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
     }, DEBOUNCE_MS)
   }
 
+  /** @private Flush all pending debounced writes immediately. Internal — not exported. */
   // Immediately fire all pending debounced writes and await their completion.
   // Called at the start of fetchSession so no data is lost when navigating between dates.
   async function flushPending() {

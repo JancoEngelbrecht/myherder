@@ -46,25 +46,29 @@ router.get('/', async (_req, res, next) => {
 
     const dateStr = new Date().toISOString().slice(0, 10)
 
+    const tables = {
+      users: sanitizeUsers(users),
+      cows,
+      health_issues: healthIssues,
+      treatments,
+      medications,
+      milk_records: milkRecords,
+      breeding_events: breedingEvents,
+      breed_types: breedTypes,
+      issue_types: issueTypes,
+      app_settings: appSettings,
+      feature_flags: featureFlags,
+    }
+
+    const _meta = {
+      exportedAt: new Date().toISOString(),
+      totalRecords: Object.values(tables).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0),
+    }
+
     res.set('Content-Type', 'application/json')
     res.set('Content-Disposition', `attachment; filename="myherder-export-${dateStr}.json"`)
 
-    res.json({
-      exportedAt: new Date().toISOString(),
-      tables: {
-        users: sanitizeUsers(users),
-        cows,
-        health_issues: healthIssues,
-        treatments,
-        medications,
-        milk_records: milkRecords,
-        breeding_events: breedingEvents,
-        breed_types: breedTypes,
-        issue_types: issueTypes,
-        app_settings: appSettings,
-        feature_flags: featureFlags,
-      },
-    })
+    res.json({ _meta, tables })
   } catch (err) {
     next(err)
   }

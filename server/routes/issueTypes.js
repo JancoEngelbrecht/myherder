@@ -4,6 +4,7 @@ const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const { requireAdmin } = require('../middleware/authorize')
+const { toCode, MAX_SEARCH_LENGTH, DEFAULT_PAGE_SIZE, parsePagination, joiMsg } = require('../helpers/constants')
 
 const router = express.Router()
 router.use(authenticate)
@@ -16,19 +17,6 @@ const schema = Joi.object({
   sort_order: Joi.number().integer().min(0).default(0),
 })
 
-// Derive a URL-safe code slug from a name string
-function toCode(name) {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_|_$/g, '')
-    .slice(0, 50)
-}
-
-const MAX_SEARCH_LENGTH = 100
-const DEFAULT_PAGE_SIZE = 20
-const MAX_PAGE_SIZE = 100
-
 const issueTypeQuerySchema = Joi.object({
   all: Joi.string().valid('0', '1'),
   search: Joi.string().max(100).allow(''),
@@ -40,7 +28,7 @@ const issueTypeQuerySchema = Joi.object({
 router.get('/', async (req, res, next) => {
   try {
     const { error: qError } = issueTypeQuerySchema.validate(req.query, { allowUnknown: false })
-    if (qError) return res.status(400).json({ error: qError.details[0].message.replace(/['"]/g, '') })
+    if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
     const query = db('issue_type_definitions')
       .where(req.query.all === '1' ? {} : { is_active: true })
@@ -53,9 +41,7 @@ router.get('/', async (req, res, next) => {
     }
 
     if (req.query.page !== undefined) {
-      const page = Math.max(1, parseInt(String(req.query.page), 10) || 1)
-      const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, parseInt(String(req.query.limit), 10) || DEFAULT_PAGE_SIZE))
-      const offset = (page - 1) * limit
+      const { limit, offset } = parsePagination(req.query, { defaultLimit: DEFAULT_PAGE_SIZE })
 
       const [{ count: total }] = await query.clone().count('* as count')
       const rows = await query.limit(limit).offset(offset)
@@ -76,7 +62,7 @@ router.get('/', async (req, res, next) => {
 router.post('/', requireAdmin, async (req, res, next) => {
   try {
     const { error, value } = schema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
+    if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const code = toCode(value.name)
     if (!code) return res.status(400).json({ error: 'Name produces an empty code' })
@@ -104,7 +90,7 @@ router.put('/:id', requireAdmin, async (req, res, next) => {
     if (!existing) return res.status(404).json({ error: 'Issue type not found' })
 
     const { error, value } = schema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
+    if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const now = new Date().toISOString()
     await db('issue_type_definitions')

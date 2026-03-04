@@ -23,9 +23,9 @@ async function logAudit({ userId, action, entityType, entityId, oldValues = null
       new_values: newValues ? JSON.stringify(newValues) : null,
       created_at: new Date().toISOString(),
     })
-  } catch {
-    // Audit logging should never break the main operation
-    // Silently fail — audit is best-effort
+  } catch (err) {
+    // Audit logging should never break the main operation — best-effort only
+    console.error('[audit] Failed to write audit log:', err.message)
   }
 }
 

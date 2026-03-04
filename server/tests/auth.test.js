@@ -1,7 +1,7 @@
 const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
-const { WORKER_ID, ADMIN_PASSWORD, WORKER_PIN, seedUsers } = require('./helpers/setup')
+const { ADMIN_ID, WORKER_ID, ADMIN_PASSWORD, WORKER_PIN, seedUsers } = require('./helpers/setup')
 
 beforeAll(async () => {
   await db.migrate.latest()
@@ -128,6 +128,54 @@ describe('POST /api/auth/login-pin', () => {
       .send({ username: 'test_worker', pin: WORKER_PIN })
 
     expect(res.status).toBe(423)
+  })
+})
+
+// ─── Password login lockout ────────────────────────────────────────────────────
+
+describe('POST /api/auth/login lockout', () => {
+  beforeEach(async () => {
+    await db('users').where({ id: ADMIN_ID }).update({ failed_attempts: 0, locked_until: null })
+  })
+
+  it('locks admin account after reaching the failed-attempt threshold', async () => {
+    // lockoutThreshold defaults to 5 — make 5 bad password attempts
+    for (let i = 0; i < 5; i++) {
+      await request(app)
+        .post('/api/auth/login')
+        .send({ username: 'test_admin', password: 'wrong-password' })
+    }
+
+    const user = await db('users').where({ id: ADMIN_ID }).first()
+    expect(user.failed_attempts).toBeGreaterThanOrEqual(5)
+    expect(user.locked_until).not.toBeNull()
+  })
+
+  it('returns 423 while admin account is locked', async () => {
+    await db('users')
+      .where({ id: ADMIN_ID })
+      .update({ locked_until: new Date(Date.now() + 60_000).toISOString() })
+
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'test_admin', password: ADMIN_PASSWORD })
+
+    expect(res.status).toBe(423)
+    expect(res.body.error).toBe('Account temporarily locked')
+  })
+
+  it('clears lockout state on successful login', async () => {
+    // Unlock and ensure login succeeds, then verify failed_attempts is reset
+    await db('users').where({ id: ADMIN_ID }).update({ failed_attempts: 3, locked_until: null })
+
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'test_admin', password: ADMIN_PASSWORD })
+
+    expect(res.status).toBe(200)
+    const user = await db('users').where({ id: ADMIN_ID }).first()
+    expect(user.failed_attempts).toBe(0)
+    expect(user.locked_until).toBeNull()
   })
 })
 

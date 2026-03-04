@@ -4,8 +4,9 @@ const { randomUUID: uuidv4 } = require('crypto');
 const db = require('../config/database');
 const auth = require('../middleware/auth');
 const authorize = require('../middleware/authorize');
-const { requireAdmin } = require('../middleware/authorize');
+const { requireAdmin } = authorize;
 const { logAudit } = require('../services/auditService');
+const { ISO_DATE_RE, MAX_SEARCH_LENGTH, DEFAULT_PAGE_SIZE, parsePagination, COW_STATUSES, joiMsg } = require('../helpers/constants');
 
 const router = express.Router();
 router.use(auth);
@@ -19,7 +20,7 @@ const cowSchema = Joi.object({
   breed: Joi.string().max(100).allow('', null),
   breed_type_id: Joi.string().max(36).allow(null, ''),
   sex: Joi.string().valid('female', 'male').default('female'),
-  status: Joi.string().valid('active', 'dry', 'pregnant', 'sick', 'sold', 'dead').default('active'),
+  status: Joi.string().valid(...COW_STATUSES).default('active'),
   sire_id: Joi.string().uuid().allow(null),
   dam_id: Joi.string().uuid().allow(null),
   is_external: Joi.boolean().default(false),
@@ -31,11 +32,9 @@ const cowSchema = Joi.object({
 
 const cowUpdateSchema = cowSchema.fork('tag_number', (s) => s.optional());
 
-const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
 const cowQuerySchema = Joi.object({
   search: Joi.string().max(100).allow(''),
-  status: Joi.string().valid('active', 'dry', 'pregnant', 'sick', 'sold', 'dead'),
+  status: Joi.string().valid(...COW_STATUSES),
   sex: Joi.string().valid('female', 'male'),
   breed_type_id: Joi.string().max(36),
   is_dry: Joi.string().valid('0', '1', 'true', 'false'),
@@ -52,10 +51,6 @@ const cowQuerySchema = Joi.object({
   sort: Joi.string().valid('tag_number', 'name', 'dob', 'status'),
   order: Joi.string().valid('asc', 'desc'),
 });
-
-const MAX_SEARCH_LENGTH = 100;
-const DEFAULT_PAGE_SIZE = 20;
-const MAX_PAGE_SIZE = 100;
 
 // --- Helpers ---
 
@@ -96,7 +91,7 @@ const LAST_CALVING_SQL = `(
 router.get('/', async (req, res, next) => {
   try {
     const { error: qError } = cowQuerySchema.validate(req.query, { allowUnknown: false });
-    if (qError) return res.status(400).json({ error: qError.details[0].message.replace(/['"]/g, '') });
+    if (qError) return res.status(400).json({ error: joiMsg(qError) });
 
     const query = db('cows as c')
       .leftJoin('breed_types as bt', 'c.breed_type_id', 'bt.id')
@@ -197,9 +192,7 @@ router.get('/', async (req, res, next) => {
     }
 
     // Pagination
-    const page = Math.max(1, parseInt(String(req.query.page), 10) || 1);
-    const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, parseInt(String(req.query.limit), 10) || DEFAULT_PAGE_SIZE));
-    const offset = (page - 1) * limit;
+    const { limit, offset } = parsePagination(req.query, { defaultLimit: DEFAULT_PAGE_SIZE });
 
     const [{ count: total }] = await query.clone().clearSelect().count('* as count');
     const cows = await query.orderBy('c.tag_number').limit(limit).offset(offset);
@@ -244,7 +237,7 @@ router.get('/:id', async (req, res, next) => {
 router.post('/', authorize('can_manage_cows'), async (req, res, next) => {
   try {
     const { error, value } = cowSchema.validate(req.body);
-    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') });
+    if (error) return res.status(400).json({ error: joiMsg(error) });
 
     const now = new Date().toISOString();
     const cow = { id: uuidv4(), ...value, created_by: req.user.id, created_at: now, updated_at: now };
@@ -254,7 +247,7 @@ router.post('/', authorize('can_manage_cows'), async (req, res, next) => {
     const response = { ...cow };
     if (response.is_external !== undefined) response.is_external = response.is_external ? 1 : 0;
     if (response.is_dry !== undefined) response.is_dry = response.is_dry ? 1 : 0;
-    logAudit({ userId: req.user.id, action: 'create', entityType: 'cow', entityId: cow.id, newValues: response });
+    await logAudit({ userId: req.user.id, action: 'create', entityType: 'cow', entityId: cow.id, newValues: response });
     res.status(201).json(response);
   } catch (err) {
     // Unique constraint errors are handled centrally by errorHandler
@@ -268,12 +261,12 @@ router.put('/:id', authorize('can_manage_cows'), async (req, res, next) => {
     const oldCow = await findCowOrFail(req.params.id);
 
     const { error, value } = cowUpdateSchema.validate(req.body);
-    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') });
+    if (error) return res.status(400).json({ error: joiMsg(error) });
 
     await db('cows').where({ id: req.params.id }).update({ ...value, updated_at: new Date().toISOString() });
 
     const updated = await db('cows').where({ id: req.params.id }).first();
-    logAudit({ userId: req.user.id, action: 'update', entityType: 'cow', entityId: req.params.id, oldValues: oldCow, newValues: updated });
+    await logAudit({ userId: req.user.id, action: 'update', entityType: 'cow', entityId: req.params.id, oldValues: oldCow, newValues: updated });
     res.json(updated);
   } catch (err) {
     next(err);
@@ -286,7 +279,7 @@ router.delete('/:id', requireAdmin, async (req, res, next) => {
     const cow = await findCowOrFail(req.params.id);
 
     await db('cows').where({ id: req.params.id }).update({ deleted_at: new Date().toISOString() });
-    logAudit({ userId: req.user.id, action: 'delete', entityType: 'cow', entityId: req.params.id, oldValues: cow });
+    await logAudit({ userId: req.user.id, action: 'delete', entityType: 'cow', entityId: req.params.id, oldValues: cow });
     res.json({ message: 'Cow deleted' });
   } catch (err) {
     next(err);

@@ -2,6 +2,7 @@ const express = require('express')
 const Joi = require('joi')
 const authenticate = require('../middleware/auth')
 const { processChange, pullData, logSync } = require('../services/syncService')
+const { joiMsg } = require('../helpers/constants')
 
 const router = express.Router()
 
@@ -52,7 +53,7 @@ router.get('/health', (_req, res) => {
 router.post('/push', authenticate, async (req, res, next) => {
   try {
     const { error, value } = pushSchema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
+    if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const { deviceId, changes } = value
     const results = []
@@ -65,6 +66,7 @@ router.post('/push', authenticate, async (req, res, next) => {
         change.id,
         change.data,
         change.updatedAt,
+        req.user,
       )
       results.push(result)
 
@@ -76,7 +78,7 @@ router.post('/push', authenticate, async (req, res, next) => {
     if (errorCount === changes.length) status = 'failed'
     else if (errorCount > 0) status = 'partial'
 
-    await logSync(req.user.id, deviceId, 'push', changes.length, status)
+    try { await logSync(req.user.id, deviceId, 'push', changes.length, status) } catch (e) { console.error('[sync] logSync failed:', e.message) }
 
     res.json({ results })
   } catch (err) {
@@ -88,9 +90,9 @@ router.post('/push', authenticate, async (req, res, next) => {
 router.get('/pull', authenticate, async (req, res, next) => {
   try {
     const { error, value } = pullQuerySchema.validate(req.query)
-    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
+    if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    const data = await pullData(value.since, value.full === '1')
+    const data = await pullData(value.since, value.full === '1', req.user)
 
     // Count total records for logging
     const totalRecords = Object.entries(data)
@@ -98,7 +100,7 @@ router.get('/pull', authenticate, async (req, res, next) => {
       .reduce((sum, [, records]) => sum + (Array.isArray(records) ? records.length : 0), 0)
 
     const deviceId = value.deviceId || 'unknown'
-    await logSync(req.user.id, deviceId, 'pull', totalRecords, 'success')
+    try { await logSync(req.user.id, deviceId, 'pull', totalRecords, 'success') } catch (e) { console.error('[sync] logSync failed:', e.message) }
 
     res.json(data)
   } catch (err) {

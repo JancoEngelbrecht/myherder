@@ -26,7 +26,9 @@ describe('GET /api/export', () => {
     const res = await request(app).get('/api/export').set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    expect(res.body.exportedAt).toBeDefined()
+    expect(res.body._meta).toBeDefined()
+    expect(res.body._meta.exportedAt).toBeDefined()
+    expect(typeof res.body._meta.totalRecords).toBe('number')
     expect(res.body.tables).toBeDefined()
 
     const tables = res.body.tables

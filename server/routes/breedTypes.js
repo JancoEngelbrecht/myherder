@@ -4,6 +4,7 @@ const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const { requireAdmin } = require('../middleware/authorize')
+const { toCode, joiMsg } = require('../helpers/constants')
 
 const router = express.Router()
 router.use(authenticate)
@@ -24,16 +25,6 @@ const schema = Joi.object({
   sort_order: Joi.number().integer().min(0).default(0),
 })
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function toCode(name) {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_|_$/g, '')
-    .slice(0, 50)
-}
-
 const breedTypeQuerySchema = Joi.object({
   all: Joi.string().valid('0', '1'),
 })
@@ -44,7 +35,7 @@ const breedTypeQuerySchema = Joi.object({
 router.get('/', async (req, res, next) => {
   try {
     const { error: qError } = breedTypeQuerySchema.validate(req.query, { allowUnknown: false })
-    if (qError) return res.status(400).json({ error: qError.details[0].message.replace(/['"]/g, '') })
+    if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
     const query = db('breed_types')
       .where(req.query.all === '1' ? {} : { is_active: true })
@@ -62,7 +53,7 @@ router.get('/', async (req, res, next) => {
 router.post('/', requireAdmin, async (req, res, next) => {
   try {
     const { error, value } = schema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
+    if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const code = toCode(value.name)
     if (!code) return res.status(400).json({ error: 'Name produces an empty code' })
@@ -90,7 +81,7 @@ router.put('/:id', requireAdmin, async (req, res, next) => {
     if (!existing) return res.status(404).json({ error: 'Breed type not found' })
 
     const { error, value } = schema.validate(req.body)
-    if (error) return res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
+    if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const now = new Date().toISOString()
     await db('breed_types')

@@ -218,8 +218,9 @@ describe('POST /api/users', () => {
 
     expect(res.status).toBe(201)
     expect(res.body.permissions).toContain('can_manage_cows')
-    expect(res.body.permissions).toContain('can_manage_users')
     expect(res.body.permissions).toContain('can_view_analytics')
+    expect(res.body.permissions).not.toContain('can_manage_users')
+    expect(res.body.permissions).not.toContain('can_manage_medications')
   })
 })
 
@@ -338,5 +339,39 @@ describe('DELETE /api/users/:id', () => {
       .set('Authorization', workerToken())
 
     expect(res.status).toBe(403)
+  })
+})
+
+// ─── 13B.6: Soft-deleted users inaccessible via ID ──────────────────────────
+
+describe('soft-deleted users inaccessible via GET/:id and PATCH/:id', () => {
+  let deletedUserId
+
+  beforeAll(async () => {
+    const res = await request(app)
+      .post('/api/users')
+      .set('Authorization', adminToken())
+      .send(makeWorker({ username: `softdel_${randomUUID().slice(0, 6)}` }))
+    deletedUserId = res.body.id
+
+    // Permanently soft-delete the user via the ?permanent=true flag
+    await request(app)
+      .delete(`/api/users/${deletedUserId}?permanent=true`)
+      .set('Authorization', adminToken())
+  })
+
+  it('GET /:id returns 404 for a soft-deleted user', async () => {
+    const res = await request(app)
+      .get(`/api/users/${deletedUserId}`)
+      .set('Authorization', adminToken())
+    expect(res.status).toBe(404)
+  })
+
+  it('PATCH /:id returns 404 for a soft-deleted user', async () => {
+    const res = await request(app)
+      .patch(`/api/users/${deletedUserId}`)
+      .set('Authorization', adminToken())
+      .send({ full_name: 'Ghost Update' })
+    expect(res.status).toBe(404)
   })
 })

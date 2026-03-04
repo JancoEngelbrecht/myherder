@@ -2,13 +2,14 @@ const express = require('express')
 const cors = require('cors')
 const helmet = require('helmet')
 const path = require('path')
-const { nodeEnv, isProduction, allowedOrigins } = require('./config/env')
+const { nodeEnv, isProduction, corsOrigins } = require('./config/env')
 const errorHandler = require('./middleware/errorHandler')
 
 const app = express()
 
 app.use(helmet())
-app.use(cors(allowedOrigins ? { origin: allowedOrigins, credentials: true } : undefined))
+// corsOrigins is always a non-null array — never pass undefined to cors()
+app.use(cors({ origin: corsOrigins, credentials: true }))
 app.use(express.json({ limit: '1mb' }))
 
 // Request logging — suppress in tests to keep output clean

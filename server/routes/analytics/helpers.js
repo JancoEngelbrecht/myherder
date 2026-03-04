@@ -1,5 +1,6 @@
 const Joi = require('joi');
 const db = require('../../config/database');
+const { ISO_DATE_RE, joiMsg } = require('../../helpers/constants');
 
 /** Round to 2 decimal places — prevents floating-point display artifacts */
 function round2(n) {
@@ -15,7 +16,6 @@ function localDate(d) {
 }
 
 /** Joi schema for analytics date range query params */
-const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const dateRangeSchema = Joi.object({
   from: Joi.string().pattern(ISO_DATE_RE).allow(''),
   to: Joi.string().pattern(ISO_DATE_RE).allow(''),
@@ -25,7 +25,7 @@ const dateRangeSchema = Joi.object({
 function defaultRange(from, to) {
   const { error } = dateRangeSchema.validate({ from, to });
   if (error) {
-    const err = new Error(error.details[0].message.replace(/['"]/g, ''));
+    const err = new Error(joiMsg(error));
     err.status = 400;
     throw err;
   }
@@ -50,13 +50,24 @@ function monthExpr(col) {
   return `substr(${col}, 1, 7)`;
 }
 
-/** Fetch issue_type_definitions → { code: { code, name, emoji } } map */
+/** Fetch issue_type_definitions → { code: { code, name, emoji } } map (60-second TTL cache) */
+let _issueTypeDefCache = null;
+let _issueTypeDefExpiry = 0;
+let _issueTypeDefPromise = null;
+
 async function getIssueTypeDefMap() {
-  const defs = await db('issue_type_definitions')
-    .select('code', 'name', 'emoji');
-  const map = {};
-  for (const d of defs) map[d.code] = d;
-  return map;
+  if (Date.now() < _issueTypeDefExpiry) return _issueTypeDefCache;
+  if (_issueTypeDefPromise) return _issueTypeDefPromise;
+  _issueTypeDefPromise = (async () => {
+    const defs = await db('issue_type_definitions').select('code', 'name', 'emoji');
+    const map = {};
+    for (const d of defs) map[d.code] = d;
+    _issueTypeDefCache = map;
+    _issueTypeDefExpiry = Date.now() + 60_000;
+    _issueTypeDefPromise = null;
+    return map;
+  })();
+  return _issueTypeDefPromise;
 }
 
 /** Safely JSON-parse the issue_types column, returning an array of codes (or []) */

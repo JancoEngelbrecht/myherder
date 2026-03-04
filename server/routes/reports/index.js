@@ -2,6 +2,7 @@ const express = require('express')
 const Joi = require('joi')
 const authenticate = require('../../middleware/auth')
 const { requireAdmin } = require('../../middleware/authorize')
+const { joiMsg } = require('../../helpers/constants')
 const {
   getFarmName,
   createPdfDocument,
@@ -25,7 +26,7 @@ const querySchema = Joi.object({
 function validateQuery(req, res) {
   const { error, value } = querySchema.validate(req.query)
   if (error) {
-    res.status(400).json({ error: error.details[0].message.replace(/['"]/g, '') })
+    res.status(400).json({ error: joiMsg(error) })
     return null
   }
   return value
