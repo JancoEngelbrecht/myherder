@@ -29,7 +29,6 @@
     "dry": "Dry",
     "pregnant": "Pregnant",
     "sick": "Sick",
-    "comingSoon": "Coming Soon",
     "addLog": "Log Treatment",
     "logIssue": "Log Health Issue",
     "openIssues": "Open Health Issues",
@@ -167,8 +166,6 @@
   "analytics": {
     "title": "Analytics",
     "herdStatus": "Herd Status",
-    "comingSoon": "Coming soon",
-    "noAlerts": "No health alerts — all cows are healthy",
     "topProducers": "Top Producers",
     "avgDaily": "Avg daily (L)",
     "discardedLitres": "Discarded (L)",
@@ -388,7 +385,6 @@
     "refresh": "Refresh",
     "required": "Required",
     "errorLoading": "Failed to load. Please try again.",
-    "comingSoon": "Coming Soon",
     "yes": "Yes",
     "no": "No",
     "years": "years",
@@ -533,8 +529,6 @@
     "title": "Milk Records",
     "filterSession": "Session",
     "filterAll": "All",
-    "filterCow": "Cow",
-    "filterRecordedBy": "Recorded by",
     "summaryCount": "{count} records",
     "summaryLitres": "{litres} L",
     "loadMore": "Load more",
@@ -565,7 +559,6 @@
     "dismissAllConfirm": "Dismiss all {count} overdue alerts? They will not appear again.",
     "dismissed": "Dismissed",
     "gestationDays": "Gestation",
-    "gestationProgress": "{days} / 283 days",
     "daysOpen": "Days Open",
     "keyDates": "Key Dates",
     "stats": {
@@ -713,10 +706,7 @@
     "permissionDenied": "You don't have permission to do this",
     "notFound": "Record not found",
     "server": "Server error — please try again",
-    "generic": "Something went wrong",
-    "saveFailed": "Save failed — please try again",
-    "deleteFailed": "Delete failed — please try again",
-    "loadFailed": "Could not load data"
+    "generic": "Something went wrong"
   },
   "featureFlags": {
     "sectionTitle": "Modules",
@@ -791,7 +781,6 @@
       "can_record_milk": "Record Milk",
       "can_view_analytics": "View Analytics",
       "can_manage_cows": "Manage Cows",
-      "can_manage_users": "Manage Users",
       "can_manage_medications": "Manage Medications"
     },
     "active": "Active",

@@ -6,6 +6,15 @@ import db from '../db/indexedDB'
 import { enqueue, dequeueByEntityId, isOfflineError } from '../services/syncManager'
 import { extractApiError } from '../utils/apiError'
 
+/** Keep only the latest event per cow, sorted by the given date field */
+function latestPerCow(arr, field) {
+  const map = {}
+  for (const e of arr) {
+    if (!map[e.cow_id] || e.event_date > map[e.cow_id].event_date) map[e.cow_id] = e
+  }
+  return Object.values(map).sort((a, b) => (a[field] || '').localeCompare(b[field] || ''))
+}
+
 export const useBreedingEventsStore = defineStore('breedingEvents', () => {
   const events = ref([])
   const total = ref(0)
@@ -22,10 +31,8 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
       const payload = (await api.get('/breeding-events', { params: filters })).data
 
       if (filters.cow_id) {
-        // Plain array — per-cow repro view, no pagination
+        // Plain array — per-cow repro view; cache locally but do NOT overwrite global list
         await db.breedingEvents.bulkPut(payload)
-        events.value = payload
-        total.value = payload.length
         return payload
       }
 
@@ -68,14 +75,6 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
 
       const all = await db.breedingEvents.toArray()
       const inRange = (date, from, to) => date && date >= from && date <= to
-
-      const latestPerCow = (arr, field) => {
-        const map = {}
-        for (const e of arr) {
-          if (!map[e.cow_id] || e.event_date > map[e.cow_id].event_date) map[e.cow_id] = e
-        }
-        return Object.values(map).sort((a, b) => (a[field] || '').localeCompare(b[field] || ''))
-      }
 
       upcoming.heats = latestPerCow(
         all.filter((e) => inRange(e.expected_next_heat, today, in7)),
@@ -180,15 +179,11 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
   async function dismissBatch(ids, reason = '') {
     const now = new Date().toISOString()
 
-    // Snapshot for rollback
-    const snapshots = []
-    for (const id of ids) {
-      const existing = await db.breedingEvents.get(id)
-      if (existing) {
-        snapshots.push({ ...existing })
-        await db.breedingEvents.put({ ...existing, dismissed_at: now, dismiss_reason: reason, updated_at: now })
-      }
-    }
+    // Snapshot for rollback (bulk read)
+    const existing = await db.breedingEvents.bulkGet(ids)
+    const snapshots = existing.filter(Boolean).map((e) => ({ ...e }))
+    const updated = snapshots.map((e) => ({ ...e, dismissed_at: now, dismiss_reason: reason, updated_at: now }))
+    if (updated.length) await db.breedingEvents.bulkPut(updated)
 
     try {
       await api.patch('/breeding-events/dismiss-batch', { ids, reason })
@@ -196,15 +191,13 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
     } catch (err) {
       if (!isOfflineError(err)) {
         // Rollback optimistic updates
-        for (const snap of snapshots) {
-          await db.breedingEvents.put(snap)
-        }
+        if (snapshots.length) await db.breedingEvents.bulkPut(snapshots)
         throw err
       }
       // Offline: enqueue individual dismiss updates
-      for (const id of ids) {
-        const local = await db.breedingEvents.get(id)
-        if (local) await enqueue('breedingEvents', 'update', id, local)
+      const locals = await db.breedingEvents.bulkGet(ids)
+      for (const local of locals) {
+        if (local) await enqueue('breedingEvents', 'update', local.id, local)
       }
     }
   }
@@ -242,13 +235,6 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
       !latest || e.event_date > latest.event_date ? e : latest, null)
   }
 
-  // Days between two ISO date strings
-  function daysBetween(from, to) {
-    const a = new Date(from)
-    const b = new Date(to)
-    return Math.round((b - a) / 86400000)
-  }
-
   // Gestation progress for a pregnant cow: 0–100
   function gestationPercent(expectedCalving, gestationDays = 283) {
     if (!expectedCalving) return null
@@ -276,7 +262,6 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
     dismissBatch,
     deleteEvent,
     latestForCow,
-    daysBetween,
     gestationPercent,
   }
 })

@@ -42,6 +42,9 @@ function parsePagination(query, defaults = {}) {
   return { page, limit, offset }
 }
 
+/** Milliseconds per day */
+const MS_PER_DAY = 1000 * 60 * 60 * 24
+
 /** All valid cow status values */
 const COW_STATUSES = ['active', 'dry', 'pregnant', 'sick', 'sold', 'dead']
 
@@ -57,6 +60,7 @@ module.exports = {
   MAX_PAGE_SIZE,
   MAX_SEARCH_LENGTH,
   parsePagination,
+  MS_PER_DAY,
   COW_STATUSES,
   joiMsg,
 }

@@ -36,47 +36,82 @@ router.get('/breeding-overview', async (req, res, next) => {
         .map(c => c.id)
     );
 
-    // Bred awaiting check = has insemination but no preg_check after latest insemination
+    // ── Run independent queries in parallel ─────────────────────
+    const today = new Date();
+    const sixMonthsLater = new Date();
+    sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
+    const todayStr = localDate(today);
+    const futureStr = localDate(sixMonthsLater);
+
+    const [bredRows, cowsWithEvents, abortionRow, pregPositiveRow, calvingRows, positiveChecks] =
+      await Promise.all([
+        // Bred awaiting check = has insemination but no preg_check after latest insemination
+        femaleIds.length > 0
+          ? db('breeding_events as latest_ins')
+              .whereIn('latest_ins.cow_id', femaleIds)
+              .whereIn('latest_ins.event_type', ['ai_insemination', 'bull_service'])
+              .whereNotExists(function () {
+                this.select(db.raw(1))
+                  .from('breeding_events as pc')
+                  .whereRaw('pc.cow_id = latest_ins.cow_id')
+                  .whereIn('pc.event_type', ['preg_check_positive', 'preg_check_negative'])
+                  .whereRaw('pc.event_date >= latest_ins.event_date');
+              })
+              .select('latest_ins.cow_id')
+              .groupBy('latest_ins.cow_id')
+          : Promise.resolve([]),
+        // Heifer not bred = active females with zero breeding events ever
+        femaleIds.length > 0
+          ? db('breeding_events')
+              .whereIn('cow_id', femaleIds)
+              .select('cow_id')
+              .groupBy('cow_id')
+          : Promise.resolve([]),
+        // Abortion count in date range
+        db('breeding_events')
+          .where('event_type', 'abortion')
+          .whereBetween('event_date', [start, endTs])
+          .count('* as count')
+          .first(),
+        // Preg check positive count in date range
+        db('breeding_events')
+          .where('event_type', 'preg_check_positive')
+          .whereBetween('event_date', [start, endTs])
+          .count('* as count')
+          .first(),
+        // Expected calvings per month (next 6 months)
+        db('breeding_events')
+          .whereNotNull('expected_calving')
+          .whereBetween('expected_calving', [todayStr, futureStr])
+          .whereNull('dismissed_at')
+          .select(db.raw(`${monthExpr('expected_calving')} as month`))
+          .count('* as count')
+          .groupByRaw(monthExpr('expected_calving'))
+          .orderBy('month'),
+        // Positive checks for services per conception
+        db('breeding_events')
+          .where('event_type', 'preg_check_positive')
+          .whereBetween('event_date', [start, endTs])
+          .select('id', 'cow_id', 'event_date'),
+      ]);
+
+    // ── Derive repro status categories from parallel results ─────
     const bredAwaitingIds = new Set();
-    if (femaleIds.length > 0) {
-      const bredRows = await db('breeding_events as latest_ins')
-        .whereIn('latest_ins.cow_id', femaleIds)
-        .whereIn('latest_ins.event_type', ['ai_insemination', 'bull_service'])
-        .whereNotExists(function () {
-          this.select(db.raw(1))
-            .from('breeding_events as pc')
-            .whereRaw('pc.cow_id = latest_ins.cow_id')
-            .whereIn('pc.event_type', ['preg_check_positive', 'preg_check_negative'])
-            .whereRaw('pc.event_date >= latest_ins.event_date');
-        })
-        .select('latest_ins.cow_id')
-        .groupBy('latest_ins.cow_id');
-
-      for (const row of bredRows) {
-        if (!pregnantIds.has(row.cow_id) && !dryIds.has(row.cow_id)) {
-          bredAwaitingIds.add(row.cow_id);
-        }
+    for (const row of bredRows) {
+      if (!pregnantIds.has(row.cow_id) && !dryIds.has(row.cow_id)) {
+        bredAwaitingIds.add(row.cow_id);
       }
     }
 
-    // Heifer not bred = active females with zero breeding events ever
     const heiferNotBredIds = new Set();
-    if (femaleIds.length > 0) {
-      const cowsWithEvents = await db('breeding_events')
-        .whereIn('cow_id', femaleIds)
-        .select('cow_id')
-        .groupBy('cow_id');
-      const cowsWithEventsSet = new Set(cowsWithEvents.map(r => r.cow_id));
-
-      for (const cow of activeFemales) {
-        if (!pregnantIds.has(cow.id) && !dryIds.has(cow.id) &&
-            !bredAwaitingIds.has(cow.id) && !cowsWithEventsSet.has(cow.id)) {
-          heiferNotBredIds.add(cow.id);
-        }
+    const cowsWithEventsSet = new Set(cowsWithEvents.map(r => r.cow_id));
+    for (const cow of activeFemales) {
+      if (!pregnantIds.has(cow.id) && !dryIds.has(cow.id) &&
+          !bredAwaitingIds.has(cow.id) && !cowsWithEventsSet.has(cow.id)) {
+        heiferNotBredIds.add(cow.id);
       }
     }
 
-    // Not pregnant = remaining active females
     const not_pregnant_count = activeFemales.filter(c =>
       !pregnantIds.has(c.id) && !dryIds.has(c.id) &&
       !bredAwaitingIds.has(c.id) && !heiferNotBredIds.has(c.id)
@@ -90,52 +125,18 @@ router.get('/breeding-overview', async (req, res, next) => {
       heifer_not_bred: heiferNotBredIds.size,
     };
 
-    // ── Abortion count in date range ─────────────────────────────
-    const abortionRow = await db('breeding_events')
-      .where('event_type', 'abortion')
-      .whereBetween('event_date', [start, endTs])
-      .count('* as count')
-      .first();
     const abortion_count = Number(abortionRow?.count) || 0;
 
-    // ── Pregnancy rate: preg_check_positive / eligible females × 100 ──
-    const pregPositiveRow = await db('breeding_events')
-      .where('event_type', 'preg_check_positive')
-      .whereBetween('event_date', [start, endTs])
-      .count('* as count')
-      .first();
     const pregPositiveCount = Number(pregPositiveRow?.count) || 0;
     const eligibleFemales = activeFemales.length;
     const pregnancy_rate = eligibleFemales > 0
       ? round2((pregPositiveCount / eligibleFemales) * 100)
       : null;
 
-    // ── Expected calvings per month (next 6 months) ──────────────
-    const today = new Date();
-    const sixMonthsLater = new Date();
-    sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
-    const todayStr = localDate(today);
-    const futureStr = localDate(sixMonthsLater);
-
-    const calvingRows = await db('breeding_events')
-      .whereNotNull('expected_calving')
-      .whereBetween('expected_calving', [todayStr, futureStr])
-      .whereNull('dismissed_at')
-      .select(db.raw(`${monthExpr('expected_calving')} as month`))
-      .count('* as count')
-      .groupByRaw(monthExpr('expected_calving'))
-      .orderBy('month');
-
     const calvings_by_month = calvingRows.map(r => ({
       month: r.month,
       count: Number(r.count),
     }));
-
-    // ── Avg services per conception (scoped to from/to) ──────────
-    const positiveChecks = await db('breeding_events')
-      .where('event_type', 'preg_check_positive')
-      .whereBetween('event_date', [start, endTs])
-      .select('id', 'cow_id', 'event_date');
 
     const serviceCountMap = await batchCountServices(positiveChecks);
 
@@ -173,23 +174,23 @@ router.get('/breeding-activity', async (req, res, next) => {
   try {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
-    // Monthly insemination counts
-    const insRows = await db('breeding_events')
-      .whereIn('event_type', ['ai_insemination', 'bull_service'])
-      .whereBetween('event_date', [start, endTs])
-      .select(db.raw(`${monthExpr('event_date')} as month`))
-      .count('* as count')
-      .groupByRaw(monthExpr('event_date'))
-      .orderBy('month');
-
-    // Monthly conception counts (preg_check_positive)
-    const conRows = await db('breeding_events')
-      .where('event_type', 'preg_check_positive')
-      .whereBetween('event_date', [start, endTs])
-      .select(db.raw(`${monthExpr('event_date')} as month`))
-      .count('* as count')
-      .groupByRaw(monthExpr('event_date'))
-      .orderBy('month');
+    // Monthly insemination + conception counts (parallel)
+    const [insRows, conRows] = await Promise.all([
+      db('breeding_events')
+        .whereIn('event_type', ['ai_insemination', 'bull_service'])
+        .whereBetween('event_date', [start, endTs])
+        .select(db.raw(`${monthExpr('event_date')} as month`))
+        .count('* as count')
+        .groupByRaw(monthExpr('event_date'))
+        .orderBy('month'),
+      db('breeding_events')
+        .where('event_type', 'preg_check_positive')
+        .whereBetween('event_date', [start, endTs])
+        .select(db.raw(`${monthExpr('event_date')} as month`))
+        .count('* as count')
+        .groupByRaw(monthExpr('event_date'))
+        .orderBy('month'),
+    ]);
 
     // Merge into unified months array
     const insMap = {};
@@ -326,20 +327,21 @@ router.get('/days-open', async (req, res, next) => {
   try {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
-    // Fetch all calving and preg_check_positive events in the window, joined with cows
-    const calvings = await db('breeding_events as be')
-      .join('cows as c', 'be.cow_id', 'c.id')
-      .whereNull('c.deleted_at')
-      .where('be.event_type', 'calving')
-      .whereBetween('be.event_date', [start, endTs])
-      .select('be.cow_id', 'be.event_date', 'c.tag_number', 'c.name')
-      .orderBy(['be.cow_id', 'be.event_date']);
-
-    const pregChecks = await db('breeding_events')
-      .where('event_type', 'preg_check_positive')
-      .whereBetween('event_date', [start, endTs])
-      .select('cow_id', 'event_date')
-      .orderBy(['cow_id', 'event_date']);
+    // Fetch calvings and preg checks in parallel
+    const [calvings, pregChecks] = await Promise.all([
+      db('breeding_events as be')
+        .join('cows as c', 'be.cow_id', 'c.id')
+        .whereNull('c.deleted_at')
+        .where('be.event_type', 'calving')
+        .whereBetween('be.event_date', [start, endTs])
+        .select('be.cow_id', 'be.event_date', 'c.tag_number', 'c.name')
+        .orderBy(['be.cow_id', 'be.event_date']),
+      db('breeding_events')
+        .where('event_type', 'preg_check_positive')
+        .whereBetween('event_date', [start, endTs])
+        .select('cow_id', 'event_date')
+        .orderBy(['cow_id', 'event_date']),
+    ]);
 
     // Index preg checks by cow for fast lookup
     const pregByCow = {};

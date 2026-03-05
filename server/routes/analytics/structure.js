@@ -84,23 +84,22 @@ router.get('/mortality-rate', async (req, res, next) => {
   try {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
-    const [{ herd_size }] = await db('cows')
-      .whereNull('deleted_at')
-      .count('id as herd_size');
+    const [herdRow, rows] = await Promise.all([
+      db('cows').whereNull('deleted_at').count('id as herd_size').first(),
+      db('cows')
+        .whereNull('deleted_at')
+        .whereIn('status', ['sold', 'dead'])
+        .whereBetween('updated_at', [start, endTs])
+        .select(
+          db.raw(`${monthExpr('updated_at')} as month`),
+          db.raw("SUM(CASE WHEN status = 'sold' THEN 1 ELSE 0 END) as sold"),
+          db.raw("SUM(CASE WHEN status = 'dead' THEN 1 ELSE 0 END) as dead"),
+        )
+        .groupByRaw(monthExpr('updated_at'))
+        .orderBy('month'),
+    ]);
 
-    const herdSize = Number(herd_size) || 0;
-
-    const rows = await db('cows')
-      .whereNull('deleted_at')
-      .whereIn('status', ['sold', 'dead'])
-      .whereBetween('updated_at', [start, endTs])
-      .select(
-        db.raw(`${monthExpr('updated_at')} as month`),
-        db.raw("SUM(CASE WHEN status = 'sold' THEN 1 ELSE 0 END) as sold"),
-        db.raw("SUM(CASE WHEN status = 'dead' THEN 1 ELSE 0 END) as dead"),
-      )
-      .groupByRaw(monthExpr('updated_at'))
-      .orderBy('month');
+    const herdSize = Number(herdRow?.herd_size) || 0;
 
     const months = rows.map(row => ({
       month: row.month,
@@ -125,23 +124,24 @@ router.get('/mortality-rate', async (req, res, next) => {
 // GET /api/analytics/herd-turnover
 router.get('/herd-turnover', async (req, res, next) => {
   try {
-    const { start, end } = defaultRange(req.query.from, req.query.to);
+    const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
-    // Additions: cows created within date range (non-deleted)
-    const addedRows = await db('cows')
-      .whereNull('deleted_at')
-      .whereBetween('created_at', [start, end + 'T23:59:59'])
-      .select(db.raw(`${monthExpr('created_at')} as month`))
-      .count('id as additions')
-      .groupByRaw(`${monthExpr('created_at')}`);
-
-    // Removals: cows set to sold/dead within date range
-    const removedRows = await db('cows')
-      .whereIn('status', ['sold', 'dead'])
-      .whereBetween('updated_at', [start, end + 'T23:59:59'])
-      .select(db.raw(`${monthExpr('updated_at')} as month`))
-      .count('id as removals')
-      .groupByRaw(`${monthExpr('updated_at')}`);
+    // Additions + removals in parallel
+    const [addedRows, removedRows] = await Promise.all([
+      // Include soft-deleted cows — they were real additions to the herd
+      db('cows')
+        .whereBetween('created_at', [start, endTs])
+        .select(db.raw(`${monthExpr('created_at')} as month`))
+        .count('id as additions')
+        .groupByRaw(`${monthExpr('created_at')}`),
+      db('cows')
+        .whereNull('deleted_at')
+        .whereIn('status', ['sold', 'dead'])
+        .whereBetween('updated_at', [start, endTs])
+        .select(db.raw(`${monthExpr('updated_at')} as month`))
+        .count('id as removals')
+        .groupByRaw(`${monthExpr('updated_at')}`),
+    ]);
 
     // Merge into single month map
     const monthMap = {};
@@ -177,9 +177,8 @@ router.get('/herd-size-trend', async (req, res, next) => {
   try {
     const { start, end } = defaultRange(req.query.from, req.query.to);
 
-    // Count cows added per month (using created_at as proxy for join date)
+    // Count cows added per month — include soft-deleted cows (they were real additions)
     const addedRows = await db('cows')
-      .whereNull('deleted_at')
       .select(db.raw(`${monthExpr('created_at')} as month`))
       .count('id as added')
       .groupByRaw(`${monthExpr('created_at')}`)
@@ -199,7 +198,8 @@ router.get('/herd-size-trend', async (req, res, next) => {
     const endDate = new Date(end.slice(0, 7) + '-01');
 
     let lastKnown = 0;
-    // Pre-populate lastKnown with any months before the range
+    // Carry forward the running total for months before the requested range
+    // so the first in-range month starts at the correct cumulative count
     for (const [month, total] of Object.entries(cumulativeMap).sort()) {
       if (month < start.slice(0, 7)) {
         lastKnown = total;

@@ -1,10 +1,17 @@
 const express = require('express')
 const Joi = require('joi')
+const rateLimit = require('express-rate-limit')
 const authenticate = require('../middleware/auth')
 const { processChange, pullData, logSync } = require('../services/syncService')
 const { joiMsg } = require('../helpers/constants')
 
 const router = express.Router()
+
+const syncPushLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: { error: 'Too many sync pushes, please try again later' },
+})
 
 // ── Validation ──────────────────────────────────────────────────
 
@@ -50,7 +57,7 @@ router.get('/health', (_req, res) => {
 })
 
 // POST /api/sync/push — push client changes to server
-router.post('/push', authenticate, async (req, res, next) => {
+router.post('/push', syncPushLimiter, authenticate, async (req, res, next) => {
   try {
     const { error, value } = pushSchema.validate(req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })

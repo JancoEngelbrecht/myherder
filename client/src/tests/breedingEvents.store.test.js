@@ -371,11 +371,4 @@ describe('useBreedingEventsStore', () => {
     })
   })
 
-  describe('daysBetween', () => {
-    it('calculates days between two dates', () => {
-      const store = useBreedingEventsStore()
-      expect(store.daysBetween('2026-01-01', '2026-01-11')).toBe(10)
-      expect(store.daysBetween('2026-02-01', '2026-01-01')).toBe(-31)
-    })
-  })
 })

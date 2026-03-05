@@ -1,6 +1,6 @@
 const Joi = require('joi');
 const db = require('../../config/database');
-const { ISO_DATE_RE, joiMsg } = require('../../helpers/constants');
+const { ISO_DATE_RE, joiMsg, MS_PER_DAY } = require('../../helpers/constants');
 
 /** Round to 2 decimal places — prevents floating-point display artifacts */
 function round2(n) {
@@ -40,8 +40,6 @@ function defaultRange(from, to) {
   return { start, end, endTs: end + 'T23:59:59' };
 }
 
-/** Milliseconds per day */
-const MS_PER_DAY = 1000 * 60 * 60 * 24;
 const RECURRENCE_WINDOW_DAYS = 60;
 const PREDICTION_MONTHS = 2;
 

@@ -225,7 +225,7 @@ function startPolling() {
 
     // Offline — check connectivity via health endpoint
     try {
-      await api.head('/sync/health')
+      await api.get('/sync/health')
       isOnline.value = true
       await sync()
     } catch {

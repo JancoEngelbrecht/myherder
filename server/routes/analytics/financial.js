@@ -130,22 +130,24 @@ router.get('/litres-per-cow', async (req, res, next) => {
   try {
     const { start, end } = defaultRange(req.query.from, req.query.to);
 
+    // Count distinct (cow_id, recording_date) pairs as cow-days for accurate per-cow-per-day avg
     const rows = await db('milk_records')
       .whereBetween('recording_date', [start, end])
-      .select(db.raw(`${monthExpr('recording_date')} as month`))
-      .sum('litres as total_litres')
-      .countDistinct('cow_id as cow_count')
-      .countDistinct('recording_date as day_count')
+      .select(
+        db.raw(`${monthExpr('recording_date')} as month`),
+        db.raw('SUM(litres) as total_litres'),
+        db.raw('COUNT(DISTINCT cow_id) as cow_count'),
+        db.raw("COUNT(DISTINCT (cow_id || '-' || recording_date)) as cow_days"),
+      )
       .groupByRaw(monthExpr('recording_date'))
       .orderBy('month');
 
     const months = rows.map(r => {
       const totalLitres = Number(r.total_litres) || 0;
-      const cowCount = Number(r.cow_count) || 1;
-      const dayCount = Number(r.day_count) || 1;
+      const cowDays = Number(r.cow_days) || 1;
       return {
         month: r.month,
-        avg_litres_per_cow_per_day: round2(totalLitres / cowCount / dayCount),
+        avg_litres_per_cow_per_day: round2(totalLitres / cowDays),
         cow_count: Number(r.cow_count),
       };
     });

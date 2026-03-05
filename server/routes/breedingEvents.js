@@ -6,9 +6,9 @@ const authenticate = require('../middleware/auth')
 const authorize = require('../middleware/authorize')
 const { requireAdmin } = authorize
 const { calcDates, getBreedTimings } = require('../helpers/breedingCalc')
-const { joiMsg } = require('../helpers/constants')
+const { joiMsg, MS_PER_DAY } = require('../helpers/constants')
 const {
-  STATUS_TRANSITIONS, VALID_EVENT_TYPES, VALID_COW_STATUSES,
+  STATUS_TRANSITIONS, VALID_EVENT_TYPES,
   createSchema, updateSchema, breedingQuerySchema,
 } = require('../helpers/breedingSchemas')
 
@@ -26,7 +26,6 @@ router.use(authenticate)
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const MS_PER_DAY = 1000 * 60 * 60 * 24
 const UPCOMING_HEAT_DAYS = 7
 const UPCOMING_CALVING_DAYS = 14
 const OVERDUE_LOOKBACK_DAYS = 30
@@ -72,9 +71,9 @@ router.get('/upcoming', async (req, res, next) => {
   try {
     const today = new Date().toISOString().slice(0, 10)
     const yesterday = new Date(Date.now() - MS_PER_DAY).toISOString().slice(0, 10)
-    const in7  = new Date(Date.now() + UPCOMING_HEAT_DAYS  * MS_PER_DAY).toISOString().slice(0, 10)
-    const in14 = new Date(Date.now() + UPCOMING_CALVING_DAYS * MS_PER_DAY).toISOString().slice(0, 10)
-    const past30 = new Date(Date.now() - OVERDUE_LOOKBACK_DAYS * MS_PER_DAY).toISOString().slice(0, 10)
+    const heatDeadline    = new Date(Date.now() + UPCOMING_HEAT_DAYS    * MS_PER_DAY).toISOString().slice(0, 10)
+    const calvingDeadline = new Date(Date.now() + UPCOMING_CALVING_DAYS * MS_PER_DAY).toISOString().slice(0, 10)
+    const overdueCutoff   = new Date(Date.now() - OVERDUE_LOOKBACK_DAYS * MS_PER_DAY).toISOString().slice(0, 10)
 
     // Base query: join cow+sire+user, exclude dismissed events
     const baseQuery = () => breedingQuery().whereNull('be.dismissed_at')
@@ -100,15 +99,15 @@ router.get('/upcoming', async (req, res, next) => {
       overdueHeats, overdueCalvings, overduePregChecks, overdueDryOffs,
     ] = await Promise.all([
       // Upcoming
-      dateRangeQuery('expected_next_heat', today, in7),
-      dateRangeQuery('expected_calving', today, in14),
-      dateRangeQuery('expected_preg_check', today, in7),
-      dateRangeQuery('expected_dry_off', today, in14, dryOffFilters),
+      dateRangeQuery('expected_next_heat', today, heatDeadline),
+      dateRangeQuery('expected_calving', today, calvingDeadline),
+      dateRangeQuery('expected_preg_check', today, heatDeadline),
+      dateRangeQuery('expected_dry_off', today, calvingDeadline, dryOffFilters),
       // Overdue (past 30 days, strictly before today)
-      dateRangeQuery('expected_next_heat', past30, yesterday),
-      dateRangeQuery('expected_calving', past30, yesterday),
-      dateRangeQuery('expected_preg_check', past30, yesterday),
-      dateRangeQuery('expected_dry_off', past30, yesterday, dryOffFilters),
+      dateRangeQuery('expected_next_heat', overdueCutoff, yesterday),
+      dateRangeQuery('expected_calving', overdueCutoff, yesterday),
+      dateRangeQuery('expected_preg_check', overdueCutoff, yesterday),
+      dateRangeQuery('expected_dry_off', overdueCutoff, yesterday, dryOffFilters),
     ])
 
     // Deduplicate: keep only the latest event per cow for each category
@@ -171,11 +170,6 @@ router.get('/', async (req, res, next) => {
           return res.status(400).json({ error: `Invalid event_type: ${t}` })
         }
       }
-    }
-
-    // Validate cow_status
-    if (cow_status && !VALID_COW_STATUSES.includes(cow_status)) {
-      return res.status(400).json({ error: `Invalid cow_status: ${cow_status}` })
     }
 
     const applyTypeFilter = (q) => { if (types) q.whereIn('be.event_type', types) }
@@ -316,7 +310,7 @@ router.post('/', authorize('can_log_breeding'), async (req, res, next) => {
 router.patch('/dismiss-batch', authorize('can_log_breeding'), async (req, res, next) => {
   try {
     const { error: batchError, value: batchValue } = dismissBatchSchema.validate(req.body)
-    if (batchError) return res.status(400).json({ error: batchError.details[0].message.replace(/['"]/g, '') })
+    if (batchError) return res.status(400).json({ error: joiMsg(batchError) })
 
     const { ids, reason } = batchValue
     const now = new Date().toISOString()
@@ -391,7 +385,7 @@ router.patch('/:id', requireAdmin, async (req, res, next) => {
 router.patch('/:id/dismiss', authorize('can_log_breeding'), async (req, res, next) => {
   try {
     const { error: dError, value: dValue } = dismissSchema.validate(req.body)
-    if (dError) return res.status(400).json({ error: dError.details[0].message.replace(/['"]/g, '') })
+    if (dError) return res.status(400).json({ error: joiMsg(dError) })
 
     const existing = await db('breeding_events').where({ id: req.params.id }).first()
     if (!existing) return res.status(404).json({ error: 'Breeding event not found' })

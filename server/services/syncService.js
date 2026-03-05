@@ -153,7 +153,7 @@ async function processChange(entityType, action, id, data, clientUpdatedAt, user
 
   try {
     if (action === 'create') {
-      return await handleCreate(table, id, safeData)
+      return await handleCreate(table, id, safeData, user, mapping.ownerField)
     } else if (action === 'update') {
       return await handleUpdate(table, entityType, id, safeData, clientUpdatedAt, user, mapping.ownerField)
     } else if (action === 'delete') {
@@ -179,15 +179,23 @@ function pickFields(data, allowedFields) {
   return result
 }
 
-async function handleCreate(table, id, data) {
+async function handleCreate(table, id, data, user, ownerField) {
   const existing = await db(table).where({ id }).first()
   if (existing) {
-    // Already exists — treat as update
+    // Already exists — verify ownership before returning data
+    if (ownerField && user && user.role !== 'admin' && existing[ownerField] !== user.id) {
+      return { id, entityType: tableToEntity(table), status: 'error', error: 'Cannot access records owned by another user' }
+    }
     return { id, entityType: tableToEntity(table), status: 'applied', serverData: existing }
   }
 
   const now = new Date().toISOString()
   const row = { ...data, id, created_at: data.created_at || now, updated_at: now }
+
+  // Enforce ownership: non-admin users must own their own records
+  if (ownerField && user && user.role !== 'admin') {
+    row[ownerField] = user.id
+  }
 
   // Remove any client-side-only fields
   delete row.autoId
@@ -251,13 +259,12 @@ async function handleDelete(table, entityType, id, softDelete, user, ownerField)
 
 // ── Pull Data ───────────────────────────────────────────────────
 
-async function pullData(since, full, user) {
+async function pullData(since, full, _user) {
   const deleted = []
 
-  // Filter out entity types the user lacks permission to read
-  const entries = Object.entries(ENTITY_MAP).filter(([entityType]) => {
-    return !user || !checkPermission(entityType, user)
-  })
+  // All authenticated users can read all entity types via sync pull.
+  // Write permission (checkPermission) is enforced only on push.
+  const entries = Object.entries(ENTITY_MAP)
 
   // Run all entity queries in parallel
   const entityResults = await Promise.all(entries.map(async ([entityType, { table, softDelete }]) => {

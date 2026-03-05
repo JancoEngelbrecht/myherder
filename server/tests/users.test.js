@@ -220,7 +220,7 @@ describe('POST /api/users', () => {
     expect(res.body.permissions).toContain('can_manage_cows')
     expect(res.body.permissions).toContain('can_view_analytics')
     expect(res.body.permissions).not.toContain('can_manage_users')
-    expect(res.body.permissions).not.toContain('can_manage_medications')
+    expect(res.body.permissions).toContain('can_manage_medications')
   })
 })
 

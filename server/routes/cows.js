@@ -11,7 +11,7 @@ const { ISO_DATE_RE, MAX_SEARCH_LENGTH, DEFAULT_PAGE_SIZE, parsePagination, COW_
 const router = express.Router();
 router.use(auth);
 
-// --- Validation schemas ---
+// ── Validation schemas ──────────────────────────────────────────
 
 const cowSchema = Joi.object({
   tag_number: Joi.string().max(50).required(),
@@ -52,7 +52,7 @@ const cowQuerySchema = Joi.object({
   order: Joi.string().valid('asc', 'desc'),
 });
 
-// --- Helpers ---
+// ── Helpers ─────────────────────────────────────────────────────
 
 async function findCowOrFail(id) {
   const cow = await db('cows').where({ id }).whereNull('deleted_at').first();
@@ -64,7 +64,7 @@ async function findCowOrFail(id) {
   return cow;
 }
 
-// --- Routes ---
+// ── Routes ──────────────────────────────────────────────────────
 
 // ── Life-phase SQL CASE expression (plain string) ───
 // Mirrors client-side computeLifePhase() logic using breed-specific thresholds

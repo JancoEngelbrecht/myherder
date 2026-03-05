@@ -18,6 +18,7 @@ const BCRYPT_ROUNDS = 12
 
 const ALL_PERMISSIONS = [
   'can_manage_cows',
+  'can_manage_medications',
   'can_log_issues',
   'can_log_treatments',
   'can_log_breeding',

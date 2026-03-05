@@ -19,6 +19,9 @@ const MAX_USERNAME_LENGTH = 100;
 const MAX_PASSWORD_LENGTH = 128;
 const MAX_PIN_LENGTH = 10;
 
+// Pre-hashed dummy value for constant-time comparison when user not found
+const DUMMY_HASH = '$2a$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ01234';
+
 const loginLimiter = rateLimit({
   windowMs: loginRateLimitWindow,
   max: loginRateLimitMax,
@@ -53,20 +56,11 @@ function isLockedOut(user) {
 }
 
 /**
- * Check if account is currently locked; if not, apply lockout after failed attempt.
- * Returns a 423 response object if locked, or null if the caller should continue.
- *
- * Usage:
- *   const lockResult = await checkAndApplyLockout(user, isValidCredential, res);
- *   if (lockResult) return; // response already sent
+ * Apply lockout logic after credential check.
+ * Callers must check isLockedOut() before calling this.
+ * Returns true if credentials were invalid (lockout counter incremented), false on success.
  */
-async function checkAndApplyLockout(user, credentialValid, res) {
-  // Check existing lockout before verifying credentials
-  if (isLockedOut(user)) {
-    res.status(423).json({ error: 'Account temporarily locked' });
-    return true;
-  }
-
+async function checkAndApplyLockout(user, credentialValid) {
   if (!credentialValid) {
     const attempts = (user.failed_attempts || 0) + 1;
     const update = { failed_attempts: attempts };
@@ -74,7 +68,7 @@ async function checkAndApplyLockout(user, credentialValid, res) {
       update.locked_until = new Date(Date.now() + lockoutDuration).toISOString();
     }
     await db('users').where({ id: user.id }).update(update);
-    return false;
+    return true;
   }
 
   // Successful login — clear lockout state
@@ -95,6 +89,8 @@ router.post('/login', loginLimiter, async (req, res, next) => {
 
     const user = await db('users').where({ username, is_active: true }).first();
     if (!user || !user.password_hash) {
+      // Constant-time: run bcrypt even when user not found to prevent timing enumeration
+      await bcrypt.compare(password, DUMMY_HASH);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -105,8 +101,7 @@ router.post('/login', loginLimiter, async (req, res, next) => {
 
     const valid = await bcrypt.compare(password, user.password_hash);
 
-    const locked = await checkAndApplyLockout(user, valid, res);
-    if (locked) return;
+    await checkAndApplyLockout(user, valid);
 
     if (!valid) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -135,6 +130,8 @@ router.post('/login-pin', loginLimiter, async (req, res, next) => {
 
     const user = await db('users').where({ username, is_active: true }).first();
     if (!user || !user.pin_hash) {
+      // Constant-time: run bcrypt even when user not found to prevent timing enumeration
+      await bcrypt.compare(String(pin), DUMMY_HASH);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -145,8 +142,7 @@ router.post('/login-pin', loginLimiter, async (req, res, next) => {
 
     const valid = await bcrypt.compare(String(pin), user.pin_hash);
 
-    const locked = await checkAndApplyLockout(user, valid, res);
-    if (locked) return;
+    await checkAndApplyLockout(user, valid);
 
     if (!valid) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -181,6 +177,11 @@ router.post('/refresh', refreshLimiter, async (req, res, next) => {
     const user = await db('users').where({ id: decoded.id, is_active: true }).first();
     if (!user) {
       return res.status(401).json({ error: 'User not found or inactive' });
+    }
+
+    // Locked accounts cannot refresh tokens
+    if (isLockedOut(user)) {
+      return res.status(423).json({ error: 'Account temporarily locked' });
     }
 
     const userPayload = buildUserResponse(user);

@@ -58,7 +58,7 @@ export const useHealthIssuesStore = defineStore('healthIssues', () => {
 
   async function create(data) {
     const now = new Date().toISOString()
-    const plain = JSON.parse(JSON.stringify(data))
+    const plain = structuredClone(data)
     const localIssue = { id: uuidv4(), ...plain, status: plain.status || 'open', updated_at: now, created_at: now }
 
     await db.healthIssues.put(localIssue)

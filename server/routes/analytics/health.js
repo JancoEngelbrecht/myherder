@@ -8,6 +8,32 @@ const {
 
 const router = express.Router();
 
+// ── Helpers ───────────────────────────────────────────────────
+
+/**
+ * Fetch health issues in date range, pre-parse issue_types codes,
+ * and build a cow_id index for efficient recurrence lookups.
+ */
+async function fetchParsedIssues(start, endTs) {
+  const rawIssues = await db('health_issues')
+    .whereBetween('observed_at', [start, endTs])
+    .select('id', 'cow_id', 'issue_types', 'status', 'observed_at', 'resolved_at');
+
+  const parsed = rawIssues.map(i => ({
+    ...i,
+    _codes: parseIssueCodes(i.issue_types),
+    _observedMs: new Date(i.observed_at).getTime(),
+  }));
+
+  const byCow = {};
+  for (const p of parsed) {
+    if (!byCow[p.cow_id]) byCow[p.cow_id] = [];
+    byCow[p.cow_id].push(p);
+  }
+
+  return { parsed, byCow };
+}
+
 // GET /api/analytics/unhealthiest
 router.get('/unhealthiest', async (req, res, next) => {
   try {
@@ -173,27 +199,12 @@ router.get('/health-resolution-stats', async (req, res, next) => {
   try {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
-    const issues = await db('health_issues')
-      .whereBetween('observed_at', [start, endTs])
-      .select('id', 'cow_id', 'issue_types', 'status', 'observed_at', 'resolved_at');
-
-    const defMap = await getIssueTypeDefMap();
-
-    // Herd size snapshot for incidence calculation
-    const herdRow = await db('cows').whereNull('deleted_at').count('* as count').first();
+    const [{ parsed, byCow }, defMap, herdRow] = await Promise.all([
+      fetchParsedIssues(start, endTs),
+      getIssueTypeDefMap(),
+      db('cows').whereNull('deleted_at').count('* as count').first(),
+    ]);
     const herdSize = Number(herdRow?.count) || 0;
-
-    // Pre-parse issue codes and index by cow_id to avoid O(n²) re-parsing
-    const parsed = issues.map(i => ({
-      ...i,
-      _codes: parseIssueCodes(i.issue_types),
-      _observedMs: new Date(i.observed_at).getTime(),
-    }));
-    const byCow = {};
-    for (const p of parsed) {
-      if (!byCow[p.cow_id]) byCow[p.cow_id] = [];
-      byCow[p.cow_id].push(p);
-    }
 
     const total_issues = parsed.length;
     const resolved = parsed.filter(i => i.status === 'resolved' && i.resolved_at);
@@ -305,23 +316,10 @@ router.get('/health-recurrence', async (req, res, next) => {
   try {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
-    const rawIssues = await db('health_issues')
-      .whereBetween('observed_at', [start, endTs])
-      .select('id', 'cow_id', 'issue_types', 'status', 'observed_at', 'resolved_at');
-
-    const defMap = await getIssueTypeDefMap();
-
-    // Pre-parse codes + index by cow to avoid O(n²) re-parsing
-    const issues = rawIssues.map(i => ({
-      ...i,
-      _codes: parseIssueCodes(i.issue_types),
-      _observedMs: new Date(i.observed_at).getTime(),
-    }));
-    const byCowIdx = {};
-    for (const p of issues) {
-      if (!byCowIdx[p.cow_id]) byCowIdx[p.cow_id] = [];
-      byCowIdx[p.cow_id].push(p);
-    }
+    const [{ parsed: issues, byCow: byCowIdx }, defMap] = await Promise.all([
+      fetchParsedIssues(start, endTs),
+      getIssueTypeDefMap(),
+    ]);
 
     const resolved = issues.filter(i => i.status === 'resolved' && i.resolved_at);
 

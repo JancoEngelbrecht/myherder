@@ -29,7 +29,6 @@
     "dry": "Droog",
     "pregnant": "Dragtig",
     "sick": "Siek",
-    "comingSoon": "Binnekort Beskikbaar",
     "addLog": "Teken Behandeling aan",
     "logIssue": "Teken Gesondheidsprobleem aan",
     "openIssues": "Oop Probleme",
@@ -167,8 +166,6 @@
   "analytics": {
     "title": "Analise",
     "herdStatus": "Trop Status",
-    "comingSoon": "Binnekort beskikbaar",
-    "noAlerts": "Geen gesondheidsalarms — alle koeie is gesond",
     "topProducers": "Top Produseerders",
     "avgDaily": "Gem. daagliks (L)",
     "discardedLitres": "Weggegooi (L)",
@@ -388,7 +385,6 @@
     "refresh": "Verfris",
     "required": "Verpligtend",
     "errorLoading": "Kon nie laai nie. Probeer asseblief weer.",
-    "comingSoon": "Binnekort Beskikbaar",
     "yes": "Ja",
     "no": "Nee",
     "years": "jaar",
@@ -533,8 +529,6 @@
     "title": "Melk Rekords",
     "filterSession": "Sessie",
     "filterAll": "Alles",
-    "filterCow": "Koei",
-    "filterRecordedBy": "Opgeteken deur",
     "summaryCount": "{count} rekords",
     "summaryLitres": "{litres} L",
     "loadMore": "Laai meer",
@@ -565,7 +559,6 @@
     "dismissAllConfirm": "Verwerp al {count} agterstallige waarskuwings? Hulle sal nie weer verskyn nie.",
     "dismissed": "Verwerp",
     "gestationDays": "Dragtigheid",
-    "gestationProgress": "{days} / 283 dae",
     "daysOpen": "Oop Dae",
     "keyDates": "Sleuteldatums",
     "stats": {
@@ -713,10 +706,7 @@
     "permissionDenied": "Jy het nie toestemming om dit te doen nie",
     "notFound": "Rekord nie gevind nie",
     "server": "Bedienerfout — probeer asseblief weer",
-    "generic": "Iets het verkeerd geloop",
-    "saveFailed": "Stoor het misluk — probeer asseblief weer",
-    "deleteFailed": "Skrap het misluk — probeer asseblief weer",
-    "loadFailed": "Kon nie data laai nie"
+    "generic": "Iets het verkeerd geloop"
   },
   "featureFlags": {
     "sectionTitle": "Modules",
@@ -791,7 +781,6 @@
       "can_record_milk": "Teken Melk Op",
       "can_view_analytics": "Sien Analise",
       "can_manage_cows": "Bestuur Koeie",
-      "can_manage_users": "Bestuur Gebruikers",
       "can_manage_medications": "Bestuur Medikasie"
     },
     "active": "Aktief",

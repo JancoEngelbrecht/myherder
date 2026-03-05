@@ -1,50 +1,9 @@
 const express = require('express')
 const db = require('../../config/database')
 const { formatDate } = require('../../services/reportService')
+const { batchMedications, getIssueTypeMap, parseJsonColumn, MS_PER_DAY } = require('./helpers')
 
 const router = express.Router()
-
-// ── Helpers ─────────────────────────────────────────────────
-
-async function batchMedications(treatmentIds) {
-  if (!treatmentIds.length) return {}
-
-  const primary = await db('treatments as t')
-    .join('medications as m', 't.medication_id', 'm.id')
-    .whereIn('t.id', treatmentIds)
-    .select('t.id as treatment_id', 'm.name', 'm.active_ingredient', 't.dosage')
-
-  const map = {}
-  for (const row of primary) {
-    ;(map[row.treatment_id] ??= []).push(row)
-  }
-
-  const extra = await db('treatment_medications as tm')
-    .join('medications as m', 'tm.medication_id', 'm.id')
-    .whereIn('tm.treatment_id', treatmentIds)
-    .select('tm.treatment_id', 'm.name', 'm.active_ingredient', 'tm.dosage')
-
-  for (const row of extra) {
-    const list = map[row.treatment_id] ??= []
-    if (!list.some((r) => r.name === row.name)) list.push(row)
-  }
-
-  return map
-}
-
-async function getIssueTypeMap() {
-  const types = await db('issue_type_definitions').select('code', 'name')
-  const map = {}
-  for (const t of types) map[t.code] = t.name
-  return map
-}
-
-function parseJsonColumn(val) {
-  if (typeof val === 'string') {
-    try { return JSON.parse(val) } catch { return [] }
-  }
-  return Array.isArray(val) ? val : []
-}
 
 // ── 4. Medication Usage ─────────────────────────────────────
 
@@ -238,8 +197,6 @@ async function getHerdHealthData(from, to) {
   let resolved = 0
   let totalDays = 0
   let daysCount = 0
-
-  const MS_PER_DAY = 86400000
 
   const rows = issues.map((i) => {
     const codes = parseJsonColumn(i.issue_types)

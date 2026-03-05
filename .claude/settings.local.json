@@ -1,6 +1,7 @@
 {
   "permissions": {
     "allow": [
+      "Bash", "Edit", "Write", "Read", "Glob", "Grep",
       "Bash(npm install:*)",
       "Bash(node -e:*)",
       "Bash(npx knex:*)",

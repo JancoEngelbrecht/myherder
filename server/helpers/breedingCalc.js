@@ -4,10 +4,10 @@ const db = require('../config/database')
 
 function calcDates(eventType, eventDate, breedTimings = {}) {
   const base = new Date(eventDate)
-  const heatCycleDays = breedTimings.heat_cycle_days ?? 21
-  const pregCheckDays = breedTimings.preg_check_days ?? 35
-  const gestationDays = breedTimings.gestation_days ?? 283
-  const dryOffDays = breedTimings.dry_off_days ?? 60
+  const heatCycleDays = breedTimings.heat_cycle_days ?? 21    // Bovine estrous cycle (avg 21 days)
+  const pregCheckDays = breedTimings.preg_check_days ?? 35    // Earliest reliable rectal/ultrasound check
+  const gestationDays = breedTimings.gestation_days ?? 283    // Holstein average; Jersey ~279, Brahman ~292
+  const dryOffDays = breedTimings.dry_off_days ?? 60          // Standard dry period before expected calving
 
   const addDays = (n) => {
     const d = new Date(base)

@@ -58,12 +58,10 @@ const updateSchema = Joi.object({
   expected_dry_off: Joi.string().isoDate().allow(null, '').optional(),
 })
 
-const VALID_COW_STATUSES = ['active', 'pregnant', 'dry']
-
 const breedingQuerySchema = Joi.object({
   cow_id: Joi.string().uuid(),
   event_type: Joi.string().max(200),
-  cow_status: Joi.string().valid(...VALID_COW_STATUSES),
+  cow_status: Joi.string().valid('active', 'pregnant', 'dry'),
   date_from: Joi.string().pattern(ISO_DATE_RE),
   date_to: Joi.string().pattern(ISO_DATE_RE),
   page: Joi.number().integer().min(1),
@@ -73,7 +71,6 @@ const breedingQuerySchema = Joi.object({
 module.exports = {
   STATUS_TRANSITIONS,
   VALID_EVENT_TYPES,
-  VALID_COW_STATUSES,
   createSchema,
   updateSchema,
   breedingQuerySchema,

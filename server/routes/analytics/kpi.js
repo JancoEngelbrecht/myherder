@@ -12,56 +12,25 @@ router.get('/daily-kpis', async (req, res, next) => {
     sevenAgo.setDate(sevenAgo.getDate() - 7);
     const sevenAgoStr = localDate(sevenAgo);
 
-    // Litres milked today
-    const milkToday = await db('milk_records')
-      .where('recording_date', today)
-      .sum('litres as total')
-      .first();
-    const litres_today = round2(Number(milkToday?.total) || 0);
-
-    // 7-day average daily litres
-    const milk7d = await db('milk_records')
-      .where('recording_date', '>=', sevenAgoStr)
-      .where('recording_date', '<', today)
-      .sum('litres as total')
-      .first();
-    const litres_7day_avg = round2((Number(milk7d?.total) || 0) / 7);
-
-    // Cows milked today
-    const cowsToday = await db('milk_records')
-      .where('recording_date', today)
-      .countDistinct('cow_id as count')
-      .first();
-    const cows_milked_today = Number(cowsToday?.count) || 0;
-
-    // Expected milkable cows (active/pregnant females, not dry)
-    const expected = await db('cows')
-      .whereNull('deleted_at')
-      .where('sex', 'female')
-      .whereIn('status', ['active', 'pregnant'])
-      .where('is_dry', false)
-      .count('* as count')
-      .first();
-    const cows_expected = Number(expected?.count) || 0;
-
-    // Active health issues
-    const healthOpen = await db('health_issues')
-      .whereIn('status', ['open', 'treating'])
-      .count('* as count')
-      .first();
-    const active_health_issues = Number(healthOpen?.count) || 0;
-
-    // Breeding actions due (overdue or due today, not dismissed)
-    const breedingDue = await db('breeding_events')
-      .whereNull('dismissed_at')
-      .where(function () {
+    const [milkToday, milk7d, cowsToday, expected, healthOpen, breedingDue] = await Promise.all([
+      db('milk_records').where('recording_date', today).sum('litres as total').first(),
+      db('milk_records').where('recording_date', '>=', sevenAgoStr).where('recording_date', '<', today).sum('litres as total').first(),
+      db('milk_records').where('recording_date', today).countDistinct('cow_id as count').first(),
+      db('cows').whereNull('deleted_at').where('sex', 'female').whereIn('status', ['active', 'pregnant']).where('is_dry', false).count('* as count').first(),
+      db('health_issues').whereIn('status', ['open', 'treating']).count('* as count').first(),
+      db('breeding_events').whereNull('dismissed_at').where(function () {
         this.where('expected_next_heat', '<=', today)
           .orWhere('expected_preg_check', '<=', today)
           .orWhere('expected_calving', '<=', today)
           .orWhere('expected_dry_off', '<=', today);
-      })
-      .count('* as count')
-      .first();
+      }).count('* as count').first(),
+    ]);
+
+    const litres_today = round2(Number(milkToday?.total) || 0);
+    const litres_7day_avg = round2((Number(milk7d?.total) || 0) / 7);
+    const cows_milked_today = Number(cowsToday?.count) || 0;
+    const cows_expected = Number(expected?.count) || 0;
+    const active_health_issues = Number(healthOpen?.count) || 0;
     const breeding_actions_due = Number(breedingDue?.count) || 0;
 
     res.json({
