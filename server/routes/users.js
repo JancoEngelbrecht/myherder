@@ -176,11 +176,12 @@ router.patch('/:id', async (req, res, next) => {
     if (value.language !== undefined) update.language = value.language
     if (value.is_active !== undefined) update.is_active = value.is_active
 
-    if (value.permissions !== undefined) {
-      // Admin auto-gets all permissions
+    if (value.permissions !== undefined || value.role !== undefined) {
+      // Recalculate permissions when role or permissions change
       const effectiveRole = value.role || row.role
+      const effectivePerms = value.permissions ?? (typeof row.permissions === 'string' ? JSON.parse(row.permissions) : row.permissions || [])
       update.permissions = JSON.stringify(
-        effectiveRole === 'admin' ? ALL_PERMISSIONS : value.permissions
+        effectiveRole === 'admin' ? ALL_PERMISSIONS : effectivePerms
       )
     }
 

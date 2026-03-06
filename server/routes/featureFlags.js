@@ -61,12 +61,14 @@ router.patch('/', requireAdmin, async (req, res, next) => {
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const now = new Date().toISOString()
-    for (const [apiKey, enabled] of Object.entries(value)) {
-      const dbKey = REVERSE_MAP[apiKey]
-      if (dbKey) {
-        await db('feature_flags').where({ key: dbKey }).update({ enabled, updated_at: now })
-      }
-    }
+    await db.transaction(async (trx) => {
+      await Promise.all(Object.entries(value).map(([apiKey, enabled]) => {
+        const dbKey = REVERSE_MAP[apiKey]
+        if (dbKey) {
+          return trx('feature_flags').where({ key: dbKey }).update({ enabled, updated_at: now })
+        }
+      }))
+    })
 
     const flags = await getAllFlags()
     res.json(flags)

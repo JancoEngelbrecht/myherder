@@ -87,7 +87,7 @@ const pageSize = 25
 const filter = ref('all')
 const expanded = reactive(new Set())
 
-const entityTypeFilters = ['all', 'user', 'cow', 'setting']
+const entityTypeFilters = ['all', 'user', 'cow', 'setting', 'health_issue', 'treatment', 'milk_record', 'breeding_event']
 
 onMounted(() => fetchLog())
 
@@ -168,6 +168,21 @@ function formatJson(obj) {
 }
 
 .badge-delete {
+  background: var(--danger-light, #f8d7da);
+  color: var(--danger-dark, #721c24);
+}
+
+.badge-status_change {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.badge-dismiss {
+  background: #f3e8ff;
+  color: #6b21a8;
+}
+
+.badge-deactivate {
   background: var(--danger-light, #f8d7da);
   color: var(--danger-dark, #721c24);
 }

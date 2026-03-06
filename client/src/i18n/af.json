@@ -811,11 +811,17 @@
     "create": "Geskep",
     "update": "Opgedateer",
     "delete": "Verwyder",
+    "status_change": "Status Verander",
+    "dismiss": "Afgewys",
     "filterAll": "Alles",
     "entityTypes": {
       "user": "Gebruiker",
       "cow": "Koei",
-      "setting": "Instelling"
+      "setting": "Instelling",
+      "health_issue": "Gesondheidskwessie",
+      "treatment": "Behandeling",
+      "milk_record": "Melkrekord",
+      "breeding_event": "Teelgeleentheid"
     },
     "showDetails": "Besonderhede",
     "hideDetails": "Versteek"

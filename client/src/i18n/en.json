@@ -811,11 +811,17 @@
     "create": "Created",
     "update": "Updated",
     "delete": "Deleted",
+    "status_change": "Status Changed",
+    "dismiss": "Dismissed",
     "filterAll": "All",
     "entityTypes": {
       "user": "User",
       "cow": "Cow",
-      "setting": "Setting"
+      "setting": "Setting",
+      "health_issue": "Health Issue",
+      "treatment": "Treatment",
+      "milk_record": "Milk Record",
+      "breeding_event": "Breeding Event"
     },
     "showDetails": "Details",
     "hideDetails": "Hide"

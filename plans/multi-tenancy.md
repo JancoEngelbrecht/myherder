@@ -36,15 +36,48 @@ Farm code saved to `localStorage('farm_code')` after first successful login — 
 
 Every sub-phase ends with a mandatory quality gate before moving on. Do NOT skip any step.
 
-1. **Tests**: Write tests for all new code (routes, views, stores). Run `cd client && npm run test:run` — all tests must pass.
+### A. Correctness
+1. **Tests**: Write tests for all new code (routes, views, stores). Run full test suites — all must pass:
+   - Backend: `npm test` (all suites)
+   - Frontend: `cd client && npm run test:run` (all suites)
 2. **Lint**: Run `npm run lint:fix` — zero errors (warnings from pre-existing baseline are acceptable).
-3. **Dead code scan**: Run `npm run knip` — no new unused exports, files, or dependencies.
-4. **Self-review for refactor opportunities**:
-   - Scan all new AND touched files for: duplicated logic that should be extracted, overly complex functions that should be split, inconsistent patterns vs the rest of the codebase, inefficient DB queries (N+1, missing indexes, redundant joins).
-   - Check that new code follows conventions in MEMORY.md (section dividers, Joi schema placement, back buttons, etc.)
-5. **Surprise check**: If anything unexpected is discovered during implementation (schema inconsistencies, broken existing code, missing data, security concerns, performance issues), **stop and notify the user** before proceeding. Do not silently work around surprises.
-6. **i18n completeness**: Verify every new user-facing string has keys in BOTH `en.json` and `af.json`.
-7. **Isolation check**: After any query change, verify no code path can return another farm's data by tracing `farm_id` through all JOINs and subqueries.
+3. **i18n completeness**: Verify every new user-facing string has keys in BOTH `en.json` and `af.json`.
+4. **Isolation check**: After any query change, verify no code path can return another farm's data by tracing `farm_id` through all JOINs, subqueries, and service calls. This is the most critical check — a missed scope is a data breach.
+
+### B. Code Quality & Readability
+5. **Dead code scan**: Run `npm run knip` — no new unused exports, files, or dependencies. Remove anything flagged.
+6. **Refactor review** — For every file touched in this sub-phase, check:
+   - **Duplication**: Is any logic repeated that should be extracted into a shared helper? (e.g., two routes doing the same farm lookup, repeated Joi schemas)
+   - **Complexity**: Are any functions >40 lines or >3 levels of nesting? Split them.
+   - **Naming**: Are variables, functions, and routes named clearly? Would a new developer understand them without comments?
+   - **Consistency**: Does the new code follow existing patterns? (section dividers `// -- Section --`, Joi schema placement at top, back buttons with `back-to`, etc. per MEMORY.md conventions)
+   - **Comments**: Remove any obvious/redundant comments. Add comments only where the "why" isn't clear from the code.
+7. **DRY check** — Specifically look for:
+   - Repeated `farm_id` scoping logic that should use `req.scoped()` instead
+   - Repeated Joi validation patterns that should use shared schema fragments
+   - Repeated DB queries across routes that should be shared helpers
+   - Frontend components with copy-pasted logic that should be composables
+
+### C. Efficiency & Performance
+8. **Query efficiency**:
+   - No N+1 queries (batch lookups, use JOINs or `whereIn`)
+   - No redundant queries (e.g., re-fetching data that's already in scope)
+   - Verify new indexes cover the most common `WHERE farm_id = ? AND ...` patterns
+   - Use `Promise.all()` for independent parallel queries
+9. **Bundle check**: After frontend changes, run `cd client && npm run build` — verify no unexpected size increase. If a new dependency was added, confirm it's tree-shakeable.
+10. **Cost efficiency**: Is this the simplest implementation that works? Could fewer lines achieve the same result? Are we over-abstracting for a single use case?
+
+### D. Security
+11. **Tenant isolation audit**: For every new or modified endpoint:
+    - Does every SELECT include `farm_id` scoping (via `req.scoped()` or explicit `.where`)?
+    - Does every INSERT include `farm_id: req.farmId`?
+    - Does every UPDATE/DELETE scope by `farm_id` to prevent cross-tenant modification?
+    - Do JOINed tables also filter by `farm_id` where applicable?
+12. **Auth check**: Verify no endpoint is accessible without proper authentication + tenant scope middleware.
+13. **Input validation**: All user inputs validated with Joi before reaching DB queries. No raw `req.body` or `req.query` values used in queries.
+
+### E. Surprise Check
+14. **Stop and notify**: If anything unexpected is discovered during implementation (schema inconsistencies, broken existing code, missing data, security concerns, performance issues, data that doesn't fit the multi-tenant model), **stop and notify the user** before proceeding. Do not silently work around surprises.
 
 ---
 
@@ -131,7 +164,12 @@ In the migration's `up()`:
 
 ### Step 1.9 — Quality Gate
 
-Run Quality Gate checklist. Verify migration runs cleanly on existing dev DB with no data loss.
+Run full Quality Gate (A-E). Phase-specific focus:
+- Migration runs cleanly on existing dev DB — zero data loss
+- Rollback (`down()`) works and restores original schema
+- Run `SELECT COUNT(*) FROM <table> WHERE farm_id IS NULL` on every table — must return 0
+- Verify all new indexes exist with `.indexes` pragma or equivalent
+- Check migration file for: hardcoded values, missing tables, constraint typos
 
 ---
 
@@ -233,7 +271,12 @@ Each helper should accept `farmId` as a parameter and apply `.where('farm_id', f
 
 ### Step 2.8 — Quality Gate
 
-Run Quality Gate. Also manually verify: Farm A token cannot retrieve Farm B's cow by ID (expect 404).
+Run full Quality Gate (A-E). Phase-specific focus:
+- **Isolation spot-check**: Farm A token cannot retrieve Farm B's cow by ID (expect 404, not 403)
+- **Grep audit**: `grep -rn "db('" server/routes/ server/services/ server/helpers/` — every bare `db('table')` should be replaced with `req.scoped('table')` or have an explicit `.where('farm_id')`. Flag any misses.
+- **Refactor check**: Are any routes doing the same farm lookup/scoping pattern manually instead of using `req.scoped()`? Extract.
+- **Shared helper audit**: Do `breedingQuery()`, `milkQuery()`, etc. all accept and use `farmId`? One missed helper = multiple leaking endpoints.
+- **Performance**: No new N+1 queries introduced by the scoping changes. `req.scoped()` should add only one `.where()` — verify no double-filtering.
 
 ---
 
@@ -306,7 +349,16 @@ Update `client/src/views/LoginView.vue`:
 
 ### Step 3.7 — Quality Gate
 
-Test login for: farm worker (with code), farm admin (with code), super-admin (no code, 2FA), PIN login (with code). Verify token version is embedded in all JWTs.
+Run full Quality Gate (A-E). Phase-specific focus:
+- **Auth flow matrix**: Test all 4 login paths work correctly:
+  - Farm worker (farm code + PIN) → JWT has `farm_id`
+  - Farm admin (farm code + password) → JWT has `farm_id`
+  - Super-admin (no farm code + password + 2FA) → JWT has `farm_id = null`
+  - PIN login without farm code → rejected
+- **Token payload**: Verify `farm_id` and `token_version` are in ALL issued JWTs
+- **2FA security**: Verify temp_token cannot access any API endpoint (only 2FA endpoints). Verify TOTP secret is encrypted in DB, not plaintext. Verify recovery codes are bcrypt-hashed.
+- **Refactor check**: Is the 2FA flow adding duplicate validation logic? Should TOTP verification be a shared helper?
+- **Dead code**: Remove any old login logic that's been replaced (e.g., login without farm_code handling for non-super-admin)
 
 ---
 
@@ -353,7 +405,11 @@ Token versioning (Step 4.1) is sufficient for the current phase. The sessions ta
 
 ### Step 4.5 — Quality Gate
 
-Verify: bump token version → existing JWTs return 401 on next request. New login issues token with new version.
+Run full Quality Gate (A-E). Phase-specific focus:
+- **Revocation test**: Bump token version → existing JWTs return 401 on next request. New login issues token with new version.
+- **Permission check**: Farm admin can only revoke their own farm's users. Super-admin can revoke any user.
+- **Efficiency**: Token version check in auth middleware is a single indexed PK lookup — verify it doesn't add a second query if one already exists for permission checks.
+- **UI review**: Revoke button has ConfirmDialog. Success/error toasts display correctly. i18n keys in both locales.
 
 ---
 
@@ -400,7 +456,13 @@ No namespace changes needed for localStorage — single user per device.
 
 ### Step 5.6 — Quality Gate
 
-Test: login as Farm A, logout, login as Farm B — verify IndexedDB is fresh (no Farm A data). Verify offline login works with farm-scoped DB.
+Run full Quality Gate (A-E). Phase-specific focus:
+- **Isolation test**: Login as Farm A → populate data → logout → login as Farm B → verify IndexedDB is fresh (no Farm A data)
+- **Offline test**: Login → go offline → reload → verify offline login works with farm-scoped DB
+- **Cleanup test**: After logout, verify `indexedDB.databases()` no longer lists the old farm DB
+- **Store reset**: Verify all 11 Pinia stores are properly reset on logout — no stale Farm A data leaking into Farm B session
+- **Service worker**: Verify SW receives updated DB name via postMessage and uses it for background sync
+- **Dead code**: Remove any old unscoped IndexedDB references (`'myherder_db'` hardcoded string should not exist anywhere)
 
 ---
 
@@ -471,7 +533,13 @@ Add `superAdmin` namespace to `en.json` and `af.json`:
 
 ### Step 6.8 — Quality Gate
 
-Test: create farm → verify seeded data exists under new farm_id. Enter farm → verify app shows farm data. Exit → verify super-admin context restored.
+Run full Quality Gate (A-E). Phase-specific focus:
+- **Farm creation**: Create farm → verify all seeded data (breed types, issue types, medications, feature flags, app_settings) exists under new `farm_id`
+- **Enter/Exit farm**: Enter farm → app shows only that farm's data → Exit → super-admin context restored, no farm data visible
+- **Refactor check**: `farmSeedService.js` — is seeding logic DRY? Reuses existing seed data definitions? Not duplicating data from migration seeds?
+- **UI consistency**: Super-admin views follow same design system (`.card`, `.badge`, `.btn-primary`, etc.) and atomic design tiers
+- **Permission matrix**: Verify farm admin cannot access `/super/*` routes (redirect to `/`). Verify super-admin without farm context cannot access farm-scoped routes.
+- **Bundle impact**: Check `npm run build` output — 3 new views should be lazy-loaded (route-level code splitting) to avoid bloating the main bundle
 
 ---
 
@@ -512,9 +580,14 @@ Additional auth isolation tests:
 - Token version bump invalidates all existing tokens for that user
 - Deactivated farm users cannot log in
 
-### Step 7.3 — Target: full isolation verified
+### Step 7.3 — Quality Gate
 
-All isolation tests pass before proceeding to Phase 8.
+Run full Quality Gate (A-E). Phase-specific focus:
+- **All isolation tests pass** — zero cross-tenant data leaks across all CRUD resources
+- **Coverage review**: Are there any endpoints NOT covered by isolation tests? Cross-reference with route file list in MEMORY.md.
+- **Edge cases tested**: Empty farm (no data), deactivated farm, super-admin entering a farm, sync push/pull isolation
+- **Test quality**: Tests are readable, use descriptive names, follow patterns from existing test files. No duplicated test setup — use shared helpers.
+- **Target**: Full isolation verified before proceeding to Phase 8.
 
 ---
 
@@ -544,7 +617,20 @@ Test rollback on a copy of the DB before production deployment.
 - [ ] All existing cows, users, milk records have `farm_id` set
 - [ ] Existing admin can log in with farm code `DEFAULT`
 - [ ] Super-admin account created and 2FA setup completed
-- [ ] No orphaned rows (run `SELECT COUNT(*) FROM cows WHERE farm_id IS NULL`)
+- [ ] No orphaned rows (run `SELECT COUNT(*) FROM <table> WHERE farm_id IS NULL` on every table)
+- [ ] All existing functionality works end-to-end with the default farm
+- [ ] Offline sync still works (push/pull with farm-scoped data)
+- [ ] PWA installs and works offline with farm-scoped IndexedDB
+
+### Step 8.4 — Final Quality Gate
+
+Run full Quality Gate (A-E) one last time across the entire codebase. Phase-specific focus:
+- **Full grep audit**: `grep -rn "db('" server/` — zero bare `db('table')` calls without farm scoping
+- **Dead code sweep**: `npm run knip` — remove anything accumulated during the 8 phases
+- **Bundle analysis**: `cd client && npm run build:analyze` — verify bundle size is reasonable, new dependencies are tree-shaken
+- **Test coverage**: All backend + frontend tests pass. No skipped tests. Total test count documented.
+- **Documentation**: CLAUDE.md updated with multi-tenancy API docs, new roles, new endpoints. MEMORY.md updated with phase completion status.
+- **Security review**: One final pass through all auth endpoints, middleware, and tenant scoping for any gaps
 
 ---
 

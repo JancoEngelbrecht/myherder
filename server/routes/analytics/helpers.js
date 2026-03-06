@@ -48,6 +48,33 @@ function monthExpr(col) {
   return `substr(${col}, 1, 7)`;
 }
 
+/** True when the knex instance is connected to MySQL/MariaDB */
+function isMySQL() {
+  const client = db.client.config.client;
+  return client === 'mysql' || client === 'mysql2';
+}
+
+/** Portable age-in-years expression: returns fractional years from a date column to now */
+function ageYearsExpr(col) {
+  return isMySQL()
+    ? `DATEDIFF(NOW(), ${col}) / 365.25`
+    : `(julianday('now') - julianday(${col})) / 365.25`;
+}
+
+/** Portable day-diff expression: returns days between two date/datetime columns */
+function dayDiffExpr(startCol, endCol) {
+  return isMySQL()
+    ? `DATEDIFF(${endCol}, ${startCol})`
+    : `(julianday(${endCol}) - julianday(${startCol}))`;
+}
+
+/** Portable string concatenation */
+function concatExpr(...parts) {
+  return isMySQL()
+    ? `CONCAT(${parts.join(', ')})`
+    : parts.join(' || ');
+}
+
 /** Fetch issue_type_definitions → { code: { code, name, emoji } } map (60-second TTL cache) */
 let _issueTypeDefCache = null;
 let _issueTypeDefExpiry = 0;
@@ -136,6 +163,9 @@ module.exports = {
   RECURRENCE_WINDOW_DAYS,
   PREDICTION_MONTHS,
   monthExpr,
+  ageYearsExpr,
+  dayDiffExpr,
+  concatExpr,
   getIssueTypeDefMap,
   parseIssueCodes,
   batchCountServices,

@@ -226,14 +226,18 @@ async function handleUpdate(table, entityType, id, data, clientUpdatedAt, user, 
   const now = new Date().toISOString()
   const updateData = { ...data, updated_at: now }
 
+  // Track status change timestamp for cows
+  if (table === 'cows' && updateData.status && updateData.status !== existing.status) {
+    updateData.status_changed_at = now
+  }
+
   // Remove immutable fields
   delete updateData.id
   delete updateData.created_at
   delete updateData.autoId
 
   await db(table).where({ id }).update(updateData)
-  const updated = await db(table).where({ id }).first()
-  return { id, entityType, status: 'applied', serverData: updated }
+  return { id, entityType, status: 'applied', serverData: { ...existing, ...updateData } }
 }
 
 async function handleDelete(table, entityType, id, softDelete, user, ownerField) {

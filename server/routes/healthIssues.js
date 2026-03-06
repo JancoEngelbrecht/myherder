@@ -6,6 +6,7 @@ const authenticate = require('../middleware/auth')
 const authorize = require('../middleware/authorize')
 const { requireAdmin } = authorize
 const { MAX_SEARCH_LENGTH, DEFAULT_PAGE_SIZE, parsePagination, joiMsg } = require('../helpers/constants')
+const { logAudit } = require('../services/auditService')
 
 const router = express.Router()
 router.use(authenticate)
@@ -131,6 +132,7 @@ router.post('/', authorize('can_log_issues'), async (req, res, next) => {
     })
 
     const created = await issueQuery().where('h.id', id).first()
+    await logAudit({ userId: req.user.id, action: 'create', entityType: 'health_issue', entityId: id, newValues: created })
     res.status(201).json(parseRow(created))
   } catch (err) {
     next(err)
@@ -155,6 +157,7 @@ router.patch('/:id/status', authorize('can_log_issues'), async (req, res, next) 
     await db('health_issues').where({ id: req.params.id }).update(update)
 
     const updated = await issueQuery().where('h.id', req.params.id).first()
+    await logAudit({ userId: req.user.id, action: 'status_change', entityType: 'health_issue', entityId: req.params.id, oldValues: { status: existing.status }, newValues: { status: value.status } })
     res.json(parseRow(updated))
   } catch (err) {
     next(err)
@@ -167,7 +170,13 @@ router.delete('/:id', requireAdmin, async (req, res, next) => {
     const existing = await db('health_issues').where({ id: req.params.id }).first()
     if (!existing) return res.status(404).json({ error: 'Health issue not found' })
 
+    const linked = await db('treatments').where('health_issue_id', req.params.id).count('* as count').first()
+    if (Number(linked.count) > 0) {
+      return res.status(409).json({ error: 'Cannot delete: issue has linked treatments' })
+    }
+
     await db('health_issues').where({ id: req.params.id }).delete()
+    await logAudit({ userId: req.user.id, action: 'delete', entityType: 'health_issue', entityId: req.params.id, oldValues: existing })
     res.json({ message: 'Health issue deleted' })
   } catch (err) {
     next(err)
@@ -228,7 +237,9 @@ router.post('/:id/comments', authorize('can_log_issues'), async (req, res, next)
 // DELETE /api/health-issues/:id/comments/:commentId — admin only
 router.delete('/:id/comments/:commentId', requireAdmin, async (req, res, next) => {
   try {
-    const existing = await db('health_issue_comments').where({ id: req.params.commentId }).first()
+    const existing = await db('health_issue_comments')
+      .where({ id: req.params.commentId, health_issue_id: req.params.id })
+      .first()
     if (!existing) return res.status(404).json({ error: 'Comment not found' })
 
     await db('health_issue_comments').where({ id: req.params.commentId }).delete()

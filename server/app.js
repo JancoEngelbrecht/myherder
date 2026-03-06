@@ -45,7 +45,7 @@ app.use(express.static(clientDist))
 app.get('/{*path}', (req, res, next) => {
   if (req.path.startsWith('/api/')) return next()
   res.sendFile(path.join(clientDist, 'index.html'), (err) => {
-    if (err) next()
+    if (err) next(err)
   })
 })
 

@@ -1,6 +1,6 @@
 const express = require('express');
 const db = require('../../config/database');
-const { round2, defaultRange, monthExpr } = require('./helpers');
+const { round2, defaultRange, monthExpr, concatExpr } = require('./helpers');
 
 const router = express.Router();
 
@@ -137,7 +137,7 @@ router.get('/litres-per-cow', async (req, res, next) => {
         db.raw(`${monthExpr('recording_date')} as month`),
         db.raw('SUM(litres) as total_litres'),
         db.raw('COUNT(DISTINCT cow_id) as cow_count'),
-        db.raw("COUNT(DISTINCT (cow_id || '-' || recording_date)) as cow_days"),
+        db.raw(`COUNT(DISTINCT (${concatExpr("cow_id", "'-'", "recording_date")})) as cow_days`),
       )
       .groupByRaw(monthExpr('recording_date'))
       .orderBy('month');

@@ -19,7 +19,7 @@ const schema = Joi.object({
   default_dosage: Joi.number().precision(4).min(0).allow(null),
   unit: Joi.string().max(20).allow('', null),
   notes: Joi.string().max(2000).allow('', null),
-  is_active: Joi.boolean(),
+  is_active: Joi.boolean().default(true),
 })
 
 const medicationQuerySchema = Joi.object({

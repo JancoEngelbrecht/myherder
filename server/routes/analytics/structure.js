@@ -1,19 +1,19 @@
 const express = require('express');
 const db = require('../../config/database');
-const { round2, localDate, defaultRange, monthExpr } = require('./helpers');
+const { round2, localDate, defaultRange, monthExpr, ageYearsExpr } = require('./helpers');
 
 const router = express.Router();
 
 // GET /api/analytics/age-distribution
 router.get('/age-distribution', async (req, res, next) => {
   try {
-    // SQL-computed age brackets using julianday for accurate year calculation
+    const ageExpr = ageYearsExpr('dob');
     const BRACKET_SQL = `CASE
       WHEN dob IS NULL THEN 'Unknown'
-      WHEN (julianday('now') - julianday(dob)) / 365.25 < 1 THEN '0-1yr'
-      WHEN (julianday('now') - julianday(dob)) / 365.25 < 2 THEN '1-2yr'
-      WHEN (julianday('now') - julianday(dob)) / 365.25 < 5 THEN '2-5yr'
-      WHEN (julianday('now') - julianday(dob)) / 365.25 < 8 THEN '5-8yr'
+      WHEN ${ageExpr} < 1 THEN '0-1yr'
+      WHEN ${ageExpr} < 2 THEN '1-2yr'
+      WHEN ${ageExpr} < 5 THEN '2-5yr'
+      WHEN ${ageExpr} < 8 THEN '5-8yr'
       ELSE '8+yr'
     END`;
 
@@ -84,18 +84,19 @@ router.get('/mortality-rate', async (req, res, next) => {
   try {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
+    const statusDate = 'COALESCE(status_changed_at, updated_at)';
     const [herdRow, rows] = await Promise.all([
       db('cows').whereNull('deleted_at').count('id as herd_size').first(),
       db('cows')
         .whereNull('deleted_at')
         .whereIn('status', ['sold', 'dead'])
-        .whereBetween('updated_at', [start, endTs])
+        .whereRaw(`${statusDate} BETWEEN ? AND ?`, [start, endTs])
         .select(
-          db.raw(`${monthExpr('updated_at')} as month`),
+          db.raw(`${monthExpr(statusDate)} as month`),
           db.raw("SUM(CASE WHEN status = 'sold' THEN 1 ELSE 0 END) as sold"),
           db.raw("SUM(CASE WHEN status = 'dead' THEN 1 ELSE 0 END) as dead"),
         )
-        .groupByRaw(monthExpr('updated_at'))
+        .groupByRaw(monthExpr(statusDate))
         .orderBy('month'),
     ]);
 
@@ -137,10 +138,10 @@ router.get('/herd-turnover', async (req, res, next) => {
       db('cows')
         .whereNull('deleted_at')
         .whereIn('status', ['sold', 'dead'])
-        .whereBetween('updated_at', [start, endTs])
-        .select(db.raw(`${monthExpr('updated_at')} as month`))
+        .whereRaw(`COALESCE(status_changed_at, updated_at) BETWEEN ? AND ?`, [start, endTs])
+        .select(db.raw(`${monthExpr('COALESCE(status_changed_at, updated_at)')} as month`))
         .count('id as removals')
-        .groupByRaw(`${monthExpr('updated_at')}`),
+        .groupByRaw(monthExpr('COALESCE(status_changed_at, updated_at)')),
     ]);
 
     // Merge into single month map

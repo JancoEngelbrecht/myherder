@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('../../config/database');
 const {
-  round2, defaultRange, monthExpr,
+  round2, defaultRange, monthExpr, dayDiffExpr,
   MS_PER_DAY, RECURRENCE_WINDOW_DAYS,
   getIssueTypeDefMap, parseIssueCodes,
 } = require('./helpers');
@@ -54,7 +54,7 @@ router.get('/unhealthiest', async (req, res, next) => {
       .orderBy('issue_count', 'desc')
       .limit(10);
 
-    res.json(rows);
+    res.json(rows.map(r => ({ ...r, issue_count: Number(r.issue_count) })));
   } catch (err) {
     next(err);
   }
@@ -405,7 +405,7 @@ router.get('/slowest-to-resolve', async (req, res, next) => {
         'c.id',
         'c.tag_number',
         'c.name',
-        db.raw('AVG(julianday(h.resolved_at) - julianday(h.observed_at)) as avg_days'),
+        db.raw(`AVG(${dayDiffExpr('h.observed_at', 'h.resolved_at')}) as avg_days`),
         db.raw('COUNT(h.id) as issue_count'),
       )
       .groupBy('c.id', 'c.tag_number', 'c.name')

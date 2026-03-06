@@ -57,7 +57,7 @@ router.get('/', async (req, res, next) => {
       query.where('audit_log.created_at', '>=', String(req.query.from))
     }
     if (req.query.to) {
-      query.where('audit_log.created_at', '<=', String(req.query.to))
+      query.where('audit_log.created_at', '<=', String(req.query.to) + 'T23:59:59')
     }
 
     const countResult = await query.clone().clearSelect().clearOrder().count('* as count').first()

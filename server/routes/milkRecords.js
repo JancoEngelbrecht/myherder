@@ -6,6 +6,7 @@ const authenticate = require('../middleware/auth')
 const authorize = require('../middleware/authorize')
 const { requireAdmin } = authorize
 const { ISO_DATE_RE, joiMsg } = require('../helpers/constants')
+const { logAudit } = require('../services/auditService')
 
 const router = express.Router()
 router.use(authenticate)
@@ -224,6 +225,7 @@ router.post('/', authorize('can_record_milk'), async (req, res, next) => {
     })
 
     const created = await milkQuery().where('mr.id', id).first()
+    await logAudit({ userId: req.user.id, action: 'create', entityType: 'milk_record', entityId: id, newValues: created })
     res.status(201).json(created)
   } catch (err) {
     next(err)
@@ -267,6 +269,7 @@ router.put('/:id', authorize('can_record_milk'), async (req, res, next) => {
     })
 
     const updated = await milkQuery().where('mr.id', req.params.id).first()
+    await logAudit({ userId: req.user.id, action: 'update', entityType: 'milk_record', entityId: req.params.id, oldValues: existing, newValues: updated })
     res.json(updated)
   } catch (err) {
     next(err)
@@ -281,6 +284,7 @@ router.delete('/:id', requireAdmin, async (req, res, next) => {
     if (!existing) return res.status(404).json({ error: 'Milk record not found' })
 
     await db('milk_records').where({ id: req.params.id }).delete()
+    await logAudit({ userId: req.user.id, action: 'delete', entityType: 'milk_record', entityId: req.params.id, oldValues: existing })
     res.json({ message: 'Milk record deleted' })
   } catch (err) {
     next(err)

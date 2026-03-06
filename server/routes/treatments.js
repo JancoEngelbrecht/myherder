@@ -7,6 +7,7 @@ const authorize = require('../middleware/authorize')
 const { requireAdmin } = authorize
 const { calcWithdrawalDates } = require('../services/withdrawalService')
 const { joiMsg, MAX_PAGE_SIZE } = require('../helpers/constants')
+const { logAudit } = require('../services/auditService')
 
 const router = express.Router()
 router.use(authenticate)
@@ -260,6 +261,7 @@ router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
 
     const created = await treatmentQuery().where('t.id', id).first()
     const [enriched] = await enrichWithMedications([created])
+    await logAudit({ userId: req.user.id, action: 'create', entityType: 'treatment', entityId: id, newValues: created })
     res.status(201).json(enriched)
   } catch (err) {
     next(err)
@@ -275,6 +277,7 @@ router.delete('/:id', requireAdmin, async (req, res, next) => {
 
     // treatment_medications rows are removed by ON DELETE CASCADE
     await db('treatments').where({ id: req.params.id }).delete()
+    await logAudit({ userId: req.user.id, action: 'delete', entityType: 'treatment', entityId: req.params.id, oldValues: existing })
     res.json({ message: 'Treatment deleted' })
   } catch (err) {
     next(err)

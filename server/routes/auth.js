@@ -17,7 +17,7 @@ const router = express.Router();
 
 const MAX_USERNAME_LENGTH = 100;
 const MAX_PASSWORD_LENGTH = 128;
-const MAX_PIN_LENGTH = 10;
+const MAX_PIN_LENGTH = 4;
 
 // Pre-hashed dummy value for constant-time comparison when user not found
 const DUMMY_HASH = '$2a$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ01234';

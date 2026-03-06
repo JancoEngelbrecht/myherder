@@ -1,5 +1,6 @@
 <template>
   <div class="teat-selector">
+    <p class="teat-hint">{{ t('healthIssues.affectedTeats') }}</p>
     <div class="udder-grid">
       <button
         v-for="teat in teats"
@@ -14,7 +15,6 @@
         <span class="teat-abbr">{{ teat.abbr }}</span>
       </button>
     </div>
-    <p class="teat-hint">{{ t('healthIssues.affectedTeats') }}</p>
   </div>
 </template>
 
@@ -117,6 +117,6 @@ function toggle(value) {
 .teat-hint {
   font-size: 0.75rem;
   color: var(--text-muted);
-  margin-top: 6px;
+  margin-bottom: 6px;
 }
 </style>

@@ -109,8 +109,9 @@ router.delete('/:id', requireAdmin, async (req, res, next) => {
     const existing = await db('issue_type_definitions').where({ id: req.params.id }).first()
     if (!existing) return res.status(404).json({ error: 'Issue type not found' })
 
+    const escapedCode = existing.code.replace(/[_%]/g, '\\$&')
     const usageResult = await db('health_issues')
-      .whereRaw('issue_types LIKE ?', [`%"${existing.code}"%`])
+      .whereRaw('issue_types LIKE ? ESCAPE ?', [`%"${escapedCode}"%`, '\\'])
       .count('* as count')
       .first()
 

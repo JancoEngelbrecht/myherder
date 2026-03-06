@@ -16,7 +16,7 @@ router.use(auth);
 const cowSchema = Joi.object({
   tag_number: Joi.string().max(50).required(),
   name: Joi.string().max(100).allow('', null),
-  dob: Joi.string().allow('', null),
+  dob: Joi.string().pattern(ISO_DATE_RE).allow('', null),
   breed: Joi.string().max(100).allow('', null),
   breed_type_id: Joi.string().max(36).allow(null, ''),
   sex: Joi.string().valid('female', 'male').default('female'),
@@ -195,7 +195,10 @@ router.get('/', async (req, res, next) => {
     const { limit, offset } = parsePagination(req.query, { defaultLimit: DEFAULT_PAGE_SIZE });
 
     const [{ count: total }] = await query.clone().clearSelect().count('* as count');
-    const cows = await query.orderBy('c.tag_number').limit(limit).offset(offset);
+    const sortMap = { tag_number: 'c.tag_number', name: 'c.name', dob: 'c.dob', status: 'c.status' };
+    const sortCol = sortMap[String(req.query.sort)] || 'c.tag_number';
+    const sortOrder = req.query.order === 'desc' ? 'desc' : 'asc';
+    const cows = await query.orderBy(sortCol, sortOrder).limit(limit).offset(offset);
 
     res.set('X-Total-Count', String(total));
     res.json(cows);
@@ -263,7 +266,12 @@ router.put('/:id', authorize('can_manage_cows'), async (req, res, next) => {
     const { error, value } = cowUpdateSchema.validate(req.body);
     if (error) return res.status(400).json({ error: joiMsg(error) });
 
-    await db('cows').where({ id: req.params.id }).update({ ...value, updated_at: new Date().toISOString() });
+    const now = new Date().toISOString();
+    const updates = { ...value, updated_at: now };
+    if (value.status && value.status !== oldCow.status) {
+      updates.status_changed_at = now;
+    }
+    await db('cows').where({ id: req.params.id }).update(updates);
 
     const updated = await db('cows').where({ id: req.params.id }).first();
     await logAudit({ userId: req.user.id, action: 'update', entityType: 'cow', entityId: req.params.id, oldValues: oldCow, newValues: updated });

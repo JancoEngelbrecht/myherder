@@ -73,11 +73,11 @@ router.get('/breeding-overview', async (req, res, next) => {
           .whereBetween('event_date', [start, endTs])
           .count('* as count')
           .first(),
-        // Preg check positive count in date range
+        // Distinct cows with positive preg check in date range
         db('breeding_events')
           .where('event_type', 'preg_check_positive')
           .whereBetween('event_date', [start, endTs])
-          .count('* as count')
+          .countDistinct('cow_id as count')
           .first(),
         // Expected calvings per month (next 6 months)
         db('breeding_events')
@@ -395,7 +395,7 @@ router.get('/seasonal-prediction', async (req, res, next) => {
     // Bound the query to 3 years of history to prevent unbounded full-table scans
     const THREE_YEARS_AGO = new Date();
     THREE_YEARS_AGO.setFullYear(THREE_YEARS_AGO.getFullYear() - 3);
-    const lookbackStart = THREE_YEARS_AGO.toISOString();
+    const lookbackStart = localDate(THREE_YEARS_AGO);
 
     const issues = await db('health_issues')
       .where('observed_at', '>=', lookbackStart)
