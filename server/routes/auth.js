@@ -1,8 +1,10 @@
 const express = require('express');
+const Joi = require('joi');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const db = require('../config/database');
+const { joiMsg, validateBody } = require('../helpers/constants');
 const {
   jwtSecret,
   jwtExpiryPassword,
@@ -15,9 +17,17 @@ const {
 
 const router = express.Router();
 
-const MAX_USERNAME_LENGTH = 100;
-const MAX_PASSWORD_LENGTH = 128;
-const MAX_PIN_LENGTH = 4;
+// ── Validation schemas ──────────────────────────────────────────
+
+const loginSchema = Joi.object({
+  username: Joi.string().max(100).required(),
+  password: Joi.string().max(128).required(),
+});
+
+const pinLoginSchema = Joi.object({
+  username: Joi.string().max(100).required(),
+  pin: Joi.string().pattern(/^\d{4}$/).required(),
+});
 
 // Pre-hashed dummy value for constant-time comparison when user not found
 const DUMMY_HASH = '$2a$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ01234';
@@ -79,13 +89,9 @@ async function checkAndApplyLockout(user, credentialValid) {
 // POST /api/auth/login — password login
 router.post('/login', loginLimiter, async (req, res, next) => {
   try {
-    const { username, password } = req.body;
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password required' });
-    }
-    if (username.length > MAX_USERNAME_LENGTH || password.length > MAX_PASSWORD_LENGTH) {
-      return res.status(400).json({ error: 'Invalid input length' });
-    }
+    const { error, value } = validateBody(loginSchema, req.body);
+    if (error) return res.status(400).json({ error: joiMsg(error) });
+    const { username, password } = value;
 
     const user = await db('users').where({ username, is_active: true }).first();
     if (!user || !user.password_hash) {
@@ -120,13 +126,9 @@ router.post('/login', loginLimiter, async (req, res, next) => {
 // POST /api/auth/login-pin — PIN login
 router.post('/login-pin', loginLimiter, async (req, res, next) => {
   try {
-    const { username, pin } = req.body;
-    if (!username || !pin) {
-      return res.status(400).json({ error: 'Username and PIN required' });
-    }
-    if (username.length > MAX_USERNAME_LENGTH || String(pin).length > MAX_PIN_LENGTH) {
-      return res.status(400).json({ error: 'Invalid input length' });
-    }
+    const { error, value } = validateBody(pinLoginSchema, req.body);
+    if (error) return res.status(400).json({ error: joiMsg(error) });
+    const { username, pin } = value;
 
     const user = await db('users').where({ username, is_active: true }).first();
     if (!user || !user.pin_hash) {

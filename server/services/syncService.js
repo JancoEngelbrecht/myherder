@@ -263,7 +263,7 @@ async function handleDelete(table, entityType, id, softDelete, user, ownerField)
 
 // ── Pull Data ───────────────────────────────────────────────────
 
-async function pullData(since, full, _user) {
+async function pullData(since, full) {
   const deleted = []
 
   // All authenticated users can read all entity types via sync pull.

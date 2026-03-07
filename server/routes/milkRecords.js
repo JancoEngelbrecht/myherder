@@ -5,7 +5,7 @@ const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const authorize = require('../middleware/authorize')
 const { requireAdmin } = authorize
-const { ISO_DATE_RE, joiMsg } = require('../helpers/constants')
+const { ISO_DATE_RE, joiMsg, validateBody, validateQuery } = require('../helpers/constants')
 const { logAudit } = require('../services/auditService')
 
 const router = express.Router()
@@ -87,7 +87,7 @@ const SORT_COLUMN_MAP = {
 // Enhanced: ?from&to&recorded_by&page&limit&sort&order → { data, total }
 router.get('/', async (req, res, next) => {
   try {
-    const { error, value } = querySchema.validate(req.query, { allowUnknown: false })
+    const { error, value } = validateQuery(querySchema, req.query)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const paginated = value.page != null || value.limit != null
@@ -111,10 +111,11 @@ router.get('/', async (req, res, next) => {
       .join('cows as c', 'mr.cow_id', 'c.id')
       .whereNull('c.deleted_at')
     applyFilters(countQuery, value)
-    const [{ cnt }] = await countQuery.count('mr.id as cnt')
 
-    // Paginate
-    const data = await query.limit(limit).offset((page - 1) * limit)
+    const [[{ cnt }], data] = await Promise.all([
+      countQuery.count('mr.id as cnt'),
+      query.limit(limit).offset((page - 1) * limit),
+    ])
     res.json({ data, total: Number(cnt) })
   } catch (err) {
     next(err)
@@ -177,7 +178,7 @@ router.get('/:id', async (req, res, next) => {
 // POST /api/milk-records
 router.post('/', authorize('can_record_milk'), async (req, res, next) => {
   try {
-    const { error, value } = createSchema.validate(req.body)
+    const { error, value } = validateBody(createSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const cow = await db('cows').where({ id: value.cow_id }).whereNull('deleted_at').first()
@@ -235,7 +236,7 @@ router.post('/', authorize('can_record_milk'), async (req, res, next) => {
 // PUT /api/milk-records/:id
 router.put('/:id', authorize('can_record_milk'), async (req, res, next) => {
   try {
-    const { error, value } = updateSchema.validate(req.body)
+    const { error, value } = validateBody(updateSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const existing = await db('milk_records').where({ id: req.params.id }).first()

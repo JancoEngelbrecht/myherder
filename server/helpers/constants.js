@@ -53,6 +53,28 @@ function joiMsg(error) {
   return error.details[0].message.replace(/['"]/g, '')
 }
 
+/** Standard Joi options for request body validation */
+const BODY_OPTS = { abortEarly: false, stripUnknown: true }
+
+/** Standard Joi options for query string validation */
+const QUERY_OPTS = { abortEarly: false, allowUnknown: false }
+
+/**
+ * Validate request body with standard options (abortEarly: false, stripUnknown: true).
+ * Returns { error, value } — same as schema.validate().
+ */
+function validateBody(schema, body) {
+  return schema.validate(body, BODY_OPTS)
+}
+
+/**
+ * Validate query params with standard options (abortEarly: false, allowUnknown: false).
+ * Returns { error, value } — same as schema.validate().
+ */
+function validateQuery(schema, query) {
+  return schema.validate(query, QUERY_OPTS)
+}
+
 module.exports = {
   ISO_DATE_RE,
   toCode,
@@ -63,4 +85,6 @@ module.exports = {
   MS_PER_DAY,
   COW_STATUSES,
   joiMsg,
+  validateBody,
+  validateQuery,
 }

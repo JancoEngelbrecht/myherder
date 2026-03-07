@@ -393,9 +393,9 @@ router.get('/days-open', async (req, res, next) => {
 router.get('/seasonal-prediction', async (req, res, next) => {
   try {
     // Bound the query to 3 years of history to prevent unbounded full-table scans
-    const THREE_YEARS_AGO = new Date();
-    THREE_YEARS_AGO.setFullYear(THREE_YEARS_AGO.getFullYear() - 3);
-    const lookbackStart = localDate(THREE_YEARS_AGO);
+    const threeYearsAgo = new Date();
+    threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+    const lookbackStart = localDate(threeYearsAgo);
 
     const issues = await db('health_issues')
       .where('observed_at', '>=', lookbackStart)

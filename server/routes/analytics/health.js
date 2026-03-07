@@ -368,7 +368,6 @@ router.get('/health-cure-rate-trend', async (req, res, next) => {
 
     const rows = await db('health_issues')
       .whereBetween('observed_at', [start, endTs])
-      .whereNotNull('observed_at')
       .select(
         db.raw(`${monthExpr('observed_at')} as month`),
         db.raw('COUNT(*) as total'),

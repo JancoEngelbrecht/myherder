@@ -46,10 +46,19 @@ function calcDates(eventType, eventDate, breedTimings = {}) {
 // Look up breed-specific timing values by breed_type_id.
 // Returns the full breed_types row, or {} if no breed is assigned.
 // Used by POST/PATCH handlers to pass breed timings into calcDates().
+const _breedTimingsCache = new Map()
+const BREED_TIMINGS_TTL = 5 * 60 * 1000
+
 async function getBreedTimings(breedTypeId) {
   if (!breedTypeId) return {}
+
+  const cached = _breedTimingsCache.get(breedTypeId)
+  if (cached && Date.now() < cached.expiresAt) return cached.value
+
   const breed = await db('breed_types').where({ id: breedTypeId }).first()
-  return breed || {}
+  const value = breed || {}
+  _breedTimingsCache.set(breedTypeId, { value, expiresAt: Date.now() + BREED_TIMINGS_TTL })
+  return value
 }
 
 module.exports = { calcDates, getBreedTimings }

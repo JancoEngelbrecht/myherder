@@ -4,7 +4,7 @@ const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const { requireAdmin } = require('../middleware/authorize')
 const { logAudit } = require('../services/auditService')
-const { joiMsg } = require('../helpers/constants')
+const { joiMsg, validateBody } = require('../helpers/constants')
 
 const router = express.Router()
 
@@ -43,7 +43,7 @@ router.get('/', async (_req, res, next) => {
 // PATCH /api/settings — admin only; upserts settings
 router.patch('/', authenticate, requireAdmin, async (req, res, next) => {
   try {
-    const { error, value } = patchSchema.validate(req.body)
+    const { error, value } = validateBody(patchSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const oldSettings = await getSettingsObject()

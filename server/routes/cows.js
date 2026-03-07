@@ -6,7 +6,7 @@ const auth = require('../middleware/auth');
 const authorize = require('../middleware/authorize');
 const { requireAdmin } = authorize;
 const { logAudit } = require('../services/auditService');
-const { ISO_DATE_RE, MAX_SEARCH_LENGTH, DEFAULT_PAGE_SIZE, parsePagination, COW_STATUSES, joiMsg } = require('../helpers/constants');
+const { ISO_DATE_RE, MAX_SEARCH_LENGTH, DEFAULT_PAGE_SIZE, parsePagination, COW_STATUSES, joiMsg, validateBody, validateQuery } = require('../helpers/constants');
 
 const router = express.Router();
 router.use(auth);
@@ -90,7 +90,7 @@ const LAST_CALVING_SQL = `(
 // GET /api/cows
 router.get('/', async (req, res, next) => {
   try {
-    const { error: qError } = cowQuerySchema.validate(req.query, { allowUnknown: false });
+    const { error: qError, value: q } = validateQuery(cowQuerySchema, req.query);
     if (qError) return res.status(400).json({ error: joiMsg(qError) });
 
     const query = db('cows as c')
@@ -104,38 +104,30 @@ router.get('/', async (req, res, next) => {
       .whereNull('c.deleted_at');
 
     // Search with input length guard
-    if (req.query.search) {
-      const search = String(req.query.search).slice(0, MAX_SEARCH_LENGTH);
+    if (q.search) {
+      const search = String(q.search).slice(0, MAX_SEARCH_LENGTH);
       const s = `%${search}%`;
       query.where(function () {
         this.where('c.tag_number', 'like', s).orWhere('c.name', 'like', s);
       });
     }
 
-    if (req.query.status) {
-      query.where('c.status', req.query.status);
-    }
+    if (q.status) query.where('c.status', q.status);
+    if (q.sex) query.where('c.sex', q.sex);
+    if (q.breed_type_id) query.where('c.breed_type_id', q.breed_type_id);
 
-    if (req.query.sex) {
-      query.where('c.sex', req.query.sex);
-    }
-
-    if (req.query.breed_type_id) {
-      query.where('c.breed_type_id', req.query.breed_type_id);
-    }
-
-    if (req.query.is_dry !== undefined) {
-      query.where('c.is_dry', req.query.is_dry === 'true' || req.query.is_dry === '1');
+    if (q.is_dry !== undefined) {
+      query.where('c.is_dry', q.is_dry === 'true' || q.is_dry === '1');
     }
 
     // Life phase filter (SQL-computed from dob/sex/breed thresholds)
-    if (req.query.life_phase) {
-      query.whereRaw(`${LIFE_PHASE_SQL} = ?`, [req.query.life_phase]);
+    if (q.life_phase) {
+      query.whereRaw(`${LIFE_PHASE_SQL} = ?`, [q.life_phase]);
     }
 
     // Pregnant filter (uses cow.status which is updated by breeding events)
-    if (req.query.pregnant !== undefined) {
-      if (req.query.pregnant === 'true' || req.query.pregnant === '1') {
+    if (q.pregnant !== undefined) {
+      if (q.pregnant === 'true' || q.pregnant === '1') {
         query.where('c.status', 'pregnant');
       } else {
         query.whereNot('c.status', 'pregnant');
@@ -143,15 +135,15 @@ router.get('/', async (req, res, next) => {
     }
 
     // Days in Milk range (days since last calving)
-    if (req.query.dim_min !== undefined || req.query.dim_max !== undefined) {
-      if (req.query.dim_min !== undefined) {
-        const dimMin = parseInt(String(req.query.dim_min), 10);
+    if (q.dim_min !== undefined || q.dim_max !== undefined) {
+      if (q.dim_min !== undefined) {
+        const dimMin = parseInt(String(q.dim_min), 10);
         if (!isNaN(dimMin) && dimMin >= 0) {
           query.whereRaw(`julianday('now') - julianday(${LAST_CALVING_SQL}) >= ?`, [dimMin]);
         }
       }
-      if (req.query.dim_max !== undefined) {
-        const dimMax = parseInt(String(req.query.dim_max), 10);
+      if (q.dim_max !== undefined) {
+        const dimMax = parseInt(String(q.dim_max), 10);
         if (!isNaN(dimMax) && dimMax >= 0) {
           query.whereRaw(`julianday('now') - julianday(${LAST_CALVING_SQL}) <= ?`, [dimMax]);
         }
@@ -159,15 +151,11 @@ router.get('/', async (req, res, next) => {
     }
 
     // Last calving date range
-    if (req.query.calving_after) {
-      query.whereRaw(`${LAST_CALVING_SQL} >= ?`, [req.query.calving_after]);
-    }
-    if (req.query.calving_before) {
-      query.whereRaw(`${LAST_CALVING_SQL} <= ?`, [req.query.calving_before]);
-    }
+    if (q.calving_after) query.whereRaw(`${LAST_CALVING_SQL} >= ?`, [q.calving_after]);
+    if (q.calving_before) query.whereRaw(`${LAST_CALVING_SQL} <= ?`, [q.calving_before]);
 
     // Average daily milk yield range (last 7 days)
-    if (req.query.yield_min !== undefined || req.query.yield_max !== undefined) {
+    if (q.yield_min !== undefined || q.yield_max !== undefined) {
       const yieldSub = `(
         SELECT AVG(daily_total) FROM (
           SELECT mr.recording_date, SUM(mr.litres) as daily_total
@@ -177,28 +165,27 @@ router.get('/', async (req, res, next) => {
           GROUP BY mr.recording_date
         )
       )`;
-      if (req.query.yield_min !== undefined) {
-        const yMin = parseFloat(String(req.query.yield_min));
-        if (!isNaN(yMin) && yMin >= 0) {
-          query.whereRaw(`${yieldSub} >= ?`, [yMin]);
-        }
+      if (q.yield_min !== undefined) {
+        const yMin = parseFloat(String(q.yield_min));
+        if (!isNaN(yMin) && yMin >= 0) query.whereRaw(`${yieldSub} >= ?`, [yMin]);
       }
-      if (req.query.yield_max !== undefined) {
-        const yMax = parseFloat(String(req.query.yield_max));
-        if (!isNaN(yMax) && yMax >= 0) {
-          query.whereRaw(`${yieldSub} <= ?`, [yMax]);
-        }
+      if (q.yield_max !== undefined) {
+        const yMax = parseFloat(String(q.yield_max));
+        if (!isNaN(yMax) && yMax >= 0) query.whereRaw(`${yieldSub} <= ?`, [yMax]);
       }
     }
 
     // Pagination
-    const { limit, offset } = parsePagination(req.query, { defaultLimit: DEFAULT_PAGE_SIZE });
+    const { limit, offset } = parsePagination(q, { defaultLimit: DEFAULT_PAGE_SIZE });
 
-    const [{ count: total }] = await query.clone().clearSelect().count('* as count');
     const sortMap = { tag_number: 'c.tag_number', name: 'c.name', dob: 'c.dob', status: 'c.status' };
-    const sortCol = sortMap[String(req.query.sort)] || 'c.tag_number';
-    const sortOrder = req.query.order === 'desc' ? 'desc' : 'asc';
-    const cows = await query.orderBy(sortCol, sortOrder).limit(limit).offset(offset);
+    const sortCol = sortMap[String(q.sort)] || 'c.tag_number';
+    const sortOrder = q.order === 'desc' ? 'desc' : 'asc';
+
+    const [[{ count: total }], cows] = await Promise.all([
+      query.clone().clearSelect().count('* as count'),
+      query.orderBy(sortCol, sortOrder).limit(limit).offset(offset),
+    ]);
 
     res.set('X-Total-Count', String(total));
     res.json(cows);
@@ -239,7 +226,7 @@ router.get('/:id', async (req, res, next) => {
 // POST /api/cows
 router.post('/', authorize('can_manage_cows'), async (req, res, next) => {
   try {
-    const { error, value } = cowSchema.validate(req.body);
+    const { error, value } = validateBody(cowSchema, req.body);
     if (error) return res.status(400).json({ error: joiMsg(error) });
 
     const now = new Date().toISOString();
@@ -263,7 +250,7 @@ router.put('/:id', authorize('can_manage_cows'), async (req, res, next) => {
   try {
     const oldCow = await findCowOrFail(req.params.id);
 
-    const { error, value } = cowUpdateSchema.validate(req.body);
+    const { error, value } = validateBody(cowUpdateSchema, req.body);
     if (error) return res.status(400).json({ error: joiMsg(error) });
 
     const now = new Date().toISOString();

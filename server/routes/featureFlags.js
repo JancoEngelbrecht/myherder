@@ -3,7 +3,7 @@ const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const { requireAdmin } = require('../middleware/authorize')
-const { joiMsg } = require('../helpers/constants')
+const { joiMsg, validateBody } = require('../helpers/constants')
 
 const router = express.Router()
 router.use(authenticate)
@@ -57,7 +57,7 @@ router.get('/', async (_req, res, next) => {
 // PATCH /api/feature-flags — admin only
 router.patch('/', requireAdmin, async (req, res, next) => {
   try {
-    const { error, value } = updateSchema.validate(req.body)
+    const { error, value } = validateBody(updateSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const now = new Date().toISOString()

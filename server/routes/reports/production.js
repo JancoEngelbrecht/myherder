@@ -1,6 +1,7 @@
 const express = require('express')
 const db = require('../../config/database')
 const { formatDate } = require('../../services/reportService')
+const { generateReport } = require('./shared')
 
 const router = express.Router()
 
@@ -58,7 +59,6 @@ async function getDiscardedMilkData(from, to) {
 }
 
 router.get('/discarded-milk', (req, res, next) => {
-  const { generateReport } = require('./index')
   generateReport(req, res, next, {
     title: 'Discarded Milk Report',
     sheetName: 'Discarded Milk',
@@ -158,7 +158,6 @@ async function getMilkProductionData(from, to) {
 }
 
 router.get('/milk-production', (req, res, next) => {
-  const { generateReport } = require('./index')
   generateReport(req, res, next, {
     title: 'Milk Production Report',
     sheetName: 'Milk Production',

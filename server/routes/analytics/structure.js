@@ -4,6 +4,8 @@ const { round2, localDate, defaultRange, monthExpr, ageYearsExpr } = require('./
 
 const router = express.Router();
 
+const STATUS_DATE_EXPR = 'COALESCE(status_changed_at, updated_at)';
+
 // GET /api/analytics/age-distribution
 router.get('/age-distribution', async (req, res, next) => {
   try {
@@ -84,19 +86,18 @@ router.get('/mortality-rate', async (req, res, next) => {
   try {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
-    const statusDate = 'COALESCE(status_changed_at, updated_at)';
     const [herdRow, rows] = await Promise.all([
       db('cows').whereNull('deleted_at').count('id as herd_size').first(),
       db('cows')
         .whereNull('deleted_at')
         .whereIn('status', ['sold', 'dead'])
-        .whereRaw(`${statusDate} BETWEEN ? AND ?`, [start, endTs])
+        .whereRaw(`${STATUS_DATE_EXPR} BETWEEN ? AND ?`, [start, endTs])
         .select(
-          db.raw(`${monthExpr(statusDate)} as month`),
+          db.raw(`${monthExpr(STATUS_DATE_EXPR)} as month`),
           db.raw("SUM(CASE WHEN status = 'sold' THEN 1 ELSE 0 END) as sold"),
           db.raw("SUM(CASE WHEN status = 'dead' THEN 1 ELSE 0 END) as dead"),
         )
-        .groupByRaw(monthExpr(statusDate))
+        .groupByRaw(monthExpr(STATUS_DATE_EXPR))
         .orderBy('month'),
     ]);
 
@@ -138,10 +139,10 @@ router.get('/herd-turnover', async (req, res, next) => {
       db('cows')
         .whereNull('deleted_at')
         .whereIn('status', ['sold', 'dead'])
-        .whereRaw(`COALESCE(status_changed_at, updated_at) BETWEEN ? AND ?`, [start, endTs])
-        .select(db.raw(`${monthExpr('COALESCE(status_changed_at, updated_at)')} as month`))
+        .whereRaw(`${STATUS_DATE_EXPR} BETWEEN ? AND ?`, [start, endTs])
+        .select(db.raw(`${monthExpr(STATUS_DATE_EXPR)} as month`))
         .count('id as removals')
-        .groupByRaw(monthExpr('COALESCE(status_changed_at, updated_at)')),
+        .groupByRaw(monthExpr(STATUS_DATE_EXPR)),
     ]);
 
     // Merge into single month map

@@ -6,7 +6,7 @@ const authenticate = require('../middleware/auth')
 const authorize = require('../middleware/authorize')
 const { requireAdmin } = authorize
 const { calcWithdrawalDates } = require('../services/withdrawalService')
-const { joiMsg, MAX_PAGE_SIZE } = require('../helpers/constants')
+const { joiMsg, MAX_PAGE_SIZE, validateBody, validateQuery } = require('../helpers/constants')
 const { logAudit } = require('../services/auditService')
 
 const router = express.Router()
@@ -96,7 +96,7 @@ const treatmentQuerySchema = Joi.object({
 // With page/limit: returns { data: [...], total: N }
 router.get('/', async (req, res, next) => {
   try {
-    const { error: qError, value: q } = treatmentQuerySchema.validate(req.query, { allowUnknown: false })
+    const { error: qError, value: q } = validateQuery(treatmentQuerySchema, req.query)
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
     const sortCol = q.sort || 'treatment_date'
@@ -121,12 +121,15 @@ router.get('/', async (req, res, next) => {
         .join('cows as c', 't.cow_id', 'c.id')
         .whereNull('c.deleted_at')
       if (q.cow_id) countQuery.where('t.cow_id', q.cow_id)
-      const [{ total }] = await countQuery.count('t.id as total')
 
       const dataQuery = treatmentQuery().orderBy(orderCol, sortDir).limit(limit).offset(offset)
       if (q.cow_id) dataQuery.where('t.cow_id', q.cow_id)
 
-      const rows = await enrichWithMedications(await dataQuery)
+      const [[{ total }], rawRows] = await Promise.all([
+        countQuery.count('t.id as total'),
+        dataQuery,
+      ])
+      const rows = await enrichWithMedications(rawRows)
       return res.json({ data: rows, total: Number(total) })
     }
 
@@ -183,7 +186,7 @@ router.get('/:id', async (req, res, next) => {
 // POST /api/treatments
 router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
   try {
-    const { error, value } = schema.validate(req.body)
+    const { error, value } = validateBody(schema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const cow = await db('cows').where({ id: value.cow_id }).whereNull('deleted_at').first()

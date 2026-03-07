@@ -18,9 +18,20 @@ const VALID_EVENT_TYPES = [
   'calving', 'abortion', 'dry_off',
 ]
 
+const EVENT_TYPE_LABELS = {
+  heat_observed: 'Heat Observed',
+  ai_insemination: 'AI Insemination',
+  bull_service: 'Bull Service',
+  preg_check_positive: 'Preg Check (+)',
+  preg_check_negative: 'Preg Check (–)',
+  calving: 'Calving',
+  abortion: 'Abortion',
+  dry_off: 'Dry Off',
+}
+
 const createSchema = Joi.object({
   cow_id: Joi.string().uuid().required(),
-  event_type: Joi.string().required(),
+  event_type: Joi.string().valid(...VALID_EVENT_TYPES).required(),
   event_date: Joi.string().isoDate().required(),
   sire_id: Joi.string().uuid().allow(null, '').default(null),
   semen_id: Joi.string().max(100).allow(null, '').default(null),
@@ -40,7 +51,7 @@ const createSchema = Joi.object({
 })
 
 const updateSchema = Joi.object({
-  event_type: Joi.string().optional(),
+  event_type: Joi.string().valid(...VALID_EVENT_TYPES).optional(),
   event_date: Joi.string().isoDate().optional(),
   sire_id: Joi.string().uuid().allow(null, '').optional(),
   semen_id: Joi.string().max(100).allow(null, '').optional(),
@@ -71,6 +82,7 @@ const breedingQuerySchema = Joi.object({
 module.exports = {
   STATUS_TRANSITIONS,
   VALID_EVENT_TYPES,
+  EVENT_TYPE_LABELS,
   createSchema,
   updateSchema,
   breedingQuerySchema,

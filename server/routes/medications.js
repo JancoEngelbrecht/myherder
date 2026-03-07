@@ -4,7 +4,8 @@ const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const authorize = require('../middleware/authorize')
-const { MAX_SEARCH_LENGTH, DEFAULT_PAGE_SIZE, parsePagination, joiMsg } = require('../helpers/constants')
+const { MAX_SEARCH_LENGTH, DEFAULT_PAGE_SIZE, parsePagination, joiMsg, validateBody, validateQuery } = require('../helpers/constants')
+const { logAudit } = require('../services/auditService')
 
 const router = express.Router()
 router.use(authenticate)
@@ -32,25 +33,27 @@ const medicationQuerySchema = Joi.object({
 // GET /api/medications — active only by default; pass ?all=1 for all
 router.get('/', async (req, res, next) => {
   try {
-    const { error: qError } = medicationQuerySchema.validate(req.query, { allowUnknown: false })
+    const { error: qError, value: q } = validateQuery(medicationQuerySchema, req.query)
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
     const query = db('medications')
-      .where(req.query.all === '1' ? {} : { is_active: true })
+      .where(q.all === '1' ? {} : { is_active: true })
       .orderBy('name')
 
-    if (req.query.search) {
-      const s = `%${String(req.query.search).slice(0, MAX_SEARCH_LENGTH)}%`
+    if (q.search) {
+      const s = `%${String(q.search).slice(0, MAX_SEARCH_LENGTH)}%`
       query.where(function () {
         this.where('name', 'like', s).orWhere('active_ingredient', 'like', s)
       })
     }
 
-    if (req.query.page !== undefined) {
-      const { limit, offset } = parsePagination(req.query, { defaultLimit: DEFAULT_PAGE_SIZE })
+    if (q.page !== undefined) {
+      const { limit, offset } = parsePagination(q, { defaultLimit: DEFAULT_PAGE_SIZE })
 
-      const [{ count: total }] = await query.clone().count('* as count')
-      const rows = await query.limit(limit).offset(offset)
+      const [[{ count: total }], rows] = await Promise.all([
+        query.clone().count('* as count'),
+        query.limit(limit).offset(offset),
+      ])
 
       res.set('X-Total-Count', String(total))
       res.json(rows)
@@ -78,7 +81,7 @@ router.get('/:id', async (req, res, next) => {
 // POST /api/medications — admin only
 router.post('/', authorize('can_manage_medications'), async (req, res, next) => {
   try {
-    const { error, value } = schema.validate(req.body)
+    const { error, value } = validateBody(schema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const id = uuidv4()
@@ -88,6 +91,7 @@ router.post('/', authorize('can_manage_medications'), async (req, res, next) => 
     // Coerce booleans to 0/1 to match SQLite's stored representation
     const response = { ...record }
     if (response.is_active !== undefined) response.is_active = response.is_active ? 1 : 0
+    await logAudit({ userId: req.user.id, action: 'create', entityType: 'medication', entityId: id, newValues: response })
     res.status(201).json(response)
   } catch (err) {
     next(err)
@@ -100,12 +104,13 @@ router.put('/:id', authorize('can_manage_medications'), async (req, res, next) =
     const existing = await db('medications').where({ id: req.params.id }).first()
     if (!existing) return res.status(404).json({ error: 'Medication not found' })
 
-    const { error, value } = schema.validate(req.body)
+    const { error, value } = validateBody(schema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const now = new Date().toISOString()
     await db('medications').where({ id: req.params.id }).update({ ...value, updated_at: now })
     const updated = await db('medications').where({ id: req.params.id }).first()
+    await logAudit({ userId: req.user.id, action: 'update', entityType: 'medication', entityId: req.params.id, oldValues: existing, newValues: updated })
     res.json(updated)
   } catch (err) {
     next(err)
@@ -121,6 +126,7 @@ router.delete('/:id', authorize('can_manage_medications'), async (req, res, next
     const now = new Date().toISOString()
     await db('medications').where({ id: req.params.id }).update({ is_active: false, updated_at: now })
     const updated = await db('medications').where({ id: req.params.id }).first()
+    await logAudit({ userId: req.user.id, action: 'deactivate', entityType: 'medication', entityId: req.params.id, oldValues: existing, newValues: updated })
     res.json(updated)
   } catch (err) {
     next(err)

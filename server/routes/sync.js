@@ -3,7 +3,7 @@ const Joi = require('joi')
 const rateLimit = require('express-rate-limit')
 const authenticate = require('../middleware/auth')
 const { processChange, pullData, logSync } = require('../services/syncService')
-const { joiMsg } = require('../helpers/constants')
+const { joiMsg, validateBody, validateQuery } = require('../helpers/constants')
 
 const router = express.Router()
 
@@ -59,7 +59,7 @@ router.get('/health', (_req, res) => {
 // POST /api/sync/push — push client changes to server
 router.post('/push', syncPushLimiter, authenticate, async (req, res, next) => {
   try {
-    const { error, value } = pushSchema.validate(req.body)
+    const { error, value } = validateBody(pushSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const { deviceId, changes } = value
@@ -96,10 +96,10 @@ router.post('/push', syncPushLimiter, authenticate, async (req, res, next) => {
 // GET /api/sync/pull — pull server data to client
 router.get('/pull', authenticate, async (req, res, next) => {
   try {
-    const { error, value } = pullQuerySchema.validate(req.query)
+    const { error, value } = validateQuery(pullQuerySchema, req.query)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    const data = await pullData(value.since, value.full === '1', req.user)
+    const data = await pullData(value.since, value.full === '1')
 
     // Count total records for logging
     const totalRecords = Object.entries(data)

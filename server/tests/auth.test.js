@@ -109,7 +109,7 @@ describe('POST /api/auth/login-pin', () => {
     for (let i = 0; i < 5; i++) {
       await request(app)
         .post('/api/auth/login-pin')
-        .send({ username: 'test_worker', pin: 'bad' })
+        .send({ username: 'test_worker', pin: '0000' })
     }
 
     const user = await db('users').where({ id: WORKER_ID }).first()

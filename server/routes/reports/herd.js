@@ -2,6 +2,8 @@ const express = require('express')
 const db = require('../../config/database')
 const { formatDate } = require('../../services/reportService')
 const { batchMedications, getIssueTypeMap, parseJsonColumn, MS_PER_DAY } = require('./helpers')
+const { generateReport } = require('./shared')
+const { EVENT_TYPE_LABELS } = require('../../helpers/breedingSchemas')
 
 const router = express.Router()
 
@@ -62,7 +64,6 @@ async function getMedicationUsageData(from, to) {
 }
 
 router.get('/medication-usage', (req, res, next) => {
-  const { generateReport } = require('./index')
   generateReport(req, res, next, {
     title: 'Medication Usage Report',
     sheetName: 'Medication Usage',
@@ -85,17 +86,6 @@ const breedingColumns = [
   { header: 'Preg Check Method', key: 'preg_method', width: 1.2 },
   { header: 'Notes', key: 'notes', width: 2 },
 ]
-
-const EVENT_TYPE_LABELS = {
-  heat_observed: 'Heat Observed',
-  ai_insemination: 'AI Insemination',
-  bull_service: 'Bull Service',
-  preg_check_positive: 'Preg Check (+)',
-  preg_check_negative: 'Preg Check (–)',
-  calving: 'Calving',
-  abortion: 'Abortion',
-  dry_off: 'Dry Off',
-}
 
 async function getBreedingData(from, to) {
   const events = await db('breeding_events as be')
@@ -137,7 +127,6 @@ async function getBreedingData(from, to) {
 }
 
 router.get('/breeding', (req, res, next) => {
-  const { generateReport } = require('./index')
   generateReport(req, res, next, {
     title: 'Breeding & Reproduction Report',
     sheetName: 'Breeding',
@@ -191,7 +180,7 @@ async function getHerdHealthData(from, to) {
     .count('* as cnt')
     .groupBy('health_issue_id')
   const treatMap = {}
-  for (const tc of treatCounts) treatMap[tc.health_issue_id] = tc.cnt
+  for (const tc of treatCounts) treatMap[tc.health_issue_id] = Number(tc.cnt)
 
   const severityCounts = { low: 0, medium: 0, high: 0 }
   let resolved = 0
@@ -244,7 +233,6 @@ async function getHerdHealthData(from, to) {
 }
 
 router.get('/herd-health', (req, res, next) => {
-  const { generateReport } = require('./index')
   generateReport(req, res, next, {
     title: 'Herd Health Summary Report',
     sheetName: 'Herd Health',

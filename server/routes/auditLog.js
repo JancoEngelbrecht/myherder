@@ -3,7 +3,7 @@ const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const { requireAdmin } = require('../middleware/authorize')
-const { ISO_DATE_RE, parsePagination, joiMsg } = require('../helpers/constants')
+const { ISO_DATE_RE, parsePagination, joiMsg, validateQuery } = require('../helpers/constants')
 
 const router = express.Router()
 router.use(authenticate)
@@ -27,10 +27,10 @@ const auditQuerySchema = Joi.object({
 // GET /api/audit-log — paginated, filterable audit log
 router.get('/', async (req, res, next) => {
   try {
-    const { error: qError } = auditQuerySchema.validate(req.query, { allowUnknown: false })
+    const { error: qError, value: q } = validateQuery(auditQuerySchema, req.query)
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
-    const { limit, offset } = parsePagination(req.query)
+    const { limit, offset } = parsePagination(q)
 
     const query = db('audit_log')
       .leftJoin('users', 'audit_log.user_id', 'users.id')
@@ -40,33 +40,31 @@ router.get('/', async (req, res, next) => {
         'users.full_name as user_full_name',
       )
 
-    // Filters (Joi-validated above — no manual slicing needed)
-    if (req.query.entity_type) {
-      query.where('audit_log.entity_type', req.query.entity_type)
+    // Filters from validated query value
+    if (q.entity_type) {
+      query.where('audit_log.entity_type', q.entity_type)
     }
-    if (req.query.entity_id) {
-      query.where('audit_log.entity_id', req.query.entity_id)
+    if (q.entity_id) {
+      query.where('audit_log.entity_id', q.entity_id)
     }
-    if (req.query.user_id) {
-      query.where('audit_log.user_id', req.query.user_id)
+    if (q.user_id) {
+      query.where('audit_log.user_id', q.user_id)
     }
-    if (req.query.action) {
-      query.where('audit_log.action', req.query.action)
+    if (q.action) {
+      query.where('audit_log.action', q.action)
     }
-    if (req.query.from) {
-      query.where('audit_log.created_at', '>=', String(req.query.from))
+    if (q.from) {
+      query.where('audit_log.created_at', '>=', q.from)
     }
-    if (req.query.to) {
-      query.where('audit_log.created_at', '<=', String(req.query.to) + 'T23:59:59')
+    if (q.to) {
+      query.where('audit_log.created_at', '<=', q.to + 'T23:59:59')
     }
 
-    const countResult = await query.clone().clearSelect().clearOrder().count('* as count').first()
+    const [countResult, rows] = await Promise.all([
+      query.clone().clearSelect().clearOrder().count('* as count').first(),
+      query.orderBy('audit_log.created_at', 'desc').limit(limit).offset(offset),
+    ])
     const total = Number(countResult.count)
-
-    const rows = await query
-      .orderBy('audit_log.created_at', 'desc')
-      .limit(limit)
-      .offset(offset)
 
     // Parse JSON fields
     const safeJsonParse = (str) => {

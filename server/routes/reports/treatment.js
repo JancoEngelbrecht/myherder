@@ -71,7 +71,7 @@ async function getWithdrawalData(from, to) {
 }
 
 router.get('/withdrawal-compliance', (req, res, next) => {
-  const { generateReport } = require('./index')
+  const { generateReport } = require('./shared')
   generateReport(req, res, next, {
     title: 'Withdrawal Compliance Report',
     sheetName: 'Withdrawal Compliance',
@@ -167,7 +167,7 @@ async function getTreatmentHistoryData(from, to) {
 }
 
 router.get('/treatment-history', (req, res, next) => {
-  const { generateReport } = require('./index')
+  const { generateReport } = require('./shared')
   generateReport(req, res, next, {
     title: 'Treatment History Report',
     sheetName: 'Treatment History',

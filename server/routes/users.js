@@ -6,7 +6,7 @@ const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const { requireAdmin } = require('../middleware/authorize')
 const { logAudit } = require('../services/auditService')
-const { joiMsg } = require('../helpers/constants')
+const { joiMsg, validateBody, validateQuery } = require('../helpers/constants')
 
 const router = express.Router()
 router.use(authenticate)
@@ -77,7 +77,7 @@ function sanitizeUser(row) {
 // GET /api/users — list all users; ?active=0|1 filter; excludes soft-deleted
 router.get('/', async (req, res, next) => {
   try {
-    const { error: qError, value: qValue } = usersQuerySchema.validate(req.query)
+    const { error: qError, value: qValue } = validateQuery(usersQuerySchema, req.query)
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
     const query = db('users').whereNull('deleted_at').orderBy('full_name')
@@ -109,7 +109,7 @@ router.get('/:id', async (req, res, next) => {
 // POST /api/users — create user
 router.post('/', async (req, res, next) => {
   try {
-    const { error, value } = createSchema.validate(req.body)
+    const { error, value } = validateBody(createSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     // Check username uniqueness (ignore soft-deleted users)
@@ -154,7 +154,7 @@ router.patch('/:id', async (req, res, next) => {
     const row = await db('users').where({ id: req.params.id }).whereNull('deleted_at').first()
     if (!row) return res.status(404).json({ error: 'User not found' })
 
-    const { error, value } = updateSchema.validate(req.body)
+    const { error, value } = validateBody(updateSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     // Block changing own role

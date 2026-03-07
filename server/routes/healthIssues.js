@@ -5,7 +5,7 @@ const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const authorize = require('../middleware/authorize')
 const { requireAdmin } = authorize
-const { MAX_SEARCH_LENGTH, DEFAULT_PAGE_SIZE, parsePagination, joiMsg } = require('../helpers/constants')
+const { MAX_SEARCH_LENGTH, DEFAULT_PAGE_SIZE, parsePagination, joiMsg, validateBody, validateQuery } = require('../helpers/constants')
 const { logAudit } = require('../services/auditService')
 
 const router = express.Router()
@@ -63,24 +63,26 @@ const issueQuerySchema = Joi.object({
 // GET /api/health-issues
 router.get('/', async (req, res, next) => {
   try {
-    const { error: qError } = issueQuerySchema.validate(req.query, { allowUnknown: false })
+    const { error: qError, value: q } = validateQuery(issueQuerySchema, req.query)
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
     const query = issueQuery().orderBy('h.observed_at', 'desc')
-    if (req.query.cow_id) query.where('h.cow_id', req.query.cow_id)
-    if (req.query.status) query.where('h.status', req.query.status)
-    if (req.query.search) {
-      const s = `%${String(req.query.search).slice(0, MAX_SEARCH_LENGTH)}%`
+    if (q.cow_id) query.where('h.cow_id', q.cow_id)
+    if (q.status) query.where('h.status', q.status)
+    if (q.search) {
+      const s = `%${String(q.search).slice(0, MAX_SEARCH_LENGTH)}%`
       query.where(function () {
         this.where('c.tag_number', 'like', s).orWhere('c.name', 'like', s)
       })
     }
 
-    if (req.query.page !== undefined) {
-      const { limit, offset } = parsePagination(req.query, { defaultLimit: DEFAULT_PAGE_SIZE })
+    if (q.page !== undefined) {
+      const { limit, offset } = parsePagination(q, { defaultLimit: DEFAULT_PAGE_SIZE })
 
-      const [{ count: total }] = await query.clone().count('h.id as count')
-      const rows = await query.limit(limit).offset(offset)
+      const [[{ count: total }], rows] = await Promise.all([
+        query.clone().count('h.id as count'),
+        query.limit(limit).offset(offset),
+      ])
 
       res.set('X-Total-Count', String(total))
       res.json(rows.map(parseRow))
@@ -108,7 +110,7 @@ router.get('/:id', async (req, res, next) => {
 // POST /api/health-issues
 router.post('/', authorize('can_log_issues'), async (req, res, next) => {
   try {
-    const { error, value } = createSchema.validate(req.body)
+    const { error, value } = validateBody(createSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const cow = await db('cows').where({ id: value.cow_id }).whereNull('deleted_at').first()
@@ -142,7 +144,7 @@ router.post('/', authorize('can_log_issues'), async (req, res, next) => {
 // PATCH /api/health-issues/:id/status
 router.patch('/:id/status', authorize('can_log_issues'), async (req, res, next) => {
   try {
-    const { error, value } = statusSchema.validate(req.body)
+    const { error, value } = validateBody(statusSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const existing = await db('health_issues').where({ id: req.params.id }).first()
@@ -206,7 +208,7 @@ router.get('/:id/comments', async (req, res, next) => {
 // POST /api/health-issues/:id/comments
 router.post('/:id/comments', authorize('can_log_issues'), async (req, res, next) => {
   try {
-    const { error, value } = commentSchema.validate(req.body)
+    const { error, value } = validateBody(commentSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const issue = await db('health_issues').where({ id: req.params.id }).first()
