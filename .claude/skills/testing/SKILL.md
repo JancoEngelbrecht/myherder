@@ -1,6 +1,6 @@
 ---
 name: testing
-description: Load when writing or reviewing tests. Covers test structure, naming, patterns, and what to test vs what to skip.
+description: Load when writing or reviewing tests. Covers test structure, naming, patterns, and what to test vs what to skip. Sources — Vitest official docs (vitest.dev), Jest official docs, testing best practices from Vue and Express communities.
 ---
 
 # Testing Standards
@@ -77,20 +77,193 @@ const service = new UserService(mockHttp);
 - Timeout → proper cleanup and error propagation
 - Permission denied → correct status code and message
 
+## Vitest Patterns (source: vitest.dev)
+
+### Mocking
+
+```js
+// Mock a module
+vi.mock('../services/api', () => ({
+  default: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn()
+  }
+}))
+
+// Mock a function
+const handler = vi.fn()
+handler.mockResolvedValue({ data: [] })  // async mock
+handler.mockReturnValue(42)              // sync mock
+
+// Spy on an existing function
+const spy = vi.spyOn(object, 'method')
+expect(spy).toHaveBeenCalledWith('arg1', 'arg2')
+expect(spy).toHaveBeenCalledTimes(1)
+
+// Reset mocks between tests
+beforeEach(() => {
+  vi.clearAllMocks()  // Clears call history, keeps implementation
+  // vi.resetAllMocks()  // Also resets implementation
+  // vi.restoreAllMocks()  // Restores original implementation
+})
+```
+
+### Key matchers
+
+```js
+// Equality
+expect(value).toBe(exact)           // === strict equality
+expect(value).toEqual(deep)         // Deep equality (objects/arrays)
+expect(value).toStrictEqual(deep)   // Deep equality + checks undefined props
+
+// Truthiness
+expect(value).toBeTruthy()
+expect(value).toBeFalsy()
+expect(value).toBeNull()
+expect(value).toBeDefined()
+
+// Numbers
+expect(value).toBeGreaterThan(3)
+expect(value).toBeCloseTo(0.3, 5)   // For floating point
+
+// Strings
+expect(value).toMatch(/pattern/)
+expect(value).toContain('substring')
+
+// Arrays/Objects
+expect(array).toContain(item)
+expect(array).toHaveLength(3)
+expect(object).toHaveProperty('key', 'value')
+
+// Errors
+expect(() => fn()).toThrow()
+expect(() => fn()).toThrow('message')
+await expect(asyncFn()).rejects.toThrow('message')
+
+// Async
+await expect(promise).resolves.toBe(value)
+await expect(promise).rejects.toThrow()
+```
+
 ## Anti-Patterns to Avoid
 
-- **Test interdependence** — each test must work in isolation
+- **Test interdependence** — each test must work in isolation. Use `beforeEach` to reset state.
 - **Testing implementation** — don't assert on internal method calls unless that IS the behavior
 - **Flaky tests** — no random data, no timing-dependent assertions, no shared state
 - **Giant test files** — split by feature/behavior, not one file per class
 - **Copy-paste tests** — extract shared setup into helpers/fixtures
 - **Assertions in loops** — if the loop is empty, the test passes vacuously
+- **Over-mocking** — mock external boundaries (APIs, DB), not internal logic
+- **Testing nothing** — every test must have at least one meaningful assertion
+- **Snapshot abuse** — don't snapshot large objects. Assert specific properties instead.
+- **Ignoring async** — always `await` async operations in tests. Unawaited promises silently pass.
 
 ## Coverage Guidance
 
 - Aim for high coverage on business logic (80%+)
 - Don't chase 100% — diminishing returns on boilerplate/config code
 - Coverage is a signal, not a target — 100% coverage with bad assertions is worthless
+
+## Backend Test Patterns (Jest + Supertest + Knex)
+
+### Test setup
+
+```js
+// server/tests/routes/resource.test.js
+const request = require('supertest')
+const app = require('../../app')
+const db = require('../../config/database')
+
+beforeAll(async () => {
+  await db.migrate.latest()
+  await db.seed.run()
+})
+
+afterAll(async () => {
+  await db.destroy()
+})
+```
+
+Each test file gets its own in-memory SQLite database (configured in jest.config.js).
+
+### Auth helper
+
+```js
+const jwt = require('jsonwebtoken')
+
+function makeToken(overrides = {}) {
+  return jwt.sign({
+    id: 'test-user-id',
+    username: 'testuser',
+    role: 'admin',
+    permissions: [],
+    ...overrides
+  }, process.env.JWT_SECRET || 'test-secret', { expiresIn: '1h' })
+}
+
+const adminToken = makeToken({ role: 'admin' })
+const workerToken = makeToken({ role: 'worker', permissions: ['can_record_milk'] })
+```
+
+### Route test patterns
+
+```js
+describe('GET /api/items', () => {
+  it('returns items for authenticated user', async () => {
+    const res = await request(app)
+      .get('/api/items')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200)
+
+    expect(Array.isArray(res.body)).toBe(true)
+  })
+
+  it('returns 401 without token', async () => {
+    await request(app).get('/api/items').expect(401)
+  })
+
+  it('returns 403 for worker without permission', async () => {
+    await request(app)
+      .get('/api/items')
+      .set('Authorization', `Bearer ${workerToken}`)
+      .expect(403)
+  })
+})
+
+describe('POST /api/items', () => {
+  it('creates item with valid data', async () => {
+    const res = await request(app)
+      .post('/api/items')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: 'Test Item' })
+      .expect(201)
+
+    expect(res.body.id).toBeDefined()
+    expect(res.body.name).toBe('Test Item')
+  })
+
+  it('returns 400 with validation errors for invalid data', async () => {
+    const res = await request(app)
+      .post('/api/items')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({}) // missing required fields
+      .expect(400)
+
+    expect(res.body.error.code).toBe('VALIDATION_ERROR')
+    expect(res.body.error.details).toBeDefined()
+  })
+})
+```
+
+### What to test for every route
+
+1. **Happy path** — correct status code and response shape
+2. **Auth** — 401 without token, 403 without permission
+3. **Validation** — 400 with invalid/missing data, correct error details
+4. **Not found** — 404 for non-existent resource IDs
+5. **Edge cases** — empty strings, boundary values, duplicate creates (409)
 
 ## MyHerder-Specific Test Patterns
 
