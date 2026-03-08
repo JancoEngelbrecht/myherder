@@ -14,8 +14,9 @@ const router = express.Router();
  * Fetch health issues in date range, pre-parse issue_types codes,
  * and build a cow_id index for efficient recurrence lookups.
  */
-async function fetchParsedIssues(start, endTs) {
+async function fetchParsedIssues(start, endTs, farmId) {
   const rawIssues = await db('health_issues')
+    .where('farm_id', farmId)
     .whereBetween('observed_at', [start, endTs])
     .select('id', 'cow_id', 'issue_types', 'status', 'observed_at', 'resolved_at');
 
@@ -40,6 +41,7 @@ router.get('/unhealthiest', async (req, res, next) => {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
     const rows = await db('health_issues as h')
+      .where('h.farm_id', req.farmId)
       .join('cows as c', 'h.cow_id', 'c.id')
       .whereNull('c.deleted_at')
       .whereBetween('h.observed_at', [start, endTs])
@@ -66,10 +68,11 @@ router.get('/issue-frequency', async (req, res, next) => {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
     const issues = await db('health_issues')
+      .where('farm_id', req.farmId)
       .whereBetween('observed_at', [start, endTs])
       .select('issue_types', 'observed_at');
 
-    const defMap = await getIssueTypeDefMap();
+    const defMap = await getIssueTypeDefMap(req.farmId);
 
     // Accumulate totals per code and per month-per-code
     const totalCounts = {};   // { code: count }
@@ -114,12 +117,14 @@ router.get('/mastitis-rate', async (req, res, next) => {
 
     // Current herd size — single snapshot count of non-deleted cows
     const herdRow = await db('cows')
+      .where('farm_id', req.farmId)
       .whereNull('deleted_at')
       .count('* as count')
       .first();
     const herd_size = Number(herdRow?.count) || 0;
 
     const rows = await db('health_issues')
+      .where('farm_id', req.farmId)
       .whereBetween('observed_at', [start, endTs])
       .where('issue_types', 'like', '%"mastitis"%')
       .select(db.raw(`${monthExpr('observed_at')} as month`))
@@ -151,6 +156,7 @@ router.get('/withdrawal-days', async (req, res, next) => {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
     const rows = await db('treatments')
+      .where('farm_id', req.farmId)
       .whereBetween('treatment_date', [start, endTs])
       .whereNotNull('withdrawal_end_milk')
       .select(
@@ -200,9 +206,9 @@ router.get('/health-resolution-stats', async (req, res, next) => {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
     const [{ parsed, byCow }, defMap, herdRow] = await Promise.all([
-      fetchParsedIssues(start, endTs),
-      getIssueTypeDefMap(),
-      db('cows').whereNull('deleted_at').count('* as count').first(),
+      fetchParsedIssues(start, endTs, req.farmId),
+      getIssueTypeDefMap(req.farmId),
+      db('cows').where('farm_id', req.farmId).whereNull('deleted_at').count('* as count').first(),
     ]);
     const herdSize = Number(herdRow?.count) || 0;
 
@@ -277,12 +283,13 @@ router.get('/health-resolution-by-type', async (req, res, next) => {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
     const resolved = await db('health_issues')
+      .where('farm_id', req.farmId)
       .whereBetween('observed_at', [start, endTs])
       .where('status', 'resolved')
       .whereNotNull('resolved_at')
       .select('issue_types', 'observed_at', 'resolved_at');
 
-    const defMap = await getIssueTypeDefMap();
+    const defMap = await getIssueTypeDefMap(req.farmId);
 
     // Accumulate total days + count per issue type code
     const byCode = {}; // { code: { totalDays, count } }
@@ -317,8 +324,8 @@ router.get('/health-recurrence', async (req, res, next) => {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
     const [{ parsed: issues, byCow: byCowIdx }, defMap] = await Promise.all([
-      fetchParsedIssues(start, endTs),
-      getIssueTypeDefMap(),
+      fetchParsedIssues(start, endTs, req.farmId),
+      getIssueTypeDefMap(req.farmId),
     ]);
 
     const resolved = issues.filter(i => i.status === 'resolved' && i.resolved_at);
@@ -367,6 +374,7 @@ router.get('/health-cure-rate-trend', async (req, res, next) => {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
     const rows = await db('health_issues')
+      .where('farm_id', req.farmId)
       .whereBetween('observed_at', [start, endTs])
       .select(
         db.raw(`${monthExpr('observed_at')} as month`),
@@ -395,6 +403,7 @@ router.get('/slowest-to-resolve', async (req, res, next) => {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
     const rows = await db('health_issues as h')
+      .where('h.farm_id', req.farmId)
       .join('cows as c', 'h.cow_id', 'c.id')
       .whereNull('c.deleted_at')
       .whereBetween('h.observed_at', [start, endTs])

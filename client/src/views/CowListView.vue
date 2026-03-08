@@ -183,7 +183,7 @@ const showAdvanced = ref(false)
 const page = ref(1)
 const limit = ref(20)
 
-if (breedTypesStore.activeTypes.length === 0) breedTypesStore.fetchActive()
+if (!breedTypesStore.hasData) breedTypesStore.fetchActive()
 
 const filters = [
   { value: '',          labelKey: 'cows.filterAll' },

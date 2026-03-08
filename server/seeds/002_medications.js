@@ -1,5 +1,7 @@
 const { v4: uuidv4 } = require('uuid')
 
+const DEFAULT_FARM_ID = '00000000-0000-4000-a000-000000000099'
+
 exports.seed = async function (knex) {
   // Only insert if the table is empty
   const count = await knex('medications').count('id as n').first()
@@ -10,6 +12,7 @@ exports.seed = async function (knex) {
   await knex('medications').insert([
     {
       id: uuidv4(),
+      farm_id: DEFAULT_FARM_ID,
       name: 'Penicillin G',
       active_ingredient: 'Benzylpenicillin',
       withdrawal_milk_hours: 72,
@@ -23,6 +26,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
+      farm_id: DEFAULT_FARM_ID,
       name: 'Oxytetracycline 200mg/ml',
       active_ingredient: 'Oxytetracycline',
       withdrawal_milk_hours: 96,
@@ -36,6 +40,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
+      farm_id: DEFAULT_FARM_ID,
       name: 'Flunixin Meglumine (Banamine)',
       active_ingredient: 'Flunixin',
       withdrawal_milk_hours: 36,
@@ -49,6 +54,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
+      farm_id: DEFAULT_FARM_ID,
       name: 'Mastitis Intramammary Tube',
       active_ingredient: 'Cloxacillin',
       withdrawal_milk_hours: 96,
@@ -62,6 +68,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
+      farm_id: DEFAULT_FARM_ID,
       name: 'Vitamins B-complex',
       active_ingredient: 'B-vitamins',
       withdrawal_milk_hours: 0,

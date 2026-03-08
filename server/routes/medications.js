@@ -4,11 +4,13 @@ const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const authorize = require('../middleware/authorize')
+const tenantScope = require('../middleware/tenantScope')
 const { MAX_SEARCH_LENGTH, DEFAULT_PAGE_SIZE, parsePagination, joiMsg, validateBody, validateQuery } = require('../helpers/constants')
 const { logAudit } = require('../services/auditService')
 
 const router = express.Router()
 router.use(authenticate)
+router.use(tenantScope)
 
 const schema = Joi.object({
   name: Joi.string().max(100).required(),
@@ -37,6 +39,7 @@ router.get('/', async (req, res, next) => {
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
     const query = db('medications')
+      .where('farm_id', req.farmId)
       .where(q.all === '1' ? {} : { is_active: true })
       .orderBy('name')
 
@@ -70,7 +73,7 @@ router.get('/', async (req, res, next) => {
 // GET /api/medications/:id
 router.get('/:id', async (req, res, next) => {
   try {
-    const row = await db('medications').where({ id: req.params.id }).first()
+    const row = await db('medications').where({ id: req.params.id }).where('farm_id', req.farmId).first()
     if (!row) return res.status(404).json({ error: 'Medication not found' })
     res.json(row)
   } catch (err) {
@@ -86,12 +89,12 @@ router.post('/', authorize('can_manage_medications'), async (req, res, next) => 
 
     const id = uuidv4()
     const now = new Date().toISOString()
-    const record = { id, ...value, created_at: now, updated_at: now }
+    const record = { id, farm_id: req.user.farm_id, ...value, created_at: now, updated_at: now }
     await db('medications').insert(record)
     // Coerce booleans to 0/1 to match SQLite's stored representation
     const response = { ...record }
     if (response.is_active !== undefined) response.is_active = response.is_active ? 1 : 0
-    await logAudit({ userId: req.user.id, action: 'create', entityType: 'medication', entityId: id, newValues: response })
+    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'create', entityType: 'medication', entityId: id, newValues: response })
     res.status(201).json(response)
   } catch (err) {
     next(err)
@@ -101,16 +104,16 @@ router.post('/', authorize('can_manage_medications'), async (req, res, next) => 
 // PUT /api/medications/:id — admin only
 router.put('/:id', authorize('can_manage_medications'), async (req, res, next) => {
   try {
-    const existing = await db('medications').where({ id: req.params.id }).first()
+    const existing = await db('medications').where({ id: req.params.id }).where('farm_id', req.farmId).first()
     if (!existing) return res.status(404).json({ error: 'Medication not found' })
 
     const { error, value } = validateBody(schema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const now = new Date().toISOString()
-    await db('medications').where({ id: req.params.id }).update({ ...value, updated_at: now })
-    const updated = await db('medications').where({ id: req.params.id }).first()
-    await logAudit({ userId: req.user.id, action: 'update', entityType: 'medication', entityId: req.params.id, oldValues: existing, newValues: updated })
+    await db('medications').where({ id: req.params.id }).where('farm_id', req.farmId).update({ ...value, updated_at: now })
+    const updated = await db('medications').where({ id: req.params.id }).where('farm_id', req.farmId).first()
+    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'update', entityType: 'medication', entityId: req.params.id, oldValues: existing, newValues: updated })
     res.json(updated)
   } catch (err) {
     next(err)
@@ -120,13 +123,13 @@ router.put('/:id', authorize('can_manage_medications'), async (req, res, next) =
 // DELETE /api/medications/:id — soft-delete (deactivate), admin only
 router.delete('/:id', authorize('can_manage_medications'), async (req, res, next) => {
   try {
-    const existing = await db('medications').where({ id: req.params.id }).first()
+    const existing = await db('medications').where({ id: req.params.id }).where('farm_id', req.farmId).first()
     if (!existing) return res.status(404).json({ error: 'Medication not found' })
 
     const now = new Date().toISOString()
-    await db('medications').where({ id: req.params.id }).update({ is_active: false, updated_at: now })
-    const updated = await db('medications').where({ id: req.params.id }).first()
-    await logAudit({ userId: req.user.id, action: 'deactivate', entityType: 'medication', entityId: req.params.id, oldValues: existing, newValues: updated })
+    await db('medications').where({ id: req.params.id }).where('farm_id', req.farmId).update({ is_active: false, updated_at: now })
+    const updated = await db('medications').where({ id: req.params.id }).where('farm_id', req.farmId).first()
+    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'deactivate', entityType: 'medication', entityId: req.params.id, oldValues: existing, newValues: updated })
     res.json(updated)
   } catch (err) {
     next(err)

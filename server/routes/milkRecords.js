@@ -3,6 +3,7 @@ const { randomUUID: uuidv4 } = require('crypto')
 const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
+const tenantScope = require('../middleware/tenantScope')
 const authorize = require('../middleware/authorize')
 const { requireAdmin } = authorize
 const { ISO_DATE_RE, joiMsg, validateBody, validateQuery } = require('../helpers/constants')
@@ -10,12 +11,15 @@ const { logAudit } = require('../services/auditService')
 
 const router = express.Router()
 router.use(authenticate)
+router.use(tenantScope)
 
 const VALID_SESSIONS = ['morning', 'afternoon', 'evening']
 const VALID_SORT_FIELDS = ['recording_date', 'litres', 'tag_number']
 const VALID_ORDERS = ['asc', 'desc']
 
 // ── Validation ──────────────────────────────────────────────────────────────
+
+const MAX_SEARCH_LENGTH = 100
 
 const querySchema = Joi.object({
   date: Joi.string().pattern(ISO_DATE_RE),
@@ -24,6 +28,8 @@ const querySchema = Joi.object({
   session: Joi.string().valid(...VALID_SESSIONS),
   cow_id: Joi.string().uuid(),
   recorded_by: Joi.string().uuid(),
+  search: Joi.string().max(MAX_SEARCH_LENGTH).allow(''),
+  discarded: Joi.boolean(),
   page: Joi.number().integer().min(1),
   limit: Joi.number().integer().min(1).max(100),
   sort: Joi.string().valid(...VALID_SORT_FIELDS),
@@ -48,8 +54,9 @@ const updateSchema = Joi.object({
   notes: Joi.string().max(2000).allow('', null),
 })
 
-function milkQuery() {
+function milkQuery(farmId) {
   return db('milk_records as mr')
+    .where('mr.farm_id', farmId)
     .join('cows as c', 'mr.cow_id', 'c.id')
     .join('users as u', 'mr.recorded_by', 'u.id')
     .whereNull('c.deleted_at')
@@ -65,13 +72,22 @@ function milkQuery() {
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function applyFilters(query, params) {
-  const { date, from, to, session, cow_id, recorded_by } = params
+  const { date, from, to, session, cow_id, recorded_by, search, discarded } = params
   if (date) query.where('mr.recording_date', date)
   if (from) query.where('mr.recording_date', '>=', from)
   if (to) query.where('mr.recording_date', '<=', to)
   if (session) query.where('mr.session', session)
   if (cow_id) query.where('mr.cow_id', cow_id)
   if (recorded_by) query.where('mr.recorded_by', recorded_by)
+  if (search) {
+    const s = `%${search}%`
+    query.where(function () {
+      this.where('c.tag_number', 'like', s)
+        .orWhere('c.name', 'like', s)
+        .orWhere('u.full_name', 'like', s)
+    })
+  }
+  if (discarded != null) query.where('mr.milk_discarded', discarded ? 1 : 0)
 }
 
 const SORT_COLUMN_MAP = {
@@ -94,7 +110,7 @@ router.get('/', async (req, res, next) => {
     const sortCol = SORT_COLUMN_MAP[value.sort || 'recording_date']
     const order = value.order || 'desc'
 
-    const query = milkQuery().orderBy(sortCol, order)
+    const query = milkQuery(req.farmId).orderBy(sortCol, order)
     applyFilters(query, value)
 
     if (!paginated) {
@@ -108,7 +124,9 @@ router.get('/', async (req, res, next) => {
 
     // Count total matching rows
     const countQuery = db('milk_records as mr')
+      .where('mr.farm_id', req.farmId)
       .join('cows as c', 'mr.cow_id', 'c.id')
+      .join('users as u', 'mr.recorded_by', 'u.id')
       .whereNull('c.deleted_at')
     applyFilters(countQuery, value)
 
@@ -122,6 +140,20 @@ router.get('/', async (req, res, next) => {
   }
 })
 
+// GET /api/milk-records/recorders — distinct users who have recorded milk on this farm
+router.get('/recorders', async (req, res, next) => {
+  try {
+    const rows = await db('milk_records as mr')
+      .where('mr.farm_id', req.farmId)
+      .join('users as u', 'mr.recorded_by', 'u.id')
+      .distinct('u.id', 'u.full_name')
+      .orderBy('u.full_name', 'asc')
+    res.json(rows)
+  } catch (err) {
+    next(err)
+  }
+})
+
 // GET /api/milk-records/summary?date=YYYY-MM-DD
 router.get('/summary', async (req, res, next) => {
   try {
@@ -130,6 +162,7 @@ router.get('/summary', async (req, res, next) => {
     if (!ISO_DATE_RE.test(date)) return res.status(400).json({ error: 'Invalid date format — expected YYYY-MM-DD' })
 
     const rows = await db('milk_records as mr')
+      .where('mr.farm_id', req.farmId)
       .join('cows as c', 'mr.cow_id', 'c.id')
       .whereNull('c.deleted_at')
       .where('mr.recording_date', date)
@@ -167,7 +200,7 @@ router.get('/summary', async (req, res, next) => {
 // GET /api/milk-records/:id
 router.get('/:id', async (req, res, next) => {
   try {
-    const row = await milkQuery().where('mr.id', req.params.id).first()
+    const row = await milkQuery(req.farmId).where('mr.id', req.params.id).first()
     if (!row) return res.status(404).json({ error: 'Milk record not found' })
     res.json(row)
   } catch (err) {
@@ -181,12 +214,12 @@ router.post('/', authorize('can_record_milk'), async (req, res, next) => {
     const { error, value } = validateBody(createSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    const cow = await db('cows').where({ id: value.cow_id }).whereNull('deleted_at').first()
+    const cow = await db('cows').where({ id: value.cow_id }).where('farm_id', req.farmId).whereNull('deleted_at').first()
     if (!cow) return res.status(404).json({ error: 'Cow not found' })
     if (cow.sex === 'male') return res.status(400).json({ error: 'Cannot record milk for a male animal' })
 
     // Check unique constraint before insert to return a clean 409
-    const existing = await db('milk_records').where({
+    const existing = await db('milk_records').where('farm_id', req.farmId).where({
       cow_id: value.cow_id,
       session: value.session,
       recording_date: value.recording_date,
@@ -197,6 +230,7 @@ router.post('/', authorize('can_record_milk'), async (req, res, next) => {
     const now = new Date().toISOString()
     if (!value.milk_discarded) {
       const withdrawal = await db('treatments')
+        .where('farm_id', req.farmId)
         .where('cow_id', value.cow_id)
         .where('withdrawal_end_milk', '>', now)
         .orderBy('withdrawal_end_milk', 'desc')
@@ -212,6 +246,7 @@ router.post('/', authorize('can_record_milk'), async (req, res, next) => {
 
     await db('milk_records').insert({
       id,
+      farm_id: req.user.farm_id,
       cow_id: value.cow_id,
       recorded_by: req.user.id,
       session: value.session,
@@ -225,8 +260,8 @@ router.post('/', authorize('can_record_milk'), async (req, res, next) => {
       updated_at: now,
     })
 
-    const created = await milkQuery().where('mr.id', id).first()
-    await logAudit({ userId: req.user.id, action: 'create', entityType: 'milk_record', entityId: id, newValues: created })
+    const created = await milkQuery(req.farmId).where('mr.id', id).first()
+    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'create', entityType: 'milk_record', entityId: id, newValues: created })
     res.status(201).json(created)
   } catch (err) {
     next(err)
@@ -239,7 +274,7 @@ router.put('/:id', authorize('can_record_milk'), async (req, res, next) => {
     const { error, value } = validateBody(updateSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    const existing = await db('milk_records').where({ id: req.params.id }).first()
+    const existing = await db('milk_records').where({ id: req.params.id }).where('farm_id', req.farmId).first()
     if (!existing) return res.status(404).json({ error: 'Milk record not found' })
 
     if (req.user.role !== 'admin' && existing.recorded_by !== req.user.id) {
@@ -250,6 +285,7 @@ router.put('/:id', authorize('can_record_milk'), async (req, res, next) => {
     if (value.milk_discarded === false) {
       const now = new Date().toISOString()
       const activeWithdrawal = await db('treatments')
+        .where('farm_id', req.farmId)
         .where('cow_id', existing.cow_id)
         .where('withdrawal_end_milk', '>', now)
         .first()
@@ -264,13 +300,13 @@ router.put('/:id', authorize('can_record_milk'), async (req, res, next) => {
       value.litres = Math.round(Number(value.litres) * 100) / 100
     }
 
-    await db('milk_records').where({ id: req.params.id }).update({
+    await db('milk_records').where({ id: req.params.id }).where('farm_id', req.farmId).update({
       ...value,
       updated_at: new Date().toISOString(),
     })
 
-    const updated = await milkQuery().where('mr.id', req.params.id).first()
-    await logAudit({ userId: req.user.id, action: 'update', entityType: 'milk_record', entityId: req.params.id, oldValues: existing, newValues: updated })
+    const updated = await milkQuery(req.farmId).where('mr.id', req.params.id).first()
+    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'update', entityType: 'milk_record', entityId: req.params.id, oldValues: existing, newValues: updated })
     res.json(updated)
   } catch (err) {
     next(err)
@@ -281,11 +317,11 @@ router.put('/:id', authorize('can_record_milk'), async (req, res, next) => {
 router.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
 
-    const existing = await db('milk_records').where({ id: req.params.id }).first()
+    const existing = await db('milk_records').where({ id: req.params.id }).where('farm_id', req.farmId).first()
     if (!existing) return res.status(404).json({ error: 'Milk record not found' })
 
-    await db('milk_records').where({ id: req.params.id }).delete()
-    await logAudit({ userId: req.user.id, action: 'delete', entityType: 'milk_record', entityId: req.params.id, oldValues: existing })
+    await db('milk_records').where({ id: req.params.id }).where('farm_id', req.farmId).delete()
+    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'delete', entityType: 'milk_record', entityId: req.params.id, oldValues: existing })
     res.json({ message: 'Milk record deleted' })
   } catch (err) {
     next(err)

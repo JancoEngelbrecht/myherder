@@ -12,7 +12,7 @@ Transform MyHerder from single-tenant to multi-tenant SaaS. Multiple farms share
 - **Farm admin/worker** logs in with farm code + credentials. JWT contains `farm_id`
 - **TOTP 2FA** for super-admin only (`otpauth` npm package)
 - **Token versioning** for instant session revocation
-- **Scoped query helper** `req.scoped(table)` to prevent developer mistakes
+- **Manual farm_id scoping** via `.where('farm_id', req.farmId)` in all routes (consistent, no abstraction needed)
 - **One device = one farm** -- no multi-farm device switching needed
 
 ## Dependencies
@@ -53,7 +53,7 @@ Each phase is a standalone sub-plan, completable in a single conversation. Phase
 ### B. Code Quality
 5. **Dead code**: `npm run knip` -- no new unused exports
 6. **Refactor review**: No duplication, no >40-line functions, clear naming, consistent patterns
-7. **DRY check**: `req.scoped()` used consistently, no repeated farm_id logic
+7. **DRY check**: `.where('farm_id', req.farmId)` used consistently across all routes
 
 ### C. Efficiency
 8. **Query efficiency**: No N+1, no redundant queries, indexes cover common patterns
@@ -74,7 +74,7 @@ Each phase is a standalone sub-plan, completable in a single conversation. Phase
 | File | Phase | Purpose |
 |------|-------|---------|
 | `server/migrations/030_add_multi_tenancy.js` | 1 | DB schema changes, data backfill |
-| `server/middleware/tenantScope.js` | 2A | Tenant scoping middleware + `req.scoped()` |
+| `server/middleware/tenantScope.js` | 2A | Tenant scoping middleware (sets `req.farmId` from JWT) |
 | `server/routes/farms.js` | 7 | Farm CRUD API (super-admin) |
 | `server/services/farmSeedService.js` | 7 | Farm default data seeding |
 | `client/src/views/TwoFactorVerifyView.vue` | 3 | 2FA code entry |
@@ -85,7 +85,7 @@ Each phase is a standalone sub-plan, completable in a single conversation. Phase
 | `server/tests/tenantIsolation.test.js` | 4 | Cross-tenant isolation tests |
 
 ### Major modifications (all phases)
-- All 26 route files -- `req.scoped()` + `farm_id` inserts
+- All 26 route files -- `.where('farm_id', req.farmId)` + `farm_id` inserts
 - All 6 analytics files -- farm-scoped queries
 - All 3 report files -- farm-scoped queries
 - `server/services/syncService.js` -- accept `farmId` param

@@ -9,6 +9,7 @@ const STATUS_TRANSITIONS = {
   calving: 'active',
   preg_check_negative: 'active',
   abortion: 'active',
+  dry_off: 'dry',
 }
 
 // Fixed workflow event types — not configurable

@@ -75,24 +75,14 @@ function concatExpr(...parts) {
     : parts.join(' || ');
 }
 
-/** Fetch issue_type_definitions → { code: { code, name, emoji } } map (60-second TTL cache) */
-let _issueTypeDefCache = null;
-let _issueTypeDefExpiry = 0;
-let _issueTypeDefPromise = null;
-
-async function getIssueTypeDefMap() {
-  if (Date.now() < _issueTypeDefExpiry) return _issueTypeDefCache;
-  if (_issueTypeDefPromise) return _issueTypeDefPromise;
-  _issueTypeDefPromise = (async () => {
-    const defs = await db('issue_type_definitions').select('code', 'name', 'emoji');
-    const map = {};
-    for (const d of defs) map[d.code] = d;
-    _issueTypeDefCache = map;
-    _issueTypeDefExpiry = Date.now() + 60_000;
-    _issueTypeDefPromise = null;
-    return map;
-  })();
-  return _issueTypeDefPromise;
+/** Fetch issue_type_definitions for a farm → { code: { code, name, emoji } } map */
+async function getIssueTypeDefMap(farmId) {
+  const defs = await db('issue_type_definitions')
+    .where('farm_id', farmId)
+    .select('code', 'name', 'emoji');
+  const map = {};
+  for (const d of defs) map[d.code] = d;
+  return map;
 }
 
 /** Safely JSON-parse the issue_types column, returning an array of codes (or []) */
@@ -107,7 +97,7 @@ function parseIssueCodes(raw) {
  * Batch-compute service counts for an array of preg-check-positive events.
  * Returns a Map<checkId, serviceCount> — replaces the per-check N+1 pattern.
  */
-async function batchCountServices(positiveChecks) {
+async function batchCountServices(positiveChecks, farmId) {
   const result = new Map();
   if (!positiveChecks.length) return result;
 
@@ -115,6 +105,7 @@ async function batchCountServices(positiveChecks) {
 
   // Bulk-fetch all calving/abortion (reset) events for these cows
   const resets = await db('breeding_events')
+    .where('farm_id', farmId)
     .whereIn('cow_id', cowIds)
     .whereIn('event_type', ['calving', 'abortion'])
     .select('cow_id', 'event_date')
@@ -128,6 +119,7 @@ async function batchCountServices(positiveChecks) {
 
   // Bulk-fetch all insemination/bull_service events for these cows
   const services = await db('breeding_events')
+    .where('farm_id', farmId)
     .whereIn('cow_id', cowIds)
     .whereIn('event_type', ['ai_insemination', 'bull_service'])
     .select('cow_id', 'event_date');

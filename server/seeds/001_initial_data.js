@@ -18,6 +18,8 @@ function daysFromNow(n) {
   return d.toISOString().slice(0, 10);
 }
 
+const DEFAULT_FARM_ID = '00000000-0000-4000-a000-000000000099';
+
 // ── Main seed ────────────────────────────────────────────────────────────────
 
 exports.seed = async function (knex) {
@@ -33,19 +35,46 @@ exports.seed = async function (knex) {
     try { await knex('milk_records').del(); } catch (_) { /* table may not exist */ }
     await knex('cows').del();
     await knex('users').del();
+    await knex('farms').del();
   } finally {
     await knex.raw('PRAGMA foreign_keys = ON');
   }
 
+  // ── Default farm ──────────────────────────────────────────────────────────
+
+  await knex('farms').insert({
+    id: DEFAULT_FARM_ID,
+    name: 'My Farm',
+    code: 'DEFAULT',
+    slug: 'default',
+    is_active: true,
+  });
+
   // ── Users ────────────────────────────────────────────────────────────────
 
   // Deterministic IDs so JWTs survive re-seeding during development
+  const superAdminId = '00000000-0000-4000-a000-000000000000';
   const adminId  = '00000000-0000-4000-a000-000000000001';
   const workerId = '00000000-0000-4000-a000-000000000002';
+
+  // Super-admin user (no farm — uses /login/super)
+  await knex('users').insert({
+    id: superAdminId,
+    farm_id: null,
+    username: 'superadmin',
+    password_hash: await bcrypt.hash('super123', 10),
+    full_name: 'System Admin',
+    role: 'super_admin',
+    permissions: JSON.stringify([]),
+    language: 'en',
+    is_active: true,
+    failed_attempts: 0,
+  });
 
   await knex('users').insert([
     {
       id: adminId,
+      farm_id: DEFAULT_FARM_ID,
       username: 'admin',
       password_hash: await bcrypt.hash('admin123', 10),
       full_name: 'Farm Admin',
@@ -57,6 +86,7 @@ exports.seed = async function (knex) {
     },
     {
       id: workerId,
+      farm_id: DEFAULT_FARM_ID,
       username: 'sipho',
       pin_hash: await bcrypt.hash('1234', 10),
       full_name: 'Sipho Ndlovu',
@@ -320,6 +350,7 @@ exports.seed = async function (knex) {
   // knex batchInsert uses UNION ALL and fills missing columns with null,
   // which overrides the DEFAULT and violates NOT NULL constraints.
   const normalisedCows = cows.map((c) => ({
+    farm_id: DEFAULT_FARM_ID,
     is_dry: false,
     is_external: false,
     ...c,
@@ -1106,9 +1137,14 @@ exports.seed = async function (knex) {
   // dry_off is a valid app event type but was not added to the SQLite CHECK
   // constraint when migration 019 introduced it (SQLite cannot ALTER a CHECK).
   // Temporarily disable CHECK enforcement so dry_off rows insert correctly.
+  const normalisedBreedingEvents = breedingEvents.map((e) => ({
+    farm_id: DEFAULT_FARM_ID,
+    ...e,
+  }));
+
   await knex.raw('PRAGMA ignore_check_constraints = ON');
   try {
-    await knex.batchInsert('breeding_events', breedingEvents, 50);
+    await knex.batchInsert('breeding_events', normalisedBreedingEvents, 50);
   } finally {
     await knex.raw('PRAGMA ignore_check_constraints = OFF');
   }

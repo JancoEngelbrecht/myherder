@@ -19,7 +19,14 @@
     "loginBtn": "Aanmeld",
     "errorInvalid": "Ongeldige gebruikersnaam of wagwoord",
     "errorLocked": "Rekening is gesluit. Probeer later weer.",
-    "errorNetwork": "Netwerkfout. Probeer asseblief weer."
+    "errorNetwork": "Netwerkfout. Probeer asseblief weer.",
+    "farmCode": "Plaaskode",
+    "farmCodePlaceholder": "Voer plaaskode in",
+    "invalidFarmCode": "Ongeldige plaaskode",
+    "superAdminLink": "Super Admin",
+    "superAdminTitle": "Super Admin Aanmelding",
+    "superAdminSubtitle": "Stelseladministrasie",
+    "backToFarmLogin": "Terug na plaas-aanmelding"
   },
   "dashboard": {
     "greeting": "Goeiedag",
@@ -400,7 +407,8 @@
       "placeholder": "Soek...",
       "clear": "Vee soektog uit"
     },
-    "noPermission": "Jy het nie toestemming vir hierdie aksie nie"
+    "noPermission": "Jy het nie toestemming vir hierdie aksie nie",
+    "next": "Volgende"
   },
   "sync": {
     "synced": "Gesinkroniseer",
@@ -528,16 +536,23 @@
   "milkHistory": {
     "title": "Melk Rekords",
     "filterSession": "Sessie",
-    "filterAll": "Alles",
     "summaryCount": "{count} rekords",
     "summaryLitres": "{litres} L",
-    "loadMore": "Laai meer",
     "noRecords": "Geen melkrekords gevind",
     "discardedLabel": "Weggegooi",
     "recordedBy": "Opgeteken deur: {name}",
     "morning": "Oggend",
     "afternoon": "Middag",
-    "evening": "Aand"
+    "evening": "Aand",
+    "searchPlaceholder": "Soek koei of opnemer...",
+    "dateFrom": "Vanaf",
+    "dateTo": "Tot",
+    "advancedFilters": "Gevorderde Filters",
+    "filterCow": "Koei",
+    "filterDiscarded": "Slegs weggegooi",
+    "filterRecordedBy": "Opgeteken deur",
+    "filterAllRecorders": "Alle opnemers",
+    "filterAllSessions": "Alle sessies"
   },
   "breeding": {
     "title": "Teelt & Reproduksie",
@@ -790,6 +805,7 @@
     "confirmDeactivate": "Deaktiveer {name}? Hulle sal nie meer kan inteken nie.",
     "confirmReactivate": "Heraktiveer {name}? Hulle sal weer kan inteken.",
     "confirmDelete": "Verwyder {name} permanent? Dit kan nie ongedaan gemaak word nie.",
+    "userReactivated": "{name} is heraktiveer met opgedateerde besonderhede.",
     "selfDeactivateBlocked": "Jy kan nie jou eie rekening deaktiveer nie",
     "selfRoleBlocked": "Jy kan nie jou eie rol verander nie",
     "adminAutoPermissions": "Admins kry outomaties alle toestemmings",
@@ -797,7 +813,10 @@
     "noUsers": "Geen gebruikers gevind",
     "newPassword": "Nuwe Wagwoord",
     "newPin": "Nuwe PIN",
-    "changeCredentialHint": "Los leeg om huidige te behou"
+    "changeCredentialHint": "Los leeg om huidige te behou",
+    "revokeSessions": "Herroep Sessies",
+    "revokeSessionsConfirm": "Dit sal {name} onmiddellik van alle toestelle afteken.",
+    "sessionsRevoked": "{name} se sessies herroep"
   },
   "audit": {
     "title": "Oudit Logboek",
@@ -824,7 +843,19 @@
       "breeding_event": "Teelgeleentheid"
     },
     "showDetails": "Besonderhede",
-    "hideDetails": "Versteek"
+    "hideDetails": "Versteek",
+    "advancedFilters": "Gevorderde Filters",
+    "filterDateRange": "Datumreeks",
+    "filterFrom": "Vanaf",
+    "filterTo": "Tot",
+    "filterAction": "Aksie",
+    "allActions": "Alle Aksies",
+    "filterUser": "Gebruiker",
+    "allUsers": "Alle Gebruikers",
+    "deactivate": "Gedeaktiveer",
+    "clearFilters": "Maak Alles Skoon",
+    "medication": "Medikasie",
+    "entityTypes_medication": "Medikasie"
   },
   "profile": {
     "title": "Profiel",
@@ -832,7 +863,26 @@
     "logoutConfirm": "Is jy seker jy wil uitteken?",
     "settings": "Instellings",
     "roleAdmin": "Admin",
-    "roleWorker": "Werker"
+    "roleWorker": "Werker",
+    "roleSuperAdmin": "Super Admin"
+  },
+  "twoFactor": {
+    "title": "Twee-Faktor Verifikasie",
+    "subtitle": "Voer die kode van jou verifikasie-app in",
+    "enterCode": "Verifikasiekode",
+    "enterRecoveryCode": "Herwinningskode",
+    "verify": "Verifieer",
+    "useRecoveryCode": "Gebruik herwinningskode eerder",
+    "useAuthenticator": "Gebruik verifikasie-app",
+    "setupTitle": "Stel 2FA Op",
+    "setupSubtitle": "Beveilig jou super-admin rekening met twee-faktor verifikasie",
+    "scanQR": "Skandeer hierdie QR-kode met jou verifikasie-app",
+    "manualEntry": "Kan nie skandeer nie? Voer hierdie kode handmatig in",
+    "confirmCode": "Voer die 6-syfer kode van jou app in",
+    "recoveryCodes": "Herwinningskodes",
+    "saveCodesWarning": "Stoor hierdie herwinningskodes op 'n veilige plek. Elke kode kan net een keer gebruik word.",
+    "continue": "Gaan voort",
+    "invalidCode": "Ongeldige kode. Probeer asseblief weer."
   },
   "reports": {
     "title": "Verslae",
@@ -873,5 +923,40 @@
         "desc": "Gesondheidskwessies, erns, oplossingstye en gekoppelde behandelings"
       }
     }
+  },
+  "superAdmin": {
+    "management": "Bestuur",
+    "farms": "Plase",
+    "farmList": "Plaslys",
+    "createFarm": "Skep Plaas",
+    "farmDetail": "Plaasbesonderhede",
+    "farmName": "Plaasnaam",
+    "farmNamePlaceholder": "bv. Sonnedal Melkery",
+    "farmCode": "Plaaskode",
+    "farmCodePlaceholder": "bv. SONNED",
+    "farmCodeHint": "3-10 hoofletters alfanumeries. Gebruik vir aanmelding.",
+    "farmAdmin": "Plaasadministrateur",
+    "adminUsername": "Admin Gebruikersnaam",
+    "adminPassword": "Admin Wagwoord",
+    "adminFullName": "Admin Volle Naam",
+    "enterFarm": "Betree Plaas",
+    "exitFarm": "Verlaat Plaas",
+    "viewingFarm": "Besigtig: {name}",
+    "revokeAllSessions": "Herroep Alle Sessies",
+    "revokeAllConfirm": "Dit sal onmiddellik alle gebruikers van hierdie plaas afmeld. Is jy seker?",
+    "sessionsRevoked": "Alle plaassessies herroep",
+    "farmCreated": "Plaas suksesvol geskep",
+    "farmUpdated": "Plaas opgedateer",
+    "farmDeactivated": "Plaas gedeaktiveer",
+    "deactivateFarm": "Deaktiveer Plaas",
+    "reactivateFarm": "Heraktiveer Plaas",
+    "deactivateConfirm": "Deaktivering van hierdie plaas sal alle gebruikers verhoed om aan te meld. Is jy seker?",
+    "noFarms": "Nog geen plase nie",
+    "noUsers": "Geen gebruikers nie",
+    "active": "Aktief",
+    "inactive": "Onaktief",
+    "users": "Gebruikers",
+    "cows": "Koeie",
+    "created": "Geskep"
   }
 }

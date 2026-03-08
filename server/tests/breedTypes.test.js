@@ -2,7 +2,7 @@ const { randomUUID } = require('crypto')
 const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
-const { seedUsers } = require('./helpers/setup')
+const { seedUsers, DEFAULT_FARM_ID } = require('./helpers/setup')
 const { adminToken, workerToken } = require('./helpers/tokens')
 
 beforeAll(async () => {
@@ -25,6 +25,7 @@ async function createBreedType(overrides = {}) {
   const now = new Date().toISOString()
   await db('breed_types').insert({
     id,
+    farm_id: DEFAULT_FARM_ID,
     code,
     name,
     heat_cycle_days: 21,
@@ -182,6 +183,7 @@ describe('DELETE /api/breed-types/:id', () => {
     const cowId = randomUUID()
     await db('cows').insert({
       id: cowId,
+      farm_id: DEFAULT_FARM_ID,
       tag_number: `BT-${cowId.slice(0, 6)}`,
       sex: 'female',
       status: 'active',

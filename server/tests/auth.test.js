@@ -1,7 +1,11 @@
 const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
-const { ADMIN_ID, WORKER_ID, ADMIN_PASSWORD, WORKER_PIN, seedUsers } = require('./helpers/setup')
+const jwt = require('jsonwebtoken')
+const { jwtSecret } = require('../config/env')
+const { ADMIN_ID, WORKER_ID, DEFAULT_FARM_ID, ADMIN_PASSWORD, WORKER_PIN, seedUsers } = require('./helpers/setup')
+
+const FARM_CODE = 'TEST'
 
 beforeAll(async () => {
   await db.migrate.latest()
@@ -13,24 +17,25 @@ afterAll(() => db.destroy())
 // ─── Password login ────────────────────────────────────────────────────────────
 
 describe('POST /api/auth/login', () => {
-  it('returns 200 with token and user payload for valid credentials', async () => {
+  it('returns 200 with token and user payload for valid credentials + farm_code', async () => {
     const res = await request(app)
       .post('/api/auth/login')
-      .send({ username: 'test_admin', password: ADMIN_PASSWORD })
+      .send({ username: 'test_admin', password: ADMIN_PASSWORD, farm_code: FARM_CODE })
 
     expect(res.status).toBe(200)
     expect(res.body).toHaveProperty('token')
     expect(typeof res.body.token).toBe('string')
     expect(res.body.user.username).toBe('test_admin')
     expect(res.body.user.role).toBe('admin')
-    // Must never expose the password hash
+    expect(res.body.user.farm_id).toBe(DEFAULT_FARM_ID)
+    expect(res.body.user.token_version).toBe(0)
     expect(res.body.user).not.toHaveProperty('password_hash')
   })
 
   it('returns 401 for wrong password', async () => {
     const res = await request(app)
       .post('/api/auth/login')
-      .send({ username: 'test_admin', password: 'wrong-password' })
+      .send({ username: 'test_admin', password: 'wrong-password', farm_code: FARM_CODE })
 
     expect(res.status).toBe(401)
     expect(res.body.error).toBe('Invalid credentials')
@@ -39,7 +44,25 @@ describe('POST /api/auth/login', () => {
   it('returns 401 for unknown username', async () => {
     const res = await request(app)
       .post('/api/auth/login')
-      .send({ username: 'nobody', password: ADMIN_PASSWORD })
+      .send({ username: 'nobody', password: ADMIN_PASSWORD, farm_code: FARM_CODE })
+
+    expect(res.status).toBe(401)
+  })
+
+  it('returns 401 for invalid farm code', async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'test_admin', password: ADMIN_PASSWORD, farm_code: 'BADCODE' })
+
+    expect(res.status).toBe(401)
+    expect(res.body.error).toBe('Invalid farm code')
+  })
+
+  it('returns 401 when no farm_code and user is not super_admin', async () => {
+    // Without farm_code, login only works for super_admin role
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'test_admin', password: ADMIN_PASSWORD })
 
     expect(res.status).toBe(401)
   })
@@ -61,25 +84,35 @@ describe('POST /api/auth/login', () => {
 // ─── PIN login ─────────────────────────────────────────────────────────────────
 
 describe('POST /api/auth/login-pin', () => {
-  it('returns 200 with token and user payload for valid PIN', async () => {
+  beforeEach(async () => {
+    await db('users').where({ id: WORKER_ID }).update({ failed_attempts: 0, locked_until: null })
+  })
+
+  it('returns 200 with token and user payload for valid PIN + farm_code', async () => {
     const res = await request(app)
       .post('/api/auth/login-pin')
-      .send({ username: 'test_worker', pin: WORKER_PIN })
+      .send({ username: 'test_worker', pin: WORKER_PIN, farm_code: FARM_CODE })
 
     expect(res.status).toBe(200)
     expect(res.body).toHaveProperty('token')
     expect(res.body.user.username).toBe('test_worker')
     expect(res.body.user.role).toBe('worker')
+    expect(res.body.user.farm_id).toBe(DEFAULT_FARM_ID)
     expect(res.body.user).not.toHaveProperty('pin_hash')
   })
 
-  it('returns 401 for wrong PIN', async () => {
-    // Reset first so we don't accidentally trigger lockout
-    await db('users').where({ id: WORKER_ID }).update({ failed_attempts: 0, locked_until: null })
-
+  it('returns 400 when farm_code is missing (PIN requires farm_code)', async () => {
     const res = await request(app)
       .post('/api/auth/login-pin')
-      .send({ username: 'test_worker', pin: '9999' })
+      .send({ username: 'test_worker', pin: WORKER_PIN })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 401 for wrong PIN', async () => {
+    const res = await request(app)
+      .post('/api/auth/login-pin')
+      .send({ username: 'test_worker', pin: '9999', farm_code: FARM_CODE })
 
     expect(res.status).toBe(401)
     expect(res.body.error).toBe('Invalid credentials')
@@ -88,7 +121,7 @@ describe('POST /api/auth/login-pin', () => {
   it('returns 401 for unknown username', async () => {
     const res = await request(app)
       .post('/api/auth/login-pin')
-      .send({ username: 'nobody', pin: WORKER_PIN })
+      .send({ username: 'nobody', pin: WORKER_PIN, farm_code: FARM_CODE })
 
     expect(res.status).toBe(401)
   })
@@ -96,20 +129,16 @@ describe('POST /api/auth/login-pin', () => {
   it('returns 400 when PIN is missing', async () => {
     const res = await request(app)
       .post('/api/auth/login-pin')
-      .send({ username: 'test_worker' })
+      .send({ username: 'test_worker', farm_code: FARM_CODE })
 
     expect(res.status).toBe(400)
   })
 
   it('locks the account after reaching the failed-attempt threshold', async () => {
-    // Fresh slate so the counter is predictable
-    await db('users').where({ id: WORKER_ID }).update({ failed_attempts: 0, locked_until: null })
-
-    // lockoutThreshold defaults to 5 — make 5 bad attempts
     for (let i = 0; i < 5; i++) {
       await request(app)
         .post('/api/auth/login-pin')
-        .send({ username: 'test_worker', pin: '0000' })
+        .send({ username: 'test_worker', pin: '0000', farm_code: FARM_CODE })
     }
 
     const user = await db('users').where({ id: WORKER_ID }).first()
@@ -118,14 +147,13 @@ describe('POST /api/auth/login-pin', () => {
   })
 
   it('returns 423 while account is locked', async () => {
-    // Ensure the account is still locked from the previous test (or force it)
     await db('users')
       .where({ id: WORKER_ID })
       .update({ locked_until: new Date(Date.now() + 60_000).toISOString() })
 
     const res = await request(app)
       .post('/api/auth/login-pin')
-      .send({ username: 'test_worker', pin: WORKER_PIN })
+      .send({ username: 'test_worker', pin: WORKER_PIN, farm_code: FARM_CODE })
 
     expect(res.status).toBe(423)
   })
@@ -139,11 +167,10 @@ describe('POST /api/auth/login lockout', () => {
   })
 
   it('locks admin account after reaching the failed-attempt threshold', async () => {
-    // lockoutThreshold defaults to 5 — make 5 bad password attempts
     for (let i = 0; i < 5; i++) {
       await request(app)
         .post('/api/auth/login')
-        .send({ username: 'test_admin', password: 'wrong-password' })
+        .send({ username: 'test_admin', password: 'wrong-password', farm_code: FARM_CODE })
     }
 
     const user = await db('users').where({ id: ADMIN_ID }).first()
@@ -158,24 +185,111 @@ describe('POST /api/auth/login lockout', () => {
 
     const res = await request(app)
       .post('/api/auth/login')
-      .send({ username: 'test_admin', password: ADMIN_PASSWORD })
+      .send({ username: 'test_admin', password: ADMIN_PASSWORD, farm_code: FARM_CODE })
 
     expect(res.status).toBe(423)
     expect(res.body.error).toBe('Account temporarily locked')
   })
 
   it('clears lockout state on successful login', async () => {
-    // Unlock and ensure login succeeds, then verify failed_attempts is reset
     await db('users').where({ id: ADMIN_ID }).update({ failed_attempts: 3, locked_until: null })
 
     const res = await request(app)
       .post('/api/auth/login')
-      .send({ username: 'test_admin', password: ADMIN_PASSWORD })
+      .send({ username: 'test_admin', password: ADMIN_PASSWORD, farm_code: FARM_CODE })
 
     expect(res.status).toBe(200)
     const user = await db('users').where({ id: ADMIN_ID }).first()
     expect(user.failed_attempts).toBe(0)
     expect(user.locked_until).toBeNull()
+  })
+})
+
+// ─── Token version check ────────────────────────────────────────────────────
+
+describe('Token version', () => {
+  it('includes token_version in JWT payload', async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'test_admin', password: ADMIN_PASSWORD, farm_code: FARM_CODE })
+
+    expect(res.status).toBe(200)
+    const decoded = jwt.verify(res.body.token, jwtSecret)
+    expect(decoded.token_version).toBe(0)
+  })
+
+  it('rejects token when token_version is bumped', async () => {
+    // Login to get a token with token_version=0
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'test_admin', password: ADMIN_PASSWORD, farm_code: FARM_CODE })
+
+    const token = loginRes.body.token
+
+    // Bump the token_version in DB
+    await db('users').where({ id: ADMIN_ID }).update({ token_version: 1 })
+
+    // Try to use the old token — should be rejected
+    const res = await request(app)
+      .get('/api/cows')
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(res.status).toBe(401)
+    expect(res.body.error).toBe('Token revoked')
+
+    // Reset for other tests
+    await db('users').where({ id: ADMIN_ID }).update({ token_version: 0 })
+  })
+
+  it('rejects refresh when token_version is bumped', async () => {
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'test_admin', password: ADMIN_PASSWORD, farm_code: FARM_CODE })
+
+    await db('users').where({ id: ADMIN_ID }).update({ token_version: 1 })
+
+    const res = await request(app)
+      .post('/api/auth/refresh')
+      .set('Authorization', `Bearer ${loginRes.body.token}`)
+
+    expect(res.status).toBe(401)
+    expect(res.body.error).toBe('Token revoked')
+
+    await db('users').where({ id: ADMIN_ID }).update({ token_version: 0 })
+  })
+})
+
+// ─── Temp token security ──────────────────────────────────────────────────
+
+describe('Temp token security', () => {
+  it('rejects temp tokens on regular endpoints', async () => {
+    const tempToken = jwt.sign(
+      { id: ADMIN_ID, role: 'super_admin', type: 'temp' },
+      jwtSecret,
+      { expiresIn: '10m' }
+    )
+
+    const res = await request(app)
+      .get('/api/cows')
+      .set('Authorization', `Bearer ${tempToken}`)
+
+    expect(res.status).toBe(401)
+    expect(res.body.error).toBe('Temporary token not valid for this endpoint')
+  })
+
+  it('rejects temp tokens on refresh', async () => {
+    const tempToken = jwt.sign(
+      { id: ADMIN_ID, role: 'super_admin', type: 'temp' },
+      jwtSecret,
+      { expiresIn: '10m' }
+    )
+
+    const res = await request(app)
+      .post('/api/auth/refresh')
+      .set('Authorization', `Bearer ${tempToken}`)
+
+    expect(res.status).toBe(401)
+    expect(res.body.error).toBe('Temporary tokens cannot be refreshed')
   })
 })
 

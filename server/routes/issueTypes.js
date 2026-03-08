@@ -4,10 +4,12 @@ const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const { requireAdmin } = require('../middleware/authorize')
+const tenantScope = require('../middleware/tenantScope')
 const { toCode, MAX_SEARCH_LENGTH, DEFAULT_PAGE_SIZE, parsePagination, joiMsg } = require('../helpers/constants')
 
 const router = express.Router()
 router.use(authenticate)
+router.use(tenantScope)
 
 const schema = Joi.object({
   name: Joi.string().max(100).required(),
@@ -31,6 +33,7 @@ router.get('/', async (req, res, next) => {
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
     const query = db('issue_type_definitions')
+      .where('farm_id', req.farmId)
       .where(req.query.all === '1' ? {} : { is_active: true })
       .orderBy('sort_order')
       .orderBy('name')
@@ -67,14 +70,14 @@ router.post('/', requireAdmin, async (req, res, next) => {
     const code = toCode(value.name)
     if (!code) return res.status(400).json({ error: 'Name produces an empty code' })
 
-    const existing = await db('issue_type_definitions').where({ code }).first()
+    const existing = await db('issue_type_definitions').where({ code }).where('farm_id', req.farmId).first()
     if (existing) {
       return res.status(409).json({ error: `Issue type with code "${code}" already exists` })
     }
 
     const id = uuidv4()
     const now = new Date().toISOString()
-    const record = { id, code, ...value, created_at: now, updated_at: now }
+    const record = { id, farm_id: req.user.farm_id, code, ...value, created_at: now, updated_at: now }
     await db('issue_type_definitions').insert(record)
     // Coerce booleans to 0/1 to match SQLite's stored representation
     res.status(201).json({ ...record, is_active: record.is_active ? 1 : 0, requires_teat_selection: record.requires_teat_selection ? 1 : 0 })
@@ -86,7 +89,7 @@ router.post('/', requireAdmin, async (req, res, next) => {
 // PUT /api/issue-types/:id — admin only (code is immutable after creation)
 router.put('/:id', requireAdmin, async (req, res, next) => {
   try {
-    const existing = await db('issue_type_definitions').where({ id: req.params.id }).first()
+    const existing = await db('issue_type_definitions').where({ id: req.params.id }).where('farm_id', req.farmId).first()
     if (!existing) return res.status(404).json({ error: 'Issue type not found' })
 
     const { error, value } = schema.validate(req.body)
@@ -95,8 +98,9 @@ router.put('/:id', requireAdmin, async (req, res, next) => {
     const now = new Date().toISOString()
     await db('issue_type_definitions')
       .where({ id: req.params.id })
+      .where('farm_id', req.farmId)
       .update({ ...value, updated_at: now })
-    const updated = await db('issue_type_definitions').where({ id: req.params.id }).first()
+    const updated = await db('issue_type_definitions').where({ id: req.params.id }).where('farm_id', req.farmId).first()
     res.json(updated)
   } catch (err) {
     next(err)
@@ -106,11 +110,12 @@ router.put('/:id', requireAdmin, async (req, res, next) => {
 // DELETE /api/issue-types/:id — admin only; blocked if any health issues reference this code
 router.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
-    const existing = await db('issue_type_definitions').where({ id: req.params.id }).first()
+    const existing = await db('issue_type_definitions').where({ id: req.params.id }).where('farm_id', req.farmId).first()
     if (!existing) return res.status(404).json({ error: 'Issue type not found' })
 
     const escapedCode = existing.code.replace(/[_%]/g, '\\$&')
     const usageResult = await db('health_issues')
+      .where('farm_id', req.farmId)
       .whereRaw('issue_types LIKE ? ESCAPE ?', [`%"${escapedCode}"%`, '\\'])
       .count('* as count')
       .first()
@@ -122,7 +127,7 @@ router.delete('/:id', requireAdmin, async (req, res, next) => {
       })
     }
 
-    await db('issue_type_definitions').where({ id: req.params.id }).delete()
+    await db('issue_type_definitions').where({ id: req.params.id }).where('farm_id', req.farmId).delete()
     res.json({ message: 'Issue type deleted' })
   } catch (err) {
     next(err)

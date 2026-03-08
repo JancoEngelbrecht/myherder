@@ -1,7 +1,7 @@
 const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
-const { seedUsers, ADMIN_ID } = require('./helpers/setup')
+const { seedUsers, ADMIN_ID, DEFAULT_FARM_ID } = require('./helpers/setup')
 const { adminToken, workerToken } = require('./helpers/tokens')
 const { logAudit } = require('../services/auditService')
 
@@ -17,6 +17,7 @@ afterAll(() => db.destroy())
 describe('logAudit()', () => {
   it('inserts an audit entry into the database', async () => {
     await logAudit({
+      farmId: DEFAULT_FARM_ID,
       userId: ADMIN_ID,
       action: 'create',
       entityType: 'cow',
@@ -34,6 +35,7 @@ describe('logAudit()', () => {
 
   it('stores old_values for updates', async () => {
     await logAudit({
+      farmId: DEFAULT_FARM_ID,
       userId: ADMIN_ID,
       action: 'update',
       entityType: 'cow',
@@ -70,6 +72,7 @@ describe('GET /api/audit-log', () => {
     for (let i = 0; i < 30; i++) {
       entries.push({
         id: `audit-${i}`,
+        farm_id: DEFAULT_FARM_ID,
         user_id: ADMIN_ID,
         action: i % 3 === 0 ? 'create' : i % 3 === 1 ? 'update' : 'delete',
         entity_type: i < 20 ? 'cow' : 'user',

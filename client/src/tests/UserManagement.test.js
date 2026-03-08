@@ -205,6 +205,37 @@ describe('UserManagement', () => {
     expect(dangerBtns.length + primaryBtns.length).toBe(3)
   })
 
+  it('shows revoke sessions button for active non-self users', async () => {
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    // v-if="user.id !== currentUserId && user.is_active" — u1 + u2 active, u3 inactive
+    const revokeBtns = wrapper.findAll('.btn-sm').filter((b) => b.text().includes('users.revokeSessions'))
+    expect(revokeBtns).toHaveLength(2)
+  })
+
+  it('calls revoke-sessions API and shows toast on confirm', async () => {
+    mockPost.mockResolvedValue({ data: { revoked: true, new_version: 1 } })
+
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    // Click "Revoke Sessions" on first active user
+    const revokeBtns = wrapper.findAll('.btn-sm').filter((b) => b.text().includes('users.revokeSessions'))
+    await revokeBtns[0].trigger('click')
+
+    // ConfirmDialog should be visible
+    const dialogs = wrapper.findAllComponents({ name: 'ConfirmDialog' })
+    const revokeDialog = dialogs.find((d) => d.props('confirmLabel')?.includes('users.revokeSessions'))
+    expect(revokeDialog).toBeTruthy()
+
+    // Confirm
+    revokeDialog.vm.$emit('confirm')
+    await flushPromises()
+
+    expect(mockPost).toHaveBeenCalledWith('/users/u1/revoke-sessions')
+  })
+
   it('shows form error on API failure', async () => {
     mockPost.mockRejectedValue({ response: { data: { error: 'Username already exists' } } })
 

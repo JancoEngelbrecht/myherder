@@ -2,7 +2,7 @@ const { randomUUID } = require('crypto')
 const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
-const { WORKER_ID, seedUsers } = require('./helpers/setup')
+const { WORKER_ID, DEFAULT_FARM_ID, seedUsers } = require('./helpers/setup')
 const { adminToken, workerToken } = require('./helpers/tokens')
 
 beforeAll(async () => {
@@ -18,6 +18,7 @@ async function createCow(overrides = {}) {
   const now = new Date().toISOString()
   await db('cows').insert({
     id,
+    farm_id: DEFAULT_FARM_ID,
     tag_number: `SYNC-${id.slice(0, 8)}`,
     name: 'Sync Cow',
     sex: 'female',
@@ -225,6 +226,7 @@ describe('POST /api/sync/push', () => {
     const now = new Date().toISOString()
     await db('cows').insert({
       id: randomUUID(),
+      farm_id: DEFAULT_FARM_ID,
       tag_number: 'DUP-TAG-SYNC',
       sex: 'female', status: 'active', created_at: now, updated_at: now,
     })
@@ -367,7 +369,7 @@ describe('POST /api/sync/push — permission checks', () => {
     const cowId = randomUUID()
     const now = new Date().toISOString()
     await db('cows').insert({
-      id: cowId, tag_number: `PERM-${cowId.slice(0, 6)}`, name: 'Perm Cow',
+      id: cowId, farm_id: DEFAULT_FARM_ID, tag_number: `PERM-${cowId.slice(0, 6)}`, name: 'Perm Cow',
       sex: 'female', status: 'active', created_at: now, updated_at: now,
     })
 

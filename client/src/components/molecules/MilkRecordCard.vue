@@ -11,7 +11,7 @@
       </div>
     </div>
     <div class="card-bottom">
-      <span class="detail">{{ sessionLabel }} &bull; {{ record.recording_date }}</span>
+      <span class="detail">{{ sessionLabel }} &bull; {{ formattedDate }}</span>
       <span v-if="record.session_time" class="detail"> &bull; {{ record.session_time }}</span>
     </div>
     <div v-if="record.recorded_by_name" class="card-meta">
@@ -36,6 +36,15 @@ const props = defineProps({
 const sessionLabel = computed(() => {
   const key = `milkHistory.${props.record.session}`
   return t(key)
+})
+
+const formattedDate = computed(() => {
+  const raw = props.record.recording_date
+  if (!raw) return ''
+  // Extract YYYY-MM-DD from ISO string or plain date
+  const dateStr = raw.slice(0, 10)
+  const [y, m, d] = dateStr.split('-')
+  return `${d}/${m}/${y}`
 })
 </script>
 

@@ -18,9 +18,10 @@ const medicationUsageColumns = [
   { header: 'Avg Cost/Treatment', key: 'avg_cost', width: 1.3 },
 ]
 
-async function getMedicationUsageData(from, to) {
+async function getMedicationUsageData(from, to, farmId) {
   const treatments = await db('treatments as t')
     .join('cows as c', 't.cow_id', 'c.id')
+    .where('t.farm_id', farmId)
     .whereNull('c.deleted_at')
     .where('t.treatment_date', '>=', from)
     .where('t.treatment_date', '<=', `${to} 23:59:59`)
@@ -29,7 +30,7 @@ async function getMedicationUsageData(from, to) {
   const treatmentIds = treatments.map((t) => t.id)
   const costMap = Object.fromEntries(treatments.map((t) => [t.id, Number(t.cost) || 0]))
 
-  const medsMap = await batchMedications(treatmentIds)
+  const medsMap = await batchMedications(treatmentIds, farmId)
 
   const grouped = {}
   for (const [treatmentId, meds] of Object.entries(medsMap)) {
@@ -87,10 +88,11 @@ const breedingColumns = [
   { header: 'Notes', key: 'notes', width: 2 },
 ]
 
-async function getBreedingData(from, to) {
+async function getBreedingData(from, to, farmId) {
   const events = await db('breeding_events as be')
     .join('cows as c', 'be.cow_id', 'c.id')
     .leftJoin('users as u', 'be.recorded_by', 'u.id')
+    .where('be.farm_id', farmId)
     .whereNull('c.deleted_at')
     .where('be.event_date', '>=', from)
     .where('be.event_date', '<=', `${to} 23:59:59`)
@@ -151,10 +153,11 @@ const herdHealthColumns = [
   { header: 'Treatment Count', key: 'treatment_count', width: 1 },
 ]
 
-async function getHerdHealthData(from, to) {
+async function getHerdHealthData(from, to, farmId) {
   const issues = await db('health_issues as hi')
     .join('cows as c', 'hi.cow_id', 'c.id')
     .join('users as u', 'hi.reported_by', 'u.id')
+    .where('hi.farm_id', farmId)
     .whereNull('c.deleted_at')
     .where('hi.observed_at', '>=', from)
     .where('hi.observed_at', '<=', `${to} 23:59:59`)
@@ -170,11 +173,12 @@ async function getHerdHealthData(from, to) {
     return { rows: [], summaryRow: { date: 'TOTAL', issue_types: '0 issues' } }
   }
 
-  const issueTypeMap = await getIssueTypeMap()
+  const issueTypeMap = await getIssueTypeMap(farmId)
 
   // Batch treatment counts per issue
   const issueIds = issues.map((i) => i.id)
   const treatCounts = await db('treatments')
+    .where('farm_id', farmId)
     .whereIn('health_issue_id', issueIds)
     .select('health_issue_id')
     .count('* as cnt')

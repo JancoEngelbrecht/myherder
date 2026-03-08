@@ -3,11 +3,13 @@ const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const { requireAdmin } = require('../middleware/authorize')
+const tenantScope = require('../middleware/tenantScope')
 const { ISO_DATE_RE, parsePagination, joiMsg, validateQuery } = require('../helpers/constants')
 
 const router = express.Router()
 router.use(authenticate)
 router.use(requireAdmin)
+router.use(tenantScope)
 
 // ── Constants ────────────────────────────────────────────────
 
@@ -33,6 +35,7 @@ router.get('/', async (req, res, next) => {
     const { limit, offset } = parsePagination(q)
 
     const query = db('audit_log')
+      .where('audit_log.farm_id', req.farmId)
       .leftJoin('users', 'audit_log.user_id', 'users.id')
       .select(
         'audit_log.*',

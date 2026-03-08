@@ -2,7 +2,7 @@ const { randomUUID } = require('crypto')
 const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
-const { seedUsers } = require('./helpers/setup')
+const { seedUsers, DEFAULT_FARM_ID } = require('./helpers/setup')
 const { adminToken, workerToken } = require('./helpers/tokens')
 
 beforeAll(async () => {
@@ -25,6 +25,7 @@ async function createType(overrides = {}) {
   const now = new Date().toISOString()
   await db('issue_type_definitions').insert({
     id,
+    farm_id: DEFAULT_FARM_ID,
     code,
     name,
     emoji: '🐄',
@@ -233,11 +234,12 @@ describe('DELETE /api/issue-types/:id', () => {
 
     // Create a cow and a health issue that references this code
     const cowId = randomUUID()
-    await db('cows').insert({ id: cowId, tag_number: `IT-${cowId.slice(0, 6)}`, sex: 'female', status: 'active' })
+    await db('cows').insert({ id: cowId, farm_id: DEFAULT_FARM_ID, tag_number: `IT-${cowId.slice(0, 6)}`, sex: 'female', status: 'active' })
     const adminId = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa'
     const now = new Date().toISOString()
     await db('health_issues').insert({
       id: randomUUID(),
+      farm_id: DEFAULT_FARM_ID,
       cow_id: cowId,
       reported_by: adminId,
       issue_types: JSON.stringify([code]),

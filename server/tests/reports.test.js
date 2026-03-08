@@ -2,7 +2,7 @@ const request = require('supertest')
 const { randomUUID } = require('crypto')
 const app = require('../app')
 const db = require('../config/database')
-const { seedUsers, ADMIN_ID } = require('./helpers/setup')
+const { seedUsers, ADMIN_ID, DEFAULT_FARM_ID } = require('./helpers/setup')
 const { adminToken, workerToken } = require('./helpers/tokens')
 
 beforeAll(async () => {
@@ -22,6 +22,7 @@ async function seedCow(overrides = {}) {
     name: 'Test Cow',
     sex: 'female',
     status: 'active',
+    farm_id: DEFAULT_FARM_ID,
     created_at: now,
     updated_at: now,
     ...overrides,
@@ -41,6 +42,7 @@ async function seedMedication(overrides = {}) {
     withdrawal_meat_hours: 0,
     withdrawal_meat_days: 7,
     is_active: true,
+    farm_id: DEFAULT_FARM_ID,
     created_at: now,
     updated_at: now,
     ...overrides,
@@ -61,6 +63,7 @@ async function seedTreatment(cowId, medId, overrides = {}) {
     vet_name: null,
     cost: null,
     notes: null,
+    farm_id: DEFAULT_FARM_ID,
     created_at: now,
     updated_at: now,
     ...overrides,
@@ -88,6 +91,7 @@ async function seedMilkRecord(cowId, overrides = {}) {
     milk_discarded: false,
     discard_reason: null,
     notes: null,
+    farm_id: DEFAULT_FARM_ID,
     created_at: now,
     updated_at: now,
     ...overrides,
@@ -407,6 +411,7 @@ describe('GET /api/reports/breeding', () => {
     const cowBreed = await seedCow({ tag_number: 'BR001', name: 'Bella' })
     await db('breeding_events').insert({
       id: randomUUID(),
+      farm_id: DEFAULT_FARM_ID,
       cow_id: cowBreed,
       event_type: 'ai_insemination',
       event_date: '2025-05-10',
@@ -419,6 +424,7 @@ describe('GET /api/reports/breeding', () => {
     })
     await db('breeding_events').insert({
       id: randomUUID(),
+      farm_id: DEFAULT_FARM_ID,
       cow_id: cowBreed,
       event_type: 'preg_check_positive',
       event_date: '2025-06-15',
@@ -469,6 +475,7 @@ describe('GET /api/reports/herd-health', () => {
     const cowHealth = await seedCow({ tag_number: 'HH001', name: 'Dotty' })
     await db('health_issues').insert({
       id: randomUUID(),
+      farm_id: DEFAULT_FARM_ID,
       cow_id: cowHealth,
       reported_by: ADMIN_ID,
       issue_types: JSON.stringify(['mastitis']),
@@ -481,6 +488,7 @@ describe('GET /api/reports/herd-health', () => {
     })
     await db('health_issues').insert({
       id: randomUUID(),
+      farm_id: DEFAULT_FARM_ID,
       cow_id: cowHealth,
       reported_by: ADMIN_ID,
       issue_types: JSON.stringify(['lameness', 'fever']),

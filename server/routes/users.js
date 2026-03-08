@@ -5,11 +5,13 @@ const bcrypt = require('bcryptjs')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const { requireAdmin } = require('../middleware/authorize')
+const tenantScope = require('../middleware/tenantScope')
 const { logAudit } = require('../services/auditService')
 const { joiMsg, validateBody, validateQuery } = require('../helpers/constants')
 
 const router = express.Router()
 router.use(authenticate)
+router.use(tenantScope)
 router.use(requireAdmin)
 
 // ── Validation ───────────────────────────────────────────────
@@ -64,7 +66,7 @@ const usersQuerySchema = Joi.object({
 
 function sanitizeUser(row) {
   if (!row) return null
-  const { password_hash: _pw, pin_hash: _pin, ...rest } = row
+  const { password_hash: _pw, pin_hash: _pin, totp_secret: _ts, recovery_codes: _rc, ...rest } = row
   let permissions = rest.permissions
   if (typeof permissions === 'string') {
     try { permissions = JSON.parse(permissions) } catch { permissions = [] }
@@ -80,7 +82,7 @@ router.get('/', async (req, res, next) => {
     const { error: qError, value: qValue } = validateQuery(usersQuerySchema, req.query)
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
-    const query = db('users').whereNull('deleted_at').orderBy('full_name')
+    const query = db('users').where('farm_id', req.farmId).whereNull('deleted_at').orderBy('full_name')
 
     if (qValue.active_only === '1' || qValue.active === '1') {
       query.where({ is_active: true })
@@ -98,7 +100,7 @@ router.get('/', async (req, res, next) => {
 // GET /api/users/:id — single user detail
 router.get('/:id', async (req, res, next) => {
   try {
-    const row = await db('users').where({ id: req.params.id }).whereNull('deleted_at').first()
+    const row = await db('users').where({ id: req.params.id, farm_id: req.farmId }).whereNull('deleted_at').first()
     if (!row) return res.status(404).json({ error: 'User not found' })
     res.json(sanitizeUser(row))
   } catch (err) {
@@ -106,14 +108,43 @@ router.get('/:id', async (req, res, next) => {
   }
 })
 
-// POST /api/users — create user
+// POST /api/users — create user (reactivates inactive user if username matches)
 router.post('/', async (req, res, next) => {
   try {
     const { error, value } = validateBody(createSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    // Check username uniqueness (ignore soft-deleted users)
-    const existing = await db('users').where({ username: value.username }).whereNull('deleted_at').first()
+    // Check username uniqueness within the same farm (ignore soft-deleted users)
+    const existing = await db('users').where({ username: value.username, farm_id: req.farmId }).whereNull('deleted_at').first()
+
+    // If username exists but is inactive, reactivate + update instead of rejecting
+    if (existing && !existing.is_active) {
+      const now = new Date().toISOString()
+      const update = {
+        full_name: value.full_name,
+        role: value.role,
+        language: value.language,
+        permissions: JSON.stringify(value.role === 'admin' ? ALL_PERMISSIONS : value.permissions),
+        is_active: 1,
+        failed_attempts: 0,
+        updated_at: now,
+      }
+
+      if (value.password) {
+        update.password_hash = await bcrypt.hash(value.password, BCRYPT_ROUNDS)
+      }
+      if (value.pin) {
+        update.pin_hash = await bcrypt.hash(value.pin, BCRYPT_ROUNDS)
+      }
+
+      const oldSanitized = sanitizeUser(existing)
+      await db('users').where({ id: existing.id, farm_id: req.farmId }).update(update)
+      const updated = await db('users').where({ id: existing.id, farm_id: req.farmId }).first()
+      const newSanitized = sanitizeUser(updated)
+      await logAudit({ farmId: req.farmId, userId: req.user.id, action: 'reactivate', entityType: 'user', entityId: existing.id, oldValues: oldSanitized, newValues: newSanitized })
+      return res.status(200).json({ ...newSanitized, reactivated: true })
+    }
+
     if (existing) return res.status(409).json({ error: 'Username already exists' })
 
     const id = uuidv4()
@@ -121,6 +152,7 @@ router.post('/', async (req, res, next) => {
 
     const record = {
       id,
+      farm_id: req.user.farm_id,
       username: value.username,
       full_name: value.full_name,
       role: value.role,
@@ -141,7 +173,7 @@ router.post('/', async (req, res, next) => {
 
     await db('users').insert(record)
     const sanitized = sanitizeUser(record)
-    await logAudit({ userId: req.user.id, action: 'create', entityType: 'user', entityId: id, newValues: sanitized })
+    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'create', entityType: 'user', entityId: id, newValues: sanitized })
     res.status(201).json(sanitized)
   } catch (err) {
     next(err)
@@ -151,7 +183,7 @@ router.post('/', async (req, res, next) => {
 // PATCH /api/users/:id — update user
 router.patch('/:id', async (req, res, next) => {
   try {
-    const row = await db('users').where({ id: req.params.id }).whereNull('deleted_at').first()
+    const row = await db('users').where({ id: req.params.id, farm_id: req.farmId }).whereNull('deleted_at').first()
     if (!row) return res.status(404).json({ error: 'User not found' })
 
     const { error, value } = validateBody(updateSchema, req.body)
@@ -162,9 +194,9 @@ router.patch('/:id', async (req, res, next) => {
       return res.status(403).json({ error: 'Cannot change your own role' })
     }
 
-    // Check username uniqueness if changing (ignore soft-deleted users)
+    // Check username uniqueness within the same farm if changing (ignore soft-deleted users)
     if (value.username && value.username !== row.username) {
-      const existing = await db('users').where({ username: value.username }).whereNull('deleted_at').first()
+      const existing = await db('users').where({ username: value.username, farm_id: req.farmId }).whereNull('deleted_at').first()
       if (existing) return res.status(409).json({ error: 'Username already exists' })
     }
 
@@ -193,11 +225,31 @@ router.patch('/:id', async (req, res, next) => {
     }
 
     const oldSanitized = sanitizeUser(row)
-    await db('users').where({ id: req.params.id }).update(update)
-    const updated = await db('users').where({ id: req.params.id }).first()
+    await db('users').where({ id: req.params.id, farm_id: req.farmId }).update(update)
+    const updated = await db('users').where({ id: req.params.id, farm_id: req.farmId }).first()
     const newSanitized = sanitizeUser(updated)
-    await logAudit({ userId: req.user.id, action: 'update', entityType: 'user', entityId: req.params.id, oldValues: oldSanitized, newValues: newSanitized })
+    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'update', entityType: 'user', entityId: req.params.id, oldValues: oldSanitized, newValues: newSanitized })
     res.json(newSanitized)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /api/users/:id/revoke-sessions — bump token_version to invalidate all tokens
+router.post('/:id/revoke-sessions', async (req, res, next) => {
+  try {
+    const row = await db('users').where({ id: req.params.id, farm_id: req.farmId }).whereNull('deleted_at').first()
+    if (!row) return res.status(404).json({ error: 'User not found' })
+
+    // Atomic increment to avoid race conditions on concurrent revokes
+    await db('users').where({ id: req.params.id, farm_id: req.farmId }).update({
+      token_version: db.raw('token_version + 1'),
+      updated_at: new Date().toISOString(),
+    })
+
+    const updated = await db('users').where({ id: req.params.id, farm_id: req.farmId }).select('token_version').first()
+    await logAudit({ farmId: req.farmId, userId: req.user.id, action: 'revoke_sessions', entityType: 'user', entityId: req.params.id, newValues: { token_version: updated.token_version } })
+    res.json({ revoked: true, new_version: updated.token_version })
   } catch (err) {
     next(err)
   }
@@ -211,29 +263,29 @@ router.delete('/:id', async (req, res, next) => {
       return res.status(403).json({ error: 'Cannot delete your own account' })
     }
 
-    const row = await db('users').where({ id: req.params.id }).whereNull('deleted_at').first()
+    const row = await db('users').where({ id: req.params.id, farm_id: req.farmId }).whereNull('deleted_at').first()
     if (!row) return res.status(404).json({ error: 'User not found' })
 
     if (req.query.permanent === 'true') {
       // Soft delete — mark deleted_at, deactivate, row stays for FK joins
       const now = new Date().toISOString()
-      await db('users').where({ id: req.params.id }).update({
+      await db('users').where({ id: req.params.id, farm_id: req.farmId }).update({
         deleted_at: now,
         is_active: false,
         updated_at: now,
       })
 
-      await logAudit({ userId: req.user.id, action: 'delete', entityType: 'user', entityId: req.params.id, oldValues: sanitizeUser(row) })
+      await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'delete', entityType: 'user', entityId: req.params.id, oldValues: sanitizeUser(row) })
       return res.json({ message: 'User deleted' })
     }
 
     // Soft deactivate (toggle)
-    await db('users').where({ id: req.params.id }).update({
+    await db('users').where({ id: req.params.id, farm_id: req.farmId }).update({
       is_active: false,
       updated_at: new Date().toISOString(),
     })
 
-    await logAudit({ userId: req.user.id, action: 'deactivate', entityType: 'user', entityId: req.params.id, oldValues: sanitizeUser(row) })
+    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'deactivate', entityType: 'user', entityId: req.params.id, oldValues: sanitizeUser(row) })
     res.json({ message: 'User deactivated' })
   } catch (err) {
     next(err)

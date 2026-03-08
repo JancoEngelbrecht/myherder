@@ -4,7 +4,7 @@ function authorize(permission) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    if (req.user.role === 'admin') return next();
+    if (req.user.role === 'admin' || req.user.role === 'super_admin') return next();
 
     const permissions = req.user.permissions || [];
     if (permissions.includes(permission)) return next();
@@ -14,7 +14,7 @@ function authorize(permission) {
 }
 
 function requireAdmin(req, res, next) {
-  if (req.user && req.user.role === 'admin') return next();
+  if (req.user && (req.user.role === 'admin' || req.user.role === 'super_admin')) return next();
   return res.status(403).json({ error: 'Admin access required' });
 }
 

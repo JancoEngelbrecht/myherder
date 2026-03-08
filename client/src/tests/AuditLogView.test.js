@@ -56,6 +56,11 @@ const MOCK_ENTRIES = [
   },
 ]
 
+const MOCK_USERS = [
+  { id: 'u1', username: 'admin', full_name: 'Farm Admin' },
+  { id: 'u2', username: 'sipho', full_name: 'Sipho Nkosi' },
+]
+
 const stubs = { SyncIndicator: true, SyncPanel: true, RouterLink: true }
 
 function mountComponent() {
@@ -67,16 +72,24 @@ function mountComponent() {
   })
 }
 
+function setupDefaultMocks() {
+  mockGet.mockImplementation((url) => {
+    if (url === '/users') return Promise.resolve({ data: MOCK_USERS })
+    return Promise.resolve({ data: { data: MOCK_ENTRIES, total: 2 } })
+  })
+}
+
 describe('AuditLogView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockGet.mockResolvedValue({ data: { data: MOCK_ENTRIES, total: 2 } })
+    setupDefaultMocks()
   })
 
-  it('fetches audit log on mount', async () => {
+  it('fetches audit log and users on mount', async () => {
     mountComponent()
     await flushPromises()
     expect(mockGet).toHaveBeenCalledWith('/audit-log', { params: { page: 1, limit: 25 } })
+    expect(mockGet).toHaveBeenCalledWith('/users')
   })
 
   it('displays audit entries', async () => {
@@ -102,10 +115,8 @@ describe('AuditLogView', () => {
   it('filters by entity type when chip clicked', async () => {
     const wrapper = mountComponent()
     await flushPromises()
-    mockGet.mockResolvedValue({ data: { data: [MOCK_ENTRIES[1]], total: 1 } })
 
     const chips = wrapper.findAll('.chip')
-    // Find the 'user' chip (index varies but we look by content)
     const userChip = chips.find((c) => c.text().includes('audit.entityTypes.user'))
     await userChip.trigger('click')
     await flushPromises()
@@ -119,7 +130,6 @@ describe('AuditLogView', () => {
     const wrapper = mountComponent()
     await flushPromises()
 
-    // The update entry has old_values + new_values, so it has a toggle button
     const toggleBtns = wrapper.findAll('.btn-link')
     expect(toggleBtns.length).toBeGreaterThan(0)
 
@@ -131,7 +141,10 @@ describe('AuditLogView', () => {
   })
 
   it('shows empty state when no entries', async () => {
-    mockGet.mockResolvedValue({ data: { data: [], total: 0 } })
+    mockGet.mockImplementation((url) => {
+      if (url === '/users') return Promise.resolve({ data: MOCK_USERS })
+      return Promise.resolve({ data: { data: [], total: 0 } })
+    })
     const wrapper = mountComponent()
     await flushPromises()
     expect(wrapper.find('.empty-state').exists()).toBe(true)
@@ -139,7 +152,10 @@ describe('AuditLogView', () => {
 
   it('shows loading spinner while fetching', async () => {
     let resolveGet
-    mockGet.mockReturnValue(new Promise((r) => { resolveGet = r }))
+    mockGet.mockImplementation((url) => {
+      if (url === '/users') return Promise.resolve({ data: MOCK_USERS })
+      return new Promise((r) => { resolveGet = r })
+    })
 
     const wrapper = mountComponent()
     await flushPromises()
@@ -150,5 +166,86 @@ describe('AuditLogView', () => {
     await flushPromises()
 
     expect(wrapper.find('.spinner').exists()).toBe(false)
+  })
+
+  it('shows advanced filters panel when toggle clicked', async () => {
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    expect(wrapper.find('.advanced-filters').exists()).toBe(false)
+    await wrapper.find('.advanced-toggle').trigger('click')
+    expect(wrapper.find('.advanced-filters').exists()).toBe(true)
+  })
+
+  it('sends action filter param when action selected', async () => {
+    const wrapper = mountComponent()
+    await flushPromises()
+    mockGet.mockClear()
+    setupDefaultMocks()
+
+    await wrapper.find('.advanced-toggle').trigger('click')
+    const actionSelect = wrapper.findAll('.filter-select')[0]
+    await actionSelect.setValue('create')
+    await flushPromises()
+
+    expect(mockGet).toHaveBeenCalledWith('/audit-log', {
+      params: expect.objectContaining({ action: 'create', page: 1 }),
+    })
+  })
+
+  it('sends user_id filter param when user selected', async () => {
+    const wrapper = mountComponent()
+    await flushPromises()
+    mockGet.mockClear()
+    setupDefaultMocks()
+
+    await wrapper.find('.advanced-toggle').trigger('click')
+    const userSelect = wrapper.findAll('.filter-select')[1]
+    await userSelect.setValue('u1')
+    await flushPromises()
+
+    expect(mockGet).toHaveBeenCalledWith('/audit-log', {
+      params: expect.objectContaining({ user_id: 'u1', page: 1 }),
+    })
+  })
+
+  it('sends date range params when dates set', async () => {
+    const wrapper = mountComponent()
+    await flushPromises()
+    mockGet.mockClear()
+    setupDefaultMocks()
+
+    await wrapper.find('.advanced-toggle').trigger('click')
+    const dateInputs = wrapper.findAll('.filter-date-input')
+    await dateInputs[0].setValue('2026-02-01')
+    await flushPromises()
+
+    expect(mockGet).toHaveBeenCalledWith('/audit-log', {
+      params: expect.objectContaining({ from: '2026-02-01', page: 1 }),
+    })
+  })
+
+  it('clears all advanced filters on clear button click', async () => {
+    const wrapper = mountComponent()
+    await flushPromises()
+
+    await wrapper.find('.advanced-toggle').trigger('click')
+    const actionSelect = wrapper.findAll('.filter-select')[0]
+    await actionSelect.setValue('create')
+    await flushPromises()
+
+    // Filter badge should show 1
+    expect(wrapper.find('.filter-badge').text()).toBe('1')
+
+    mockGet.mockClear()
+    setupDefaultMocks()
+
+    await wrapper.find('.clear-btn').trigger('click')
+    await flushPromises()
+
+    expect(mockGet).toHaveBeenCalledWith('/audit-log', {
+      params: { page: 1, limit: 25 },
+    })
+    expect(wrapper.find('.filter-badge').exists()).toBe(false)
   })
 })

@@ -3,6 +3,7 @@ const { randomUUID: uuidv4 } = require('crypto')
 const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
+const tenantScope = require('../middleware/tenantScope')
 const authorize = require('../middleware/authorize')
 const { requireAdmin } = authorize
 const { calcWithdrawalDates } = require('../services/withdrawalService')
@@ -11,6 +12,7 @@ const { logAudit } = require('../services/auditService')
 
 const router = express.Router()
 router.use(authenticate)
+router.use(tenantScope)
 
 const schema = Joi.object({
   cow_id: Joi.string().uuid().required(),
@@ -32,8 +34,9 @@ const schema = Joi.object({
 })
 
 // Base query with all standard joins — used by every GET endpoint
-function treatmentQuery() {
+function treatmentQuery(farmId) {
   return db('treatments as t')
+    .where('t.farm_id', farmId)
     .join('medications as m', 't.medication_id', 'm.id')
     .join('cows as c', 't.cow_id', 'c.id')
     .join('users as u', 't.administered_by', 'u.id')
@@ -53,14 +56,18 @@ function treatmentQuery() {
 
 // Attach a `medications[]` array to each treatment row.
 // Also replaces `medication_name` with the comma-joined list when multiple meds exist.
-async function enrichWithMedications(rows) {
+async function enrichWithMedications(rows, farmId) {
   if (!rows.length) return rows
 
   const ids = rows.map((r) => r.id)
-  const medRows = await db('treatment_medications as tm')
+  const query = db('treatment_medications as tm')
     .join('medications as m', 'tm.medication_id', 'm.id')
     .whereIn('tm.treatment_id', ids)
     .select('tm.treatment_id', 'tm.medication_id', 'm.name as medication_name', 'tm.dosage')
+  if (farmId) {
+    query.join('treatments as t', 'tm.treatment_id', 't.id').where('t.farm_id', farmId)
+  }
+  const medRows = await query
 
   const byTreatment = {}
   for (const row of medRows) {
@@ -118,24 +125,25 @@ router.get('/', async (req, res, next) => {
       const offset = (page - 1) * limit
 
       const countQuery = db('treatments as t')
+        .where('t.farm_id', req.farmId)
         .join('cows as c', 't.cow_id', 'c.id')
         .whereNull('c.deleted_at')
       if (q.cow_id) countQuery.where('t.cow_id', q.cow_id)
 
-      const dataQuery = treatmentQuery().orderBy(orderCol, sortDir).limit(limit).offset(offset)
+      const dataQuery = treatmentQuery(req.farmId).orderBy(orderCol, sortDir).limit(limit).offset(offset)
       if (q.cow_id) dataQuery.where('t.cow_id', q.cow_id)
 
       const [[{ total }], rawRows] = await Promise.all([
         countQuery.count('t.id as total'),
         dataQuery,
       ])
-      const rows = await enrichWithMedications(rawRows)
+      const rows = await enrichWithMedications(rawRows, req.farmId)
       return res.json({ data: rows, total: Number(total) })
     }
 
-    const query = treatmentQuery().orderBy(orderCol, sortDir)
+    const query = treatmentQuery(req.farmId).orderBy(orderCol, sortDir)
     if (q.cow_id) query.where('t.cow_id', q.cow_id)
-    res.json(await enrichWithMedications(await query))
+    res.json(await enrichWithMedications(await query, req.farmId))
   } catch (err) {
     next(err)
   }
@@ -148,6 +156,7 @@ router.get('/withdrawal', async (req, res, next) => {
 
     // Subquery: get the MAX withdrawal_end_milk per cow (the "worst" active withdrawal)
     const maxPerCow = db('treatments')
+      .where('treatments.farm_id', req.farmId)
       .join('cows', 'treatments.cow_id', 'cows.id')
       .where('cows.sex', 'female')
       .where('treatments.withdrawal_end_milk', '>', now)
@@ -158,14 +167,14 @@ router.get('/withdrawal', async (req, res, next) => {
       .as('sub')
 
     // Join back to get full treatment row for each cow's latest withdrawal
-    const rows = await treatmentQuery()
+    const rows = await treatmentQuery(req.farmId)
       .join(maxPerCow, function () {
         this.on('t.cow_id', 'sub.cow_id')
           .andOn('t.withdrawal_end_milk', 'sub.max_end')
       })
       .orderBy('t.withdrawal_end_milk', 'asc')
 
-    res.json(await enrichWithMedications(rows))
+    res.json(await enrichWithMedications(rows, req.farmId))
   } catch (err) {
     next(err)
   }
@@ -174,9 +183,9 @@ router.get('/withdrawal', async (req, res, next) => {
 // GET /api/treatments/:id
 router.get('/:id', async (req, res, next) => {
   try {
-    const row = await treatmentQuery().where('t.id', req.params.id).first()
+    const row = await treatmentQuery(req.farmId).where('t.id', req.params.id).first()
     if (!row) return res.status(404).json({ error: 'Treatment not found' })
-    const [enriched] = await enrichWithMedications([row])
+    const [enriched] = await enrichWithMedications([row], req.farmId)
     res.json(enriched)
   } catch (err) {
     next(err)
@@ -189,14 +198,14 @@ router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
     const { error, value } = validateBody(schema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    const cow = await db('cows').where({ id: value.cow_id }).whereNull('deleted_at').first()
+    const cow = await db('cows').where({ id: value.cow_id }).where('farm_id', req.farmId).whereNull('deleted_at').first()
     if (!cow) return res.status(404).json({ error: 'Cow not found' })
 
     const isMale = cow.sex === 'male'
 
     // Batch-fetch all medications in a single query and build a lookup map
     const medIds = value.medications.map((item) => item.medication_id)
-    const medRows = await db('medications').whereIn('id', medIds).where('is_active', true)
+    const medRows = await db('medications').where('farm_id', req.farmId).whereIn('id', medIds).where('is_active', true)
     const medMap = new Map(medRows.map((m) => [m.id, m]))
 
     // Validate all IDs exist before inserting anything
@@ -235,6 +244,7 @@ router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
     await db.transaction(async (trx) => {
       await trx('treatments').insert({
         id,
+        farm_id: req.user.farm_id,
         cow_id: value.cow_id,
         health_issue_id: value.health_issue_id ?? null,
         // Keep medication_id pointing to the first medication — required by treatmentQuery JOIN
@@ -262,9 +272,9 @@ router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
       }
     })
 
-    const created = await treatmentQuery().where('t.id', id).first()
-    const [enriched] = await enrichWithMedications([created])
-    await logAudit({ userId: req.user.id, action: 'create', entityType: 'treatment', entityId: id, newValues: created })
+    const created = await treatmentQuery(req.farmId).where('t.id', id).first()
+    const [enriched] = await enrichWithMedications([created], req.farmId)
+    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'create', entityType: 'treatment', entityId: id, newValues: created })
     res.status(201).json(enriched)
   } catch (err) {
     next(err)
@@ -275,12 +285,12 @@ router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
 router.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
 
-    const existing = await db('treatments').where({ id: req.params.id }).first()
+    const existing = await db('treatments').where({ id: req.params.id }).where('farm_id', req.farmId).first()
     if (!existing) return res.status(404).json({ error: 'Treatment not found' })
 
     // treatment_medications rows are removed by ON DELETE CASCADE
-    await db('treatments').where({ id: req.params.id }).delete()
-    await logAudit({ userId: req.user.id, action: 'delete', entityType: 'treatment', entityId: req.params.id, oldValues: existing })
+    await db('treatments').where({ id: req.params.id }).where('farm_id', req.farmId).delete()
+    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'delete', entityType: 'treatment', entityId: req.params.id, oldValues: existing })
     res.json({ message: 'Treatment deleted' })
   } catch (err) {
     next(err)

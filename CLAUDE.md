@@ -83,7 +83,8 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
 - Soft delete: `DELETE /api/cows/:id` sets `deleted_at` (admin only)
 - **Cow IDs are UUIDs** — never use `Number(route.params.id)`
 - `GET /api/medications` — active only; `?all=1` for all (admin)
-- `GET /api/milk-records` — **dual mode**: without `page`/`limit` returns plain array (legacy recording page); with `page`/`limit` returns `{ data: [...], total: N }` (history view). Optional filters: `date`, `from`/`to` (date range), `session`, `cow_id`, `recorded_by`. Sort: `sort=recording_date|litres|tag_number`, `order=asc|desc` (default: recording_date desc). Joined fields: `tag_number`, `cow_name`, `recorded_by_name`
+- `GET /api/milk-records` — **dual mode**: without `page`/`limit` returns plain array (legacy recording page); with `page`/`limit` returns `{ data: [...], total: N }` (history view). Optional filters: `date`, `from`/`to` (date range), `session`, `cow_id`, `recorded_by`, `search` (LIKE on tag_number/cow_name/recorded_by_name), `discarded` (boolean). Sort: `sort=recording_date|litres|tag_number`, `order=asc|desc` (default: recording_date desc). Joined fields: `tag_number`, `cow_name`, `recorded_by_name`
+- `GET /api/milk-records/recorders` — distinct users who recorded milk on the farm; returns `[{ id, full_name }]`
 - `GET /api/milk-records/summary?date=YYYY-MM-DD` — session totals for a date
 - `GET /api/milk-records/:id` — single record with joins
 - `POST /api/milk-records` — create; auto-flags withdrawal; unique per cow/session/date (409 on duplicate)
@@ -120,10 +121,18 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
   - `GET /api/reports/breeding` — all breeding events with type breakdown
   - `GET /api/reports/herd-health` — health issues with severity, resolution time, linked treatment count
 - `GET /api/audit-log` — admin only; paginated `{ data: [...], total }`. Filters: `entity_type`, `entity_id`, `user_id`, `action`, `from`, `to`
+- `GET /api/farms` — super-admin only; returns farms array with `user_count`, `cow_count` stats. `?active=0|1` filter
+- `GET /api/farms/:id` — super-admin only; farm detail with `users` array (sanitized)
+- `POST /api/farms` — super-admin only; atomic create: farm + admin user + seed defaults (breed types, issue types, medications, feature flags, settings). Body: `{ name, code, admin_username, admin_password, admin_full_name }`. Code: uppercase alphanumeric 3-10 chars
+- `PATCH /api/farms/:id` — super-admin only; update `{ name?, code?, is_active? }`
+- `DELETE /api/farms/:id` — super-admin only; soft deactivate (sets `is_active: false`)
+- `POST /api/farms/:id/enter` — super-admin only; issues 4h farm-scoped JWT for cross-farm management
+- `POST /api/farms/:id/revoke-all-sessions` — super-admin only; bumps `token_version` for all farm users
+- `POST /api/users/:id/revoke-sessions` — admin only; bumps individual user's `token_version`
 
 ## i18n
 
-Two locales: `en.json` and `af.json` in `client/src/i18n/`. Locale persisted to `localStorage('locale')`. All user-facing strings must have entries in both files. Keys are namespaced: `nav`, `login`, `dashboard`, `cows`, `cowForm`, `cowDetail`, `status`, `sex`, `analytics`, `common`, `sync`, `placeholder`, `featureFlags`, `users`, `settings`, `audit`, `profile`.
+Two locales: `en.json` and `af.json` in `client/src/i18n/`. Locale persisted to `localStorage('locale')`. All user-facing strings must have entries in both files. Keys are namespaced: `nav`, `login`, `dashboard`, `cows`, `cowForm`, `cowDetail`, `status`, `sex`, `analytics`, `common`, `sync`, `placeholder`, `featureFlags`, `users`, `settings`, `audit`, `profile`, `superAdmin`.
 
 ## Frontend Component Architecture (Atomic Design)
 

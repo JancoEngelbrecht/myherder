@@ -1,6 +1,15 @@
 // Custom service-worker logic injected into Workbox-generated SW
 // Background Sync: when browser fires the 'sync' event, push pending changes
 
+// Farm-scoped DB name — updated via postMessage from the main thread
+let currentDbName = 'myherder_db'
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SET_DB_NAME' && event.data.dbName) {
+    currentDbName = event.data.dbName
+  }
+})
+
 self.addEventListener('sync', (event) => {
   if (event.tag === 'myherder-sync') {
     event.waitUntil(pushPendingChanges())
@@ -9,7 +18,7 @@ self.addEventListener('sync', (event) => {
 
 async function pushPendingChanges() {
   // Open IndexedDB directly (Dexie is not available in SW context)
-  const dbReq = indexedDB.open('myherder_db')
+  const dbReq = indexedDB.open(currentDbName)
 
   const db = await new Promise((resolve, reject) => {
     dbReq.onsuccess = () => resolve(dbReq.result)

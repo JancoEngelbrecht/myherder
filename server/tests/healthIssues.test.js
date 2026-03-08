@@ -2,7 +2,7 @@ const { randomUUID } = require('crypto')
 const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
-const { seedUsers } = require('./helpers/setup')
+const { seedUsers, DEFAULT_FARM_ID } = require('./helpers/setup')
 const { adminToken, workerToken } = require('./helpers/tokens')
 
 beforeAll(async () => {
@@ -18,6 +18,7 @@ async function createCow(overrides = {}) {
   const id = randomUUID()
   await db('cows').insert({
     id,
+    farm_id: DEFAULT_FARM_ID,
     tag_number: `HI-${id.slice(0, 6)}`,
     sex: 'female',
     status: 'active',
@@ -32,6 +33,7 @@ async function createIssue(cowId, overrides = {}) {
   const now = new Date().toISOString()
   await db('health_issues').insert({
     id,
+    farm_id: DEFAULT_FARM_ID,
     cow_id: cowId,
     reported_by: adminId,
     issue_types: JSON.stringify(['mastitis']),
@@ -399,8 +401,8 @@ describe('GET /api/health-issues/:id/comments', () => {
     const now = new Date().toISOString()
 
     await db('health_issue_comments').insert([
-      { id: randomUUID(), health_issue_id: issueId, user_id: adminId, comment: 'First', created_at: '2026-01-01T10:00:00Z', updated_at: now },
-      { id: randomUUID(), health_issue_id: issueId, user_id: adminId, comment: 'Second', created_at: '2026-01-01T11:00:00Z', updated_at: now },
+      { id: randomUUID(), farm_id: DEFAULT_FARM_ID, health_issue_id: issueId, user_id: adminId, comment: 'First', created_at: '2026-01-01T10:00:00Z', updated_at: now },
+      { id: randomUUID(), farm_id: DEFAULT_FARM_ID, health_issue_id: issueId, user_id: adminId, comment: 'Second', created_at: '2026-01-01T11:00:00Z', updated_at: now },
     ])
 
     const res = await request(app)
@@ -475,6 +477,7 @@ describe('DELETE /api/health-issues/:id/comments/:commentId', () => {
     const now = new Date().toISOString()
     await db('health_issue_comments').insert({
       id: commentId,
+      farm_id: DEFAULT_FARM_ID,
       health_issue_id: issueId,
       user_id: adminId,
       comment: 'To be deleted',
@@ -499,6 +502,7 @@ describe('DELETE /api/health-issues/:id/comments/:commentId', () => {
     const now = new Date().toISOString()
     await db('health_issue_comments').insert({
       id: commentId,
+      farm_id: DEFAULT_FARM_ID,
       health_issue_id: issueId,
       user_id: adminId,
       comment: 'Worker cannot delete',

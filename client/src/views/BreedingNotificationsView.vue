@@ -241,7 +241,6 @@ import { useRouter } from 'vue-router'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../components/molecules/ConfirmDialog.vue'
 import { useBreedingEventsStore } from '../stores/breedingEvents'
-import { useCowsStore } from '../stores/cows'
 import { useToast } from '../composables/useToast'
 import { extractApiError, resolveError } from '../utils/apiError'
 import { isOfflineError } from '../services/syncManager'
@@ -249,7 +248,6 @@ import { isOfflineError } from '../services/syncManager'
 const { t } = useI18n()
 const router = useRouter()
 const breedingStore = useBreedingEventsStore()
-const cowsStore = useCowsStore()
 const toast = useToast()
 
 // ── Filter state ─────────────────────────────────────────────────────────────
@@ -435,7 +433,6 @@ async function acceptDryOff(ev) {
       event_type: 'dry_off',
       event_date: new Date().toISOString().slice(0, 16),
     })
-    await cowsStore.update(ev.cow_id, { is_dry: true })
     await breedingStore.fetchUpcoming()
   } catch (err) {
     if (!isOfflineError(err)) toast.show(resolveError(extractApiError(err), t), 'error')

@@ -3,6 +3,7 @@ const Joi = require('joi');
 const { randomUUID: uuidv4 } = require('crypto');
 const db = require('../config/database');
 const auth = require('../middleware/auth');
+const tenantScope = require('../middleware/tenantScope');
 const authorize = require('../middleware/authorize');
 const { requireAdmin } = authorize;
 const { logAudit } = require('../services/auditService');
@@ -10,6 +11,7 @@ const { ISO_DATE_RE, MAX_SEARCH_LENGTH, DEFAULT_PAGE_SIZE, parsePagination, COW_
 
 const router = express.Router();
 router.use(auth);
+router.use(tenantScope);
 
 // ── Validation schemas ──────────────────────────────────────────
 
@@ -26,7 +28,6 @@ const cowSchema = Joi.object({
   is_external: Joi.boolean().default(false),
   purpose: Joi.string().valid('natural_service', 'ai_semen_donor', 'both').allow(null, ''),
   life_phase_override: Joi.string().valid('calf', 'heifer', 'cow', 'young_bull', 'bull').allow(null, ''),
-  is_dry: Joi.boolean().default(false),
   notes: Joi.string().max(2000).allow('', null)
 });
 
@@ -37,7 +38,6 @@ const cowQuerySchema = Joi.object({
   status: Joi.string().valid(...COW_STATUSES),
   sex: Joi.string().valid('female', 'male'),
   breed_type_id: Joi.string().max(36),
-  is_dry: Joi.string().valid('0', '1', 'true', 'false'),
   life_phase: Joi.string().valid('calf', 'heifer', 'cow', 'young_bull', 'bull'),
   pregnant: Joi.string().valid('0', '1', 'true', 'false'),
   dim_min: Joi.number().integer().min(0),
@@ -54,8 +54,8 @@ const cowQuerySchema = Joi.object({
 
 // ── Helpers ─────────────────────────────────────────────────────
 
-async function findCowOrFail(id) {
-  const cow = await db('cows').where({ id }).whereNull('deleted_at').first();
+async function findCowOrFail(id, farmId) {
+  const cow = await db('cows').where({ id }).where('farm_id', farmId).whereNull('deleted_at').first();
   if (!cow) {
     const err = new Error('Cow not found');
     err.status = 404;
@@ -84,7 +84,7 @@ const LIFE_PHASE_SQL = `CASE
 const LAST_CALVING_SQL = `(
     SELECT MAX(be.event_date)
     FROM breeding_events be
-    WHERE be.cow_id = c.id AND be.event_type = 'calving'
+    WHERE be.cow_id = c.id AND be.event_type = 'calving' AND be.farm_id = c.farm_id
   )`;
 
 // GET /api/cows
@@ -94,6 +94,7 @@ router.get('/', async (req, res, next) => {
     if (qError) return res.status(400).json({ error: joiMsg(qError) });
 
     const query = db('cows as c')
+      .where('c.farm_id', req.farmId)
       .leftJoin('breed_types as bt', 'c.breed_type_id', 'bt.id')
       .select(
         'c.*',
@@ -115,10 +116,6 @@ router.get('/', async (req, res, next) => {
     if (q.status) query.where('c.status', q.status);
     if (q.sex) query.where('c.sex', q.sex);
     if (q.breed_type_id) query.where('c.breed_type_id', q.breed_type_id);
-
-    if (q.is_dry !== undefined) {
-      query.where('c.is_dry', q.is_dry === 'true' || q.is_dry === '1');
-    }
 
     // Life phase filter (SQL-computed from dob/sex/breed thresholds)
     if (q.life_phase) {
@@ -160,7 +157,7 @@ router.get('/', async (req, res, next) => {
         SELECT AVG(daily_total) FROM (
           SELECT mr.recording_date, SUM(mr.litres) as daily_total
           FROM milk_records mr
-          WHERE mr.cow_id = c.id
+          WHERE mr.cow_id = c.id AND mr.farm_id = c.farm_id
             AND mr.recording_date >= date('now', '-7 days')
           GROUP BY mr.recording_date
         )
@@ -200,6 +197,7 @@ router.get('/:id', async (req, res, next) => {
     // Single query with LEFT JOINs to resolve sire/dam names
     const cow = await db('cows as c')
       .where('c.id', req.params.id)
+      .where('c.farm_id', req.farmId)
       .whereNull('c.deleted_at')
       .leftJoin('cows as sire', 'c.sire_id', 'sire.id')
       .leftJoin('cows as dam', 'c.dam_id', 'dam.id')
@@ -230,14 +228,13 @@ router.post('/', authorize('can_manage_cows'), async (req, res, next) => {
     if (error) return res.status(400).json({ error: joiMsg(error) });
 
     const now = new Date().toISOString();
-    const cow = { id: uuidv4(), ...value, created_by: req.user.id, created_at: now, updated_at: now };
+    const cow = { id: uuidv4(), ...value, farm_id: req.user.farm_id, created_by: req.user.id, created_at: now, updated_at: now };
     await db('cows').insert(cow);
 
     // Coerce booleans to 0/1 to match SQLite's stored representation
     const response = { ...cow };
     if (response.is_external !== undefined) response.is_external = response.is_external ? 1 : 0;
-    if (response.is_dry !== undefined) response.is_dry = response.is_dry ? 1 : 0;
-    await logAudit({ userId: req.user.id, action: 'create', entityType: 'cow', entityId: cow.id, newValues: response });
+    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'create', entityType: 'cow', entityId: cow.id, newValues: response });
     res.status(201).json(response);
   } catch (err) {
     // Unique constraint errors are handled centrally by errorHandler
@@ -248,7 +245,7 @@ router.post('/', authorize('can_manage_cows'), async (req, res, next) => {
 // PUT /api/cows/:id
 router.put('/:id', authorize('can_manage_cows'), async (req, res, next) => {
   try {
-    const oldCow = await findCowOrFail(req.params.id);
+    const oldCow = await findCowOrFail(req.params.id, req.farmId);
 
     const { error, value } = validateBody(cowUpdateSchema, req.body);
     if (error) return res.status(400).json({ error: joiMsg(error) });
@@ -258,10 +255,10 @@ router.put('/:id', authorize('can_manage_cows'), async (req, res, next) => {
     if (value.status && value.status !== oldCow.status) {
       updates.status_changed_at = now;
     }
-    await db('cows').where({ id: req.params.id }).update(updates);
+    await db('cows').where({ id: req.params.id }).where('farm_id', req.farmId).update(updates);
 
-    const updated = await db('cows').where({ id: req.params.id }).first();
-    await logAudit({ userId: req.user.id, action: 'update', entityType: 'cow', entityId: req.params.id, oldValues: oldCow, newValues: updated });
+    const updated = await db('cows').where({ id: req.params.id }).where('farm_id', req.farmId).first();
+    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'update', entityType: 'cow', entityId: req.params.id, oldValues: oldCow, newValues: updated });
     res.json(updated);
   } catch (err) {
     next(err);
@@ -271,10 +268,10 @@ router.put('/:id', authorize('can_manage_cows'), async (req, res, next) => {
 // DELETE /api/cows/:id — soft delete, admin only
 router.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
-    const cow = await findCowOrFail(req.params.id);
+    const cow = await findCowOrFail(req.params.id, req.farmId);
 
-    await db('cows').where({ id: req.params.id }).update({ deleted_at: new Date().toISOString() });
-    await logAudit({ userId: req.user.id, action: 'delete', entityType: 'cow', entityId: req.params.id, oldValues: cow });
+    await db('cows').where({ id: req.params.id }).where('farm_id', req.farmId).update({ deleted_at: new Date().toISOString() });
+    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'delete', entityType: 'cow', entityId: req.params.id, oldValues: cow });
     res.json({ message: 'Cow deleted' });
   } catch (err) {
     next(err);

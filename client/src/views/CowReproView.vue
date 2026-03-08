@@ -253,7 +253,7 @@ async function doDelete() {
 
 onMounted(async () => {
   loading.value = true
-  if (breedTypesStore.activeTypes.length === 0) breedTypesStore.fetchActive().catch(() => {})
+  if (!breedTypesStore.hasData) breedTypesStore.fetchActive().catch(() => {})
   if (cowsStore.cows.length === 0) await cowsStore.fetchAll()
   cowEvents.value = await breedingStore.fetchForCow(cowId.value)
   loading.value = false

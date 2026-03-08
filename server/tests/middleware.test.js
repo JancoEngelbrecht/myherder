@@ -1,9 +1,18 @@
 const jwt = require('jsonwebtoken')
-const auth = require('../middleware/auth')
 const authorize = require('../middleware/authorize')
 const { requireAdmin } = require('../middleware/authorize')
 
 const JWT_SECRET = process.env.JWT_SECRET || 'test-secret-do-not-use-in-prod'
+
+// Mock the database module for auth middleware unit tests
+jest.mock('../config/database', () => {
+  const mockFirst = jest.fn().mockResolvedValue({ token_version: 0, is_active: true })
+  const mockSelect = jest.fn().mockReturnValue({ first: mockFirst })
+  const mockWhere = jest.fn().mockReturnValue({ select: mockSelect })
+  return jest.fn().mockReturnValue({ where: mockWhere })
+})
+
+const auth = require('../middleware/auth')
 
 function mockRes() {
   const res = {}
@@ -15,14 +24,17 @@ function mockRes() {
 // ── auth middleware ─────────────────────────────────────────────────────────────
 
 describe('auth middleware', () => {
-  it('sets req.user and calls next() with valid Bearer token', () => {
-    const payload = { id: 'u1', username: 'admin', role: 'admin', permissions: [] }
+  it('sets req.user and calls next() with valid Bearer token', async () => {
+    const payload = { id: 'u1', username: 'admin', role: 'admin', permissions: [], token_version: 0 }
     const token = jwt.sign(payload, JWT_SECRET)
     const req = { headers: { authorization: `Bearer ${token}` } }
     const res = mockRes()
     const next = jest.fn()
 
     auth(req, res, next)
+
+    // Wait for async DB call to complete
+    await new Promise((r) => setTimeout(r, 10))
 
     expect(next).toHaveBeenCalled()
     expect(req.user).toBeDefined()
@@ -74,6 +86,20 @@ describe('auth middleware', () => {
     auth(req, res, next)
 
     expect(res.status).toHaveBeenCalledWith(401)
+    expect(next).not.toHaveBeenCalled()
+  })
+
+  it('returns 401 for temp tokens', async () => {
+    const payload = { id: 'u1', role: 'super_admin', type: 'temp' }
+    const token = jwt.sign(payload, JWT_SECRET)
+    const req = { headers: { authorization: `Bearer ${token}` } }
+    const res = mockRes()
+    const next = jest.fn()
+
+    auth(req, res, next)
+
+    expect(res.status).toHaveBeenCalledWith(401)
+    expect(res.json).toHaveBeenCalledWith({ error: 'Temporary token not valid for this endpoint' })
     expect(next).not.toHaveBeenCalled()
   })
 })

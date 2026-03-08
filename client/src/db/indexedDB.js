@@ -12,24 +12,80 @@ const CURRENT_SCHEMA = {
   breedingEvents: 'id, cow_id, event_type, event_date, expected_calving, expected_next_heat, updated_at',
   breedTypes: 'id, code, name, is_active, sort_order',
   issueTypes: 'id, code, is_active, sort_order',
-  syncQueue: '++autoId, id, entityType, action, createdAt, attempts',
+  syncQueue: '++autoId, id, entityType, action, createdAt, attempts, [entityType+id]',
   syncMeta: 'key',
   featureFlags: 'key',
 }
 
 // ── DB Instance ────────────────────────────────────────────────
 
-let db = createDb()
+let db = createDb('myherder_db')
+let currentDbName = 'myherder_db'
 
-function createDb() {
-  const instance = new Dexie('myherder_db')
+function createDb(dbName) {
+  const instance = new Dexie(dbName)
   // Keep v7 as baseline (matches previously deployed version)
   instance.version(7).stores(CURRENT_SCHEMA)
   // v8: added attempts index on syncQueue
   instance.version(8).stores(CURRENT_SCHEMA)
   // v9: added featureFlags table
   instance.version(9).stores(CURRENT_SCHEMA)
+  // v10: compound index [entityType+id] on syncQueue
+  instance.version(10).stores(CURRENT_SCHEMA)
   return instance
+}
+
+/**
+ * Reinitialize the database with a farm-scoped name.
+ * Call after login once farm_id is known from JWT.
+ * The existing Proxy ensures all modules see the new instance.
+ */
+async function initDb(farmId) {
+  const newName = farmId ? `myherder_db_${farmId}` : 'myherder_db'
+  if (newName === currentDbName && db.isOpen()) return
+
+  // Same name but closed — just reopen without recreating
+  if (newName === currentDbName) {
+    await db.open()
+    return
+  }
+
+  // Different name — close old instance and create new one
+  if (db.isOpen()) {
+    db.close()
+  }
+
+  currentDbName = newName
+  db = createDb(newName)
+  await db.open()
+
+  // Notify service worker of the farm-scoped DB name for background sync
+  if (navigator.serviceWorker?.controller) {
+    navigator.serviceWorker.controller.postMessage({ type: 'SET_DB_NAME', dbName: newName })
+  }
+}
+
+/**
+ * Close and delete the current farm-scoped database (call on logout).
+ * Deletes farm-scoped DBs to prevent stale data on shared devices.
+ */
+async function closeDb() {
+  if (db.isOpen()) {
+    db.close()
+  }
+  // Delete farm-scoped DB to prevent stale data exposure; keep default DB
+  if (currentDbName !== 'myherder_db') {
+    try {
+      await new Promise((resolve, reject) => {
+        const req = indexedDB.deleteDatabase(currentDbName)
+        req.onsuccess = resolve
+        req.onerror = reject
+        req.onblocked = resolve
+      })
+    } catch {
+      // Best-effort — may fail if another tab holds the DB open
+    }
+  }
 }
 
 // ── Resilient Open ─────────────────────────────────────────────
@@ -46,13 +102,13 @@ async function openDb() {
     } catch {
       // delete can fail if db never opened — try native API
       await new Promise((resolve, reject) => {
-        const req = indexedDB.deleteDatabase('myherder_db')
+        const req = indexedDB.deleteDatabase(currentDbName)
         req.onsuccess = resolve
         req.onerror = reject
         req.onblocked = resolve // proceed even if blocked
       })
     }
-    db = createDb()
+    db = createDb(currentDbName)
     await db.open()
     dbRecovered.value = true
     console.warn('[IndexedDB] Database recovered — local cache was reset')
@@ -97,4 +153,4 @@ const dbProxy = new Proxy(
 )
 
 export default dbProxy
-export { ensureDeviceId, openDb, dbRecovered, clearRecoveredFlag }
+export { initDb, closeDb, ensureDeviceId, openDb, dbRecovered, clearRecoveredFlag }

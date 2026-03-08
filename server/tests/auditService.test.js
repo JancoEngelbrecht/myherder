@@ -1,6 +1,6 @@
 const db = require('../config/database')
 const { logAudit } = require('../services/auditService')
-const { seedUsers } = require('./helpers/setup')
+const { DEFAULT_FARM_ID, seedUsers } = require('./helpers/setup')
 
 beforeAll(async () => {
   await db.migrate.latest()
@@ -13,6 +13,7 @@ describe('auditService', () => {
   it('logAudit() inserts a row into audit_log table', async () => {
     const entityId = `test-cow-${Date.now()}`
     await logAudit({
+      farmId: DEFAULT_FARM_ID,
       userId: 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa',
       action: 'create',
       entityType: 'cow',

@@ -20,6 +20,7 @@ router.get('/age-distribution', async (req, res, next) => {
     END`;
 
     const rows = await db('cows')
+      .where('farm_id', req.farmId)
       .whereNull('deleted_at')
       .select(
         db.raw(`${BRACKET_SQL} as bracket`),
@@ -57,6 +58,7 @@ router.get('/age-distribution', async (req, res, next) => {
 router.get('/breed-composition', async (req, res, next) => {
   try {
     const rows = await db('cows')
+      .where('cows.farm_id', req.farmId)
       .whereNull('cows.deleted_at')
       .leftJoin('breed_types', 'cows.breed_type_id', 'breed_types.id')
       .select(
@@ -87,8 +89,9 @@ router.get('/mortality-rate', async (req, res, next) => {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
     const [herdRow, rows] = await Promise.all([
-      db('cows').whereNull('deleted_at').count('id as herd_size').first(),
+      db('cows').where('farm_id', req.farmId).whereNull('deleted_at').count('id as herd_size').first(),
       db('cows')
+        .where('farm_id', req.farmId)
         .whereNull('deleted_at')
         .whereIn('status', ['sold', 'dead'])
         .whereRaw(`${STATUS_DATE_EXPR} BETWEEN ? AND ?`, [start, endTs])
@@ -132,11 +135,13 @@ router.get('/herd-turnover', async (req, res, next) => {
     const [addedRows, removedRows] = await Promise.all([
       // Include soft-deleted cows — they were real additions to the herd
       db('cows')
+        .where('farm_id', req.farmId)
         .whereBetween('created_at', [start, endTs])
         .select(db.raw(`${monthExpr('created_at')} as month`))
         .count('id as additions')
         .groupByRaw(`${monthExpr('created_at')}`),
       db('cows')
+        .where('farm_id', req.farmId)
         .whereNull('deleted_at')
         .whereIn('status', ['sold', 'dead'])
         .whereRaw(`${STATUS_DATE_EXPR} BETWEEN ? AND ?`, [start, endTs])
@@ -181,6 +186,7 @@ router.get('/herd-size-trend', async (req, res, next) => {
 
     // Count cows added per month — include soft-deleted cows (they were real additions)
     const addedRows = await db('cows')
+      .where('farm_id', req.farmId)
       .select(db.raw(`${monthExpr('created_at')} as month`))
       .count('id as added')
       .groupByRaw(`${monthExpr('created_at')}`)

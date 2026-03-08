@@ -8,6 +8,22 @@
         <p class="greeting-text">{{ t('dashboard.greeting') }}, <strong>{{ authStore.user?.full_name || authStore.user?.username }}</strong> 👋</p>
       </div>
 
+      <!-- Super-admin without farm context -->
+      <template v-if="authStore.isSuperAdmin && !hasFarmContext">
+        <section class="section">
+          <h2 class="section-label">{{ t('superAdmin.management') }}</h2>
+          <div class="actions-grid">
+            <RouterLink to="/super/farms" class="action-card active-action">
+              <span class="action-icon">🏢</span>
+              <span class="action-label">{{ t('superAdmin.farms') }}</span>
+            </RouterLink>
+          </div>
+        </section>
+      </template>
+
+      <!-- Normal farm dashboard -->
+      <template v-else>
+
       <!-- Herd Summary -->
       <div v-if="!summaryLoading" class="stats-row">
         <div class="stat-chip stat-active">
@@ -73,6 +89,8 @@
           </RouterLink>
         </div>
       </section>
+
+      </template><!-- end normal farm dashboard -->
     </div>
   </div>
 </template>
@@ -91,12 +109,13 @@ const featureFlagsStore = useFeatureFlagsStore()
 
 const flags = computed(() => featureFlagsStore.flags)
 const { hasPermission } = authStore
+const hasFarmContext = computed(() => !!authStore.user?.farm_id)
 
 const summary = ref({ active: null, dry: null, pregnant: null, sick: null })
 const summaryLoading = ref(true)
 
 onMounted(async () => {
-  if (!hasPermission('can_view_analytics')) {
+  if (!hasFarmContext.value || !hasPermission('can_view_analytics')) {
     summaryLoading.value = false
     return
   }

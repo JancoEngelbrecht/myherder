@@ -2,7 +2,7 @@ const { randomUUID } = require('crypto')
 const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
-const { ADMIN_ID, WORKER_ID, seedUsers } = require('./helpers/setup')
+const { ADMIN_ID, WORKER_ID, DEFAULT_FARM_ID, seedUsers } = require('./helpers/setup')
 const { adminToken } = require('./helpers/tokens')
 
 beforeAll(async () => {
@@ -18,6 +18,7 @@ async function createCow(overrides = {}) {
   const id = randomUUID()
   await db('cows').insert({
     id,
+    farm_id: DEFAULT_FARM_ID,
     tag_number: `M-${id.slice(0, 8)}`,
     name: `Cow ${id.slice(0, 4)}`,
     sex: 'female',
@@ -31,6 +32,7 @@ async function createRecord(cowId, overrides = {}) {
   const id = randomUUID()
   await db('milk_records').insert({
     id,
+    farm_id: DEFAULT_FARM_ID,
     cow_id: cowId,
     recorded_by: ADMIN_ID,
     session: 'morning',
@@ -243,5 +245,90 @@ describe('GET /api/milk-records (paginated)', () => {
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(400)
+  })
+
+  it('filters by search on cow tag_number', async () => {
+    const res = await request(app)
+      .get('/api/milk-records?page=1&limit=50&search=PG-001')
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.length).toBeGreaterThanOrEqual(1)
+    for (const r of res.body.data) {
+      expect(r.tag_number).toBe('PG-001')
+    }
+  })
+
+  it('filters by search on cow name', async () => {
+    const res = await request(app)
+      .get('/api/milk-records?page=1&limit=50&search=Alpha')
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.length).toBeGreaterThanOrEqual(1)
+    for (const r of res.body.data) {
+      expect(r.cow_name).toBe('Alpha')
+    }
+  })
+
+  it('filters by search on recorded_by_name', async () => {
+    const res = await request(app)
+      .get('/api/milk-records?page=1&limit=50&search=Admin')
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    expect(res.body.data.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('filters by discarded=true', async () => {
+    // Create a discarded record
+    const discardCow = await createCow({ tag_number: 'DISC-001', name: 'Discard' })
+    await createRecord(discardCow, {
+      recording_date: '2026-03-10',
+      session: 'morning',
+      milk_discarded: true,
+      discard_reason: 'withdrawal',
+    })
+
+    const res = await request(app)
+      .get('/api/milk-records?page=1&limit=50&discarded=true')
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    for (const r of res.body.data) {
+      expect(r.milk_discarded).toBeTruthy()
+    }
+  })
+
+  it('filters by discarded=false excludes discarded records', async () => {
+    const res = await request(app)
+      .get('/api/milk-records?page=1&limit=50&discarded=false')
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    for (const r of res.body.data) {
+      expect(Number(r.milk_discarded)).toBe(0)
+    }
+  })
+})
+
+// ── GET /api/milk-records/recorders ──────────────────────────────────────────
+
+describe('GET /api/milk-records/recorders', () => {
+  it('returns distinct recorders', async () => {
+    const res = await request(app)
+      .get('/api/milk-records/recorders')
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    expect(Array.isArray(res.body)).toBe(true)
+    expect(res.body.length).toBeGreaterThanOrEqual(1)
+    expect(res.body[0]).toHaveProperty('id')
+    expect(res.body[0]).toHaveProperty('full_name')
+  })
+
+  it('returns 401 without token', async () => {
+    const res = await request(app).get('/api/milk-records/recorders')
+    expect(res.status).toBe(401)
   })
 })

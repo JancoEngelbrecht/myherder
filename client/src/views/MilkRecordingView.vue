@@ -101,7 +101,7 @@ import { useI18n } from 'vue-i18n'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import MilkEntryCard from '../components/molecules/MilkEntryCard.vue'
 import SearchInput from '../components/atoms/SearchInput.vue'
-import { useCowsStore } from '../stores/cows'
+import { useCowsStore, computeLifePhase } from '../stores/cows'
 import { useTreatmentsStore } from '../stores/treatments'
 import { useMilkRecordsStore } from '../stores/milkRecords'
 import { resolveError } from '../utils/apiError'
@@ -137,11 +137,13 @@ const searchQuery = ref('')
 
 const isToday = computed(() => selectedDate.value === today)
 
-// ── Qualifying cows (female only, active/dry, sorted active first) ────────────
+// ── Qualifying cows (only "cow" life phase, active/dry, sorted active first) ─
+
+const isMilkable = (c) => c.sex !== 'male' && computeLifePhase(c) === 'cow'
 
 const qualifyingCows = computed(() => {
-  const active = cowsStore.cows.filter((c) => c.sex !== 'male' && c.status === 'active')
-  const dry = cowsStore.cows.filter((c) => c.sex !== 'male' && c.status === 'dry')
+  const active = cowsStore.cows.filter((c) => isMilkable(c) && c.status === 'active')
+  const dry = cowsStore.cows.filter((c) => isMilkable(c) && c.status === 'dry')
   return [...active, ...dry]
 })
 

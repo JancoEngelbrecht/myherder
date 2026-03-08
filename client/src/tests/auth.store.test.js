@@ -16,6 +16,8 @@ vi.mock('../db/indexedDB.js', () => ({
       delete: vi.fn().mockResolvedValue(undefined),
     },
   },
+  initDb: vi.fn().mockResolvedValue(undefined),
+  closeDb: vi.fn(),
 }))
 
 // setup.js creates fresh Pinia before each test via setActivePinia(createPinia())

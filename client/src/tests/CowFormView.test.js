@@ -158,35 +158,15 @@ describe('CowFormView', () => {
     const wrapper = createWrapper()
     await flushPromises()
 
-    // Default is female — bull fields should be hidden
-    expect(wrapper.find('.checkbox-label').exists()).toBe(true) // is_dry checkbox
-
     // Click male button
     const malBtn = wrapper.findAll('.sex-btn')[1]
     await malBtn.trigger('click')
     await flushPromises()
 
     // Now we should see is_external and purpose
-    const checkboxes = wrapper.findAll('.checkbox-label')
-    expect(checkboxes.length).toBeGreaterThanOrEqual(1)
-    // is_dry should be gone, is_external should appear
     expect(wrapper.html()).toContain('cowForm.isExternal')
   })
 
-  it('shows is_dry toggle for female cows only', async () => {
-    const wrapper = createWrapper()
-    await flushPromises()
-
-    // Female by default — should show is_dry
-    expect(wrapper.html()).toContain('cowForm.isDry')
-
-    // Switch to male
-    const malBtn = wrapper.findAll('.sex-btn')[1]
-    await malBtn.trigger('click')
-    await flushPromises()
-
-    expect(wrapper.html()).not.toContain('cowForm.isDry')
-  })
 
   it('shows calving banner when from_calving query is set', async () => {
     mockRouteQuery = { from_calving: 'true', sex: 'female', dob: '2026-01-01' }

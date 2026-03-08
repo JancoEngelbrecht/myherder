@@ -124,5 +124,8 @@ export const useBreedTypesStore = defineStore('breedTypes', () => {
     return all.find((t) => t.id === id) ?? null
   }
 
-  return { types, loading, fetchAll, fetchActive, create, update, remove, activeTypes, getById }
+  /** True when real data has been loaded (not just fallbacks) */
+  const hasData = computed(() => types.value.length > 0)
+
+  return { types, loading, fetchAll, fetchActive, create, update, remove, activeTypes, getById, hasData }
 })

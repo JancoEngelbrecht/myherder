@@ -4,8 +4,9 @@ const db = require('../config/database')
 
 // ── Helpers ──────────────────────────────────────────────────
 
-async function getFarmName() {
-  const row = await db('app_settings').where({ key: 'farm_name' }).first()
+async function getFarmName(farmId) {
+  if (!farmId) return 'MyHerder Farm'
+  const row = await db('app_settings').where({ key: 'farm_name' }).where('farm_id', farmId).first()
   return row?.value || 'MyHerder Farm'
 }
 

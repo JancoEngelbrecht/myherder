@@ -190,6 +190,13 @@
                 {{ user.is_active ? t('users.deactivate') : t('users.reactivate') }}
               </button>
               <button
+                v-if="user.id !== currentUserId && user.is_active"
+                class="btn-sm btn-secondary"
+                @click="confirmRevoke(user)"
+              >
+                {{ t('users.revokeSessions') }}
+              </button>
+              <button
                 v-if="user.id !== currentUserId"
                 class="btn-sm btn-danger-outline"
                 @click="confirmPermanentDelete(user)"
@@ -222,6 +229,16 @@
       :loading="deleteLoading"
       @confirm="executePermanentDelete"
       @cancel="deleting = null"
+    />
+
+    <ConfirmDialog
+      :show="!!revoking"
+      :message="revokeMessage"
+      :confirm-label="t('users.revokeSessions')"
+      :cancel-label="t('common.cancel')"
+      :loading="revokeLoading"
+      @confirm="executeRevoke"
+      @cancel="revoking = null"
     />
   </div>
 </template>
@@ -257,6 +274,10 @@ const toggleLoading = ref(false)
 const deleting = ref(null)
 const deleteMessage = ref('')
 const deleteLoading = ref(false)
+
+const revoking = ref(null)
+const revokeMessage = ref('')
+const revokeLoading = ref(false)
 
 const permLogging = ['can_log_issues', 'can_log_treatments', 'can_log_breeding', 'can_record_milk']
 const permViewing = ['can_view_analytics']
@@ -340,7 +361,10 @@ async function save() {
     }
 
     if (formMode.value === 'add') {
-      await api.post('/users', payload)
+      const { data } = await api.post('/users', payload)
+      if (data.reactivated) {
+        toast.show(t('users.userReactivated', { name: data.full_name }), 'success')
+      }
     } else {
       // For edit, remove empty credential fields
       if (!payload.password) delete payload.password
@@ -383,6 +407,25 @@ async function executePermanentDelete() {
   }
 }
 
+function confirmRevoke(user) {
+  revoking.value = user
+  revokeMessage.value = t('users.revokeSessionsConfirm', { name: user.full_name })
+}
+
+async function executeRevoke() {
+  revokeLoading.value = true
+  try {
+    await api.post(`/users/${revoking.value.id}/revoke-sessions`)
+    toast.show(t('users.sessionsRevoked', { name: revoking.value.full_name }), 'success')
+    revoking.value = null
+    await fetchUsers()
+  } catch (err) {
+    toast.show(resolveError(extractApiError(err), t), 'error')
+  } finally {
+    revokeLoading.value = false
+  }
+}
+
 async function executeToggle() {
   toggleLoading.value = true
   try {
@@ -394,7 +437,8 @@ async function executeToggle() {
     toggling.value = null
     await fetchUsers()
   } catch (err) {
-    toggleMessage.value = resolveError(extractApiError(err), t)
+    toggling.value = null
+    toast.show(resolveError(extractApiError(err), t), 'error')
   } finally {
     toggleLoading.value = false
   }

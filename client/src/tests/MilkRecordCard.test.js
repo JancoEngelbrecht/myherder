@@ -45,7 +45,7 @@ describe('MilkRecordCard', () => {
 
   it('renders session label and date', () => {
     const wrapper = createWrapper(makeRecord())
-    expect(wrapper.text()).toContain('2026-02-15')
+    expect(wrapper.text()).toContain('15/02/2026')
   })
 
   it('renders session time when present', () => {

@@ -10,6 +10,24 @@ const routes = [
     meta: { public: true },
   },
   {
+    path: '/login/super',
+    name: 'super-admin-login',
+    component: () => import('../views/SuperAdminLoginView.vue'),
+    meta: { public: true },
+  },
+  {
+    path: '/auth/2fa',
+    name: 'two-factor-verify',
+    component: () => import('../views/TwoFactorVerifyView.vue'),
+    meta: { public: true },
+  },
+  {
+    path: '/auth/setup-2fa',
+    name: 'two-factor-setup',
+    component: () => import('../views/TwoFactorSetupView.vue'),
+    meta: { public: true },
+  },
+  {
     path: '/',
     name: 'dashboard',
     component: () => import('../views/DashboardView.vue'),
@@ -214,6 +232,24 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/super/farms',
+    name: 'farm-list',
+    component: () => import('../views/super/FarmListView.vue'),
+    meta: { requiresAuth: true, requiresSuperAdmin: true },
+  },
+  {
+    path: '/super/farms/new',
+    name: 'farm-create',
+    component: () => import('../views/super/CreateFarmView.vue'),
+    meta: { requiresAuth: true, requiresSuperAdmin: true },
+  },
+  {
+    path: '/super/farms/:id',
+    name: 'farm-detail',
+    component: () => import('../views/super/FarmDetailView.vue'),
+    meta: { requiresAuth: true, requiresSuperAdmin: true },
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/',
   },
@@ -244,6 +280,10 @@ router.beforeEach(async (to) => {
     return { name: 'login' }
   }
 
+  if (to.meta.requiresSuperAdmin && (!authStore.isSuperAdmin || authStore.isInFarmContext)) {
+    return { name: 'dashboard' }
+  }
+
   if (to.meta.requiresAdmin && !authStore.isAdmin) {
     return { name: 'dashboard' }
   }
@@ -261,8 +301,19 @@ router.beforeEach(async (to) => {
     }
   }
 
-  if (to.path === '/login' && authStore.isAuthenticated) {
+  // Redirect authenticated users away from login and 2FA routes
+  if ((to.path === '/login' || to.path === '/login/super') && authStore.isAuthenticated) {
     return { name: 'dashboard' }
+  }
+
+  // 2FA routes require a temp token but no full auth
+  if (to.path.startsWith('/auth/')) {
+    if (authStore.isAuthenticated) {
+      return { name: 'dashboard' }
+    }
+    if (!authStore.tempToken) {
+      return { name: 'login' }
+    }
   }
 })
 

@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken')
 const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
-const { WORKER_ID, seedUsers } = require('./helpers/setup')
+const { WORKER_ID, DEFAULT_FARM_ID, seedUsers } = require('./helpers/setup')
 const { adminToken } = require('./helpers/tokens')
 const { jwtSecret } = require('../config/env')
 
@@ -20,11 +20,13 @@ afterAll(() => db.destroy())
 function tokenWith(permissions) {
   const payload = {
     id: WORKER_ID,
+    farm_id: DEFAULT_FARM_ID,
     username: 'test_worker',
     full_name: 'Test Worker',
     role: 'worker',
     permissions,
     language: 'en',
+    token_version: 0,
   }
   return `Bearer ${jwt.sign(payload, jwtSecret, { expiresIn: '1h' })}`
 }
@@ -41,6 +43,7 @@ beforeAll(async () => {
   cowId = randomUUID()
   await db('cows').insert({
     id: cowId,
+    farm_id: DEFAULT_FARM_ID,
     tag_number: 'PERM-001',
     sex: 'female',
     status: 'active',
@@ -52,6 +55,7 @@ beforeAll(async () => {
   medicationId = randomUUID()
   await db('medications').insert({
     id: medicationId,
+    farm_id: DEFAULT_FARM_ID,
     name: 'Test Med',
     is_active: true,
     created_at: new Date().toISOString(),

@@ -2,7 +2,9 @@ const { randomUUID } = require('crypto')
 const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
-const { ADMIN_ID, seedUsers } = require('./helpers/setup')
+const jwt = require('jsonwebtoken')
+const { jwtSecret } = require('../config/env')
+const { ADMIN_ID, DEFAULT_FARM_ID, seedUsers } = require('./helpers/setup')
 const { adminToken, workerToken } = require('./helpers/tokens')
 
 beforeAll(async () => {
@@ -192,7 +194,29 @@ describe('POST /api/users', () => {
     expect(res.status).toBe(400)
   })
 
-  it('returns 409 for duplicate username', async () => {
+  it('reactivates an inactive user with same username instead of 409', async () => {
+    const data = makeWorker()
+    const create = await request(app).post('/api/users').set('Authorization', adminToken()).send(data)
+    expect(create.status).toBe(201)
+
+    // Deactivate the user
+    await request(app).delete(`/api/users/${create.body.id}`).set('Authorization', adminToken())
+
+    // Re-create with same username but different details
+    const res = await request(app)
+      .post('/api/users')
+      .set('Authorization', adminToken())
+      .send({ ...data, full_name: 'Updated Name', permissions: ['can_record_milk'] })
+
+    expect(res.status).toBe(200)
+    expect(res.body.reactivated).toBe(true)
+    expect(res.body.id).toBe(create.body.id) // same user ID preserved
+    expect(res.body.full_name).toBe('Updated Name')
+    expect(res.body.is_active).toBeTruthy()
+    expect(res.body.permissions).toContain('can_record_milk')
+  })
+
+  it('still returns 409 for duplicate active username', async () => {
     const data = makeWorker()
     await request(app).post('/api/users').set('Authorization', adminToken()).send(data)
     const res = await request(app).post('/api/users').set('Authorization', adminToken()).send(data)
@@ -339,6 +363,87 @@ describe('DELETE /api/users/:id', () => {
       .set('Authorization', workerToken())
 
     expect(res.status).toBe(403)
+  })
+})
+
+// ─── POST /api/users/:id/revoke-sessions ────────────────────────────────────
+
+describe('POST /api/users/:id/revoke-sessions', () => {
+  let targetUserId
+
+  beforeAll(async () => {
+    const res = await request(app)
+      .post('/api/users')
+      .set('Authorization', adminToken())
+      .send(makeWorker({ username: `revoke_${randomUUID().slice(0, 6)}` }))
+    targetUserId = res.body.id
+  })
+
+  it('bumps token_version and returns revoked: true', async () => {
+    const res = await request(app)
+      .post(`/api/users/${targetUserId}/revoke-sessions`)
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    expect(res.body.revoked).toBe(true)
+    expect(res.body.new_version).toBe(1)
+
+    // Verify in DB
+    const row = await db('users').where({ id: targetUserId }).first()
+    expect(row.token_version).toBe(1)
+  })
+
+  it('increments version on each call', async () => {
+    const res = await request(app)
+      .post(`/api/users/${targetUserId}/revoke-sessions`)
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    expect(res.body.new_version).toBe(2)
+  })
+
+  it('returns 404 for nonexistent user', async () => {
+    const res = await request(app)
+      .post(`/api/users/${randomUUID()}/revoke-sessions`)
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(404)
+  })
+
+  it('returns 403 for worker token', async () => {
+    const res = await request(app)
+      .post(`/api/users/${targetUserId}/revoke-sessions`)
+      .set('Authorization', workerToken())
+
+    expect(res.status).toBe(403)
+  })
+
+  it('old token is rejected by auth middleware after revoke', async () => {
+    // Create a user and mint a JWT with token_version=0
+    const createRes = await request(app)
+      .post('/api/users')
+      .set('Authorization', adminToken())
+      .send(makeWorker({ username: `e2e_rev_${randomUUID().slice(0, 6)}` }))
+    const userId = createRes.body.id
+
+    const userToken = `Bearer ${jwt.sign({
+      id: userId, farm_id: DEFAULT_FARM_ID, username: createRes.body.username,
+      role: 'worker', permissions: ['can_manage_cows'], language: 'en', token_version: 0,
+    }, jwtSecret, { expiresIn: '1h' })}`
+
+    // Token works before revoke
+    const before = await request(app).get('/api/cows').set('Authorization', userToken)
+    expect(before.status).toBe(200)
+
+    // Revoke sessions
+    await request(app)
+      .post(`/api/users/${userId}/revoke-sessions`)
+      .set('Authorization', adminToken())
+
+    // Old token now rejected
+    const after = await request(app).get('/api/cows').set('Authorization', userToken)
+    expect(after.status).toBe(401)
+    expect(after.body.error).toBe('Token revoked')
   })
 })
 

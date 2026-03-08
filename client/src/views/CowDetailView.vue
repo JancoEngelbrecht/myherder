@@ -383,7 +383,7 @@ async function load() {
 onMounted(() => {
   load()
   if (featureFlagsStore.flags.healthIssues) issueTypesStore.fetchAll()
-  if (breedTypesStore.activeTypes.length === 0) breedTypesStore.fetchActive().catch(() => {})
+  if (!breedTypesStore.hasData) breedTypesStore.fetchActive().catch(() => {})
 })
 
 function calcAge(dob) {

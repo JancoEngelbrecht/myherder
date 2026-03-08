@@ -2,7 +2,7 @@ const { randomUUID } = require('crypto')
 const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
-const { seedUsers } = require('./helpers/setup')
+const { seedUsers, DEFAULT_FARM_ID } = require('./helpers/setup')
 const { adminToken } = require('./helpers/tokens')
 
 beforeAll(async () => {
@@ -18,6 +18,7 @@ async function createMedication(overrides = {}) {
   const now = new Date().toISOString()
   await db('medications').insert({
     id,
+    farm_id: DEFAULT_FARM_ID,
     name: `Med-${id.slice(0, 8)}`,
     withdrawal_milk_hours: 48,
     withdrawal_meat_days: 4,
@@ -114,8 +115,9 @@ describe('POST /api/medications', () => {
   it('returns 403 for a token without can_manage_medications', async () => {
     const jwt = require('jsonwebtoken')
     const { jwtSecret } = require('../config/env')
+    const { WORKER_ID, DEFAULT_FARM_ID } = require('./helpers/setup')
     const noPermToken = `Bearer ${jwt.sign(
-      { id: randomUUID(), role: 'worker', permissions: [] },
+      { id: WORKER_ID, farm_id: DEFAULT_FARM_ID, role: 'worker', permissions: [], token_version: 0 },
       jwtSecret,
       { expiresIn: '1h' },
     )}`

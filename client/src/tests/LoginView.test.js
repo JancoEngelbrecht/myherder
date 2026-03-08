@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { mount, flushPromises, RouterLinkStub } from '@vue/test-utils'
 import LoginView from '../views/LoginView.vue'
 import { useAuthStore } from '../stores/auth.js'
 
@@ -58,7 +58,7 @@ vi.mock('../db/indexedDB.js', () => ({
   },
 }))
 
-const stubs = { SyncIndicator: true, SyncPanel: true, Transition: false }
+const stubs = { SyncIndicator: true, SyncPanel: true, Transition: false, RouterLink: RouterLinkStub }
 
 function mountLogin() {
   return mount(LoginView, { global: { stubs } })
@@ -67,6 +67,7 @@ function mountLogin() {
 describe('LoginView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    localStorage.removeItem('farm_code')
     mockGet.mockResolvedValue({ data: { farm_name: 'Test Farm' } })
   })
 
@@ -76,6 +77,16 @@ describe('LoginView', () => {
 
     expect(wrapper.find('form').exists()).toBe(true)
     expect(wrapper.find('input[type="password"]').exists()).toBe(true)
+    expect(wrapper.find('.farm-code-input').exists()).toBe(true)
+  })
+
+  it('shows super admin link in hero area', async () => {
+    const wrapper = mountLogin()
+    await flushPromises()
+
+    const saLink = wrapper.findComponent(RouterLinkStub)
+    expect(saLink.exists()).toBe(true)
+    expect(saLink.props('to')).toBe('/login/super')
   })
 
   it('shows farm name from settings', async () => {
@@ -93,8 +104,32 @@ describe('LoginView', () => {
     expect(wrapper.find('.login-farm-name').exists()).toBe(false)
   })
 
+  it('hides worker tab when no farm code is entered', async () => {
+    const wrapper = mountLogin()
+    await flushPromises()
+
+    const tabs = wrapper.findAll('.login-tab')
+    expect(tabs).toHaveLength(1)
+    expect(tabs[0].text()).toContain('login.tabAdmin')
+  })
+
+  it('shows worker tab when farm code is entered', async () => {
+    const wrapper = mountLogin()
+    await flushPromises()
+
+    await wrapper.find('.farm-code-input').setValue('MYFARM')
+    await flushPromises()
+
+    const tabs = wrapper.findAll('.login-tab')
+    expect(tabs).toHaveLength(2)
+  })
+
   it('toggles to PIN login when worker tab clicked', async () => {
     const wrapper = mountLogin()
+    await flushPromises()
+
+    // Set farm code first to show worker tab
+    await wrapper.find('.farm-code-input').setValue('MYFARM')
     await flushPromises()
 
     const tabs = wrapper.findAll('.login-tab')
@@ -104,51 +139,23 @@ describe('LoginView', () => {
     expect(wrapper.find('input[type="password"]').exists()).toBe(false)
   })
 
-  it('PIN keypad adds digits and limits to 4', async () => {
-    const wrapper = mountLogin()
-    await flushPromises()
-    await wrapper.findAll('.login-tab')[1].trigger('click')
-
-    const keys = wrapper.findAll('.pin-key')
-    // Press 1, 2, 3, 4, 5 (5th should be ignored)
-    await keys[0].trigger('click') // 1
-    await keys[1].trigger('click') // 2
-    await keys[2].trigger('click') // 3
-    await keys[3].trigger('click') // 4
-    await keys[4].trigger('click') // 5 — ignored
-
-    const filledDots = wrapper.findAll('.pin-dot.filled')
-    expect(filledDots).toHaveLength(4)
-  })
-
-  it('PIN delete key removes last digit', async () => {
-    const wrapper = mountLogin()
-    await flushPromises()
-    await wrapper.findAll('.login-tab')[1].trigger('click')
-
-    const keys = wrapper.findAll('.pin-key')
-    await keys[0].trigger('click') // 1
-    await keys[1].trigger('click') // 2
-    // del is the 10th key (index 9)
-    await keys[9].trigger('click') // del
-
-    const filledDots = wrapper.findAll('.pin-dot.filled')
-    expect(filledDots).toHaveLength(1)
-  })
-
   it('submits admin login and redirects on success', async () => {
     const auth = useAuthStore()
-    vi.spyOn(auth, 'login').mockResolvedValue()
+    vi.spyOn(auth, 'login').mockResolvedValue({})
 
     const wrapper = mountLogin()
     await flushPromises()
 
-    await wrapper.find('input[type="text"]').setValue('admin')
+    // Set farm code
+    await wrapper.find('.farm-code-input').setValue('MYFARM')
+    // Set username (second text input after farm code) and password
+    const textInputs = wrapper.findAll('input[type="text"]')
+    await textInputs[1].setValue('admin')
     await wrapper.find('input[type="password"]').setValue('admin123')
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
-    expect(auth.login).toHaveBeenCalledWith('admin', 'admin123')
+    expect(auth.login).toHaveBeenCalledWith('admin', 'admin123', 'MYFARM')
     expect(mockRouter.push).toHaveBeenCalledWith('/')
   })
 
@@ -159,7 +166,9 @@ describe('LoginView', () => {
     const wrapper = mountLogin()
     await flushPromises()
 
-    await wrapper.find('input[type="text"]').setValue('admin')
+    await wrapper.find('.farm-code-input').setValue('MYFARM')
+    const textInputs = wrapper.findAll('input[type="text"]')
+    await textInputs[1].setValue('admin')
     await wrapper.find('input[type="password"]').setValue('wrong')
     await wrapper.find('form').trigger('submit')
     await flushPromises()

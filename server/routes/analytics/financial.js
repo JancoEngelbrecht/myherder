@@ -10,6 +10,7 @@ router.get('/milk-trends', async (req, res, next) => {
     const { start, end } = defaultRange(req.query.from, req.query.to);
 
     const rows = await db('milk_records')
+      .where('milk_records.farm_id', req.farmId)
       .join('cows', 'milk_records.cow_id', 'cows.id')
       .whereNull('cows.deleted_at')
       .whereBetween('recording_date', [start, end])
@@ -39,6 +40,7 @@ router.get('/top-producers', async (req, res, next) => {
     const { start, end } = defaultRange(req.query.from, req.query.to);
 
     const rows = await db('milk_records as m')
+      .where('m.farm_id', req.farmId)
       .join('cows as c', 'm.cow_id', 'c.id')
       .whereNull('c.deleted_at')
       .whereBetween('m.recording_date', [start, end])
@@ -76,6 +78,7 @@ router.get('/wasted-milk', async (req, res, next) => {
     const { start, end } = defaultRange(req.query.from, req.query.to);
 
     const rows = await db('milk_records')
+      .where('farm_id', req.farmId)
       .whereBetween('recording_date', [start, end])
       .where('milk_discarded', true)
       .select(db.raw(`${monthExpr('recording_date')} as month`))
@@ -104,6 +107,7 @@ router.get('/treatment-costs', async (req, res, next) => {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
     const rows = await db('treatments')
+      .where('farm_id', req.farmId)
       .whereBetween('treatment_date', [start, endTs])
       .select(db.raw(`${monthExpr('treatment_date')} as month`))
       .sum('cost as total_cost')
@@ -132,6 +136,7 @@ router.get('/litres-per-cow', async (req, res, next) => {
 
     // Count distinct (cow_id, recording_date) pairs as cow-days for accurate per-cow-per-day avg
     const rows = await db('milk_records')
+      .where('farm_id', req.farmId)
       .whereBetween('recording_date', [start, end])
       .select(
         db.raw(`${monthExpr('recording_date')} as month`),
@@ -164,6 +169,7 @@ router.get('/bottom-producers', async (req, res, next) => {
     const { start, end } = defaultRange(req.query.from, req.query.to);
 
     const rows = await db('milk_records as m')
+      .where('m.farm_id', req.farmId)
       .join('cows as c', 'm.cow_id', 'c.id')
       .whereNull('c.deleted_at')
       .whereBetween('m.recording_date', [start, end])

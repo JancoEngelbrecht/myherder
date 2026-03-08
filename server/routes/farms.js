@@ -1,0 +1,309 @@
+const express = require('express')
+const { randomUUID: uuidv4 } = require('crypto')
+const Joi = require('joi')
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+const db = require('../config/database')
+const { jwtSecret } = require('../config/env')
+const { logAudit } = require('../services/auditService')
+const { seedFarmDefaults } = require('../services/farmSeedService')
+const { joiMsg, validateBody, validateQuery } = require('../helpers/constants')
+
+const authenticate = require('../middleware/auth')
+const requireSuperAdmin = require('../middleware/requireSuperAdmin')
+
+const router = express.Router()
+router.use(authenticate)
+router.use(requireSuperAdmin)
+
+// ── Validation ───────────────────────────────────────────────
+
+const BCRYPT_ROUNDS = 12
+
+const createSchema = Joi.object({
+  name: Joi.string().min(2).max(100).required(),
+  code: Joi.string().pattern(/^[A-Z0-9]{3,10}$/).required()
+    .messages({ 'string.pattern.base': 'Farm code must be 3-10 uppercase alphanumeric characters' }),
+  admin_username: Joi.string().max(50).required(),
+  admin_password: Joi.string().min(6).max(128).required(),
+  admin_full_name: Joi.string().max(100).required(),
+})
+
+const updateSchema = Joi.object({
+  name: Joi.string().min(2).max(100),
+  code: Joi.string().pattern(/^[A-Z0-9]{3,10}$/)
+    .messages({ 'string.pattern.base': 'Farm code must be 3-10 uppercase alphanumeric characters' }),
+  is_active: Joi.boolean(),
+}).min(1)
+
+const listQuerySchema = Joi.object({
+  active: Joi.string().valid('0', '1'),
+})
+
+// ── Helpers ──────────────────────────────────────────────────
+
+function sanitizeUser(row) {
+  if (!row) return null
+  const { password_hash: _pw, pin_hash: _pin, totp_secret: _ts, recovery_codes: _rc, ...rest } = row
+  let permissions = rest.permissions
+  if (typeof permissions === 'string') {
+    try { permissions = JSON.parse(permissions) } catch { permissions = [] }
+  }
+  return { ...rest, permissions }
+}
+
+// ── Routes ───────────────────────────────────────────────────
+
+// GET /api/farms — list all farms with stats
+router.get('/', async (req, res, next) => {
+  try {
+    const { error: qError, value: qValue } = validateQuery(listQuerySchema, req.query)
+    if (qError) return res.status(400).json({ error: joiMsg(qError) })
+
+    let query = db('farms')
+      .select(
+        'farms.*',
+        db.raw('(SELECT COUNT(*) FROM users WHERE users.farm_id = farms.id AND users.is_active = 1 AND users.deleted_at IS NULL) as user_count'),
+        db.raw('(SELECT COUNT(*) FROM cows WHERE cows.farm_id = farms.id AND cows.deleted_at IS NULL) as cow_count')
+      )
+      .orderBy('farms.name')
+
+    if (qValue.active === '1') query = query.where('farms.is_active', true)
+    else if (qValue.active === '0') query = query.where('farms.is_active', false)
+
+    const farms = await query
+    res.json(farms.map((f) => ({ ...f, user_count: Number(f.user_count), cow_count: Number(f.cow_count) })))
+  } catch (err) {
+    next(err)
+  }
+})
+
+// GET /api/farms/:id — farm detail with user list
+router.get('/:id', async (req, res, next) => {
+  try {
+    const farm = await db('farms').where('id', req.params.id).first()
+    if (!farm) return res.status(404).json({ error: 'Farm not found' })
+
+    const users = await db('users')
+      .where({ farm_id: farm.id })
+      .whereNull('deleted_at')
+      .select('id', 'username', 'full_name', 'role', 'is_active', 'created_at')
+      .orderBy('full_name')
+
+    res.json({ ...farm, users: users.map(sanitizeUser) })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /api/farms — create farm with admin user + seed defaults
+router.post('/', async (req, res, next) => {
+  try {
+    const { error, value } = validateBody(createSchema, req.body)
+    if (error) return res.status(400).json({ error: joiMsg(error) })
+
+    // Check code uniqueness
+    const existing = await db('farms').where('code', value.code).first()
+    if (existing) return res.status(409).json({ error: 'Farm code already exists' })
+
+    const farmId = uuidv4()
+    const adminId = uuidv4()
+    const now = new Date().toISOString()
+    const slug = value.code.toLowerCase()
+
+    await db.transaction(async (trx) => {
+      // Create farm
+      await trx('farms').insert({
+        id: farmId,
+        name: value.name,
+        code: value.code,
+        slug,
+        is_active: true,
+        created_at: now,
+        updated_at: now,
+      })
+
+      // Create admin user
+      const passwordHash = await bcrypt.hash(value.admin_password, BCRYPT_ROUNDS)
+      await trx('users').insert({
+        id: adminId,
+        farm_id: farmId,
+        username: value.admin_username,
+        password_hash: passwordHash,
+        full_name: value.admin_full_name,
+        role: 'admin',
+        permissions: JSON.stringify([
+          'can_manage_cows', 'can_manage_medications', 'can_log_issues',
+          'can_log_treatments', 'can_log_breeding', 'can_record_milk', 'can_view_analytics',
+        ]),
+        language: 'en',
+        is_active: true,
+        failed_attempts: 0,
+        created_at: now,
+        updated_at: now,
+      })
+
+      // Seed default reference data
+      await seedFarmDefaults(farmId, value.name, trx)
+    })
+
+    const farm = await db('farms').where('id', farmId).first()
+    const adminUser = await db('users').where('id', adminId).first()
+
+    await logAudit({
+      farmId: farmId,
+      userId: req.user.id,
+      action: 'create',
+      entityType: 'farm',
+      entityId: farmId,
+      newValues: { name: value.name, code: value.code },
+    })
+
+    res.status(201).json({ farm, admin_user: sanitizeUser(adminUser) })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// PATCH /api/farms/:id — update farm
+router.patch('/:id', async (req, res, next) => {
+  try {
+    const farm = await db('farms').where('id', req.params.id).first()
+    if (!farm) return res.status(404).json({ error: 'Farm not found' })
+
+    const { error, value } = validateBody(updateSchema, req.body)
+    if (error) return res.status(400).json({ error: joiMsg(error) })
+
+    // Check code uniqueness if changing
+    if (value.code && value.code !== farm.code) {
+      const existing = await db('farms').where('code', value.code).whereNot('id', farm.id).first()
+      if (existing) return res.status(409).json({ error: 'Farm code already exists' })
+    }
+
+    const update = { updated_at: new Date().toISOString() }
+    if (value.name !== undefined) update.name = value.name
+    if (value.code !== undefined) {
+      update.code = value.code
+      update.slug = value.code.toLowerCase()
+    }
+    if (value.is_active !== undefined) update.is_active = value.is_active
+
+    await db('farms').where('id', farm.id).update(update)
+
+    const updated = await db('farms').where('id', farm.id).first()
+    await logAudit({
+      farmId: farm.id,
+      userId: req.user.id,
+      action: 'update',
+      entityType: 'farm',
+      entityId: farm.id,
+      oldValues: { name: farm.name, code: farm.code, is_active: farm.is_active },
+      newValues: { name: updated.name, code: updated.code, is_active: updated.is_active },
+    })
+
+    res.json(updated)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// DELETE /api/farms/:id — soft deactivate
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const farm = await db('farms').where('id', req.params.id).first()
+    if (!farm) return res.status(404).json({ error: 'Farm not found' })
+
+    await db('farms').where('id', farm.id).update({
+      is_active: false,
+      updated_at: new Date().toISOString(),
+    })
+
+    await logAudit({
+      farmId: farm.id,
+      userId: req.user.id,
+      action: 'deactivate',
+      entityType: 'farm',
+      entityId: farm.id,
+      oldValues: { is_active: true },
+      newValues: { is_active: false },
+    })
+
+    res.json({ message: 'Farm deactivated' })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /api/farms/:id/enter — super-admin enters a farm context
+router.post('/:id/enter', async (req, res, next) => {
+  try {
+    const farm = await db('farms').where('id', req.params.id).first()
+    if (!farm) return res.status(404).json({ error: 'Farm not found' })
+
+    // Allow entering inactive farms (for viewing/management)
+    const user = await db('users').where({ id: req.user.id, is_active: true }).first()
+    if (!user) return res.status(401).json({ error: 'User not found' })
+
+    let permissions = user.permissions
+    if (typeof permissions === 'string') {
+      try { permissions = JSON.parse(permissions) } catch { permissions = [] }
+    }
+
+    const payload = {
+      id: user.id,
+      farm_id: farm.id,
+      username: user.username,
+      full_name: user.full_name,
+      role: user.role,
+      permissions,
+      language: user.language,
+      token_version: user.token_version ?? 0,
+      login_type: 'password',
+    }
+
+    const token = jwt.sign(payload, jwtSecret, { expiresIn: '4h' })
+
+    await logAudit({
+      farmId: farm.id,
+      userId: req.user.id,
+      action: 'enter_farm',
+      entityType: 'farm',
+      entityId: farm.id,
+    })
+
+    res.json({ token, user: payload, farm: { id: farm.id, name: farm.name, code: farm.code } })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /api/farms/:id/revoke-all-sessions — revoke all users' sessions for a farm
+router.post('/:id/revoke-all-sessions', async (req, res, next) => {
+  try {
+    const farm = await db('farms').where('id', req.params.id).first()
+    if (!farm) return res.status(404).json({ error: 'Farm not found' })
+
+    const result = await db('users')
+      .where({ farm_id: farm.id })
+      .whereNull('deleted_at')
+      .update({
+        token_version: db.raw('token_version + 1'),
+        updated_at: new Date().toISOString(),
+      })
+
+    await logAudit({
+      farmId: farm.id,
+      userId: req.user.id,
+      action: 'revoke_all_sessions',
+      entityType: 'farm',
+      entityId: farm.id,
+      newValues: { users_affected: result },
+    })
+
+    res.json({ revoked: true, users_affected: result })
+  } catch (err) {
+    next(err)
+  }
+})
+
+module.exports = router

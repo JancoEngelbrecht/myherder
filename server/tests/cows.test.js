@@ -2,7 +2,7 @@ const { randomUUID } = require('crypto')
 const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
-const { seedUsers } = require('./helpers/setup')
+const { seedUsers, DEFAULT_FARM_ID } = require('./helpers/setup')
 const { adminToken, workerToken } = require('./helpers/tokens')
 
 beforeAll(async () => {
@@ -17,6 +17,7 @@ async function createCow(overrides = {}) {
   const id = randomUUID()
   await db('cows').insert({
     id,
+    farm_id: DEFAULT_FARM_ID,
     tag_number: `TAG-${id.slice(0, 8)}`,
     name: 'Test Cow',
     sex: 'female',
@@ -151,11 +152,12 @@ describe('POST /api/cows', () => {
   })
 
   it('returns 403 for a worker without can_manage_cows permission', async () => {
-    // Inline worker token with no permissions
+    // Inline worker token with no permissions (must use real user ID for token_version check)
     const jwt = require('jsonwebtoken')
     const { jwtSecret } = require('../config/env')
+    const { WORKER_ID, DEFAULT_FARM_ID } = require('./helpers/setup')
     const noPermToken = `Bearer ${jwt.sign(
-      { id: randomUUID(), role: 'worker', permissions: [] },
+      { id: WORKER_ID, farm_id: DEFAULT_FARM_ID, role: 'worker', permissions: [], token_version: 0 },
       jwtSecret,
       { expiresIn: '1h' },
     )}`

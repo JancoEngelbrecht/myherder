@@ -15,7 +15,7 @@ const ENTITY_MAP = {
     requiredPermission: 'can_manage_cows',
     allowedFields: [
       'tag_number', 'name', 'sex', 'dob', 'status', 'breed_type_id',
-      'sire_id', 'dam_id', 'breed', 'is_dry', 'life_phase_override',
+      'sire_id', 'dam_id', 'breed', 'life_phase_override',
       'notes', 'created_by', 'created_at', 'updated_at',
     ],
   },
@@ -180,7 +180,7 @@ function pickFields(data, allowedFields) {
 }
 
 async function handleCreate(table, id, data, user, ownerField) {
-  const existing = await db(table).where({ id }).first()
+  const existing = await db(table).where({ id }).where('farm_id', user.farm_id).first()
   if (existing) {
     // Already exists — verify ownership before returning data
     if (ownerField && user && user.role !== 'admin' && existing[ownerField] !== user.id) {
@@ -197,6 +197,11 @@ async function handleCreate(table, id, data, user, ownerField) {
     row[ownerField] = user.id
   }
 
+  // Stamp farm_id from the authenticated user
+  if (user && user.farm_id) {
+    row.farm_id = user.farm_id
+  }
+
   // Remove any client-side-only fields
   delete row.autoId
 
@@ -205,7 +210,7 @@ async function handleCreate(table, id, data, user, ownerField) {
 }
 
 async function handleUpdate(table, entityType, id, data, clientUpdatedAt, user, ownerField) {
-  const existing = await db(table).where({ id }).first()
+  const existing = await db(table).where({ id }).where('farm_id', user.farm_id).first()
   if (!existing) {
     return { id, entityType, status: 'error', error: 'Record not found' }
   }
@@ -236,12 +241,12 @@ async function handleUpdate(table, entityType, id, data, clientUpdatedAt, user, 
   delete updateData.created_at
   delete updateData.autoId
 
-  await db(table).where({ id }).update(updateData)
+  await db(table).where({ id }).where('farm_id', user.farm_id).update(updateData)
   return { id, entityType, status: 'applied', serverData: { ...existing, ...updateData } }
 }
 
 async function handleDelete(table, entityType, id, softDelete, user, ownerField) {
-  const existing = await db(table).where({ id }).first()
+  const existing = await db(table).where({ id }).where('farm_id', user.farm_id).first()
   if (!existing) {
     return { id, entityType, status: 'applied' } // Already gone
   }
@@ -253,9 +258,9 @@ async function handleDelete(table, entityType, id, softDelete, user, ownerField)
 
   if (softDelete) {
     const now = new Date().toISOString()
-    await db(table).where({ id }).update({ deleted_at: now, updated_at: now })
+    await db(table).where({ id }).where('farm_id', user.farm_id).update({ deleted_at: now, updated_at: now })
   } else {
-    await db(table).where({ id }).delete()
+    await db(table).where({ id }).where('farm_id', user.farm_id).delete()
   }
 
   return { id, entityType, status: 'applied' }
@@ -263,7 +268,7 @@ async function handleDelete(table, entityType, id, softDelete, user, ownerField)
 
 // ── Pull Data ───────────────────────────────────────────────────
 
-async function pullData(since, full) {
+async function pullData(since, full, farmId) {
   const deleted = []
 
   // All authenticated users can read all entity types via sync pull.
@@ -272,7 +277,7 @@ async function pullData(since, full) {
 
   // Run all entity queries in parallel
   const entityResults = await Promise.all(entries.map(async ([entityType, { table, softDelete }]) => {
-    let query = db(table)
+    let query = db(table).where('farm_id', farmId)
 
     if (full) {
       // Full pull: return all non-deleted records
@@ -290,6 +295,7 @@ async function pullData(since, full) {
     if (!full && since && softDelete) {
       // Also find soft-deleted records for the client to remove locally
       const deletedRows = await db(table)
+        .where('farm_id', farmId)
         .whereNotNull('deleted_at')
         .where('updated_at', '>', since)
         .select('id')
@@ -312,9 +318,10 @@ async function pullData(since, full) {
 
 // ── Sync Log ────────────────────────────────────────────────────
 
-async function logSync(userId, deviceId, action, recordsCount, status, errorMessage) {
+async function logSync(userId, deviceId, action, recordsCount, status, errorMessage, farmId) {
   await db('sync_log').insert({
     id: uuidv4(),
+    farm_id: farmId || null,
     user_id: userId,
     device_id: deviceId,
     action,

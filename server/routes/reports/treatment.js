@@ -2,6 +2,7 @@ const express = require('express')
 const db = require('../../config/database')
 const { formatDate } = require('../../services/reportService')
 const { batchMedications, getIssueTypeMap, parseJsonColumn, MS_PER_DAY } = require('./helpers')
+const { generateReport } = require('./shared')
 
 const router = express.Router()
 
@@ -19,10 +20,11 @@ const withdrawalColumns = [
   { header: 'Administered By', key: 'administered_by', width: 1.2 },
 ]
 
-async function getWithdrawalData(from, to) {
+async function getWithdrawalData(from, to, farmId) {
   const treatments = await db('treatments as t')
     .join('cows as c', 't.cow_id', 'c.id')
     .join('users as u', 't.administered_by', 'u.id')
+    .where('t.farm_id', farmId)
     .whereNull('c.deleted_at')
     .where('c.sex', 'female')
     .whereNotNull('t.withdrawal_end_milk')
@@ -40,7 +42,7 @@ async function getWithdrawalData(from, to) {
     return { rows: [], summaryRow: { tag_number: 'TOTAL', medications: '0 treatments' } }
   }
 
-  const medsMap = await batchMedications(treatments.map((t) => t.id))
+  const medsMap = await batchMedications(treatments.map((t) => t.id), farmId)
 
   const rows = treatments.map((t) => {
     const meds = medsMap[t.id] || []
@@ -71,7 +73,6 @@ async function getWithdrawalData(from, to) {
 }
 
 router.get('/withdrawal-compliance', (req, res, next) => {
-  const { generateReport } = require('./shared')
   generateReport(req, res, next, {
     title: 'Withdrawal Compliance Report',
     sheetName: 'Withdrawal Compliance',
@@ -98,10 +99,11 @@ const treatmentHistoryColumns = [
   { header: 'Notes', key: 'notes', width: 1.5 },
 ]
 
-async function getTreatmentHistoryData(from, to) {
+async function getTreatmentHistoryData(from, to, farmId) {
   const treatments = await db('treatments as t')
     .join('cows as c', 't.cow_id', 'c.id')
     .join('users as u', 't.administered_by', 'u.id')
+    .where('t.farm_id', farmId)
     .whereNull('c.deleted_at')
     .where('t.treatment_date', '>=', from)
     .where('t.treatment_date', '<=', `${to} 23:59:59`)
@@ -117,13 +119,13 @@ async function getTreatmentHistoryData(from, to) {
     return { rows: [], summaryRow: { tag_number: 'TOTAL', medications: '0 treatments', cost: 'R 0.00', vet_visit: '0 visits' } }
   }
 
-  const medsMap = await batchMedications(treatments.map((t) => t.id))
+  const medsMap = await batchMedications(treatments.map((t) => t.id), farmId)
 
   const issueIds = treatments.map((t) => t.health_issue_id).filter(Boolean)
   const issueMap = {}
   if (issueIds.length) {
-    const issueTypeMap = await getIssueTypeMap()
-    const issues = await db('health_issues').whereIn('id', issueIds).select('id', 'issue_types')
+    const issueTypeMap = await getIssueTypeMap(farmId)
+    const issues = await db('health_issues').where('farm_id', farmId).whereIn('id', issueIds).select('id', 'issue_types')
     for (const issue of issues) {
       const codes = parseJsonColumn(issue.issue_types)
       issueMap[issue.id] = codes.map((c) => issueTypeMap[c] || c).join(', ')
@@ -167,7 +169,6 @@ async function getTreatmentHistoryData(from, to) {
 }
 
 router.get('/treatment-history', (req, res, next) => {
-  const { generateReport } = require('./shared')
   generateReport(req, res, next, {
     title: 'Treatment History Report',
     sheetName: 'Treatment History',

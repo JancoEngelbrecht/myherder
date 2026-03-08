@@ -101,14 +101,6 @@
           </div>
         </template>
 
-        <!-- Dry flag (female only) -->
-        <div v-if="form.sex === 'female'" class="form-group">
-          <label class="checkbox-label">
-            <input v-model="form.is_dry" type="checkbox" />
-            {{ t('cowForm.isDry') }}
-          </label>
-        </div>
-
         <!-- Life phase override -->
         <div class="form-group">
           <label class="form-label">{{ t('cowForm.lifePhaseOverride') }}</label>
@@ -212,7 +204,6 @@ const form = reactive({
   is_external: false,
   purpose: null,
   life_phase_override: null,
-  is_dry: false,
 })
 
 const errors = reactive({})
@@ -222,7 +213,7 @@ const saving = ref(false)
 const statuses = ['active', 'dry', 'pregnant', 'sick', 'sold', 'dead']
 
 onMounted(async () => {
-  if (breedTypesStore.activeTypes.length === 0) breedTypesStore.fetchActive()
+  if (!breedTypesStore.hasData) breedTypesStore.fetchActive()
 
   if (isEdit.value) {
     try {
@@ -240,7 +231,6 @@ onMounted(async () => {
         is_external: cow.is_external || false,
         purpose: cow.purpose || null,
         life_phase_override: cow.life_phase_override || null,
-        is_dry: cow.is_dry || false,
       })
     } catch {
       apiError.value = t('common.error')
@@ -277,8 +267,6 @@ async function handleSubmit() {
   if (payload.sex === 'female') {
     payload.is_external = false
     payload.purpose = null
-  } else {
-    payload.is_dry = false
   }
 
   try {

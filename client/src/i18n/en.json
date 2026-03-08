@@ -19,7 +19,14 @@
     "loginBtn": "Log In",
     "errorInvalid": "Invalid username or password",
     "errorLocked": "Account is locked. Try again later.",
-    "errorNetwork": "Network error. Please try again."
+    "errorNetwork": "Network error. Please try again.",
+    "farmCode": "Farm Code",
+    "farmCodePlaceholder": "Enter farm code",
+    "invalidFarmCode": "Invalid farm code",
+    "superAdminLink": "Super Admin",
+    "superAdminTitle": "Super Admin Login",
+    "superAdminSubtitle": "System Administration",
+    "backToFarmLogin": "Back to farm login"
   },
   "dashboard": {
     "greeting": "Good day",
@@ -400,7 +407,8 @@
       "placeholder": "Search...",
       "clear": "Clear search"
     },
-    "noPermission": "You don't have permission for this action"
+    "noPermission": "You don't have permission for this action",
+    "next": "Next"
   },
   "sync": {
     "synced": "Synced",
@@ -528,16 +536,23 @@
   "milkHistory": {
     "title": "Milk Records",
     "filterSession": "Session",
-    "filterAll": "All",
     "summaryCount": "{count} records",
     "summaryLitres": "{litres} L",
-    "loadMore": "Load more",
     "noRecords": "No milk records found",
     "discardedLabel": "Discarded",
     "recordedBy": "Recorded by: {name}",
     "morning": "Morning",
     "afternoon": "Afternoon",
-    "evening": "Evening"
+    "evening": "Evening",
+    "searchPlaceholder": "Search cow or recorder...",
+    "dateFrom": "From",
+    "dateTo": "To",
+    "advancedFilters": "Advanced Filters",
+    "filterCow": "Cow",
+    "filterDiscarded": "Discarded only",
+    "filterRecordedBy": "Recorded by",
+    "filterAllRecorders": "All recorders",
+    "filterAllSessions": "All sessions"
   },
   "breeding": {
     "title": "Breeding & Reproduction",
@@ -790,6 +805,7 @@
     "confirmDeactivate": "Deactivate {name}? They will no longer be able to log in.",
     "confirmReactivate": "Reactivate {name}? They will be able to log in again.",
     "confirmDelete": "Permanently delete {name}? This cannot be undone.",
+    "userReactivated": "{name} was reactivated with updated details.",
     "selfDeactivateBlocked": "You cannot deactivate your own account",
     "selfRoleBlocked": "You cannot change your own role",
     "adminAutoPermissions": "Admins automatically get all permissions",
@@ -797,7 +813,10 @@
     "noUsers": "No users found",
     "newPassword": "New Password",
     "newPin": "New PIN",
-    "changeCredentialHint": "Leave blank to keep current"
+    "changeCredentialHint": "Leave blank to keep current",
+    "revokeSessions": "Revoke Sessions",
+    "revokeSessionsConfirm": "This will log out {name} from all devices immediately.",
+    "sessionsRevoked": "{name}'s sessions revoked"
   },
   "audit": {
     "title": "Audit Log",
@@ -824,7 +843,19 @@
       "breeding_event": "Breeding Event"
     },
     "showDetails": "Details",
-    "hideDetails": "Hide"
+    "hideDetails": "Hide",
+    "advancedFilters": "Advanced Filters",
+    "filterDateRange": "Date Range",
+    "filterFrom": "From",
+    "filterTo": "To",
+    "filterAction": "Action",
+    "allActions": "All Actions",
+    "filterUser": "User",
+    "allUsers": "All Users",
+    "deactivate": "Deactivated",
+    "clearFilters": "Clear All",
+    "medication": "Medication",
+    "entityTypes_medication": "Medication"
   },
   "profile": {
     "title": "Profile",
@@ -832,7 +863,26 @@
     "logoutConfirm": "Are you sure you want to log out?",
     "settings": "Settings",
     "roleAdmin": "Admin",
-    "roleWorker": "Worker"
+    "roleWorker": "Worker",
+    "roleSuperAdmin": "Super Admin"
+  },
+  "twoFactor": {
+    "title": "Two-Factor Authentication",
+    "subtitle": "Enter the code from your authenticator app",
+    "enterCode": "Authentication Code",
+    "enterRecoveryCode": "Recovery Code",
+    "verify": "Verify",
+    "useRecoveryCode": "Use recovery code instead",
+    "useAuthenticator": "Use authenticator app",
+    "setupTitle": "Set Up 2FA",
+    "setupSubtitle": "Secure your super-admin account with two-factor authentication",
+    "scanQR": "Scan this QR code with your authenticator app",
+    "manualEntry": "Can't scan? Enter this code manually",
+    "confirmCode": "Enter the 6-digit code from your app",
+    "recoveryCodes": "Recovery Codes",
+    "saveCodesWarning": "Save these recovery codes in a secure place. Each code can only be used once.",
+    "continue": "Continue",
+    "invalidCode": "Invalid code. Please try again."
   },
   "reports": {
     "title": "Reports",
@@ -873,5 +923,40 @@
         "desc": "Health issues, severity, resolution times and linked treatments"
       }
     }
+  },
+  "superAdmin": {
+    "management": "Management",
+    "farms": "Farms",
+    "farmList": "Farm List",
+    "createFarm": "Create Farm",
+    "farmDetail": "Farm Detail",
+    "farmName": "Farm Name",
+    "farmNamePlaceholder": "e.g. Sunnydale Dairy",
+    "farmCode": "Farm Code",
+    "farmCodePlaceholder": "e.g. SUNNY",
+    "farmCodeHint": "3-10 uppercase alphanumeric characters. Used for login.",
+    "farmAdmin": "Farm Administrator",
+    "adminUsername": "Admin Username",
+    "adminPassword": "Admin Password",
+    "adminFullName": "Admin Full Name",
+    "enterFarm": "Enter Farm",
+    "exitFarm": "Exit Farm",
+    "viewingFarm": "Viewing: {name}",
+    "revokeAllSessions": "Revoke All Sessions",
+    "revokeAllConfirm": "This will immediately log out all users of this farm. Are you sure?",
+    "sessionsRevoked": "All farm sessions revoked",
+    "farmCreated": "Farm created successfully",
+    "farmUpdated": "Farm updated",
+    "farmDeactivated": "Farm deactivated",
+    "deactivateFarm": "Deactivate Farm",
+    "reactivateFarm": "Reactivate Farm",
+    "deactivateConfirm": "Deactivating this farm will prevent all users from logging in. Are you sure?",
+    "noFarms": "No farms yet",
+    "noUsers": "No users",
+    "active": "Active",
+    "inactive": "Inactive",
+    "users": "Users",
+    "cows": "Cows",
+    "created": "Created"
   }
 }

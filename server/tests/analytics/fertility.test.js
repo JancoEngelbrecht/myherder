@@ -2,7 +2,7 @@ const { randomUUID } = require('crypto')
 const request = require('supertest')
 const app = require('../../app')
 const db = require('../../config/database')
-const { ADMIN_ID, seedUsers } = require('../helpers/setup')
+const { ADMIN_ID, DEFAULT_FARM_ID, seedUsers } = require('../helpers/setup')
 const { adminToken } = require('../helpers/tokens')
 
 beforeAll(async () => {
@@ -16,6 +16,7 @@ async function createCow(overrides = {}) {
   const id = randomUUID()
   await db('cows').insert({
     id,
+    farm_id: DEFAULT_FARM_ID,
     tag_number: `A-${id.slice(0, 8)}`,
     sex: 'female',
     status: 'active',
@@ -28,6 +29,7 @@ async function createHealthIssue(cowId, overrides = {}) {
   const id = randomUUID()
   await db('health_issues').insert({
     id,
+    farm_id: DEFAULT_FARM_ID,
     cow_id: cowId,
     issue_types: JSON.stringify(['mastitis']),
     severity: 'medium',
@@ -43,6 +45,7 @@ async function createBreedingEvent(cowId, overrides = {}) {
   const id = randomUUID()
   await db('breeding_events').insert({
     id,
+    farm_id: DEFAULT_FARM_ID,
     cow_id: cowId,
     event_type: 'ai_insemination',
     event_date: new Date().toISOString(),
@@ -160,7 +163,7 @@ describe('GET /api/analytics/breeding-overview', () => {
   })
 
   it('categorises dry cows correctly', async () => {
-    await createCow({ sex: 'female', status: 'dry', is_dry: true })
+    await createCow({ sex: 'female', status: 'dry' })
 
     const res = await request(app)
       .get('/api/analytics/breeding-overview')

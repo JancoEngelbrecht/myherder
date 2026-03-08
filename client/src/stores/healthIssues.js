@@ -58,16 +58,20 @@ export const useHealthIssuesStore = defineStore('healthIssues', () => {
 
   async function create(data) {
     const now = new Date().toISOString()
-    const plain = structuredClone(data)
+    const plain = JSON.parse(JSON.stringify(data))
     const localIssue = { id: uuidv4(), ...plain, status: plain.status || 'open', updated_at: now, created_at: now }
 
-    await db.healthIssues.put(localIssue)
-    await enqueue('healthIssues', 'create', localIssue.id, localIssue)
+    try {
+      await db.healthIssues.put(localIssue)
+      await enqueue('healthIssues', 'create', localIssue.id, localIssue)
+    } catch {
+      // IndexedDB may be unavailable — continue with API call
+    }
 
     try {
       const { data: created } = await api.post('/health-issues', data)
-      await db.healthIssues.put(created)
-      await dequeueByEntityId('healthIssues', localIssue.id)
+      await db.healthIssues.put(created).catch(() => {})
+      await dequeueByEntityId('healthIssues', localIssue.id).catch(() => {})
       issues.value.unshift(created)
       return created
     } catch (err) {
@@ -75,8 +79,8 @@ export const useHealthIssuesStore = defineStore('healthIssues', () => {
         issues.value.unshift(localIssue)
         return localIssue
       }
-      await dequeueByEntityId('healthIssues', localIssue.id)
-      await db.healthIssues.delete(localIssue.id)
+      await dequeueByEntityId('healthIssues', localIssue.id).catch(() => {})
+      await db.healthIssues.delete(localIssue.id).catch(() => {})
       throw err
     }
   }

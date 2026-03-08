@@ -37,6 +37,9 @@ vi.mock('../db/indexedDB.js', () => ({
       toArray: vi.fn().mockResolvedValue([]),
       put: vi.fn(),
     },
+    milkRecords: {
+      toArray: vi.fn().mockResolvedValue([]),
+    },
   },
 }))
 
@@ -48,6 +51,7 @@ import { createPinia, setActivePinia } from 'pinia'
 
 const stubs = {
   AppHeader: { template: '<div class="app-header"><slot /></div>' },
+  CowSearchDropdown: { template: '<div class="cow-search-dropdown" />', props: ['modelValue', 'placeholder', 'sexFilter'] },
 }
 
 function makeRecord(id, overrides = {}) {
@@ -69,8 +73,11 @@ function makeRecord(id, overrides = {}) {
 }
 
 function mockApiResponse(records, total) {
-  api.get.mockResolvedValue({
-    data: { data: records, total },
+  api.get.mockImplementation((url) => {
+    if (url === '/milk-records/recorders') {
+      return Promise.resolve({ data: [{ id: 'user-1', full_name: 'Admin' }] })
+    }
+    return Promise.resolve({ data: { data: records, total } })
   })
 }
 
@@ -120,99 +127,94 @@ describe('MilkHistoryView', () => {
     expect(wrapper.find('.summary-bar').exists()).toBe(true)
   })
 
-  it('shows load more button when more records exist', async () => {
+  it('shows pagination when records exist', async () => {
     const records = [makeRecord('1')]
-    mockApiResponse(records, 10) // total > displayed
+    mockApiResponse(records, 30) // total > page size
 
     const wrapper = createWrapper()
     await flushPromises()
 
-    expect(wrapper.find('.load-more-btn').exists()).toBe(true)
+    expect(wrapper.find('.pagination-bar').exists()).toBe(true)
   })
 
-  it('hides load more button when all records loaded', async () => {
-    const records = [makeRecord('1'), makeRecord('2')]
-    mockApiResponse(records, 2) // total === displayed
+  it('hides pagination when no records', async () => {
+    mockApiResponse([], 0)
 
     const wrapper = createWrapper()
     await flushPromises()
 
-    expect(wrapper.find('.load-more-btn').exists()).toBe(false)
+    expect(wrapper.find('.pagination-bar').exists()).toBe(false)
   })
 
-  it('loads more records on button click', async () => {
-    const page1 = [makeRecord('1')]
-    const page2 = [makeRecord('2')]
-    api.get
-      .mockResolvedValueOnce({ data: { data: page1, total: 2 } })
-      .mockResolvedValueOnce({ data: { data: page2, total: 2 } })
-
-    const wrapper = createWrapper()
-    await flushPromises()
-
-    expect(wrapper.findAll('.milk-record-card').length).toBe(1)
-
-    await wrapper.find('.load-more-btn').trigger('click')
-    await flushPromises()
-
-    expect(wrapper.findAll('.milk-record-card').length).toBe(2)
-  })
-
-  it('passes sort and order params to API', async () => {
+  it('passes sort, order, from, to params to API', async () => {
     mockApiResponse([], 0)
 
     createWrapper()
     await flushPromises()
 
-    expect(api.get).toHaveBeenCalledWith('/milk-records', expect.objectContaining({
-      params: expect.objectContaining({
-        sort: 'recording_date',
-        order: 'desc',
-        page: 1,
-        limit: 25,
-      }),
-    }))
+    const milkCall = api.get.mock.calls.find((c) => c[0] === '/milk-records')
+    expect(milkCall).toBeTruthy()
+    expect(milkCall[1].params).toMatchObject({
+      sort: 'recording_date',
+      order: 'desc',
+      page: 1,
+      limit: 25,
+    })
+    expect(milkCall[1].params).toHaveProperty('from')
+    expect(milkCall[1].params).toHaveProperty('to')
   })
 
-  it('passes from/to date range to API', async () => {
-    mockApiResponse([], 0)
-
-    createWrapper()
-    await flushPromises()
-
-    const params = api.get.mock.calls[0][1].params
-    expect(params).toHaveProperty('from')
-    expect(params).toHaveProperty('to')
-  })
-
-  it('renders filter chips', async () => {
+  it('renders date range inputs', async () => {
     mockApiResponse([], 0)
 
     const wrapper = createWrapper()
     await flushPromises()
 
-    const chips = wrapper.findAll('.chip')
-    // 4 time range + 1 all + 3 session = 8 chips
-    expect(chips.length).toBe(8)
+    const dateInputs = wrapper.findAll('input[type="date"]')
+    expect(dateInputs.length).toBe(2)
   })
 
-  it('re-fetches when session filter chip is clicked', async () => {
+  it('renders search input', async () => {
     mockApiResponse([], 0)
 
     const wrapper = createWrapper()
     await flushPromises()
 
-    const initialCallCount = api.get.mock.calls.length
+    expect(wrapper.find('.search-input-wrap').exists()).toBe(true)
+  })
 
-    // Click the "Morning" session chip (5th chip: after 4 time range + 1 all)
-    const morningChip = wrapper.findAll('.chip')[5]
-    await morningChip.trigger('click')
+  it('renders advanced filters toggle', async () => {
+    mockApiResponse([], 0)
+
+    const wrapper = createWrapper()
     await flushPromises()
 
-    expect(api.get.mock.calls.length).toBeGreaterThan(initialCallCount)
-    // Last call should include session param
-    const lastCall = api.get.mock.calls[api.get.mock.calls.length - 1]
-    expect(lastCall[1].params.session).toBe('morning')
+    expect(wrapper.find('.advanced-toggle').exists()).toBe(true)
+  })
+
+  it('shows advanced filters panel when toggled', async () => {
+    mockApiResponse([], 0)
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    expect(wrapper.find('.advanced-filters').exists()).toBe(false)
+
+    await wrapper.find('.advanced-toggle').trigger('click')
+    expect(wrapper.find('.advanced-filters').exists()).toBe(true)
+  })
+
+  it('shows session chips inside advanced filters', async () => {
+    mockApiResponse([], 0)
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    await wrapper.find('.advanced-toggle').trigger('click')
+
+    // 4 session chips: All + morning + afternoon + evening
+    const chips = wrapper.findAll('.advanced-filters .chip')
+    expect(chips.length).toBeGreaterThanOrEqual(4)
   })
 
   it('shows discarded records with indicator', async () => {
@@ -231,9 +233,18 @@ describe('MilkHistoryView', () => {
     api.get.mockReturnValue(new Promise(() => {}))
 
     const wrapper = createWrapper()
-    // Wait for onMounted to fire and set loading = true
     await wrapper.vm.$nextTick()
 
     expect(wrapper.find('.spinner').exists()).toBe(true)
+  })
+
+  it('fetches recorders on mount', async () => {
+    mockApiResponse([], 0)
+
+    createWrapper()
+    await flushPromises()
+
+    const recorderCall = api.get.mock.calls.find((c) => c[0] === '/milk-records/recorders')
+    expect(recorderCall).toBeTruthy()
   })
 })

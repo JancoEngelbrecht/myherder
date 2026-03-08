@@ -49,12 +49,12 @@ const stubs = { SyncIndicator: true, SyncPanel: true, RouterLink: { template: '<
 
 function setAdmin() {
   const auth = useAuthStore()
-  auth.user = { full_name: 'Farm Admin', username: 'admin', role: 'admin', permissions: [] }
+  auth.user = { full_name: 'Farm Admin', username: 'admin', role: 'admin', permissions: [], farm_id: 'farm-1' }
 }
 
 function setWorker(permissions = []) {
   const auth = useAuthStore()
-  auth.user = { full_name: 'Sipho', username: 'sipho', role: 'worker', permissions }
+  auth.user = { full_name: 'Sipho', username: 'sipho', role: 'worker', permissions, farm_id: 'farm-1' }
 }
 
 function setAllFlags() {
@@ -88,7 +88,7 @@ describe('DashboardView', () => {
 
   it('renders greeting with username when full_name missing', async () => {
     const auth = useAuthStore()
-    auth.user = { username: 'sipho', role: 'admin', permissions: [] }
+    auth.user = { username: 'sipho', role: 'admin', permissions: [], farm_id: 'farm-1' }
     setAllFlags()
     const wrapper = mount(DashboardView, { global: { stubs } })
     await flushPromises()

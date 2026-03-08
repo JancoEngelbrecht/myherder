@@ -44,6 +44,8 @@ vi.mock('../db/indexedDB.js', () => ({
       bulkDelete: vi.fn(),
     },
   },
+  initDb: vi.fn().mockResolvedValue(undefined),
+  closeDb: vi.fn(),
 }))
 
 const stubs = { AppHeader: true, SyncIndicator: true, SyncPanel: true, RouterLink: true }

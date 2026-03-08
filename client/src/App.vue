@@ -20,19 +20,25 @@
       {{ t('sync.cacheReset') }}
     </div>
 
+    <!-- Farm context banner for super-admin -->
+    <div v-if="authStore.isInFarmContext" class="app-banner banner-farm" @click="handleExitFarm">
+      {{ t('superAdmin.viewingFarm', { name: authStore.activeFarmName || '' }) }} — {{ t('superAdmin.exitFarm') }}
+    </div>
+
     <RouterView v-slot="{ Component, route }">
       <Transition name="fade" mode="out-in">
         <component :is="Component" :key="route.path" />
       </Transition>
     </RouterView>
-    <BottomNav v-if="authStore.isAuthenticated" />
+    <BottomNav v-if="authStore.isAuthenticated && showBottomNav" />
     <ToastMessage />
   </template>
 </template>
 
 <script setup>
-import { watch, onUnmounted } from 'vue'
+import { computed, watch, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth.js'
 import { useSyncStore } from './stores/sync.js'
 import BottomNav from './components/organisms/BottomNav.vue'
@@ -41,8 +47,20 @@ import { init as initSync, destroyListeners as destroySync } from './services/sy
 import { dbRecovered, clearRecoveredFlag } from './db/indexedDB.js'
 
 const { t } = useI18n()
+const router = useRouter()
 const authStore = useAuthStore()
 const syncStore = useSyncStore()
+
+// Hide BottomNav when super-admin has no farm context
+const showBottomNav = computed(() => {
+  if (authStore.isSuperAdmin && !authStore.user?.farm_id) return false
+  return true
+})
+
+async function handleExitFarm() {
+  await authStore.exitFarm()
+  router.push('/super/farms')
+}
 
 // Start sync engine when user is authenticated
 let syncInitialized = false
@@ -89,5 +107,12 @@ onUnmounted(() => {
   background: rgba(45, 106, 79, 0.1);
   color: var(--primary);
   border-bottom: 1px solid rgba(45, 106, 79, 0.2);
+}
+
+.banner-farm {
+  background: rgba(79, 70, 229, 0.12);
+  color: #4F46E5;
+  border-bottom: 1px solid rgba(79, 70, 229, 0.25);
+  cursor: pointer;
 }
 </style>

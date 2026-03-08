@@ -33,8 +33,8 @@ async function generateReport(req, res, next, { title, sheetName, slug, columns,
     if (!params) return
 
     const { from, to, format } = params
-    const farmName = await getFarmName()
-    const { rows, summaryRow } = await getData(from, to)
+    const farmName = await getFarmName(req.farmId)
+    const { rows, summaryRow } = await getData(from, to, req.farmId)
 
     const dateRange = { from, to }
     const generatedBy = req.user.full_name

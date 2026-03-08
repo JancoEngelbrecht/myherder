@@ -484,7 +484,7 @@ async function submit() {
 
 onMounted(async () => {
   // Fetch breed types for auto-date calculation
-  if (breedTypesStore.activeTypes.length === 0) {
+  if (!breedTypesStore.hasData) {
     breedTypesStore.fetchActive().catch(() => {})
   }
   // Ensure cows list is loaded for breed lookup

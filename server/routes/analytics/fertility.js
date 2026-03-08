@@ -13,13 +13,15 @@ router.get('/breeding-overview', async (req, res, next) => {
   try {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
+    const farmId = req.farmId;
     // ── Repro status categories (current herd snapshot) ──────────
     // All active females (base population)
     const activeFemales = await db('cows')
+      .where('farm_id', farmId)
       .whereNull('deleted_at')
       .where('sex', 'female')
       .whereIn('status', ['active', 'pregnant', 'dry'])
-      .select('id', 'status', 'is_dry');
+      .select('id', 'status');
 
     const femaleIds = activeFemales.map(c => c.id);
 
@@ -29,10 +31,10 @@ router.get('/breeding-overview', async (req, res, next) => {
     // Pregnant = status pregnant
     const pregnantIds = new Set(activeFemales.filter(c => c.status === 'pregnant').map(c => c.id));
 
-    // Dry = status dry OR is_dry true (exclude pregnant)
+    // Dry = status dry
     const dryIds = new Set(
       activeFemales
-        .filter(c => !pregnantIds.has(c.id) && (c.status === 'dry' || c.is_dry))
+        .filter(c => c.status === 'dry')
         .map(c => c.id)
     );
 
@@ -48,6 +50,7 @@ router.get('/breeding-overview', async (req, res, next) => {
         // Bred awaiting check = has insemination but no preg_check after latest insemination
         femaleIds.length > 0
           ? db('breeding_events as latest_ins')
+              .where('latest_ins.farm_id', farmId)
               .whereIn('latest_ins.cow_id', femaleIds)
               .whereIn('latest_ins.event_type', ['ai_insemination', 'bull_service'])
               .whereNotExists(function () {
@@ -63,24 +66,28 @@ router.get('/breeding-overview', async (req, res, next) => {
         // Heifer not bred = active females with zero breeding events ever
         femaleIds.length > 0
           ? db('breeding_events')
+              .where('farm_id', farmId)
               .whereIn('cow_id', femaleIds)
               .select('cow_id')
               .groupBy('cow_id')
           : Promise.resolve([]),
         // Abortion count in date range
         db('breeding_events')
+          .where('farm_id', farmId)
           .where('event_type', 'abortion')
           .whereBetween('event_date', [start, endTs])
           .count('* as count')
           .first(),
         // Distinct cows with positive preg check in date range
         db('breeding_events')
+          .where('farm_id', farmId)
           .where('event_type', 'preg_check_positive')
           .whereBetween('event_date', [start, endTs])
           .countDistinct('cow_id as count')
           .first(),
         // Expected calvings per month (next 6 months)
         db('breeding_events')
+          .where('farm_id', farmId)
           .whereNotNull('expected_calving')
           .whereBetween('expected_calving', [todayStr, futureStr])
           .whereNull('dismissed_at')
@@ -90,6 +97,7 @@ router.get('/breeding-overview', async (req, res, next) => {
           .orderBy('month'),
         // Positive checks for services per conception
         db('breeding_events')
+          .where('farm_id', farmId)
           .where('event_type', 'preg_check_positive')
           .whereBetween('event_date', [start, endTs])
           .select('id', 'cow_id', 'event_date'),
@@ -138,7 +146,7 @@ router.get('/breeding-overview', async (req, res, next) => {
       count: Number(r.count),
     }));
 
-    const serviceCountMap = await batchCountServices(positiveChecks);
+    const serviceCountMap = await batchCountServices(positiveChecks, farmId);
 
     let totalServices = 0;
     let conceptionCount = 0;
@@ -177,6 +185,7 @@ router.get('/breeding-activity', async (req, res, next) => {
     // Monthly insemination + conception counts (parallel)
     const [insRows, conRows] = await Promise.all([
       db('breeding_events')
+        .where('farm_id', req.farmId)
         .whereIn('event_type', ['ai_insemination', 'bull_service'])
         .whereBetween('event_date', [start, endTs])
         .select(db.raw(`${monthExpr('event_date')} as month`))
@@ -184,6 +193,7 @@ router.get('/breeding-activity', async (req, res, next) => {
         .groupByRaw(monthExpr('event_date'))
         .orderBy('month'),
       db('breeding_events')
+        .where('farm_id', req.farmId)
         .where('event_type', 'preg_check_positive')
         .whereBetween('event_date', [start, endTs])
         .select(db.raw(`${monthExpr('event_date')} as month`))
@@ -217,11 +227,12 @@ router.get('/conception-rate', async (req, res, next) => {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
     const positiveChecks = await db('breeding_events')
+      .where('farm_id', req.farmId)
       .where('event_type', 'preg_check_positive')
       .whereBetween('event_date', [start, endTs])
       .select('id', 'cow_id', 'event_date');
 
-    const serviceCountMap = await batchCountServices(positiveChecks);
+    const serviceCountMap = await batchCountServices(positiveChecks, req.farmId);
 
     let total_first_services = 0;
     let first_service_conceptions = 0;
@@ -273,6 +284,7 @@ router.get('/calving-interval', async (req, res, next) => {
   try {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
     const rows = await db('breeding_events as be')
+      .where('be.farm_id', req.farmId)
       .join('cows as c', 'be.cow_id', 'c.id')
       .whereNull('c.deleted_at')
       .where('be.event_type', 'calving')
@@ -330,6 +342,7 @@ router.get('/days-open', async (req, res, next) => {
     // Fetch calvings and preg checks in parallel
     const [calvings, pregChecks] = await Promise.all([
       db('breeding_events as be')
+        .where('be.farm_id', req.farmId)
         .join('cows as c', 'be.cow_id', 'c.id')
         .whereNull('c.deleted_at')
         .where('be.event_type', 'calving')
@@ -337,6 +350,7 @@ router.get('/days-open', async (req, res, next) => {
         .select('be.cow_id', 'be.event_date', 'c.tag_number', 'c.name')
         .orderBy(['be.cow_id', 'be.event_date']),
       db('breeding_events')
+        .where('farm_id', req.farmId)
         .where('event_type', 'preg_check_positive')
         .whereBetween('event_date', [start, endTs])
         .select('cow_id', 'event_date')
@@ -398,6 +412,7 @@ router.get('/seasonal-prediction', async (req, res, next) => {
     const lookbackStart = localDate(threeYearsAgo);
 
     const issues = await db('health_issues')
+      .where('farm_id', req.farmId)
       .where('observed_at', '>=', lookbackStart)
       .select('issue_types', 'observed_at');
 
@@ -422,7 +437,7 @@ router.get('/seasonal-prediction', async (req, res, next) => {
     // Cap years_of_data at 3 to match the lookback window
     const totalYears = Math.min(yearsSet.size || 1, 3);
 
-    const defMap = await getIssueTypeDefMap();
+    const defMap = await getIssueTypeDefMap(req.farmId);
 
     // Predict for the next 2 calendar months
     const now = new Date();

@@ -2,7 +2,7 @@ const { randomUUID } = require('crypto')
 const request = require('supertest')
 const app = require('../../app')
 const db = require('../../config/database')
-const { seedUsers } = require('../helpers/setup')
+const { DEFAULT_FARM_ID, seedUsers } = require('../helpers/setup')
 const { adminToken } = require('../helpers/tokens')
 
 beforeAll(async () => {
@@ -16,6 +16,7 @@ async function createCow(overrides = {}) {
   const id = randomUUID()
   await db('cows').insert({
     id,
+    farm_id: DEFAULT_FARM_ID,
     tag_number: `A-${id.slice(0, 8)}`,
     sex: 'female',
     status: 'active',

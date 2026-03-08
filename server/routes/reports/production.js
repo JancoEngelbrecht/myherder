@@ -19,10 +19,11 @@ const discardedMilkColumns = [
   { header: 'Notes', key: 'notes', width: 2 },
 ]
 
-async function getDiscardedMilkData(from, to) {
+async function getDiscardedMilkData(from, to, farmId) {
   const records = await db('milk_records as mr')
     .join('cows as c', 'mr.cow_id', 'c.id')
     .join('users as u', 'mr.recorded_by', 'u.id')
+    .where('mr.farm_id', farmId)
     .whereNull('c.deleted_at')
     .where('mr.milk_discarded', true)
     .where('mr.recording_date', '>=', from)
@@ -81,12 +82,13 @@ const milkProductionColumns = [
   { header: 'Evening Avg', key: 'evening_avg', width: 1 },
 ]
 
-async function getMilkProductionData(from, to) {
+async function getMilkProductionData(from, to, farmId) {
   const endTs = to + 'T23:59:59'
 
   // Per-cow aggregation via SQL — avoids loading all raw records into memory
   const cowRows = await db('milk_records as mr')
     .join('cows as c', 'mr.cow_id', 'c.id')
+    .where('mr.farm_id', farmId)
     .whereBetween('mr.recording_date', [from, endTs])
     .whereNull('c.deleted_at')
     .select(

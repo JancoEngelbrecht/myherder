@@ -1,5 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 
+const DEFAULT_FARM_ID = '00000000-0000-4000-a000-000000000099';
+
 /**
  * Demo analytics seed — generates ~2 years of realistic farm data
  * for milk records, health issues, and treatments so the analytics
@@ -129,6 +131,7 @@ exports.seed = async function (knex) {
       if (morningLitres > 0) {
         milkRecords.push({
           id: uuidv4(),
+          farm_id: DEFAULT_FARM_ID,
           cow_id: cow.id,
           recorded_by: pick(reporters),
           session: 'morning',
@@ -144,6 +147,7 @@ exports.seed = async function (knex) {
       if (afternoonLitres > 0) {
         milkRecords.push({
           id: uuidv4(),
+          farm_id: DEFAULT_FARM_ID,
           cow_id: cow.id,
           recorded_by: pick(reporters),
           session: 'afternoon',
@@ -241,6 +245,7 @@ exports.seed = async function (knex) {
 
           const issue = {
             id: uuidv4(),
+            farm_id: DEFAULT_FARM_ID,
             cow_id: cow.id,
             reported_by: pick(reporters),
             issue_types: JSON.stringify([it.code]),
@@ -360,6 +365,7 @@ exports.seed = async function (knex) {
       const treatmentId = uuidv4();
       treatments.push({
         id: treatmentId,
+        farm_id: DEFAULT_FARM_ID,
         cow_id: issue.cow_id,
         health_issue_id: issue.id,
         medication_id: med.id,
@@ -771,11 +777,15 @@ exports.seed = async function (knex) {
   }
 
   // Insert breeding events (with CHECK constraint bypass for dry_off type)
-  if (breedingEvents.length > 0) {
+  const normalisedBreedingEvents = breedingEvents.map((e) => ({
+    farm_id: DEFAULT_FARM_ID,
+    ...e,
+  }));
+  if (normalisedBreedingEvents.length > 0) {
     await knex.raw('PRAGMA ignore_check_constraints = ON');
     try {
-      for (let i = 0; i < breedingEvents.length; i += 50) {
-        await knex.batchInsert('breeding_events', breedingEvents.slice(i, i + 50), 50);
+      for (let i = 0; i < normalisedBreedingEvents.length; i += 50) {
+        await knex.batchInsert('breeding_events', normalisedBreedingEvents.slice(i, i + 50), 50);
       }
     } finally {
       await knex.raw('PRAGMA ignore_check_constraints = OFF');
