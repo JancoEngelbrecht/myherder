@@ -273,10 +273,28 @@ describe('GET /api/treatments/withdrawal', () => {
 
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body)).toBe(true)
-    // Every row must have a future milk withdrawal end
-    const now = new Date()
-    expect(res.body.every((t) => new Date(t.withdrawal_end_milk) > now)).toBe(true)
-    expect(res.body.some((t) => t.cow_id === cow)).toBe(true)
+    // The specific cow must appear with a future milk withdrawal end
+    const entry = res.body.find((t) => t.cow_id === cow)
+    expect(entry).toBeDefined()
+    expect(new Date(entry.withdrawal_end_milk) > new Date()).toBe(true)
+  })
+
+  it('includes males on meat-only withdrawal', async () => {
+    const bull = await createCow({ sex: 'male' })
+    const med = await createMedication({ withdrawal_milk_hours: 0, withdrawal_meat_days: 30 })
+    await postTreatment({
+      cow_id: bull,
+      medications: [{ medication_id: med }],
+      treatment_date: new Date().toISOString(),
+    })
+
+    const res = await request(app).get('/api/treatments/withdrawal').set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    const entry = res.body.find((t) => t.cow_id === bull)
+    expect(entry).toBeDefined()
+    expect(entry.sex).toBe('male')
+    expect(new Date(entry.withdrawal_end_meat) > new Date()).toBe(true)
   })
 
   it('returns at most one entry per cow (the latest withdrawal)', async () => {

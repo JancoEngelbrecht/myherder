@@ -14,15 +14,23 @@ afterAll(() => db.destroy())
 // ─── GET /api/settings ──────────────────────────────────────────────────────
 
 describe('GET /api/settings', () => {
-  it('returns settings without auth (public endpoint)', async () => {
+  it('returns empty object without auth and no farm_code', async () => {
     const res = await request(app).get('/api/settings')
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual({})
+  })
+
+  it('returns settings with farm_code query param (login page)', async () => {
+    const res = await request(app).get('/api/settings?farm_code=TEST')
     expect(res.status).toBe(200)
     expect(res.body).toHaveProperty('farm_name')
     expect(res.body).toHaveProperty('default_language')
   })
 
-  it('returns settings as key-value object', async () => {
-    const res = await request(app).get('/api/settings')
+  it('returns settings as key-value object with auth', async () => {
+    const res = await request(app)
+      .get('/api/settings')
+      .set('Authorization', adminToken())
     expect(typeof res.body.farm_name).toBe('string')
     expect(typeof res.body.default_language).toBe('string')
   })
@@ -92,7 +100,7 @@ describe('PATCH /api/settings', () => {
       .set('Authorization', adminToken())
       .send({ farm_name: 'Persisted Farm' })
 
-    const res = await request(app).get('/api/settings')
+    const res = await request(app).get('/api/settings?farm_code=TEST')
     expect(res.body.farm_name).toBe('Persisted Farm')
   })
 })

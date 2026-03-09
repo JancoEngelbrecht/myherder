@@ -107,10 +107,10 @@
           <select v-model="form.life_phase_override" class="form-select">
             <option :value="null">{{ t('cowForm.lifePhaseAuto') }}</option>
             <option value="calf">{{ t('lifePhase.calf') }}</option>
-            <option value="heifer">{{ t('lifePhase.heifer') }}</option>
-            <option value="cow">{{ t('lifePhase.cow') }}</option>
-            <option value="young_bull">{{ t('lifePhase.young_bull') }}</option>
-            <option value="bull">{{ t('lifePhase.bull') }}</option>
+            <option v-if="form.sex === 'female'" value="heifer">{{ t('lifePhase.heifer') }}</option>
+            <option v-if="form.sex === 'female'" value="cow">{{ t('lifePhase.cow') }}</option>
+            <option v-if="form.sex === 'male'" value="young_bull">{{ t('lifePhase.young_bull') }}</option>
+            <option v-if="form.sex === 'male'" value="bull">{{ t('lifePhase.bull') }}</option>
           </select>
         </div>
 
@@ -173,7 +173,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useCowsStore } from '../stores/cows.js'
@@ -207,6 +207,16 @@ const form = reactive({
 })
 
 const errors = reactive({})
+
+// Reset life phase override when sex changes if current value is incompatible
+const FEMALE_PHASES = new Set([null, 'calf', 'heifer', 'cow'])
+const MALE_PHASES = new Set([null, 'calf', 'young_bull', 'bull'])
+watch(() => form.sex, (sex) => {
+  const allowed = sex === 'male' ? MALE_PHASES : FEMALE_PHASES
+  if (!allowed.has(form.life_phase_override)) {
+    form.life_phase_override = null
+  }
+})
 const apiError = ref('')
 const saving = ref(false)
 

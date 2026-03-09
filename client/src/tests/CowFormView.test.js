@@ -185,10 +185,10 @@ describe('CowFormView', () => {
     const selects = wrapper.findAll('.form-select')
     // breed, life_phase_override, status = 3 selects
     expect(selects.length).toBeGreaterThanOrEqual(3)
-    // Life phase has options: auto, calf, heifer, cow, young_bull, bull
+    // Life phase options filtered by sex — default is female: auto, calf, heifer, cow
     const lifePhaseSelect = selects[1]
     const options = lifePhaseSelect.findAll('option')
-    expect(options.length).toBeGreaterThanOrEqual(6)
+    expect(options.length).toBeGreaterThanOrEqual(4)
   })
 
   it('renders sire and dam CowSearchDropdowns', async () => {

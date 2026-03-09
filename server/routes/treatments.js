@@ -50,6 +50,7 @@ function treatmentQuery(farmId) {
       'm.withdrawal_meat_days',
       'c.tag_number',
       'c.name as cow_name',
+      'c.sex',
       'u.full_name as administered_by_name',
     )
 }
@@ -149,32 +150,46 @@ router.get('/', async (req, res, next) => {
   }
 })
 
-// GET /api/treatments/withdrawal — one row per cow, latest milk withdrawal end date
+// GET /api/treatments/withdrawal — cows on active milk or meat withdrawal
 router.get('/withdrawal', async (req, res, next) => {
   try {
     const now = new Date().toISOString()
 
-    // Subquery: get the MAX withdrawal_end_milk per cow (the "worst" active withdrawal)
-    const maxPerCow = db('treatments')
-      .where('treatments.farm_id', req.farmId)
-      .join('cows', 'treatments.cow_id', 'cows.id')
-      .where('cows.sex', 'female')
-      .where('treatments.withdrawal_end_milk', '>', now)
-      .whereNull('cows.deleted_at')
-      .select('treatments.cow_id')
-      .max('treatments.withdrawal_end_milk as max_end')
-      .groupBy('treatments.cow_id')
-      .as('sub')
-
-    // Join back to get full treatment row for each cow's latest withdrawal
+    // Fetch all treatments with active milk or meat withdrawal
     const rows = await treatmentQuery(req.farmId)
-      .join(maxPerCow, function () {
-        this.on('t.cow_id', 'sub.cow_id')
-          .andOn('t.withdrawal_end_milk', 'sub.max_end')
+      .where(function () {
+        this.where('t.withdrawal_end_milk', '>', now)
+          .orWhere('t.withdrawal_end_meat', '>', now)
       })
-      .orderBy('t.withdrawal_end_milk', 'asc')
 
-    res.json(await enrichWithMedications(rows, req.farmId))
+    // Aggregate per cow: keep the worst (latest) milk and meat end dates
+    const byCow = {}
+    for (const row of rows) {
+      const existing = byCow[row.cow_id]
+      if (!existing) {
+        byCow[row.cow_id] = { ...row }
+        continue
+      }
+      // Keep the latest milk withdrawal end
+      if (row.withdrawal_end_milk && (!existing.withdrawal_end_milk || row.withdrawal_end_milk > existing.withdrawal_end_milk)) {
+        existing.withdrawal_end_milk = row.withdrawal_end_milk
+        existing.medication_name = row.medication_name
+        existing.treatment_date = row.treatment_date
+      }
+      // Keep the latest meat withdrawal end
+      if (row.withdrawal_end_meat && (!existing.withdrawal_end_meat || row.withdrawal_end_meat > existing.withdrawal_end_meat)) {
+        existing.withdrawal_end_meat = row.withdrawal_end_meat
+      }
+    }
+
+    const result = Object.values(byCow)
+    result.sort((a, b) => {
+      const aEnd = a.withdrawal_end_milk || a.withdrawal_end_meat || ''
+      const bEnd = b.withdrawal_end_milk || b.withdrawal_end_meat || ''
+      return aEnd.localeCompare(bEnd)
+    })
+
+    res.json(result)
   } catch (err) {
     next(err)
   }

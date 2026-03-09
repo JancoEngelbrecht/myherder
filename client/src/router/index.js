@@ -232,6 +232,24 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/help',
+    name: 'help-library',
+    component: () => import('../views/HelpLibraryView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/help/breeding-lifecycle',
+    name: 'help-breeding-lifecycle',
+    component: () => import('../views/help/BreedingLifecycleView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/help/:topic',
+    name: 'help-topic',
+    component: () => import('../views/HelpTopicView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/super/farms',
     name: 'farm-list',
     component: () => import('../views/super/FarmListView.vue'),

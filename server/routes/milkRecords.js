@@ -219,12 +219,23 @@ router.post('/', authorize('can_record_milk'), async (req, res, next) => {
     if (cow.sex === 'male') return res.status(400).json({ error: 'Cannot record milk for a male animal' })
 
     // Check unique constraint before insert to return a clean 409
-    const existing = await db('milk_records').where('farm_id', req.farmId).where({
-      cow_id: value.cow_id,
-      session: value.session,
-      recording_date: value.recording_date,
-    }).first()
-    if (existing) return res.status(409).json({ error: 'Record already exists for this cow/session/date', id: existing.id })
+    const existing = await db('milk_records')
+      .select('milk_records.*', 'u.full_name as recorded_by_name')
+      .leftJoin('users as u', 'milk_records.recorded_by', 'u.id')
+      .where('milk_records.farm_id', req.farmId)
+      .where({
+        'milk_records.cow_id': value.cow_id,
+        'milk_records.session': value.session,
+        'milk_records.recording_date': value.recording_date,
+        'milk_records.session_time': value.session_time,
+      }).first()
+    if (existing) {
+      return res.status(409).json({
+        error: `Record already exists for this cow/session/date/time (recorded by ${existing.recorded_by_name || 'unknown'})`,
+        id: existing.id,
+        recorded_by_name: existing.recorded_by_name,
+      })
+    }
 
     // Auto-flag withdrawal — compute once, reuse for discard reason
     const now = new Date().toISOString()

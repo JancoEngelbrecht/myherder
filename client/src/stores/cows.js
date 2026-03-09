@@ -110,6 +110,7 @@ export const useCowsStore = defineStore('cows', () => {
 
     try {
       const { data: serverCow } = await api.post('/cows', data)
+      await db.cows.delete(localCow.id)
       await db.cows.put(serverCow)
       await dequeueByEntityId('cows', localCow.id)
       cows.value.unshift(serverCow)

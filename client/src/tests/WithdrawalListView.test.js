@@ -46,17 +46,21 @@ vi.mock('../db/indexedDB.js', () => ({
   },
 }))
 
-// Future dates for active withdrawal
 const futureDate = new Date(Date.now() + 86400000 * 3).toISOString()
 
-const MOCK_WITHDRAWAL = [
-  {
-    id: 'w1', cow_id: 'c1', tag_number: '001', cow_name: 'Bessie',
-    medication_name: 'Pen-Strep',
-    withdrawal_end_milk: futureDate, withdrawal_end_meat: futureDate,
-    treatment_date: '2024-01-15T10:00:00Z',
-  },
-]
+const MOCK_MILK_COW = {
+  id: 'w1', cow_id: 'c1', tag_number: '001', cow_name: 'Bessie', sex: 'female',
+  medication_name: 'Pen-Strep',
+  withdrawal_end_milk: futureDate, withdrawal_end_meat: futureDate,
+  treatment_date: '2024-01-15T10:00:00Z',
+}
+
+const MOCK_MEAT_ONLY_COW = {
+  id: 'w2', cow_id: 'c2', tag_number: '002', cow_name: 'Bruno', sex: 'male',
+  medication_name: 'Ivermectin',
+  withdrawal_end_milk: null, withdrawal_end_meat: futureDate,
+  treatment_date: '2024-01-15T10:00:00Z',
+}
 
 const stubs = {
   SyncIndicator: true,
@@ -69,32 +73,7 @@ describe('WithdrawalListView', () => {
     vi.clearAllMocks()
   })
 
-  it('renders withdrawal cards when cows on withdrawal', async () => {
-    const store = useTreatmentsStore()
-    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue()
-    store.withdrawalCows = MOCK_WITHDRAWAL
-    store.loadingWithdrawal = false
-
-    const wrapper = mount(WithdrawalListView, { global: { stubs } })
-    await flushPromises()
-
-    expect(wrapper.findAll('.withdrawal-card')).toHaveLength(1)
-    expect(wrapper.find('.tag-number').text()).toBe('001')
-  })
-
-  it('shows alert banner with count', async () => {
-    const store = useTreatmentsStore()
-    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue()
-    store.withdrawalCows = MOCK_WITHDRAWAL
-    store.loadingWithdrawal = false
-
-    const wrapper = mount(WithdrawalListView, { global: { stubs } })
-    await flushPromises()
-
-    expect(wrapper.find('.alert-banner').exists()).toBe(true)
-  })
-
-  it('shows all-clear state when no cows on withdrawal', async () => {
+  it('shows global all-clear when no animals on withdrawal', async () => {
     const store = useTreatmentsStore()
     vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue()
     store.withdrawalCows = []
@@ -104,6 +83,7 @@ describe('WithdrawalListView', () => {
     await flushPromises()
 
     expect(wrapper.find('.clear-state').exists()).toBe(true)
+    expect(wrapper.find('.filter-chips').exists()).toBe(false)
   })
 
   it('shows spinner while loading', async () => {
@@ -115,5 +95,87 @@ describe('WithdrawalListView', () => {
     await flushPromises()
 
     expect(wrapper.find('.spinner').exists()).toBe(true)
+  })
+
+  it('shows tab chips with counts when data exists', async () => {
+    const store = useTreatmentsStore()
+    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue()
+    store.withdrawalCows = [MOCK_MILK_COW, MOCK_MEAT_ONLY_COW]
+    store.loadingWithdrawal = false
+
+    const wrapper = mount(WithdrawalListView, { global: { stubs } })
+    await flushPromises()
+
+    const chips = wrapper.findAll('.chip')
+    expect(chips).toHaveLength(2)
+    // Milk tab has count 1 (only the female), meat tab has count 2 (both animals)
+    const milkCount = chips[0].find('.chip-count')
+    const meatCount = chips[1].find('.chip-count')
+    expect(milkCount.text()).toBe('1')
+    expect(meatCount.text()).toBe('2')
+  })
+
+  it('defaults to milk tab and renders milk cards', async () => {
+    const store = useTreatmentsStore()
+    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue()
+    store.withdrawalCows = [MOCK_MILK_COW]
+    store.loadingWithdrawal = false
+
+    const wrapper = mount(WithdrawalListView, { global: { stubs } })
+    await flushPromises()
+
+    expect(wrapper.find('.milk-banner').exists()).toBe(true)
+    expect(wrapper.findAll('.withdrawal-card:not(.meat-card)')).toHaveLength(1)
+    expect(wrapper.find('.tag-number').text()).toBe('001')
+  })
+
+  it('switches to meat tab on click and shows meat cards', async () => {
+    const store = useTreatmentsStore()
+    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue()
+    store.withdrawalCows = [MOCK_MEAT_ONLY_COW]
+    store.loadingWithdrawal = false
+
+    const wrapper = mount(WithdrawalListView, { global: { stubs } })
+    await flushPromises()
+
+    // Milk tab is default — shows clear state since no female milk cows
+    expect(wrapper.find('.section-clear').exists()).toBe(true)
+
+    // Click meat tab
+    const meatChip = wrapper.findAll('.chip')[1]
+    await meatChip.trigger('click')
+
+    expect(wrapper.find('.meat-banner').exists()).toBe(true)
+    expect(wrapper.findAll('.meat-card')).toHaveLength(1)
+    expect(wrapper.find('.meat-card .tag-number').text()).toBe('002')
+  })
+
+  it('does not show male in milk tab', async () => {
+    const store = useTreatmentsStore()
+    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue()
+    store.withdrawalCows = [MOCK_MEAT_ONLY_COW]
+    store.loadingWithdrawal = false
+
+    const wrapper = mount(WithdrawalListView, { global: { stubs } })
+    await flushPromises()
+
+    // Milk tab active by default — male should not appear
+    expect(wrapper.findAll('.withdrawal-card')).toHaveLength(0)
+    expect(wrapper.find('.section-clear').exists()).toBe(true)
+  })
+
+  it('applies meat-theme class when meat tab is active', async () => {
+    const store = useTreatmentsStore()
+    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue()
+    store.withdrawalCows = [MOCK_MILK_COW]
+    store.loadingWithdrawal = false
+
+    const wrapper = mount(WithdrawalListView, { global: { stubs } })
+    await flushPromises()
+
+    expect(wrapper.find('.withdrawal-page').classes()).not.toContain('meat-theme')
+
+    await wrapper.findAll('.chip')[1].trigger('click')
+    expect(wrapper.find('.withdrawal-page').classes()).toContain('meat-theme')
   })
 })

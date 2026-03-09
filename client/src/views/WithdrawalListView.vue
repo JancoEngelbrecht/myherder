@@ -1,89 +1,170 @@
 <template>
-  <div class="page withdrawal-page">
+  <div class="page withdrawal-page" :class="{ 'meat-theme': activeTab === 'meat' }">
     <AppHeader :title="$t('withdrawal.title')" show-back back-to="/" />
 
     <div class="content">
-      <div v-if="!loadingWithdrawal && withdrawalCows.length > 0" class="alert-banner">
-        <span class="alert-icon">🚫</span>
-        <span>{{ $t('withdrawal.banner', { count: withdrawalCows.length }) }}</span>
-      </div>
+      <div v-if="loading" class="spinner-wrap"><div class="spinner" /></div>
 
-      <div v-if="loadingWithdrawal" class="spinner-wrap"><div class="spinner" /></div>
-
-      <div v-else-if="withdrawalCows.length === 0" class="empty-state clear-state">
+      <!-- Global all-clear -->
+      <div v-else-if="milkCows.length === 0 && meatCows.length === 0" class="empty-state clear-state">
         <div class="clear-icon">✅</div>
         <h2>{{ $t('withdrawal.allClear') }}</h2>
         <p>{{ $t('withdrawal.allClearSub') }}</p>
       </div>
 
-      <div v-else class="cow-list">
-        <div v-for="item in withdrawalCows" :key="item.id" class="withdrawal-card">
-          <div class="card-top">
-            <div class="cow-id">
-              <span class="tag-number mono">{{ item.tag_number }}</span>
-              <span v-if="item.cow_name" class="cow-name">{{ item.cow_name }}</span>
-            </div>
-            <RouterLink :to="`/cows/${item.cow_id}`" class="view-link">
-              {{ $t('common.view') }} →
-            </RouterLink>
-          </div>
-
-          <div class="med-info">
-            <span class="med-name">{{ item.medication_name }}</span>
-          </div>
-
-          <div class="withdrawal-row milk-row">
-            <span class="wd-label">🥛 {{ $t('withdrawal.milkClear') }}</span>
-            <div class="wd-right">
-              <span class="wd-date mono">{{ formatDateTime(item.withdrawal_end_milk) }}</span>
-              <span class="countdown-badge" :class="withdrawalInfo(item.withdrawal_end_milk).urgency">
-                {{ withdrawalInfo(item.withdrawal_end_milk).label }}
-              </span>
-            </div>
-          </div>
-
-          <div
-            v-if="item.withdrawal_end_meat && item.withdrawal_end_meat > nowIso"
-            class="withdrawal-row"
+      <template v-else>
+        <!-- ── Tab bar ── -->
+        <div class="filter-chips">
+          <button
+            class="chip"
+            :class="{ active: activeTab === 'milk' }"
+            @click="activeTab = 'milk'"
           >
-            <span class="wd-label">🥩 {{ $t('withdrawal.meatClear') }}</span>
-            <div class="wd-right">
-              <span class="wd-date mono">{{ formatDateTime(item.withdrawal_end_meat) }}</span>
-            </div>
+            🥛 {{ $t('withdrawal.milkSection') }}
+            <span v-if="milkCows.length > 0" class="chip-count">{{ milkCows.length }}</span>
+          </button>
+          <button
+            class="chip"
+            :class="{ active: activeTab === 'meat' }"
+            @click="activeTab = 'meat'"
+          >
+            🥩 {{ $t('withdrawal.meatSection') }}
+            <span v-if="meatCows.length > 0" class="chip-count">{{ meatCows.length }}</span>
+          </button>
+        </div>
+
+        <!-- ── Milk Tab ── -->
+        <div v-if="activeTab === 'milk'">
+          <div v-if="milkCows.length > 0" class="alert-banner milk-banner">
+            <span class="alert-icon">🚫</span>
+            <span>{{ $t('withdrawal.milkBanner', { count: milkCows.length }) }}</span>
           </div>
 
-          <div class="treatment-date">
-            {{ $t('withdrawal.treated') }}: {{ formatDateTime(item.treatment_date) }}
+          <div v-if="milkCows.length === 0" class="section-clear">
+            <span class="section-clear-icon">✅</span>
+            <span>{{ $t('withdrawal.milkAllClear') }}</span>
+          </div>
+
+          <div v-else class="cow-list">
+            <div v-for="item in milkCows" :key="item.cow_id" class="withdrawal-card">
+              <div class="card-top">
+                <div class="cow-id">
+                  <span class="tag-number mono">{{ item.tag_number }}</span>
+                  <span v-if="item.cow_name" class="cow-name">{{ item.cow_name }}</span>
+                </div>
+                <RouterLink :to="`/cows/${item.cow_id}`" class="view-link">
+                  {{ $t('common.view') }} →
+                </RouterLink>
+              </div>
+
+              <div class="med-info">
+                <span class="med-name">{{ item.medication_name }}</span>
+              </div>
+
+              <div class="withdrawal-row">
+                <span class="wd-label">🥛 {{ $t('withdrawal.milkClear') }}</span>
+                <div class="wd-right">
+                  <span class="wd-date mono">{{ formatDateTime(item.withdrawal_end_milk) }}</span>
+                  <span class="countdown-badge" :class="withdrawalInfo(item.withdrawal_end_milk).urgency">
+                    {{ withdrawalInfo(item.withdrawal_end_milk).label }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="treatment-date">
+                {{ $t('withdrawal.treated') }}: {{ formatDateTime(item.treatment_date) }}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+
+        <!-- ── Meat Tab ── -->
+        <div v-if="activeTab === 'meat'">
+          <div v-if="meatCows.length > 0" class="alert-banner meat-banner">
+            <span class="alert-icon">🚫</span>
+            <span>{{ $t('withdrawal.meatBanner', { count: meatCows.length }) }}</span>
+          </div>
+
+          <div v-if="meatCows.length === 0" class="section-clear">
+            <span class="section-clear-icon">✅</span>
+            <span>{{ $t('withdrawal.meatAllClear') }}</span>
+          </div>
+
+          <div v-else class="cow-list">
+            <div v-for="item in meatCows" :key="item.cow_id" class="withdrawal-card meat-card">
+              <div class="card-top">
+                <div class="cow-id">
+                  <span class="tag-number mono">{{ item.tag_number }}</span>
+                  <span v-if="item.cow_name" class="cow-name">{{ item.cow_name }}</span>
+                </div>
+                <RouterLink :to="`/cows/${item.cow_id}`" class="view-link">
+                  {{ $t('common.view') }} →
+                </RouterLink>
+              </div>
+
+              <div class="med-info">
+                <span class="med-name meat-med">{{ item.medication_name }}</span>
+              </div>
+
+              <div class="withdrawal-row">
+                <span class="wd-label">🥩 {{ $t('withdrawal.meatClear') }}</span>
+                <div class="wd-right">
+                  <span class="wd-date mono">{{ formatDateTime(item.withdrawal_end_meat) }}</span>
+                  <span class="countdown-badge" :class="withdrawalInfo(item.withdrawal_end_meat).urgency">
+                    {{ withdrawalInfo(item.withdrawal_end_meat).label }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="treatment-date">
+                {{ $t('withdrawal.treated') }}: {{ formatDateTime(item.treatment_date) }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
     </div>
 
-    <div v-if="!loadingWithdrawal" class="refresh-row">
+    <div v-if="!loading" class="refresh-row">
       <button class="btn-secondary" @click="store.fetchWithdrawal()">{{ $t('common.refresh') }}</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useTreatmentsStore } from '../stores/treatments'
 import { formatDateTime } from '../utils/format'
 import AppHeader from '../components/organisms/AppHeader.vue'
 
 const store = useTreatmentsStore()
-const loadingWithdrawal = computed(() => store.loadingWithdrawal)
+const loading = computed(() => store.loadingWithdrawal)
 const withdrawalCows = computed(() => store.withdrawalCows)
+const activeTab = ref('milk')
 
-// A stable ISO string used for template comparisons — avoids constructing new Date() inside v-if
-const nowIso = new Date().toISOString()
+// Reactive timestamp — updates every 60s so expired withdrawals disappear automatically
+const nowIso = ref(new Date().toISOString())
+let timer
+onMounted(() => {
+  store.fetchWithdrawal()
+  timer = setInterval(() => { nowIso.value = new Date().toISOString() }, 60_000)
+})
+onUnmounted(() => clearInterval(timer))
 
-onMounted(() => store.fetchWithdrawal())
+// Milk: only females with active milk withdrawal
+const milkCows = computed(() =>
+  withdrawalCows.value.filter(
+    (c) => c.sex === 'female' && c.withdrawal_end_milk && c.withdrawal_end_milk > nowIso.value,
+  ),
+)
 
-/**
- * Returns both the countdown label and urgency CSS class for a withdrawal end date.
- * Unified so the label and style are always consistent with each other.
- */
+// Meat: any animal with active meat withdrawal
+const meatCows = computed(() =>
+  withdrawalCows.value.filter(
+    (c) => c.withdrawal_end_meat && c.withdrawal_end_meat > nowIso.value,
+  ),
+)
+
 function withdrawalInfo(endDate) {
   const diff = new Date(endDate) - Date.now()
 
@@ -111,6 +192,11 @@ function withdrawalInfo(endDate) {
 .withdrawal-page {
   background: #fff5f5;
   min-height: 100vh;
+  transition: background 0.2s;
+}
+
+.withdrawal-page.meat-theme {
+  background: #fdf5ee;
 }
 
 .content {
@@ -119,21 +205,48 @@ function withdrawalInfo(endDate) {
   margin: 0 auto;
 }
 
+.filter-chips {
+  margin-bottom: 16px;
+}
+
 .alert-banner {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--danger);
   color: white;
   padding: 14px 18px;
   border-radius: var(--radius);
   font-weight: 600;
   font-size: 0.95rem;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
+}
+
+.milk-banner {
+  background: var(--danger);
+}
+
+.meat-banner {
+  background: #8B4513;
 }
 
 .alert-icon {
   font-size: 1.4rem;
+}
+
+.section-clear {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  background: var(--success-light, #e8f5e9);
+  border-radius: var(--radius);
+  color: var(--primary);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.section-clear-icon {
+  font-size: 1.2rem;
 }
 
 .spinner-wrap {
@@ -175,6 +288,11 @@ function withdrawalInfo(endDate) {
   box-shadow: 0 2px 12px rgba(214, 40, 40, 0.12);
 }
 
+.meat-card {
+  border-color: #8B4513;
+  box-shadow: 0 2px 12px rgba(139, 69, 19, 0.12);
+}
+
 .card-top {
   display: flex;
   justify-content: space-between;
@@ -192,6 +310,10 @@ function withdrawalInfo(endDate) {
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--danger);
+}
+
+.meat-card .tag-number {
+  color: #8B4513;
 }
 
 .cow-name {
@@ -219,16 +341,16 @@ function withdrawalInfo(endDate) {
   border-radius: var(--radius-full);
 }
 
+.meat-med {
+  background: #f5e6d3;
+  color: #8B4513;
+}
+
 .withdrawal-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
-  border-top: 1px solid #f5e0e0;
-}
-
-.milk-row {
-  border-top: none;
 }
 
 .wd-label {

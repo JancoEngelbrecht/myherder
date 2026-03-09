@@ -367,10 +367,15 @@
     "meatClear": "Meat clear"
   },
   "withdrawal": {
-    "title": "Milk Withdrawal",
-    "banner": "{count} cow(s) on milk withdrawal — DO NOT USE MILK",
+    "title": "Withdrawal Alerts",
+    "milkSection": "Milk Withdrawal",
+    "meatSection": "Meat Withdrawal",
+    "milkBanner": "{count} cow(s) on milk withdrawal — DO NOT USE MILK",
+    "meatBanner": "{count} animal(s) on meat withdrawal — DO NOT SLAUGHTER",
     "allClear": "All Clear",
-    "allClearSub": "No cows are currently on milk withdrawal",
+    "allClearSub": "No animals are currently on any withdrawal",
+    "milkAllClear": "No cows on milk withdrawal",
+    "meatAllClear": "No animals on meat withdrawal",
     "milkClear": "Milk clear",
     "meatClear": "Meat clear",
     "treated": "Treated"
@@ -958,5 +963,705 @@
     "users": "Users",
     "cows": "Cows",
     "created": "Created"
+  },
+  "help": {
+    "title": "Help Library",
+    "topicNotFound": "Topic not found",
+    "categories": {
+      "dailyTasks": "Daily Tasks",
+      "healthTreatment": "Health & Treatment",
+      "breeding": "Breeding",
+      "cowManagement": "Cow Management",
+      "adminSettings": "Admin / Settings"
+    },
+    "sections": {
+      "what": "What is this?",
+      "when": "When do I use it?",
+      "flow": "How it works",
+      "steps": "Step by step",
+      "next": "What happens next?",
+      "tips": "Tips & Edge Cases"
+    },
+    "breedingCycle": {
+      "mainCycleTitle": "The Breeding Cycle",
+      "edgeCasesTitle": "What Can Go Wrong",
+      "steps": {
+        "heatDetection": "Cow shows heat signs — log it",
+        "insemination": "Inseminate (AI or bull service)",
+        "waitPregCheck": "Wait ~30 days for pregnancy check",
+        "pregCheck": "Is the cow pregnant?",
+        "pregnant": "Confirmed pregnant — calving date set",
+        "notPregnant": "Not pregnant — back to heat watch",
+        "dryOff": "Dry off ~60 days before calving",
+        "calving": "Cow calves — log the event",
+        "recovery": "Recovery period after calving",
+        "cycleRestart": "Cycle restarts — watch for heat",
+        "pregCheckNeg": "Pregnancy check is negative",
+        "backToHeat": "Return to heat detection",
+        "reInseminate": "Re-inseminate at next heat",
+        "abortionDetected": "Abortion detected — log it",
+        "vetCheck": "Get vet examination",
+        "recoveryPeriod": "Allow recovery period"
+      },
+      "negativePreg": {
+        "title": "Negative Pregnancy Check",
+        "desc": "If the pregnancy check is negative, the cow goes back to heat watch. She will need to be re-inseminated at her next heat cycle."
+      },
+      "abortion": {
+        "title": "Abortion",
+        "desc": "If a cow aborts, log the event and get a vet check. After a recovery period, she returns to the breeding cycle."
+      },
+      "repeatBreeder": {
+        "title": "Repeat Breeder",
+        "desc": "A cow that has been inseminated 3 or more times without conceiving is called a repeat breeder. Consult your vet — there may be an underlying fertility issue."
+      },
+      "missedHeat": {
+        "title": "Missed Heat",
+        "desc": "If you miss a cow's heat, she will cycle again in about 21 days. Watch for the next heat signs. The app will alert you when the next heat is expected."
+      }
+    },
+    "topics": {
+      "recording-milk": {
+        "title": "Recording Milk",
+        "what": "Record how many litres each cow produces at each milking session.",
+        "when": "Every time you milk your cows — typically twice daily (morning and afternoon sessions).",
+        "flow": {
+          "openMilk": "Open the Milk page",
+          "selectSession": "Select session (AM or PM)",
+          "selectCow": "Search and select a cow",
+          "enterLitres": "Enter litres produced",
+          "withdrawalCheck": "Is cow on withdrawal?",
+          "showWarning": "Warning shown — milk may need discarding",
+          "normalSave": "Record saved successfully"
+        },
+        "steps": [
+          "Tap 'Milk' in the bottom navigation to open the milk recording page.",
+          "Select the session — AM for morning milking, PM for afternoon. The app remembers today's date automatically.",
+          "Search for a cow by tag number or name using the search dropdown.",
+          "Enter the number of litres the cow produced. If the milk must be discarded (e.g. withdrawal), tick the discard box.",
+          "Tap 'Save'. If the cow is on medication withdrawal, the app warns you so you know the milk may not be safe to sell.",
+          "Repeat for each cow. You can see a summary of the session totals at the top of the page."
+        ],
+        "next": "The record is saved to the server (or queued offline). You can view it later in Milk History. The dashboard shows today's total litres.",
+        "tips": [
+          "You can only record one entry per cow per session per day — duplicates are blocked.",
+          "If you're offline, records save locally and sync when you're back online.",
+          "The withdrawal warning comes from treatments — if a cow was treated with medication, the system knows the withdrawal period.",
+          "You can edit a record you made, but only admins can delete records."
+        ]
+      },
+      "milk-history": {
+        "title": "Viewing Milk History",
+        "what": "Browse and search past milk records with filters and sorting.",
+        "when": "When you want to check production trends, find specific records, or review daily totals.",
+        "flow": {
+          "openHistory": "Open Milk History",
+          "useFilters": "Apply filters (date, session, cow, recorder)",
+          "viewRecords": "Results shown with pagination",
+          "sortResults": "Sort by date, litres, or tag number"
+        },
+        "steps": [
+          "From the Milk page, tap 'History' to open the milk history view.",
+          "Use the filter chips to narrow results — filter by date range, session (AM/PM), specific cow, or who recorded it.",
+          "Browse records in the list. Each card shows the cow, litres, session, date, and who recorded it.",
+          "Tap column headers to sort by recording date, litres, or tag number.",
+          "Use the search bar to find records by cow tag number, cow name, or recorder name."
+        ],
+        "next": "The history view is read-only for workers. Admins can delete records from here. For detailed production reports, use the Reports section in Settings.",
+        "tips": [
+          "Use the 'Discarded' filter to see only milk that was marked as discarded (e.g. due to withdrawal).",
+          "The pagination shows 20 records per page — use the page controls at the bottom to navigate.",
+          "For detailed analytics on milk production trends, visit the Analytics section."
+        ]
+      },
+      "logging-health-issue": {
+        "title": "Logging a Health Issue",
+        "what": "Record when a cow is sick or showing health problems.",
+        "when": "When you notice a cow is unwell — limping, low appetite, swollen udder, fever, or any other symptom.",
+        "flow": {
+          "startIssue": "Go to Log Health Issue",
+          "selectCow": "Select the affected cow",
+          "selectType": "Choose the issue type (e.g. Mastitis, Lameness)",
+          "setSeverity": "Set severity (Low, Medium, High, Critical)",
+          "isMastitis": "Is it a teat-related issue?",
+          "selectTeats": "Select affected teats",
+          "skipTeats": "Skip teat selection",
+          "addNotes": "Add notes describing symptoms",
+          "save": "Issue logged — appears in Open Issues"
+        },
+        "steps": [
+          "Navigate to 'Log Health Issue' from the dashboard or cow detail page.",
+          "Search and select the cow that is sick.",
+          "Choose the type of issue from the dropdown (e.g. Mastitis, Lameness, Respiratory). These are customizable by your admin.",
+          "Set the severity level — this helps prioritize which cows need attention first.",
+          "If it's a mastitis or teat-related issue, use the teat selector to mark which teats are affected (front-left, front-right, etc.).",
+          "Add detailed notes about what you observed — this helps the vet or manager understand the situation.",
+          "Tap Save. The issue now appears in the Open Issues list."
+        ],
+        "next": "The health issue is tracked as 'open' until resolved. You can add treatments linked to this issue. The cow appears in health analytics and may trigger reports.",
+        "tips": [
+          "Be as specific as possible in your notes — describe symptoms, temperature, behavior changes.",
+          "You can log multiple issues for the same cow if she has different problems.",
+          "The issue type determines how it's tracked in analytics — your admin can customize the available types.",
+          "Severity helps prioritize: Critical issues should get immediate attention."
+        ]
+      },
+      "adding-treatment": {
+        "title": "Adding a Treatment",
+        "what": "Record medication or treatment given to a cow.",
+        "when": "When you administer medication, call the vet, or apply any treatment to a sick cow.",
+        "flow": {
+          "startTreatment": "Go to Log Treatment",
+          "selectCow": "Select the cow being treated",
+          "selectMedication": "Choose the medication used",
+          "enterDosage": "Enter dosage amount",
+          "enterCost": "Enter treatment cost",
+          "save": "Save treatment record",
+          "withdrawalCalc": "System calculates withdrawal end dates"
+        },
+        "steps": [
+          "Navigate to 'Log Treatment' from the dashboard, cow detail, or health issue detail page.",
+          "Select the cow receiving treatment.",
+          "Choose the medication from the dropdown. Your admin manages the medication list.",
+          "Enter the dosage given and the cost of the treatment.",
+          "Optionally mark if a vet visited and link to an existing health issue.",
+          "Tap Save. The system automatically calculates when the milk and meat withdrawal periods end."
+        ],
+        "next": "The withdrawal dates are calculated from the medication's settings. During the withdrawal period, the milk recording page will warn you that this cow's milk may not be safe to sell.",
+        "tips": [
+          "Always select the correct medication — the withdrawal days are different for each one.",
+          "Linking a treatment to a health issue helps track which treatments resolved which problems.",
+          "The cost field helps with financial analytics — you can see treatment spending trends.",
+          "You can add extra medications to a treatment if multiple drugs were used."
+        ]
+      },
+      "withdrawal-periods": {
+        "title": "Understanding Withdrawal Periods",
+        "what": "After treatment, milk and meat have a safety period before they can be sold. The app tracks this automatically.",
+        "when": "You don't need to do anything — the system handles this. But understand it so you know why warnings appear.",
+        "flow": {
+          "treatmentRecorded": "Treatment is recorded with medication",
+          "systemCalcEnd": "System calculates withdrawal end date",
+          "milkFlagged": "Cow's milk flagged during withdrawal",
+          "periodOver": "Is the withdrawal period over?",
+          "milkSafe": "Milk is safe — no more warnings",
+          "discardWarning": "Warning: milk should be discarded"
+        },
+        "steps": [
+          "When you record a treatment, the system looks at the medication's withdrawal days (set by your admin).",
+          "It calculates the date when milk withdrawal ends and when meat withdrawal ends.",
+          "During the withdrawal period, the milk recording page shows a warning badge on the cow.",
+          "If you record milk for a cow on withdrawal, the app suggests marking it as discarded.",
+          "Once the withdrawal period passes, the warning disappears automatically."
+        ],
+        "next": "Withdrawal information shows in the Withdrawal Alerts page and in milk recording. Discarded milk appears in the Discarded Milk report.",
+        "tips": [
+          "Different medications have different withdrawal periods — some are just a few days, others are weeks.",
+          "The withdrawal page shows all cows currently on withdrawal in one place.",
+          "Milk withdrawal and meat withdrawal can have different durations for the same medication.",
+          "If in doubt about selling milk or meat, always consult your vet."
+        ]
+      },
+      "resolving-health-issue": {
+        "title": "Resolving a Health Issue",
+        "what": "Mark a health issue as resolved when the cow has recovered.",
+        "when": "When a sick cow has recovered and no longer shows symptoms.",
+        "flow": {
+          "openIssues": "Open the Issues list",
+          "selectIssue": "Tap on the issue to view details",
+          "changeStatus": "Change status to Resolved",
+          "resolved": "Issue closed — resolution time recorded"
+        },
+        "steps": [
+          "Go to the Open Issues page from the dashboard.",
+          "Find and tap the issue you want to resolve.",
+          "On the issue detail page, change the status from 'Open' to 'Resolved'.",
+          "The system records the resolution date and calculates how long it took to resolve."
+        ],
+        "next": "The issue moves from the open list to the resolved list. Resolution time is tracked in health analytics — faster resolution means better herd health management.",
+        "tips": [
+          "Only resolve an issue when the cow has truly recovered — premature resolution skews your analytics.",
+          "If the same issue comes back within 60 days, the system counts it as a recurrence.",
+          "Resolution time data helps identify which issue types take longest to treat."
+        ]
+      },
+      "breeding-lifecycle": {
+        "title": "Breeding Lifecycle Overview",
+        "what": "The complete breeding cycle for a dairy cow — from heat detection through calving and back again.",
+        "when": "Read this to understand the full picture of breeding management before using the individual breeding features.",
+        "next": "Each step in this cycle has its own help page with detailed instructions. Tap any breeding topic in the Help Library to learn more.",
+        "tips": [
+          "The typical cycle is: Heat \u2192 Insemination \u2192 Pregnancy Check \u2192 Dry-Off \u2192 Calving \u2192 Repeat.",
+          "The app calculates dates automatically based on your breed type settings — different breeds have different gestation periods.",
+          "Notifications alert you when the next step is due — check the Breeding Notifications page regularly.",
+          "A cow that doesn't conceive after 3+ inseminations may need veterinary attention.",
+          "The system tracks all these events and provides fertility analytics to help you improve conception rates."
+        ]
+      },
+      "logging-heat": {
+        "title": "Logging Heat Detection",
+        "what": "Record when a cow shows signs of being in heat (estrus).",
+        "when": "When you observe heat signs — mounting, restlessness, mucus discharge, reduced milk, standing to be mounted.",
+        "flow": {
+          "noticeSigns": "Notice cow showing heat signs",
+          "goToBreeding": "Go to Breeding Hub \u2192 Log Event",
+          "selectCow": "Select the cow",
+          "selectHeat": "Select 'Heat Detection' as event type",
+          "save": "Save the event",
+          "systemCalc": "System calculates next heat and insemination window"
+        },
+        "steps": [
+          "Observe your cows for heat signs — common signs include mounting other cows, restlessness, mucus discharge, and standing heat.",
+          "Open the Breeding Hub and tap 'Log Event'.",
+          "Search and select the cow showing heat.",
+          "Choose 'Heat Detection' as the event type.",
+          "Add any notes about the signs you observed.",
+          "Save. The system calculates when the next heat is expected (typically 21 days) and suggests the optimal insemination window."
+        ],
+        "next": "The system creates reminders for insemination timing. If you plan to inseminate, do it within 12-18 hours of heat onset for best results.",
+        "tips": [
+          "Heat detection is best done early morning and late evening when cows are less active.",
+          "A cow's heat cycle is approximately 21 days — the app tracks this pattern.",
+          "Standing heat (when a cow stands still while being mounted) is the most reliable sign.",
+          "Log heat even if you don't plan to inseminate — it helps track the cow's cycle regularity."
+        ]
+      },
+      "logging-insemination": {
+        "title": "Logging Insemination",
+        "what": "Record when a cow is artificially inseminated (AI) or served by a bull.",
+        "when": "After insemination has been performed — either by an AI technician or natural bull service.",
+        "flow": {
+          "startLog": "Go to Breeding Hub \u2192 Log Event",
+          "selectCow": "Select the cow",
+          "selectType": "AI or Bull Service?",
+          "ai": "AI",
+          "bull": "Bull",
+          "enterSireAI": "Enter AI sire details (straw number, sire name)",
+          "enterSireBull": "Enter bull name/ID",
+          "save": "Save the event",
+          "systemCalc": "System calculates preg check and calving dates"
+        },
+        "steps": [
+          "Open the Breeding Hub and tap 'Log Event'.",
+          "Select the cow that was inseminated.",
+          "Choose 'AI Insemination' or 'Bull Service' as the event type.",
+          "For AI: Enter the sire name and straw/batch number. For bull: Enter the bull name or ID.",
+          "Add any relevant notes.",
+          "Save. The system automatically calculates the expected pregnancy check date (~30 days) and potential calving date."
+        ],
+        "next": "A pregnancy check reminder will be created for approximately 30 days later. The expected calving date is calculated based on the breed's gestation period.",
+        "tips": [
+          "Log the insemination as soon as possible after it happens for accurate date calculations.",
+          "The pregnancy check date and calving date are calculated from the breed type's settings — different breeds have different gestation periods.",
+          "Keep sire records accurate — this is important for breeding management and avoiding inbreeding.",
+          "If using AI, record the straw number for traceability."
+        ]
+      },
+      "pregnancy-check": {
+        "title": "Pregnancy Check Results",
+        "what": "Record the result of a pregnancy check — positive (pregnant) or negative (not pregnant).",
+        "when": "After your vet or technician has performed a pregnancy check on a cow (typically 28-35 days after insemination).",
+        "flow": {
+          "startLog": "Go to Breeding Hub \u2192 Log Event",
+          "selectCow": "Select the cow",
+          "result": "Pregnancy check result?",
+          "positive": "Positive",
+          "negative": "Negative",
+          "calvingDate": "System sets calving + dry-off dates",
+          "backToCycle": "Cow returns to breeding cycle"
+        },
+        "steps": [
+          "Open the Breeding Hub and tap 'Log Event'.",
+          "Select the cow that was checked.",
+          "Choose 'Pregnancy Check Positive' or 'Pregnancy Check Negative'.",
+          "For positive results: confirm or adjust the expected calving date. The app pre-calculates it from the insemination date.",
+          "Save the result."
+        ],
+        "next": "If positive: the system calculates the dry-off date (typically 60 days before calving) and creates reminders. If negative: the cow returns to the breeding cycle for re-insemination.",
+        "tips": [
+          "A positive pregnancy check is a key milestone — it triggers automatic dry-off and calving reminders.",
+          "If the cow is not pregnant, she should be watched for the next heat cycle.",
+          "You can adjust the expected calving date if the vet gives a different estimate.",
+          "The expected calving date is used to calculate the dry-off date automatically."
+        ]
+      },
+      "dry-off": {
+        "title": "Dry-Off",
+        "what": "Record when a pregnant cow is dried off (stops being milked) before calving.",
+        "when": "Typically 45-60 days before the expected calving date. The app will send you a notification.",
+        "flow": {
+          "notification": "System alerts: time to dry off",
+          "goToBreeding": "Go to Breeding Hub \u2192 Log Event",
+          "selectCow": "Select the cow",
+          "selectDryOff": "Select 'Dry Off' as event type",
+          "save": "Save the event",
+          "statusChange": "Cow status changes — no longer milked"
+        },
+        "steps": [
+          "Check your Breeding Notifications for cows approaching their dry-off date.",
+          "Open the Breeding Hub and tap 'Log Event'.",
+          "Select the cow to dry off.",
+          "Choose 'Dry Off' as the event type.",
+          "Save. The cow's status changes and she won't appear in the milking list."
+        ],
+        "next": "The cow enters the dry period before calving. The system continues tracking the expected calving date and will alert you when calving is approaching.",
+        "tips": [
+          "Drying off too late can reduce the cow's next lactation performance.",
+          "Drying off too early means lost milk production.",
+          "The standard dry period is 45-60 days — your breed type settings determine the exact calculation.",
+          "During the dry period, monitor the cow for health issues but don't include her in milking."
+        ]
+      },
+      "logging-calving": {
+        "title": "Logging a Calving",
+        "what": "Record when a cow gives birth to a calf.",
+        "when": "When a cow calves — the app will have a notification near the expected calving date.",
+        "flow": {
+          "notification": "System alerts: calving expected soon",
+          "goToBreeding": "Go to Breeding Hub \u2192 Log Event",
+          "selectCow": "Select the cow that calved",
+          "selectCalving": "Select 'Calving' as event type",
+          "enterDetails": "Enter calf details (sex, alive/dead)",
+          "save": "Save the event",
+          "cycleReset": "Breeding cycle resets — cow ready for new cycle"
+        },
+        "steps": [
+          "When a cow calves, go to the Breeding Hub and tap 'Log Event'.",
+          "Select the cow that gave birth.",
+          "Choose 'Calving' as the event type.",
+          "Enter details about the calf — sex and whether it was born alive.",
+          "Add any notes about the calving (e.g. difficulty, assistance needed).",
+          "Save. The cow's breeding cycle resets and she becomes active for milking again."
+        ],
+        "next": "The cow enters a recovery period. After recovery (typically 45-60 days), watch for the next heat cycle to begin the breeding cycle again.",
+        "tips": [
+          "Log calvings as soon as possible for accurate records.",
+          "The calving date resets the breeding timeline — the next heat is expected after the voluntary waiting period.",
+          "If the calf is a heifer, you may want to add her to the herd later as a replacement.",
+          "Difficult calvings should be noted — they may affect the cow's future breeding decisions."
+        ]
+      },
+      "breeding-notifications": {
+        "title": "Understanding Breeding Notifications",
+        "what": "The app creates automatic alerts when breeding actions are due for your cows.",
+        "when": "Check notifications regularly — at least daily during breeding season.",
+        "flow": {
+          "systemAlerts": "System generates alerts from breeding events",
+          "openNotifications": "Open Breeding Notifications",
+          "reviewAlerts": "Review overdue and upcoming actions",
+          "actionOrDismiss": "Take action or dismiss?",
+          "actLabel": "Act",
+          "dismissLabel": "Dismiss",
+          "logEvent": "Log the breeding event",
+          "dismissed": "Alert dismissed and hidden"
+        },
+        "steps": [
+          "Open the Breeding Hub and tap 'Notifications'.",
+          "Review the alerts — they are grouped by type: heats due, pregnancy checks due, calvings approaching, and dry-offs needed.",
+          "Overdue actions are highlighted — these need immediate attention.",
+          "For each alert, either tap to log the event or dismiss if not applicable.",
+          "Dismissed alerts won't show again for that specific cow/event combination."
+        ],
+        "next": "Acting on a notification logs the breeding event and updates the cow's timeline. The system then calculates the next step in the cycle.",
+        "tips": [
+          "Check notifications daily — overdue actions mean missed opportunities.",
+          "The 'Needs Attention' section shows cows that have overdue breeding actions.",
+          "A cow can appear in multiple notification categories at once.",
+          "Dismissing is useful when a cow was sold, or when you've decided not to breed her."
+        ]
+      },
+      "adding-cow": {
+        "title": "Adding a New Cow",
+        "what": "Register a new cow in the system with her details.",
+        "when": "When a new cow joins your herd — purchased, born on-farm, or transferred from another farm.",
+        "flow": {
+          "openList": "Open the Cow List",
+          "tapAdd": "Tap the + button",
+          "fillForm": "Fill in cow details (tag, name, sex, DOB)",
+          "selectBreed": "Select breed type",
+          "save": "Save",
+          "cowCreated": "Cow added to the herd"
+        },
+        "steps": [
+          "Go to the Cows page and tap the + (add) button.",
+          "Enter the tag number — this must be unique and is how you'll identify the cow.",
+          "Enter the cow's name (optional but helpful).",
+          "Select the sex — female for cows/heifers, male for bulls.",
+          "Enter the date of birth. If unknown, estimate as closely as possible.",
+          "Select the breed type from the dropdown.",
+          "Optionally enter sire and dam information for breeding records.",
+          "Tap Save."
+        ],
+        "next": "The cow appears in your herd list and is available for milk recording, health tracking, and breeding management.",
+        "tips": [
+          "Tag numbers must be unique — the system will reject duplicates.",
+          "The breed type affects breeding calculations (gestation period, heat cycles).",
+          "Setting the correct date of birth is important for age-based analytics.",
+          "You can edit cow details later from the cow's detail page."
+        ]
+      },
+      "cow-status": {
+        "title": "Understanding Cow Status",
+        "what": "Each cow has a status that tracks her current state in the herd.",
+        "when": "Understanding statuses helps you manage your herd and interpret the data correctly.",
+        "flow": {
+          "active": "Active — cow is part of the milking herd",
+          "statusChange": "What's changing?",
+          "dry": "Dry",
+          "dryDesc": "Cow is in dry period before calving",
+          "soldDead": "Sold / Dead",
+          "removedDesc": "Cow is removed from active herd"
+        },
+        "steps": [
+          "Active: The cow is healthy and part of the milking herd. She can be milked and bred.",
+          "Dry: The cow is pregnant and has been dried off before calving. She won't appear in the milking list.",
+          "Sold: The cow has been sold and left the farm. She remains in records for history but is not active.",
+          "Dead: The cow has died. She remains in records for history and analytics.",
+          "Heifer: A young female cow that has not yet calved. Once she calves, she becomes 'Active'."
+        ],
+        "next": "Status changes affect which cows appear in milking, breeding, and analytics. The herd summary on the dashboard reflects current status counts.",
+        "tips": [
+          "Status is usually updated automatically by breeding events (e.g. dry-off changes status to 'Dry').",
+          "You can also manually change a cow's status from her edit page.",
+          "Sold and dead cows are soft-deleted — they still appear in historical reports but not in active lists.",
+          "Only admins can mark a cow as sold or dead."
+        ]
+      },
+      "cow-details": {
+        "title": "Viewing Cow Details",
+        "what": "See all information about a specific cow — health history, breeding timeline, milk production, and more.",
+        "when": "When you need to check a cow's history, make decisions about treatment, or review her breeding status.",
+        "flow": {
+          "openList": "Open the Cow List",
+          "tapCow": "Tap on a cow card",
+          "viewTabs": "Browse sections: Health, Breeding, Milk, Treatments",
+          "navigateSub": "Tap into detailed sub-pages"
+        },
+        "steps": [
+          "Go to the Cows page and find the cow (use search or scroll).",
+          "Tap on the cow card to open her detail page.",
+          "The detail page shows key info at the top: tag number, name, breed, age, status.",
+          "Scroll down to see action buttons for logging health issues, treatments, and breeding events.",
+          "Tap on health, breeding, or treatment history links to see full timelines."
+        ],
+        "next": "From the detail page, you can navigate to any related feature — log a health issue, add a treatment, record breeding, or view milk history for that cow.",
+        "tips": [
+          "The cow detail page is the central hub for everything about one cow.",
+          "If the cow is on milk withdrawal, a badge will show on her detail page.",
+          "Admins can edit cow details or soft-delete the cow from this page.",
+          "The reproductive timeline shows all breeding events in chronological order."
+        ]
+      },
+      "managing-users": {
+        "title": "Managing Users & Workers",
+        "what": "Add, edit, and manage user accounts for your farm team.",
+        "when": "When you need to add a new worker, change someone's permissions, or deactivate a user who left.",
+        "flow": {
+          "goSettings": "Go to Settings",
+          "openUsers": "Open User Management",
+          "addUser": "Tap Add User",
+          "selectRole": "Admin or Worker?",
+          "admin": "Admin",
+          "worker": "Worker",
+          "setPassword": "Set username and password",
+          "setPin": "Set name and 4-digit PIN",
+          "setPermissions": "Assign permissions",
+          "save": "Save user"
+        },
+        "steps": [
+          "Go to Settings \u2192 User Management.",
+          "To add a user, tap 'Add User'.",
+          "Choose the role: Admin (full access, password login) or Worker (limited access, PIN login).",
+          "For admins: set a username and password. For workers: set their name and a 4-digit PIN.",
+          "Assign permissions — workers can have specific permissions like 'Can Record Milk', 'Can Log Issues', etc.",
+          "Tap Save to create the user."
+        ],
+        "next": "The new user can now log in with their credentials. Workers use the PIN tab on the login screen. Admins use the password tab.",
+        "tips": [
+          "Workers can only access features they have permission for — the rest is hidden.",
+          "You can deactivate users instead of deleting them — this preserves their historical records.",
+          "PINs must be exactly 4 digits.",
+          "You cannot change your own role or deactivate yourself.",
+          "Use 'Revoke Sessions' to force a user to log in again if their device was lost."
+        ]
+      },
+      "managing-breed-types": {
+        "title": "Managing Breed Types",
+        "what": "Add and configure cattle breed types with their breeding timing parameters.",
+        "when": "When you have a new breed on your farm, or need to adjust breeding calculation parameters.",
+        "flow": {
+          "goSettings": "Go to Settings",
+          "openBreedTypes": "Open Breed Types",
+          "addEdit": "Add or edit a breed type",
+          "setTimings": "Set gestation, heat cycle, preg check, dry-off days",
+          "save": "Save"
+        },
+        "steps": [
+          "Go to Settings \u2192 Breed Types.",
+          "To add a new breed, tap 'Add'. To edit, tap the existing breed.",
+          "Enter the breed name (e.g. 'Holstein', 'Jersey').",
+          "Set the breeding parameters: gestation days, heat cycle length, pregnancy check days, and dry-off days.",
+          "These timing parameters control when the system calculates breeding reminders and expected dates.",
+          "Tap Save."
+        ],
+        "next": "Cows assigned to this breed type will use these parameters for breeding date calculations. Existing cows are not retroactively updated.",
+        "tips": [
+          "The code is auto-generated from the breed name and cannot be changed.",
+          "You cannot delete a breed type if any cows are assigned to it.",
+          "Default values: gestation ~283 days, heat cycle ~21 days, preg check ~30 days, dry-off ~60 days before calving.",
+          "These timings vary by breed — consult your vet for accurate values."
+        ]
+      },
+      "managing-issue-types": {
+        "title": "Managing Issue Types",
+        "what": "Customize the health issue categories available when logging health problems.",
+        "when": "When you need to add a new type of health issue that isn't in the system, or edit an existing one.",
+        "flow": {
+          "goSettings": "Go to Settings",
+          "openIssueTypes": "Open Issue Types",
+          "addEdit": "Add or edit an issue type",
+          "save": "Save"
+        },
+        "steps": [
+          "Go to Settings \u2192 Issue Types.",
+          "To add, tap 'Add'. To edit, tap the existing type.",
+          "Enter the name (e.g. 'Bloat', 'Eye Infection') and choose an emoji icon.",
+          "Tap Save. The new type will appear in the health issue type dropdown."
+        ],
+        "next": "The new issue type is immediately available when logging health issues. It will also appear in health analytics.",
+        "tips": [
+          "The code is auto-generated from the name and cannot be changed after creation.",
+          "You cannot delete an issue type if health issues reference it — deactivate instead.",
+          "Choose a descriptive emoji that helps workers quickly identify the issue type.",
+          "Common types include: Mastitis, Lameness, Respiratory, Metabolic, Reproductive."
+        ]
+      },
+      "managing-medications": {
+        "title": "Managing Medications",
+        "what": "Add and configure medications that can be used in treatments, including their withdrawal periods.",
+        "when": "When you have a new medication on the farm, or need to update withdrawal days or costs.",
+        "flow": {
+          "goSettings": "Go to Settings",
+          "openMedications": "Open Medications",
+          "addEdit": "Add or edit a medication",
+          "setWithdrawal": "Set milk and meat withdrawal days",
+          "save": "Save"
+        },
+        "steps": [
+          "Go to Settings \u2192 Medications.",
+          "To add, tap 'Add'. To edit, tap the existing medication.",
+          "Enter the medication name.",
+          "Set the milk withdrawal days — how many days after treatment before milk is safe to sell.",
+          "Set the meat withdrawal days — how many days before meat is safe.",
+          "Optionally set a default cost per treatment.",
+          "Tap Save."
+        ],
+        "next": "The medication appears in the treatment form. When a treatment uses this medication, the system automatically calculates withdrawal end dates.",
+        "tips": [
+          "Withdrawal days are critical for food safety — always use the values from the medication label or your vet's advice.",
+          "If a medication's withdrawal days change, update it here — future treatments will use the new values.",
+          "Deactivate medications you no longer use instead of deleting them — this preserves treatment history.",
+          "Cost data feeds into financial analytics for treatment spending reports."
+        ]
+      },
+      "feature-flags": {
+        "title": "Feature Flags",
+        "what": "Enable or disable entire feature modules in the app.",
+        "when": "When you want to simplify the app by hiding features you don't use, or enable features you're ready to start using.",
+        "flow": {
+          "goSettings": "Go to Settings",
+          "openFlags": "Open Feature Flags",
+          "toggle": "Toggle features on or off",
+          "immediate": "Changes take effect immediately"
+        },
+        "steps": [
+          "Go to Settings \u2192 Feature Flags.",
+          "You'll see toggles for each feature module: Breeding, Milk Recording, Health Issues, Treatments, Analytics.",
+          "Toggle a feature off to hide it from the app — the navigation items and routes are removed.",
+          "Toggle it back on to restore it. No data is lost when toggling.",
+          "Changes take effect immediately for all users on the farm."
+        ],
+        "next": "Disabled features are hidden from navigation and inaccessible via URL. All data is preserved — re-enabling the feature brings everything back.",
+        "tips": [
+          "Feature flags are useful for gradually rolling out the app — start with just Milk Recording, then add Health Issues, etc.",
+          "Disabling a feature doesn't delete any data.",
+          "Workers may need to refresh their app to see the changes.",
+          "If a worker tries to access a disabled feature via URL, they'll be redirected to the dashboard."
+        ]
+      },
+      "farm-settings": {
+        "title": "Farm Settings",
+        "what": "Configure basic farm settings like the farm name and default language.",
+        "when": "When you first set up the farm, or when you need to change the farm name or default language.",
+        "flow": {
+          "goSettings": "Go to Settings",
+          "openFarmSettings": "Open Farm Settings",
+          "editFields": "Edit farm name or default language",
+          "save": "Save changes"
+        },
+        "steps": [
+          "Go to Settings \u2192 Farm Settings.",
+          "Edit the farm name — this appears in the app header.",
+          "Set the default language — English or Afrikaans. This is the default for new users.",
+          "Tap Save."
+        ],
+        "next": "The farm name updates throughout the app. The default language affects new user accounts — existing users keep their chosen language.",
+        "tips": [
+          "Individual users can still choose their own language from their profile.",
+          "The farm name appears in reports and exports."
+        ]
+      },
+      "running-reports": {
+        "title": "Running Reports",
+        "what": "Generate PDF or Excel reports for various aspects of your farm data.",
+        "when": "For record-keeping, compliance, vet visits, or management review.",
+        "flow": {
+          "goSettings": "Go to Settings",
+          "openReports": "Open Reports",
+          "selectType": "Select report type",
+          "setDateRange": "Set date range (from - to)",
+          "chooseFormat": "Choose format (PDF or Excel)",
+          "download": "Report downloads to your device"
+        },
+        "steps": [
+          "Go to Settings \u2192 Reports.",
+          "Choose the report type: Withdrawal Compliance, Treatment History, Discarded Milk, Medication Usage, Milk Production, Breeding, or Herd Health.",
+          "Set the date range — all reports require a 'from' and 'to' date.",
+          "Choose the format — PDF for printing, Excel for further analysis.",
+          "Tap 'Generate'. The report downloads to your device."
+        ],
+        "next": "The report file is downloaded and can be shared, printed, or filed for compliance records.",
+        "tips": [
+          "Withdrawal Compliance reports are important for dairy inspections.",
+          "Treatment History reports are useful for vet visits — they show all medications used.",
+          "Milk Production reports show per-cow production summaries.",
+          "Excel format allows you to do your own analysis in a spreadsheet."
+        ]
+      },
+      "audit-log": {
+        "title": "Audit Log",
+        "what": "View a record of all changes made in the system — who did what and when.",
+        "when": "When you need to investigate changes, verify who made a record, or for compliance auditing.",
+        "flow": {
+          "goSettings": "Go to Settings",
+          "openAuditLog": "Open Audit Log",
+          "setFilters": "Filter by entity type, user, action, or date",
+          "viewChanges": "View change details (old vs new values)"
+        },
+        "steps": [
+          "Go to Settings \u2192 Audit Log.",
+          "Use the filters to narrow results: entity type (cows, treatments, etc.), specific user, action type (create, update, delete), or date range.",
+          "Browse the log entries. Each entry shows who made the change, what was changed, and when.",
+          "Tap an entry to see the details — including old and new values for updates."
+        ],
+        "next": "The audit log is read-only — it's a permanent record of all changes. It cannot be edited or deleted.",
+        "tips": [
+          "The audit log tracks all create, update, and delete actions across the system.",
+          "Use date range filters to narrow down to a specific time period.",
+          "The 'entity type' filter is helpful when investigating changes to a specific area (e.g. all cow record changes).",
+          "The audit log helps with accountability — you can always see who made a change."
+        ]
+      }
+    }
   }
 }

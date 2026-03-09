@@ -21,6 +21,14 @@
           <span class="settings-arrow">›</span>
         </RouterLink>
 
+        <RouterLink to="/help" class="settings-item">
+          <span class="settings-icon">📖</span>
+          <div class="settings-info">
+            <span class="settings-name">{{ t('help.title') }}</span>
+          </div>
+          <span class="settings-arrow">›</span>
+        </RouterLink>
+
         <button class="settings-item logout-item" @click="showLogoutDialog = true">
           <span class="settings-icon">🚪</span>
           <div class="settings-info">

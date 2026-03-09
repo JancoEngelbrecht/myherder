@@ -34,7 +34,11 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       // Initialize farm-scoped DB before reading session
       const storedFarmId = localStorage.getItem('farm_id')
-      await initDb(storedFarmId || null)
+      if (!storedFarmId) {
+        // No farm context — skip DB access (no session to restore)
+        return
+      }
+      await initDb(storedFarmId)
       const stored = await db.auth.get('session')
       if (stored?.token) {
         const payload = decodeToken(stored.token)
@@ -50,6 +54,11 @@ export const useAuthStore = defineStore('auth', () => {
             if (msUntilExpiry < 60 * 60 * 1000) {
               refreshToken().catch(() => {})
             }
+          }
+          // Restore feature flags (super-admin without farm context skips)
+          if (payload.role !== 'super_admin' || payload.farm_id) {
+            const featureFlagsStore = useFeatureFlagsStore()
+            featureFlagsStore.fetchFlags().catch(() => {})
           }
         }
       }
@@ -113,7 +122,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       // Ensure farm-scoped DB is initialized for offline reads
       const storedFarmId = localStorage.getItem('farm_id')
-      await initDb(storedFarmId || null)
+      if (!storedFarmId) return false
+      await initDb(storedFarmId)
 
       const stored = await db.auth.get('session')
       if (!stored?.token) return false

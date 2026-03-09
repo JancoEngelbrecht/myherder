@@ -862,6 +862,25 @@ Post-audit fixes organized by priority level.
 
 ---
 
+### Phase 16: Super-Admin Control Panel — NOT STARTED
+
+**Goal:** Transform the super-admin dashboard into a proper control panel. Global defaults management (medications, issue types, breed types) with push-to-farms, cross-farm export, system stats, profile cleanup.
+
+> Sub-plan: [plans/super-admin-panel.md](plans/super-admin-panel.md)
+
+| Phase | Scope |
+|-------|-------|
+| 16.1 | Migration 033 + global defaults backend (CRUD + push-to-farms) |
+| 16.2 | Global defaults frontend (3 management views + dashboard cards) |
+| 16.3 | Cross-farm export endpoint + download button |
+| 16.4 | System stats dashboard (aggregate farm/user/cow counts) |
+| 16.5 | Profile cleanup (hide settings link, super-admin badge) |
+| 16.6 | System announcements (broadcast messages to all farm users as dismissible banners) |
+
+**Deliverable:** Super-admin has a full control panel: manage global defaults that seed new farms and can be pushed to existing farms, export all farm data at once, see system-wide stats, broadcast announcements, clean profile experience.
+
+---
+
 ## Key Library Choices
 
 | Purpose | Library | Why |

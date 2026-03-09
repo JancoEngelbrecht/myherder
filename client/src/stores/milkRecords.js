@@ -182,21 +182,14 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
       await db.milkRecords.put(result)
       await dequeueByEntityId('milkRecords', localRecord.id)
     } catch (err) {
-      // Handle 409 Conflict (record created on another device) — fetch and update instead
-      if (err.response?.status === 409 && err.response?.data?.id) {
-        try {
-          const { data } = await api.put(`/milk-records/${err.response.data.id}`, payload)
-          if (session === currentSession.value && date === currentDate.value) {
-            records[cowId] = data
-            syncStatus[cowId] = 'saved'
-          } else {
-            syncStatus[cowId] = 'idle'
-          }
-          await db.milkRecords.put(data)
-          return
-        } catch {
-          // fall through to offline queue
-        }
+      // Handle 409 Conflict — record already exists for this cow/session/date/time
+      if (err.response?.status === 409) {
+        const recorder = err.response.data?.recorded_by_name
+        syncStatus[cowId] = 'error'
+        error.value = recorder
+          ? `Record already exists (recorded by ${recorder})`
+          : err.response.data?.error || 'Record already exists'
+        return
       }
 
       // Offline: save locally and enqueue for later sync

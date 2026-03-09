@@ -44,17 +44,41 @@ export const useTreatmentsStore = defineStore('treatments', () => {
       withdrawalCows.value = data
       return data
     } catch (err) {
-      // Offline fallback: replicate server grouping (one entry per cow, latest withdrawal_end_milk)
+      // Offline fallback: replicate server grouping (one entry per cow, latest milk or meat withdrawal)
       const now = new Date().toISOString()
-      const active = await db.treatments
-        .where('withdrawal_end_milk')
-        .above(now)
-        .toArray()
+      const all = await db.treatments.toArray()
+      const active = all.filter(
+        (t) =>
+          (t.withdrawal_end_milk && t.withdrawal_end_milk > now) ||
+          (t.withdrawal_end_meat && t.withdrawal_end_meat > now),
+      )
 
       const byCow = {}
       for (const t of active) {
-        if (!byCow[t.cow_id] || t.withdrawal_end_milk > byCow[t.cow_id].withdrawal_end_milk) {
-          byCow[t.cow_id] = t
+        const existing = byCow[t.cow_id]
+        if (!existing) {
+          byCow[t.cow_id] = { ...t }
+          continue
+        }
+        if (t.withdrawal_end_milk && (!existing.withdrawal_end_milk || t.withdrawal_end_milk > existing.withdrawal_end_milk)) {
+          existing.withdrawal_end_milk = t.withdrawal_end_milk
+          existing.medication_name = t.medication_name
+          existing.treatment_date = t.treatment_date
+        }
+        if (t.withdrawal_end_meat && (!existing.withdrawal_end_meat || t.withdrawal_end_meat > existing.withdrawal_end_meat)) {
+          existing.withdrawal_end_meat = t.withdrawal_end_meat
+        }
+      }
+      // Resolve sex from cached cows so the frontend can split milk vs meat
+      const cowIds = Object.keys(byCow)
+      if (cowIds.length > 0) {
+        const cows = await db.cows.bulkGet(cowIds)
+        for (const cow of cows) {
+          if (cow && byCow[cow.id]) {
+            byCow[cow.id].sex = cow.sex
+            byCow[cow.id].tag_number = byCow[cow.id].tag_number || cow.tag_number
+            byCow[cow.id].cow_name = byCow[cow.id].cow_name || cow.name
+          }
         }
       }
       withdrawalCows.value = Object.values(byCow)

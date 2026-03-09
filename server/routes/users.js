@@ -114,11 +114,11 @@ router.post('/', async (req, res, next) => {
     const { error, value } = validateBody(createSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    // Check username uniqueness within the same farm (ignore soft-deleted users)
-    const existing = await db('users').where({ username: value.username, farm_id: req.farmId }).whereNull('deleted_at').first()
+    // Check username uniqueness within the same farm (include soft-deleted to avoid DB constraint clash)
+    const existing = await db('users').where({ username: value.username, farm_id: req.farmId }).first()
 
-    // If username exists but is inactive, reactivate + update instead of rejecting
-    if (existing && !existing.is_active) {
+    // If username exists but is inactive or soft-deleted, reactivate + update instead of rejecting
+    if (existing && (!existing.is_active || existing.deleted_at)) {
       const now = new Date().toISOString()
       const update = {
         full_name: value.full_name,
@@ -127,6 +127,7 @@ router.post('/', async (req, res, next) => {
         permissions: JSON.stringify(value.role === 'admin' ? ALL_PERMISSIONS : value.permissions),
         is_active: 1,
         failed_attempts: 0,
+        deleted_at: null,
         updated_at: now,
       }
 
@@ -194,9 +195,9 @@ router.patch('/:id', async (req, res, next) => {
       return res.status(403).json({ error: 'Cannot change your own role' })
     }
 
-    // Check username uniqueness within the same farm if changing (ignore soft-deleted users)
+    // Check username uniqueness within the same farm if changing (include soft-deleted to avoid DB constraint clash)
     if (value.username && value.username !== row.username) {
-      const existing = await db('users').where({ username: value.username, farm_id: req.farmId }).whereNull('deleted_at').first()
+      const existing = await db('users').where({ username: value.username, farm_id: req.farmId }).first()
       if (existing) return res.status(409).json({ error: 'Username already exists' })
     }
 

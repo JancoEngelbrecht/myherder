@@ -56,7 +56,10 @@ router.get('/', async (req, res, next) => {
       if (farm) farmId = farm.id
     }
 
-    const keys = farmId ? [...PUBLIC_KEYS, 'milk_price_per_litre'] : PUBLIC_KEYS
+    // No farm context — return empty settings (super-admin without farm, or unauthenticated without farm_code)
+    if (!farmId) return res.json({})
+
+    const keys = [...PUBLIC_KEYS, 'milk_price_per_litre']
     const settings = await getSettingsObject(farmId)
     const result = {}
     for (const k of keys) {

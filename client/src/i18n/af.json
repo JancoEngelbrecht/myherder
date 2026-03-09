@@ -367,10 +367,15 @@
     "meatClear": "Vleis vry"
   },
   "withdrawal": {
-    "title": "Melkonttrekking",
-    "banner": "{count} koei(e) op melkonttrekking — MOENIE MELK GEBRUIK NIE",
+    "title": "Onttrekkingswaarskuwings",
+    "milkSection": "Melkonttrekking",
+    "meatSection": "Vleisonttrekking",
+    "milkBanner": "{count} koei(e) op melkonttrekking — MOENIE MELK GEBRUIK NIE",
+    "meatBanner": "{count} dier(e) op vleisonttrekking — MOENIE SLAG NIE",
     "allClear": "Alles Helder",
-    "allClearSub": "Geen koeie is tans op melkonttrekking nie",
+    "allClearSub": "Geen diere is tans op enige onttrekking nie",
+    "milkAllClear": "Geen koeie op melkonttrekking nie",
+    "meatAllClear": "Geen diere op vleisonttrekking nie",
     "milkClear": "Melk vry",
     "meatClear": "Vleis vry",
     "treated": "Behandel"
@@ -958,5 +963,705 @@
     "users": "Gebruikers",
     "cows": "Koeie",
     "created": "Geskep"
+  },
+  "help": {
+    "title": "Hulpbiblioteek",
+    "topicNotFound": "Onderwerp nie gevind nie",
+    "categories": {
+      "dailyTasks": "Daaglikse Take",
+      "healthTreatment": "Gesondheid & Behandeling",
+      "breeding": "Teling",
+      "cowManagement": "Koeibestuur",
+      "adminSettings": "Admin / Instellings"
+    },
+    "sections": {
+      "what": "Wat is dit?",
+      "when": "Wanneer gebruik ek dit?",
+      "flow": "Hoe werk dit",
+      "steps": "Stap vir stap",
+      "next": "Wat gebeur volgende?",
+      "tips": "Wenke & Randgevalle"
+    },
+    "breedingCycle": {
+      "mainCycleTitle": "Die Telingsiklus",
+      "edgeCasesTitle": "Wat Kan Verkeerd Gaan",
+      "steps": {
+        "heatDetection": "Koei wys hittetekens — teken dit aan",
+        "insemination": "Insemineer (KI of buldiens)",
+        "waitPregCheck": "Wag ~30 dae vir dragtigheidstoets",
+        "pregCheck": "Is die koei dragtig?",
+        "pregnant": "Bevestig dragtig — kalwingsdatum gestel",
+        "notPregnant": "Nie dragtig nie — terug na hittewag",
+        "dryOff": "Droogmaak ~60 dae voor kalwing",
+        "calving": "Koei kalf — teken die gebeurtenis aan",
+        "recovery": "Herstelperiode na kalwing",
+        "cycleRestart": "Siklus herbegin — kyk vir hitte",
+        "pregCheckNeg": "Dragtigheidstoets is negatief",
+        "backToHeat": "Keer terug na hitte-opsporing",
+        "reInseminate": "Her-insemineer by volgende hitte",
+        "abortionDetected": "Aborsie bespeur — teken dit aan",
+        "vetCheck": "Kry veearts-ondersoek",
+        "recoveryPeriod": "Laat herstelperiode toe"
+      },
+      "negativePreg": {
+        "title": "Negatiewe Dragtigheidstoets",
+        "desc": "As die dragtigheidstoets negatief is, gaan die koei terug na hittewag. Sy sal by haar volgende hittesiklus weer geïnsemineer moet word."
+      },
+      "abortion": {
+        "title": "Aborsie",
+        "desc": "As 'n koei aborteer, teken die gebeurtenis aan en kry 'n veearts-ondersoek. Na 'n herstelperiode keer sy terug na die telingsiklus."
+      },
+      "repeatBreeder": {
+        "title": "Herhaalde Teler",
+        "desc": "' n Koei wat 3 of meer keer geïnsemineer is sonder om dragtig te raak, word 'n herhaalde teler genoem. Raadpleeg jou veearts — daar mag 'n onderliggende vrugbaarheidsprobleem wees."
+      },
+      "missedHeat": {
+        "title": "Gemiste Hitte",
+        "desc": "As jy 'n koei se hitte mis, sal sy weer oor ongeveer 21 dae sikleer. Kyk vir die volgende hittetekens. Die app sal jou waarsku wanneer die volgende hitte verwag word."
+      }
+    },
+    "topics": {
+      "recording-milk": {
+        "title": "Melkaantekening",
+        "what": "Teken aan hoeveel liter elke koei by elke melksessie produseer.",
+        "when": "Elke keer as jy jou koeie melk — tipies twee keer per dag (oggend- en middagsessies).",
+        "flow": {
+          "openMilk": "Maak die Melk-bladsy oop",
+          "selectSession": "Kies sessie (VM of NM)",
+          "selectCow": "Soek en kies 'n koei",
+          "enterLitres": "Voer liter geproduseer in",
+          "withdrawalCheck": "Is koei op onttrekking?",
+          "showWarning": "Waarskuwing gewys — melk moet dalk weggegooi word",
+          "normalSave": "Rekord suksesvol gestoor"
+        },
+        "steps": [
+          "Tik 'Melk' in die onderste navigasie om die melkaantekeningbladsy oop te maak.",
+          "Kies die sessie — VM vir oggendmelk, NM vir middag. Die app onthou vandag se datum outomaties.",
+          "Soek 'n koei volgens oormerknommer of naam met die soek-afrolkieslys.",
+          "Voer die aantal liter in wat die koei geproduseer het. As die melk weggegooi moet word (bv. onttrekking), merk die weggooi-blokkie.",
+          "Tik 'Stoor'. As die koei op medikasie-onttrekking is, waarsku die app jou sodat jy weet die melk is dalk nie veilig om te verkoop nie.",
+          "Herhaal vir elke koei. Jy kan 'n opsomming van die sessietotale bo-aan die bladsy sien."
+        ],
+        "next": "Die rekord word na die bediener gestoor (of in die ry geplaas as jy vanlyn is). Jy kan dit later in Melkgeskiedenis sien. Die kontroleskerm wys vandag se totale liter.",
+        "tips": [
+          "Jy kan net een inskrywing per koei per sessie per dag aanteken — duplikate word geblokkeer.",
+          "As jy vanlyn is, stoor rekords plaaslik en sinkroniseer wanneer jy weer aanlyn is.",
+          "Die onttrekkingswaarskuwing kom van behandelings — as 'n koei met medikasie behandel is, weet die stelsel die onttrekkingsperiode.",
+          "Jy kan 'n rekord wat jy gemaak het wysig, maar slegs admins kan rekords uitvee."
+        ]
+      },
+      "logging-health-issue": {
+        "title": "Gesondheidskwessie Aanteken",
+        "what": "Teken aan wanneer 'n koei siek is of gesondheidsprobleme toon.",
+        "when": "Wanneer jy opmerk dat 'n koei onwel is — mank loop, lae eetlus, geswelde uier, koors, of enige ander simptoom.",
+        "flow": {
+          "startIssue": "Gaan na Teken Gesondheidskwessie Aan",
+          "selectCow": "Kies die geaffekteerde koei",
+          "selectType": "Kies die kwessietipe (bv. Mastitis, Kreupelheid)",
+          "setSeverity": "Stel erns (Laag, Medium, Hoog, Kritiek)",
+          "isMastitis": "Is dit 'n speenverwante kwessie?",
+          "selectTeats": "Kies geaffekteerde spene",
+          "skipTeats": "Slaan speenkeuse oor",
+          "addNotes": "Voeg notas by wat simptome beskryf",
+          "save": "Kwessie aangeteken — verskyn in Oop Kwessies"
+        },
+        "steps": [
+          "Navigeer na 'Teken Gesondheidskwessie Aan' vanaf die kontroleskerm of koeibesonderhede-bladsy.",
+          "Soek en kies die koei wat siek is.",
+          "Kies die tipe kwessie uit die afrolkieslys (bv. Mastitis, Kreupelheid, Respiratories). Hierdie is aanpasbaar deur jou admin.",
+          "Stel die ernsvlak — dit help om te prioritiseer watter koeie eerste aandag nodig het.",
+          "As dit 'n mastitis- of speenverwante kwessie is, gebruik die speenkieser om te merk watter spene geaffekteer is (voor-links, voor-regs, ens.).",
+          "Voeg gedetailleerde notas by oor wat jy waargeneem het — dit help die veearts of bestuurder om die situasie te verstaan.",
+          "Tik Stoor. Die kwessie verskyn nou in die Oop Kwessies-lys."
+        ],
+        "next": "Die gesondheidskwessie word as 'oop' nagespoor totdat dit opgelos is. Jy kan behandelings koppel aan hierdie kwessie. Die koei verskyn in gesondheidsanalise en mag verslae aktiveer.",
+        "tips": [
+          "Wees so spesifiek as moontlik in jou notas — beskryf simptome, temperatuur, gedragsveranderinge.",
+          "Jy kan veelvoudige kwessies vir dieselfde koei aanteken as sy verskillende probleme het.",
+          "Die kwessietipe bepaal hoe dit in analise nagespoor word — jou admin kan die beskikbare tipes aanpas.",
+          "Erns help prioritiseer: Kritieke kwessies moet onmiddellike aandag kry."
+        ]
+      },
+      "adding-treatment": {
+        "title": "Behandeling Byvoeg",
+        "what": "Teken medikasie of behandeling aan wat aan 'n koei gegee is.",
+        "when": "Wanneer jy medikasie toedien, die veearts bel, of enige behandeling op 'n siek koei toepas.",
+        "flow": {
+          "startTreatment": "Gaan na Teken Behandeling Aan",
+          "selectCow": "Kies die koei wat behandel word",
+          "selectMedication": "Kies die medikasie wat gebruik is",
+          "enterDosage": "Voer dosis in",
+          "enterCost": "Voer behandelingskoste in",
+          "save": "Stoor behandelingsrekord",
+          "withdrawalCalc": "Stelsel bereken onttrekkings-einddatums"
+        },
+        "steps": [
+          "Navigeer na 'Teken Behandeling Aan' vanaf die kontroleskerm, koeibesonderhede, of gesondheidskwessie-besonderhedebladsy.",
+          "Kies die koei wat behandeling ontvang.",
+          "Kies die medikasie uit die afrolkieslys. Jou admin bestuur die medikasielys.",
+          "Voer die dosis en die koste van die behandeling in.",
+          "Merk opsioneel of 'n veearts besoek het en koppel aan 'n bestaande gesondheidskwessie.",
+          "Tik Stoor. Die stelsel bereken outomaties wanneer die melk- en vleis-onttrekkingsperiodes eindig."
+        ],
+        "next": "Die onttrekkingsdatums word bereken uit die medikasie se instellings. Gedurende die onttrekkingsperiode sal die melkaantekeningbladsy jou waarsku dat hierdie koei se melk dalk nie veilig is om te verkoop nie.",
+        "tips": [
+          "Kies altyd die korrekte medikasie — die onttrekkingsdae verskil vir elkeen.",
+          "Die koppeling van 'n behandeling aan 'n gesondheidskwessie help om na te spoor watter behandelings watter probleme opgelos het.",
+          "Die kosteveld help met finansiële analise — jy kan behandelingsbestedingtendense sien.",
+          "Jy kan ekstra medikasie by 'n behandeling voeg as veelvoudige middels gebruik is."
+        ]
+      },
+      "withdrawal-periods": {
+        "title": "Verstaan Onttrekkingsperiodes",
+        "what": "Na behandeling het melk en vleis 'n veiligheidsperiode voordat dit verkoop kan word. Die app spoor dit outomaties na.",
+        "when": "Jy hoef niks te doen nie — die stelsel hanteer dit. Maar verstaan dit sodat jy weet hoekom waarskuwings verskyn.",
+        "flow": {
+          "treatmentRecorded": "Behandeling aangeteken met medikasie",
+          "systemCalcEnd": "Stelsel bereken onttrekkings-einddatum",
+          "milkFlagged": "Koei se melk gemerk tydens onttrekking",
+          "periodOver": "Is die onttrekkingsperiode verby?",
+          "milkSafe": "Melk is veilig — geen waarskuwings meer nie",
+          "discardWarning": "Waarskuwing: melk moet weggegooi word"
+        },
+        "steps": [
+          "Wanneer jy 'n behandeling aanteken, kyk die stelsel na die medikasie se onttrekkingsdae (gestel deur jou admin).",
+          "Dit bereken die datum wanneer melkonttrekking eindig en wanneer vleisonttrekking eindig.",
+          "Gedurende die onttrekkingsperiode wys die melkaantekeningbladsy 'n waarskuwingswapen op die koei.",
+          "As jy melk aanteken vir 'n koei op onttrekking, stel die app voor om dit as weggegooi te merk.",
+          "Sodra die onttrekkingsperiode verby is, verdwyn die waarskuwing outomaties."
+        ],
+        "next": "Onttrekkingsinligting wys in die Onttrekkingswaarskuwings-bladsy en in melkaantekening. Weggegooi melk verskyn in die Weggegooi Melk-verslag.",
+        "tips": [
+          "Verskillende medikasie het verskillende onttrekkingsperiodes — sommige is net 'n paar dae, ander is weke.",
+          "Die onttrekkingsbladsy wys alle koeie wat tans op onttrekking is op een plek.",
+          "Melkonttrekking en vleisonttrekking kan verskillende tydsduur hê vir dieselfde medikasie.",
+          "As jy twyfel oor die verkoop van melk of vleis, raadpleeg altyd jou veearts."
+        ]
+      },
+      "resolving-health-issue": {
+        "title": "Gesondheidskwessie Oplos",
+        "what": "Merk 'n gesondheidskwessie as opgelos wanneer die koei herstel het.",
+        "when": "Wanneer 'n siek koei herstel het en nie meer simptome toon nie.",
+        "flow": {
+          "openIssues": "Maak die Kwessielys oop",
+          "selectIssue": "Tik op die kwessie om besonderhede te sien",
+          "changeStatus": "Verander status na Opgelos",
+          "resolved": "Kwessie gesluit — oplossingstyd aangeteken"
+        },
+        "steps": [
+          "Gaan na die Oop Kwessies-bladsy vanaf die kontroleskerm.",
+          "Vind en tik op die kwessie wat jy wil oplos.",
+          "Op die kwessiebesonderhede-bladsy, verander die status van 'Oop' na 'Opgelos'.",
+          "Die stelsel teken die oplossingsdatum aan en bereken hoe lank dit geneem het om op te los."
+        ],
+        "next": "Die kwessie skuif van die oop lys na die opgeloste lys. Oplossingstyd word in gesondheidsanalise nagespoor — vinniger oplossing beteken beter kudde-gesondheidsbestuur.",
+        "tips": [
+          "Los 'n kwessie slegs op wanneer die koei werklik herstel het — voortydige oplossing skeeftrek jou analise.",
+          "As dieselfde kwessie binne 60 dae terugkeer, tel die stelsel dit as 'n herhaling.",
+          "Oplossingstyddata help om te identifiseer watter kwessietipes die langste neem om te behandel."
+        ]
+      },
+      "breeding-lifecycle": {
+        "title": "Telingslewensiklus Oorsig",
+        "what": "Die volledige telingsiklus vir 'n melkkoei — van hitte-opsporing deur kalwing en weer terug.",
+        "when": "Lees dit om die volle prentjie van telingsbestuur te verstaan voordat jy die individuele telingsfunksies gebruik.",
+        "next": "Elke stap in hierdie siklus het sy eie hulpbladsy met gedetailleerde instruksies. Tik op enige telingsonderwerp in die Hulpbiblioteek om meer te leer.",
+        "tips": [
+          "Die tipiese siklus is: Hitte → Inseminasie → Dragtigheidstoets → Droogmaak → Kalwing → Herhaal.",
+          "Die app bereken datums outomaties gebaseer op jou rastipe-instellings — verskillende rasse het verskillende dragtigheidsperiodes.",
+          "Kennisgewings waarsku jou wanneer die volgende stap verskuldig is — gaan gereeld na die Telingskennisgewings-bladsy.",
+          "' n Koei wat nie dragtig raak na 3+ inseminasies nie, mag veeartsenkundige aandag nodig hê.",
+          "Die stelsel spoor al hierdie gebeurtenisse na en bied vrugbaarheidsanalise om jou te help om bevrugtingskoerse te verbeter."
+        ]
+      },
+      "logging-heat": {
+        "title": "Hitte-opsporing Aanteken",
+        "what": "Teken aan wanneer 'n koei tekens van hitte (bronstigheid) toon.",
+        "when": "Wanneer jy hittetekens waarneem — beklimming, rusteloosheid, slymafloop, verminderde melk, staan om beklim te word.",
+        "flow": {
+          "noticeSigns": "Neem waar koei wys hittetekens",
+          "goToBreeding": "Gaan na Telingsentrum → Teken Gebeurtenis Aan",
+          "selectCow": "Kies die koei",
+          "selectHeat": "Kies 'Hitte-opsporing' as gebeurtenistipe",
+          "save": "Stoor die gebeurtenis",
+          "systemCalc": "Stelsel bereken volgende hitte en inseminasievenster"
+        },
+        "steps": [
+          "Neem jou koeie waar vir hittetekens — algemene tekens sluit in om ander koeie te beklim, rusteloosheid, slymafloop, en staande hitte.",
+          "Maak die Telingsentrum oop en tik 'Teken Gebeurtenis Aan'.",
+          "Soek en kies die koei wat hitte toon.",
+          "Kies 'Hitte-opsporing' as die gebeurtenistipe.",
+          "Voeg enige notas by oor die tekens wat jy waargeneem het.",
+          "Stoor. Die stelsel bereken wanneer die volgende hitte verwag word (tipies 21 dae) en stel die optimale inseminasievenster voor."
+        ],
+        "next": "Die stelsel skep herinnerings vir inseminasie-tydsberekening. As jy beplan om te insemineer, doen dit binne 12-18 uur na hitte-aanvang vir die beste resultate.",
+        "tips": [
+          "Hitte-opsporing word die beste vroeg-oggend en laat-aand gedoen wanneer koeie minder aktief is.",
+          "' n Koei se hittesiklus is ongeveer 21 dae — die app spoor hierdie patroon na.",
+          "Staande hitte (wanneer 'n koei stilstaan terwyl sy beklim word) is die betroubaarste teken.",
+          "Teken hitte aan selfs al beplan jy nie om te insemineer nie — dit help om die koei se siklusreëlmatigheid na te spoor."
+        ]
+      },
+      "logging-insemination": {
+        "title": "Inseminasie Aanteken",
+        "what": "Teken aan wanneer 'n koei kunsmatig geïnsemineer (KI) is of deur 'n bul gedek is.",
+        "when": "Nadat inseminasie uitgevoer is — hetsy deur 'n KI-tegnikus of natuurlike buldiens.",
+        "flow": {
+          "startLog": "Gaan na Telingsentrum → Teken Gebeurtenis Aan",
+          "selectCow": "Kies die koei",
+          "selectType": "KI of Buldiens?",
+          "ai": "KI",
+          "bull": "Bul",
+          "enterSireAI": "Voer KI-vaderbesonderhede in (strooinommer, vadernaam)",
+          "enterSireBull": "Voer bulnaam/-ID in",
+          "save": "Stoor die gebeurtenis",
+          "systemCalc": "Stelsel bereken dragtigheidstoets- en kalwingsdatums"
+        },
+        "steps": [
+          "Maak die Telingsentrum oop en tik 'Teken Gebeurtenis Aan'.",
+          "Kies die koei wat geïnsemineer is.",
+          "Kies 'KI-inseminasie' of 'Buldiens' as die gebeurtenistipe.",
+          "Vir KI: Voer die vadernaam en strooie-/lotnommer in. Vir bul: Voer die bulnaam of -ID in.",
+          "Voeg enige relevante notas by.",
+          "Stoor. Die stelsel bereken outomaties die verwagte dragtigheidstoetsdatum (~30 dae) en potensiële kalwingsdatum."
+        ],
+        "next": "' n Dragtigheidstoets-herinnering sal geskep word vir ongeveer 30 dae later. Die verwagte kalwingsdatum word bereken op grond van die ras se dragtigheidsperiode.",
+        "tips": [
+          "Teken die inseminasie so gou moontlik aan nadat dit gebeur het vir akkurate datumberekenings.",
+          "Die dragtigheidstoetsdatum en kalwingsdatum word bereken uit die rastipe se instellings — verskillende rasse het verskillende dragtigheidsperiodes.",
+          "Hou vaderrekords akkuraat — dit is belangrik vir telingsbestuur en om inteling te voorkom.",
+          "As jy KI gebruik, teken die strooinommer aan vir naspeurbaarheid."
+        ]
+      },
+      "pregnancy-check": {
+        "title": "Dragtigheidstoetsresultate",
+        "what": "Teken die resultaat van 'n dragtigheidstoets aan — positief (dragtig) of negatief (nie dragtig nie).",
+        "when": "Nadat jou veearts of tegnikus 'n dragtigheidstoets op 'n koei uitgevoer het (tipies 28-35 dae na inseminasie).",
+        "flow": {
+          "startLog": "Gaan na Telingsentrum → Teken Gebeurtenis Aan",
+          "selectCow": "Kies die koei",
+          "result": "Dragtigheidstoetsresultaat?",
+          "positive": "Positief",
+          "negative": "Negatief",
+          "calvingDate": "Stelsel stel kalwings- + droogmaakdatums",
+          "backToCycle": "Koei keer terug na telingsiklus"
+        },
+        "steps": [
+          "Maak die Telingsentrum oop en tik 'Teken Gebeurtenis Aan'.",
+          "Kies die koei wat getoets is.",
+          "Kies 'Dragtigheidstoets Positief' of 'Dragtigheidstoets Negatief'.",
+          "Vir positiewe resultate: bevestig of pas die verwagte kalwingsdatum aan. Die app vooraf-bereken dit vanaf die inseminasiedatum.",
+          "Stoor die resultaat."
+        ],
+        "next": "As positief: die stelsel bereken die droogmaakdatum (tipies 60 dae voor kalwing) en skep herinnerings. As negatief: die koei keer terug na die telingsiklus vir her-inseminasie.",
+        "tips": [
+          "' n Positiewe dragtigheidstoets is 'n sleutelmylpaal — dit aktiveer outomatiese droogmaak- en kalwingsherinnerings.",
+          "As die koei nie dragtig is nie, moet sy vir die volgende hittesiklus dopgehou word.",
+          "Jy kan die verwagte kalwingsdatum aanpas as die veearts 'n ander skatting gee.",
+          "Die verwagte kalwingsdatum word gebruik om die droogmaakdatum outomaties te bereken."
+        ]
+      },
+      "dry-off": {
+        "title": "Droogmaak",
+        "what": "Teken aan wanneer 'n dragtige koei drooggemak word (ophou melk word) voor kalwing.",
+        "when": "Tipies 45-60 dae voor die verwagte kalwingsdatum. Die app sal jou 'n kennisgewing stuur.",
+        "flow": {
+          "notification": "Stelsel waarsku: tyd om droog te maak",
+          "goToBreeding": "Gaan na Telingsentrum → Teken Gebeurtenis Aan",
+          "selectCow": "Kies die koei",
+          "selectDryOff": "Kies 'Droogmaak' as gebeurtenistipe",
+          "save": "Stoor die gebeurtenis",
+          "statusChange": "Koei se status verander — word nie meer gemelk nie"
+        },
+        "steps": [
+          "Gaan jou Telingskennisgewings na vir koeie wat hul droogmaakdatum nader.",
+          "Maak die Telingsentrum oop en tik 'Teken Gebeurtenis Aan'.",
+          "Kies die koei om droog te maak.",
+          "Kies 'Droogmaak' as die gebeurtenistipe.",
+          "Stoor. Die koei se status verander en sy sal nie in die melklys verskyn nie."
+        ],
+        "next": "Die koei betree die droë periode voor kalwing. Die stelsel hou aan om die verwagte kalwingsdatum na te spoor en sal jou waarsku wanneer kalwing nader.",
+        "tips": [
+          "Te laat droogmaak kan die koei se volgende laktasieprestasie verminder.",
+          "Te vroeg droogmaak beteken verlore melkproduksie.",
+          "Die standaard droë periode is 45-60 dae — jou rastipe-instellings bepaal die presiese berekening.",
+          "Gedurende die droë periode, monitor die koei vir gesondheidskwessies maar moenie haar in melkery insluit nie."
+        ]
+      },
+      "logging-calving": {
+        "title": "Kalwing Aanteken",
+        "what": "Teken aan wanneer 'n koei geboorte gee aan 'n kalf.",
+        "when": "Wanneer 'n koei kalf — die app sal 'n kennisgewing hê naby die verwagte kalwingsdatum.",
+        "flow": {
+          "notification": "Stelsel waarsku: kalwing binnekort verwag",
+          "goToBreeding": "Gaan na Telingsentrum → Teken Gebeurtenis Aan",
+          "selectCow": "Kies die koei wat gekalf het",
+          "selectCalving": "Kies 'Kalwing' as gebeurtenistipe",
+          "enterDetails": "Voer kalfbesonderhede in (geslag, lewendig/dood)",
+          "save": "Stoor die gebeurtenis",
+          "cycleReset": "Telingsiklus herstel — koei gereed vir nuwe siklus"
+        },
+        "steps": [
+          "Wanneer 'n koei kalf, gaan na die Telingsentrum en tik 'Teken Gebeurtenis Aan'.",
+          "Kies die koei wat geboorte gegee het.",
+          "Kies 'Kalwing' as die gebeurtenistipe.",
+          "Voer besonderhede oor die kalf in — geslag en of dit lewendig gebore is.",
+          "Voeg enige notas by oor die kalwing (bv. moeilikheid, hulp benodig).",
+          "Stoor. Die koei se telingsiklus herstel en sy word weer aktief vir melkery."
+        ],
+        "next": "Die koei betree 'n herstelperiode. Na herstel (tipies 45-60 dae), kyk vir die volgende hittesiklus om die telingsiklus weer te begin.",
+        "tips": [
+          "Teken kalwings so gou moontlik aan vir akkurate rekords.",
+          "Die kalwingsdatum herstel die telingstydlyn — die volgende hitte word verwag na die vrywillige wagperiode.",
+          "As die kalf 'n vers is, wil jy haar dalk later as vervanging by die kudde voeg.",
+          "Moeilike kalwings moet aangeteken word — dit mag die koei se toekomstige telingsbesluite beïnvloed."
+        ]
+      },
+      "breeding-notifications": {
+        "title": "Verstaan Telingskennisgewings",
+        "what": "Die app skep outomatiese waarskuwings wanneer telingsaksies vir jou koeie verskuldig is.",
+        "when": "Gaan kennisgewings gereeld na — ten minste daagliks gedurende telingseisoen.",
+        "flow": {
+          "systemAlerts": "Stelsel genereer waarskuwings uit telingsgebeurtenisse",
+          "openNotifications": "Maak Telingskennisgewings oop",
+          "reviewAlerts": "Hersien agterstallige en komende aksies",
+          "actionOrDismiss": "Neem aksie of skuif weg?",
+          "actLabel": "Neem aksie",
+          "dismissLabel": "Skuif weg",
+          "logEvent": "Teken die telingsgebeurtenis aan",
+          "dismissed": "Waarskuwing wegskuif en versteek"
+        },
+        "steps": [
+          "Maak die Telingsentrum oop en tik 'Kennisgewings'.",
+          "Hersien die waarskuwings — hulle word gegroepeer volgens tipe: hittes verskuldig, dragtigheidstoetse verskuldig, kalwings wat nader, en droogmaak benodig.",
+          "Agterstallige aksies word uitgelig — hierdie het onmiddellike aandag nodig.",
+          "Vir elke waarskuwing, tik om die gebeurtenis aan te teken of skuif weg as dit nie van toepassing is nie.",
+          "Wegskuif-waarskuwings sal nie weer wys vir daardie spesifieke koei/gebeurtenis-kombinasie nie."
+        ],
+        "next": "Om op 'n kennisgewing te reageer teken die telingsgebeurtenis aan en werk die koei se tydlyn op. Die stelsel bereken dan die volgende stap in die siklus.",
+        "tips": [
+          "Gaan kennisgewings daagliks na — agterstallige aksies beteken gemiste geleenthede.",
+          "Die 'Benodig Aandag'-afdeling wys koeie wat agterstallige telingsaksies het.",
+          "' n Koei kan in veelvoudige kennisgewingkategorieë gelyktydig verskyn.",
+          "Wegskuif is nuttig wanneer 'n koei verkoop is, of wanneer jy besluit het om haar nie te teel nie."
+        ]
+      },
+      "milk-history": {
+        "title": "Melkgeskiedenis Bekyk",
+        "what": "Blaai deur en soek vorige melkrekords met filters en sortering.",
+        "when": "Wanneer jy produksietendense wil nagaan, spesifieke rekords wil vind, of daaglikse totale wil hersien.",
+        "flow": {
+          "openHistory": "Maak Melkgeskiedenis oop",
+          "useFilters": "Pas filters toe (datum, sessie, koei, aantekener)",
+          "viewRecords": "Resultate gewys met bladsynommering",
+          "sortResults": "Sorteer volgens datum, liter, of oormerknommer"
+        },
+        "steps": [
+          "Vanaf die Melk-bladsy, tik 'Geskiedenis' om die melkgeskiedenis-aansig oop te maak.",
+          "Gebruik die filterskyfies om resultate te verfyn — filter volgens datumreeks, sessie (VM/NM), spesifieke koei, of wie dit aangeteken het.",
+          "Blaai deur rekords in die lys. Elke kaart wys die koei, liter, sessie, datum, en wie dit aangeteken het.",
+          "Tik op kolomopskrifte om te sorteer volgens aantekeningsdatum, liter, of oormerknommer.",
+          "Gebruik die soekbalk om rekords te vind volgens koei se oormerknommer, koeinaam, of aantekener se naam."
+        ],
+        "next": "Die geskiedenis-aansig is leesalleen vir werkers. Admins kan rekords van hier af uitvee. Vir gedetailleerde produksieverslae, gebruik die Verslae-afdeling in Instellings.",
+        "tips": [
+          "Gebruik die 'Weggegooi'-filter om slegs melk te sien wat as weggegooi gemerk is (bv. weens onttrekking).",
+          "Die bladsynommering wys 20 rekords per bladsy — gebruik die bladsybeheerknoppies onderaan om te navigeer.",
+          "Vir gedetailleerde analise van melkproduksietendense, besoek die Analise-afdeling."
+        ]
+      },
+      "adding-cow": {
+        "title": "Nuwe Koei Byvoeg",
+        "what": "Registreer 'n nuwe koei in die stelsel met haar besonderhede.",
+        "when": "Wanneer 'n nuwe koei by jou kudde aansluit — gekoop, op die plaas gebore, of van 'n ander plaas oorgeplaas.",
+        "flow": {
+          "openList": "Maak die Koeilys oop",
+          "tapAdd": "Tik die + knoppie",
+          "fillForm": "Vul koeibesonderhede in (oormerk, naam, geslag, GD)",
+          "selectBreed": "Kies rastipe",
+          "save": "Stoor",
+          "cowCreated": "Koei bygevoeg by die kudde"
+        },
+        "steps": [
+          "Gaan na die Koeie-bladsy en tik die + (voeg by) knoppie.",
+          "Voer die oormerknommer in — dit moet uniek wees en is hoe jy die koei sal identifiseer.",
+          "Voer die koei se naam in (opsioneel maar nuttig).",
+          "Kies die geslag — vroulik vir koeie/verse, manlik vir bulle.",
+          "Voer die geboortedatum in. As dit onbekend is, skat so akkuraat as moontlik.",
+          "Kies die rastipe uit die afrolkieslys.",
+          "Voer opsioneel vader- en moederinligting in vir telingsrekords.",
+          "Tik Stoor."
+        ],
+        "next": "Die koei verskyn in jou kuddelys en is beskikbaar vir melkaantekening, gesondheidsopsporing, en telingsbestuur.",
+        "tips": [
+          "Oormerknommers moet uniek wees — die stelsel sal duplikate weier.",
+          "Die rastipe beïnvloed telingsberekenings (dragtigheidsperiode, hittesiklusse).",
+          "Die korrekte geboortedatum is belangrik vir ouderdomsgebaseerde analise.",
+          "Jy kan koeibesonderhede later wysig vanaf die koei se besonderhede-bladsy."
+        ]
+      },
+      "cow-status": {
+        "title": "Verstaan Koeistatus",
+        "what": "Elke koei het 'n status wat haar huidige toestand in die kudde nahou.",
+        "when": "Om statusse te verstaan help jou om jou kudde te bestuur en die data korrek te interpreteer.",
+        "flow": {
+          "active": "Aktief — koei is deel van die melkkudde",
+          "statusChange": "Wat verander?",
+          "dry": "Droog",
+          "dryDesc": "Koei is in droë periode voor kalwing",
+          "soldDead": "Verkoop / Dood",
+          "removedDesc": "Koei is uit aktiewe kudde verwyder"
+        },
+        "steps": [
+          "Aktief: Die koei is gesond en deel van die melkkudde. Sy kan gemelk en geteel word.",
+          "Droog: Die koei is dragtig en is drooggemak voor kalwing. Sy sal nie in die melklys verskyn nie.",
+          "Verkoop: Die koei is verkoop en het die plaas verlaat. Sy bly in rekords vir geskiedenis maar is nie aktief nie.",
+          "Dood: Die koei het gevrek. Sy bly in rekords vir geskiedenis en analise.",
+          "Vers: 'n Jong vroulike koei wat nog nie gekalf het nie. Sodra sy kalf, word sy 'Aktief'."
+        ],
+        "next": "Statusveranderinge beïnvloed watter koeie in melkery, teling en analise verskyn. Die kudde-opsomming op die kontroleskerm weerspieël huidige statustellers.",
+        "tips": [
+          "Status word gewoonlik outomaties opgedateer deur telingsgebeurtenisse (bv. droogmaak verander status na 'Droog').",
+          "Jy kan ook 'n koei se status handmatig verander vanaf haar wysigbladsy.",
+          "Verkoopte en dooie koeie word sag uitgevee — hulle verskyn steeds in historiese verslae maar nie in aktiewe lyste nie.",
+          "Slegs admins kan 'n koei as verkoop of dood merk."
+        ]
+      },
+      "cow-details": {
+        "title": "Koeibesonderhede Bekyk",
+        "what": "Sien alle inligting oor 'n spesifieke koei — gesondheidsgeskiedenis, telingstydlyn, melkproduksie, en meer.",
+        "when": "Wanneer jy 'n koei se geskiedenis wil nagaan, besluite oor behandeling wil neem, of haar telingstatus wil hersien.",
+        "flow": {
+          "openList": "Maak die Koeilys oop",
+          "tapCow": "Tik op 'n koeikaart",
+          "viewTabs": "Blaai deur afdelings: Gesondheid, Teling, Melk, Behandelings",
+          "navigateSub": "Tik na gedetailleerde sub-bladsye"
+        },
+        "steps": [
+          "Gaan na die Koeie-bladsy en vind die koei (gebruik soek of blaai).",
+          "Tik op die koeikaart om haar besonderhede-bladsy oop te maak.",
+          "Die besonderhede-bladsy wys sleutelinligting bo-aan: oormerknommer, naam, ras, ouderdom, status.",
+          "Blaai af om aksieknoppies te sien vir die aanteken van gesondheidskwessies, behandelings en telingsgebeurtenisse.",
+          "Tik op gesondheid-, teling- of behandelingsgeskiedeniskoppels om volledige tydlyne te sien."
+        ],
+        "next": "Vanaf die besonderhede-bladsy kan jy na enige verwante funksie navigeer — teken 'n gesondheidskwessie aan, voeg 'n behandeling by, teken teling aan, of bekyk melkgeskiedenis vir daardie koei.",
+        "tips": [
+          "Die koei se besonderhede-bladsy is die sentrale spilpunt vir alles oor een koei.",
+          "As die koei op melkonttrekking is, sal 'n wapen op haar besonderhede-bladsy wys.",
+          "Admins kan koeibesonderhede wysig of die koei sag uitvee vanaf hierdie bladsy.",
+          "Die voortplantingstydlyn wys alle telingsgebeurtenisse in chronologiese volgorde."
+        ]
+      },
+      "managing-users": {
+        "title": "Gebruikers & Werkers Bestuur",
+        "what": "Voeg by, wysig, en bestuur gebruikersrekeninge vir jou plaasspan.",
+        "when": "Wanneer jy 'n nuwe werker moet byvoeg, iemand se toestemmings moet verander, of 'n gebruiker wat weg is moet deaktiveer.",
+        "flow": {
+          "goSettings": "Gaan na Instellings",
+          "openUsers": "Maak Gebruikersbestuur oop",
+          "addUser": "Tik Voeg Gebruiker By",
+          "selectRole": "Admin of Werker?",
+          "admin": "Admin",
+          "worker": "Werker",
+          "setPassword": "Stel gebruikersnaam en wagwoord",
+          "setPin": "Stel naam en 4-syfer PIN",
+          "setPermissions": "Ken toestemmings toe",
+          "save": "Stoor gebruiker"
+        },
+        "steps": [
+          "Gaan na Instellings → Gebruikersbestuur.",
+          "Om 'n gebruiker by te voeg, tik 'Voeg Gebruiker By'.",
+          "Kies die rol: Admin (volle toegang, wagwoord-aanmelding) of Werker (beperkte toegang, PIN-aanmelding).",
+          "Vir admins: stel 'n gebruikersnaam en wagwoord. Vir werkers: stel hul naam en 'n 4-syfer PIN.",
+          "Ken toestemmings toe — werkers kan spesifieke toestemmings hê soos 'Kan Melk Aanteken', 'Kan Kwessies Aanteken', ens.",
+          "Tik Stoor om die gebruiker te skep."
+        ],
+        "next": "Die nuwe gebruiker kan nou met hul geloofsbriewe aanmeld. Werkers gebruik die PIN-oortjie op die aanmeldskerm. Admins gebruik die wagwoord-oortjie.",
+        "tips": [
+          "Werkers kan slegs funksies waarvoor hulle toestemming het, gebruik — die res is versteek.",
+          "Jy kan gebruikers deaktiveer in plaas van uitvee — dit bewaar hul historiese rekords.",
+          "PINs moet presies 4 syfers wees.",
+          "Jy kan nie jou eie rol verander of jouself deaktiveer nie.",
+          "Gebruik 'Herroep Sessies' om 'n gebruiker te dwing om weer aan te meld as hul toestel verloor is."
+        ]
+      },
+      "managing-breed-types": {
+        "title": "Rastipes Bestuur",
+        "what": "Voeg by en konfigureer beesrastipes met hul telings-tydsberekeninsparameters.",
+        "when": "Wanneer jy 'n nuwe ras op jou plaas het, of telingsberekeningsparameters moet aanpas.",
+        "flow": {
+          "goSettings": "Gaan na Instellings",
+          "openBreedTypes": "Maak Rastipes oop",
+          "addEdit": "Voeg by of wysig 'n rastipe",
+          "setTimings": "Stel dragtigheids-, hittesiklus-, dragtigheidstoets-, droogmaakdae",
+          "save": "Stoor"
+        },
+        "steps": [
+          "Gaan na Instellings → Rastipes.",
+          "Om 'n nuwe ras by te voeg, tik 'Voeg By'. Om te wysig, tik op die bestaande ras.",
+          "Voer die rasnaam in (bv. 'Holstein', 'Jersey').",
+          "Stel die telingsparameters: dragtigdae, hittesikluslengte, dragtigheidstoetsdae, en droogmaakdae.",
+          "Hierdie tydsparameters beheer wanneer die stelsel telingsherinnerings en verwagte datums bereken.",
+          "Tik Stoor."
+        ],
+        "next": "Koeie wat aan hierdie rastipe toegeken is, sal hierdie parameters vir telingsberekening gebruik. Bestaande koeie word nie terugwerkend opgedateer nie.",
+        "tips": [
+          "Die kode word outomaties gegenereer uit die rasnaam en kan nie verander word nie.",
+          "Jy kan nie 'n rastipe uitvee as enige koeie daaraan toegeken is nie.",
+          "Verstekwaardes: dragtigheid ~283 dae, hittesiklus ~21 dae, dragtigheidstoets ~30 dae, droogmaak ~60 dae voor kalwing.",
+          "Hierdie tydsberekenings verskil per ras — raadpleeg jou veearts vir akkurate waardes."
+        ]
+      },
+      "managing-issue-types": {
+        "title": "Kwessietipes Bestuur",
+        "what": "Pas die gesondheidskwessiekategorieë aan wat beskikbaar is wanneer gesondheidsprobleme aangeteken word.",
+        "when": "Wanneer jy 'n nuwe tipe gesondheidskwessie moet byvoeg wat nie in die stelsel is nie, of 'n bestaande een moet wysig.",
+        "flow": {
+          "goSettings": "Gaan na Instellings",
+          "openIssueTypes": "Maak Kwessietipes oop",
+          "addEdit": "Voeg by of wysig 'n kwessietipe",
+          "save": "Stoor"
+        },
+        "steps": [
+          "Gaan na Instellings → Kwessietipes.",
+          "Om by te voeg, tik 'Voeg By'. Om te wysig, tik op die bestaande tipe.",
+          "Voer die naam in (bv. 'Opblaas', 'Ooginfeksie') en kies 'n emoji-ikoon.",
+          "Tik Stoor. Die nuwe tipe sal in die gesondheidskwessie-tipe afrolkieslys verskyn."
+        ],
+        "next": "Die nuwe kwessietipe is onmiddellik beskikbaar wanneer gesondheidskwessies aangeteken word. Dit sal ook in gesondheidsanalise verskyn.",
+        "tips": [
+          "Die kode word outomaties gegenereer uit die naam en kan nie na skepping verander word nie.",
+          "Jy kan nie 'n kwessietipe uitvee as gesondheidskwessies daarna verwys nie — deaktiveer eerder.",
+          "Kies 'n beskrywende emoji wat werkers help om die kwessietipe vinnig te identifiseer.",
+          "Algemene tipes sluit in: Mastitis, Kreupelheid, Respiratories, Metabolies, Voortplanting."
+        ]
+      },
+      "managing-medications": {
+        "title": "Medikasie Bestuur",
+        "what": "Voeg by en konfigureer medikasie wat in behandelings gebruik kan word, insluitend hul onttrekkingsperiodes.",
+        "when": "Wanneer jy 'n nuwe medikasie op die plaas het, of onttrekkingsdae of koste moet opdateer.",
+        "flow": {
+          "goSettings": "Gaan na Instellings",
+          "openMedications": "Maak Medikasie oop",
+          "addEdit": "Voeg by of wysig 'n medikasie",
+          "setWithdrawal": "Stel melk- en vleis-onttrekkingsdae",
+          "save": "Stoor"
+        },
+        "steps": [
+          "Gaan na Instellings → Medikasie.",
+          "Om by te voeg, tik 'Voeg By'. Om te wysig, tik op die bestaande medikasie.",
+          "Voer die medikasienaam in.",
+          "Stel die melkonttrekkingsdae — hoeveel dae na behandeling voordat melk veilig is om te verkoop.",
+          "Stel die vleisonttrekkingsdae — hoeveel dae voordat vleis veilig is.",
+          "Stel opsioneel 'n verstekkoste per behandeling.",
+          "Tik Stoor."
+        ],
+        "next": "Die medikasie verskyn in die behandelingsvorm. Wanneer 'n behandeling hierdie medikasie gebruik, bereken die stelsel outomaties die onttrekkings-einddatums.",
+        "tips": [
+          "Onttrekkingsdae is krities vir voedselveiligheid — gebruik altyd die waardes van die medikasie-etiket of jou veearts se advies.",
+          "As 'n medikasie se onttrekkingsdae verander, dateer dit hier op — toekomstige behandelings sal die nuwe waardes gebruik.",
+          "Deaktiveer medikasie wat jy nie meer gebruik nie in plaas van uitvee — dit bewaar behandelingsgeskiedenis.",
+          "Kostedata voer in finansiële analise vir behandelingsbestedingsverslae."
+        ]
+      },
+      "feature-flags": {
+        "title": "Kenmerkskakelaars",
+        "what": "Aktiveer of deaktiveer hele kenmerkmodules in die app.",
+        "when": "Wanneer jy die app wil vereenvoudig deur kenmerke wat jy nie gebruik nie te versteek, of kenmerke te aktiveer wat jy gereed is om te begin gebruik.",
+        "flow": {
+          "goSettings": "Gaan na Instellings",
+          "openFlags": "Maak Kenmerkskakelaars oop",
+          "toggle": "Skakel kenmerke aan of af",
+          "immediate": "Veranderinge neem onmiddellik effek"
+        },
+        "steps": [
+          "Gaan na Instellings → Kenmerkskakelaars.",
+          "Jy sal skakelaars sien vir elke kenmerkmodule: Teling, Melkaantekening, Gesondheidskwessies, Behandelings, Analise.",
+          "Skakel 'n kenmerk af om dit in die app te versteek — die navigasie-items en roetes word verwyder.",
+          "Skakel dit weer aan om dit te herstel. Geen data word verloor met skakel nie.",
+          "Veranderinge neem onmiddellik effek vir alle gebruikers op die plaas."
+        ],
+        "next": "Gedeaktiveerde kenmerke is versteek van navigasie en ontoeganklik via URL. Alle data word bewaar — heraktivering van die kenmerk bring alles terug.",
+        "tips": [
+          "Kenmerkskakelaars is nuttig om die app geleidelik uit te rol — begin met net Melkaantekening, voeg dan Gesondheidskwessies by, ens.",
+          "Die deaktivering van 'n kenmerk vee geen data uit nie.",
+          "Werkers mag dalk hul app moet verfris om die veranderinge te sien.",
+          "As 'n werker probeer om 'n gedeaktiveerde kenmerk via URL te bereik, word hulle na die kontroleskerm herlei."
+        ]
+      },
+      "farm-settings": {
+        "title": "Plaasinstellings",
+        "what": "Konfigureer basiese plaasinstellings soos die plaasnaam en verstektaal.",
+        "when": "Wanneer jy die plaas vir die eerste keer opstel, of wanneer jy die plaasnaam of verstektaal moet verander.",
+        "flow": {
+          "goSettings": "Gaan na Instellings",
+          "openFarmSettings": "Maak Plaasinstellings oop",
+          "editFields": "Wysig plaasnaam of verstektaal",
+          "save": "Stoor veranderinge"
+        },
+        "steps": [
+          "Gaan na Instellings → Plaasinstellings.",
+          "Wysig die plaasnaam — dit verskyn in die app-kopstuk.",
+          "Stel die verstektaal — Engels of Afrikaans. Dit is die verstek vir nuwe gebruikers.",
+          "Tik Stoor."
+        ],
+        "next": "Die plaasnaam dateer regdeur die app op. Die verstektaal beïnvloed nuwe gebruikersrekeninge — bestaande gebruikers hou hul gekose taal.",
+        "tips": [
+          "Individuele gebruikers kan steeds hul eie taal kies vanaf hul profiel.",
+          "Die plaasnaam verskyn in verslae en uitvoere."
+        ]
+      },
+      "running-reports": {
+        "title": "Verslae Uitvoer",
+        "what": "Genereer PDF- of Excel-verslae vir verskeie aspekte van jou plaasdata.",
+        "when": "Vir rekordhouding, nakoming, veearts-besoeke, of bestuurshersiening.",
+        "flow": {
+          "goSettings": "Gaan na Instellings",
+          "openReports": "Maak Verslae oop",
+          "selectType": "Kies verslagtipe",
+          "setDateRange": "Stel datumreeks (van - tot)",
+          "chooseFormat": "Kies formaat (PDF of Excel)",
+          "download": "Verslag laai af na jou toestel"
+        },
+        "steps": [
+          "Gaan na Instellings → Verslae.",
+          "Kies die verslagtipe: Onttrekking-nakoming, Behandelingsgeskiedenis, Weggegooi Melk, Medikasiegebruik, Melkproduksie, Teling, of Kudde-gesondheid.",
+          "Stel die datumreeks — alle verslae vereis 'n 'van' en 'tot' datum.",
+          "Kies die formaat — PDF vir druk, Excel vir verdere analise.",
+          "Tik 'Genereer'. Die verslag laai af na jou toestel."
+        ],
+        "next": "Die verslaglêer is afgelaai en kan gedeel, gedruk, of geliasseer word vir nakomingsrekords.",
+        "tips": [
+          "Onttrekking-nakomingsverslae is belangrik vir suiwelinspeksies.",
+          "Behandelingsgeskiedenisverslae is nuttig vir veearts-besoeke — hulle wys alle medikasie wat gebruik is.",
+          "Melkproduksieverslae wys per-koei produksie-opsommings.",
+          "Excel-formaat laat jou toe om jou eie analise in 'n sigblad te doen."
+        ]
+      },
+      "audit-log": {
+        "title": "Ouditlog",
+        "what": "Bekyk 'n rekord van alle veranderinge wat in die stelsel gemaak is — wie het wat gedoen en wanneer.",
+        "when": "Wanneer jy veranderinge moet ondersoek, verifieer wie 'n rekord gemaak het, of vir nakomingsouditering.",
+        "flow": {
+          "goSettings": "Gaan na Instellings",
+          "openAuditLog": "Maak Ouditlog oop",
+          "setFilters": "Filter volgens entiteittipe, gebruiker, aksie, of datum",
+          "viewChanges": "Bekyk veranderingsbesonderhede (ou vs nuwe waardes)"
+        },
+        "steps": [
+          "Gaan na Instellings → Ouditlog.",
+          "Gebruik die filters om resultate te verfyn: entiteittipe (koeie, behandelings, ens.), spesifieke gebruiker, aksietipe (skep, opdateer, uitvee), of datumreeks.",
+          "Blaai deur die loginskrywings. Elke inskrywing wys wie die verandering gemaak het, wat verander is, en wanneer.",
+          "Tik op 'n inskrywing om die besonderhede te sien — insluitend ou en nuwe waardes vir opdaterings."
+        ],
+        "next": "Die ouditlog is leesalleen — dit is 'n permanente rekord van alle veranderinge. Dit kan nie gewysig of uitgevee word nie.",
+        "tips": [
+          "Die ouditlog spoor alle skep-, opdateer- en uitvee-aksies regdeur die stelsel na.",
+          "Gebruik datumreeksfilters om tot 'n spesifieke tydperk te beperk.",
+          "Die 'entiteittipe'-filter is nuttig wanneer jy veranderinge in 'n spesifieke area ondersoek (bv. alle koeirekordveranderinge).",
+          "Die ouditlog help met verantwoordbaarheid — jy kan altyd sien wie 'n verandering gemaak het."
+        ]
+      }
+    }
   }
 }
