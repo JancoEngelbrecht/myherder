@@ -4,7 +4,7 @@
 
     <div class="page-content">
       <!-- Date range -->
-      <div class="date-range-row">
+      <div data-tour="history-filters" class="date-range-row">
         <div class="date-field">
           <label class="filter-label">{{ t('milkHistory.dateFrom') }}</label>
           <input v-model="dateFrom" type="date" class="form-input" @change="resetAndFetch" />
@@ -17,7 +17,7 @@
       </div>
 
       <!-- Search -->
-      <div class="search-bar">
+      <div data-tour="history-search" class="search-bar">
         <SearchInput
           v-model="searchQuery"
           :placeholder="t('milkHistory.searchPlaceholder')"
@@ -113,7 +113,7 @@
       </div>
 
       <!-- Record list -->
-      <div v-else class="record-list">
+      <div v-else data-tour="history-records" class="record-list">
         <MilkRecordCard
           v-for="rec in records"
           :key="rec.id"
@@ -122,14 +122,18 @@
       </div>
 
       <!-- Pagination -->
-      <PaginationBar
-        :total="total"
-        :page="page"
-        :limit="limit"
-        @update:page="onPageChange"
-        @update:limit="onLimitChange"
-      />
+      <div data-tour="history-pagination">
+        <PaginationBar
+          :total="total"
+          :page="page"
+          :limit="limit"
+          @update:page="onPageChange"
+          @update:limit="onLimitChange"
+        />
+      </div>
     </div>
+
+    <TourButton @start-tour="startTour" />
   </div>
 </template>
 
@@ -141,10 +145,12 @@ import MilkRecordCard from '../components/molecules/MilkRecordCard.vue'
 import SearchInput from '../components/atoms/SearchInput.vue'
 import PaginationBar from '../components/atoms/PaginationBar.vue'
 import CowSearchDropdown from '../components/molecules/CowSearchDropdown.vue'
+import TourButton from '../components/atoms/TourButton.vue'
 import api from '../services/api'
 import db from '../db/indexedDB'
 import { extractApiError } from '../utils/apiError'
 import { useToast } from '../composables/useToast'
+import { useTour } from '../composables/useTour.js'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -328,6 +334,37 @@ onMounted(() => {
   fetchRecords()
   fetchRecorders()
 })
+
+const { startTour } = useTour('milk-history', () => [
+  {
+    element: '[data-tour="history-filters"]',
+    popover: {
+      title: t('tour.milkHistory.filters.title'),
+      description: t('tour.milkHistory.filters.desc'),
+    }
+  },
+  {
+    element: '[data-tour="history-search"]',
+    popover: {
+      title: t('tour.milkHistory.search.title'),
+      description: t('tour.milkHistory.search.desc'),
+    }
+  },
+  {
+    element: '[data-tour="history-records"]',
+    popover: {
+      title: t('tour.milkHistory.records.title'),
+      description: t('tour.milkHistory.records.desc'),
+    }
+  },
+  {
+    element: '[data-tour="history-pagination"]',
+    popover: {
+      title: t('tour.milkHistory.pagination.title'),
+      description: t('tour.milkHistory.pagination.desc'),
+    }
+  },
+])
 </script>
 
 <style scoped>

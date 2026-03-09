@@ -4,7 +4,7 @@
 
     <div class="page-content">
       <!-- Search -->
-      <div class="search-bar">
+      <div data-tour="cow-search" class="search-bar">
         <SearchInput
           v-model="searchQuery"
           :placeholder="t('cows.searchPlaceholder')"
@@ -13,7 +13,7 @@
       </div>
 
       <!-- Status filter chips -->
-      <div class="filter-chips filter-chips-wrap">
+      <div data-tour="cow-filters" class="filter-chips filter-chips-wrap">
         <button
           v-for="f in filters"
           :key="f.value"
@@ -124,7 +124,7 @@
       </div>
 
       <!-- List -->
-      <div v-else class="cow-list">
+      <div v-else data-tour="cow-cards" class="cow-list">
         <template v-if="readyToBreed">
           <p class="ready-to-breed-note">{{ t('cows.readyToBreedNote') }} ({{ displayedCows.length }} / {{ cowsStore.cows.length }})</p>
         </template>
@@ -142,9 +142,11 @@
     </div>
 
     <!-- FAB -->
-    <button v-if="authStore.canManageCows" class="fab" :title="t('cows.addCow')" @click="router.push('/cows/new')">
+    <button v-if="authStore.canManageCows" data-tour="cow-add" class="fab" :title="t('cows.addCow')" @click="router.push('/cows/new')">
       +
     </button>
+
+    <TourButton above-fab @start-tour="startTour" />
   </div>
 </template>
 
@@ -159,6 +161,8 @@ import AppHeader from '../components/organisms/AppHeader.vue'
 import CowCard from '../components/organisms/CowCard.vue'
 import SearchInput from '../components/atoms/SearchInput.vue'
 import PaginationBar from '../components/atoms/PaginationBar.vue'
+import TourButton from '../components/atoms/TourButton.vue'
+import { useTour } from '../composables/useTour.js'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -184,6 +188,37 @@ const page = ref(1)
 const limit = ref(20)
 
 if (!breedTypesStore.hasData) breedTypesStore.fetchActive()
+
+const { startTour } = useTour('cow-list', () => [
+  {
+    element: '[data-tour="cow-search"]',
+    popover: {
+      title: t('tour.cowList.search.title'),
+      description: t('tour.cowList.search.desc'),
+    }
+  },
+  {
+    element: '[data-tour="cow-filters"]',
+    popover: {
+      title: t('tour.cowList.filters.title'),
+      description: t('tour.cowList.filters.desc'),
+    }
+  },
+  {
+    element: '[data-tour="cow-cards"]',
+    popover: {
+      title: t('tour.cowList.cowCard.title'),
+      description: t('tour.cowList.cowCard.desc'),
+    }
+  },
+  {
+    element: '[data-tour="cow-add"]',
+    popover: {
+      title: t('tour.cowList.addBtn.title'),
+      description: t('tour.cowList.addBtn.desc'),
+    }
+  },
+])
 
 const filters = [
   { value: '',          labelKey: 'cows.filterAll' },

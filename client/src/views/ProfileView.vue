@@ -46,6 +46,7 @@
       @confirm="handleLogout"
       @cancel="showLogoutDialog = false"
     />
+
   </div>
 </template>
 
@@ -70,6 +71,7 @@ async function handleLogout() {
   await authStore.logout()
   router.push('/login')
 }
+
 </script>
 
 <style scoped>

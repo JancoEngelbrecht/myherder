@@ -92,5 +92,9 @@ function isActive(tab) {
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.02em;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

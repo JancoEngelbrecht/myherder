@@ -25,7 +25,7 @@
       <template v-else>
 
       <!-- Herd Summary -->
-      <div v-if="!summaryLoading" class="stats-row">
+      <div v-if="!summaryLoading" data-tour="dashboard-stats" class="stats-row">
         <div class="stat-chip stat-active">
           <span class="stat-count">{{ summary.active ?? '—' }}</span>
           <span class="stat-label">{{ t('dashboard.active') }}</span>
@@ -47,7 +47,7 @@
       <!-- Quick Actions -->
       <section class="section">
         <h2 class="section-label">{{ t('dashboard.quickActions') }}</h2>
-        <div class="actions-grid">
+        <div data-tour="dashboard-actions" class="actions-grid">
           <RouterLink to="/cows" class="action-card active-action">
             <span class="action-icon">🐄</span>
             <span class="action-label">{{ t('dashboard.viewCows') }}</span>
@@ -92,6 +92,8 @@
 
       </template><!-- end normal farm dashboard -->
     </div>
+
+    <TourButton v-if="hasFarmContext" @start-tour="startTour" />
   </div>
 </template>
 
@@ -102,6 +104,8 @@ import { useAuthStore } from '../stores/auth.js'
 import { useFeatureFlagsStore } from '../stores/featureFlags.js'
 import api from '../services/api.js'
 import AppHeader from '../components/organisms/AppHeader.vue'
+import TourButton from '../components/atoms/TourButton.vue'
+import { useTour } from '../composables/useTour.js'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -110,6 +114,36 @@ const featureFlagsStore = useFeatureFlagsStore()
 const flags = computed(() => featureFlagsStore.flags)
 const { hasPermission } = authStore
 const hasFarmContext = computed(() => !!authStore.user?.farm_id)
+
+const { startTour } = useTour('dashboard', () => [
+  {
+    popover: {
+      title: t('tour.dashboard.welcome.title'),
+      description: t('tour.dashboard.welcome.desc'),
+    }
+  },
+  {
+    element: '[data-tour="dashboard-stats"]',
+    popover: {
+      title: t('tour.dashboard.stats.title'),
+      description: t('tour.dashboard.stats.desc'),
+    }
+  },
+  {
+    element: '[data-tour="dashboard-actions"]',
+    popover: {
+      title: t('tour.dashboard.quickActions.title'),
+      description: t('tour.dashboard.quickActions.desc'),
+    }
+  },
+  {
+    element: '.bottom-nav',
+    popover: {
+      title: t('tour.dashboard.nav.title'),
+      description: t('tour.dashboard.nav.desc'),
+    }
+  },
+])
 
 const summary = ref({ active: null, dry: null, pregnant: null, sick: null })
 const summaryLoading = ref(true)
@@ -167,6 +201,7 @@ onMounted(async () => {
 
 .stat-chip {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 5px;
@@ -187,6 +222,9 @@ onMounted(async () => {
   font-weight: 600;
   opacity: 0.8;
   line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .stat-active { background: var(--success-light); color: var(--primary-dark); border-color: rgba(45,106,79,0.2); }
@@ -210,12 +248,13 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   position: relative;
   box-shadow: var(--shadow-card);
   text-decoration: none;
   aspect-ratio: 1;
   text-align: center;
+  overflow: hidden;
 }
 
 @media (min-width: 600px) {
@@ -233,10 +272,6 @@ onMounted(async () => {
 
   .action-label {
     font-size: 0.9375rem;
-  }
-
-  .action-badge {
-    font-size: 0.6875rem;
   }
 }
 
@@ -257,22 +292,12 @@ onMounted(async () => {
 }
 
 .action-label {
-  font-size: 0.875rem;
+  font-size: clamp(0.7rem, 3.2vw, 0.875rem);
   font-weight: 600;
   color: var(--text);
-  line-height: 1.3;
-}
-
-.action-badge {
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  background: var(--warning-light);
-  color: var(--warning);
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-  border: 1px solid rgba(224,124,36,0.2);
-  white-space: nowrap;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .withdrawal-action {

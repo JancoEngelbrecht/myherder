@@ -120,6 +120,8 @@ a {
   border: none;
   cursor: pointer;
   width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .btn-primary:active {
@@ -148,6 +150,8 @@ a {
   transition: background 0.15s;
   cursor: pointer;
   width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .btn-secondary:active {
@@ -169,6 +173,8 @@ a {
   border: none;
   cursor: pointer;
   width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .btn-icon {
@@ -590,4 +596,70 @@ a {
 .toggle-switch input:disabled + .toggle-slider {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ===== Driver.js Tour Overrides ===== */
+.driver-popover.myherder-tour-popover {
+  background: var(--surface);
+  color: var(--text);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-body);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  max-width: min(360px, 90vw);
+  padding: 20px;
+}
+
+.driver-popover.myherder-tour-popover .driver-popover-title {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.driver-popover.myherder-tour-popover .driver-popover-description {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.driver-popover.myherder-tour-popover .driver-popover-progress-text {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.driver-popover.myherder-tour-popover .driver-popover-prev-btn {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 6px 16px;
+  text-shadow: none;
+}
+
+.driver-popover.myherder-tour-popover .driver-popover-next-btn {
+  background: var(--primary);
+  color: var(--text-on-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 6px 16px;
+  text-shadow: none;
+}
+
+.driver-popover.myherder-tour-popover .driver-popover-close-btn {
+  color: var(--text-muted);
+}
+
+.driver-popover.myherder-tour-popover .driver-popover-arrow-side-left.driver-popover-arrow,
+.driver-popover.myherder-tour-popover .driver-popover-arrow-side-right.driver-popover-arrow,
+.driver-popover.myherder-tour-popover .driver-popover-arrow-side-top.driver-popover-arrow,
+.driver-popover.myherder-tour-popover .driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-color: var(--surface);
 }

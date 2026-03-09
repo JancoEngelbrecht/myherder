@@ -6,7 +6,7 @@
       <section class="section">
         <h2 class="section-label">{{ t('settings.adminTools') }}</h2>
         <div class="settings-list">
-          <RouterLink to="/admin/users" class="settings-item">
+          <RouterLink data-tour="settings-users" to="/admin/users" class="settings-item">
             <span class="settings-icon">👥</span>
             <div class="settings-info">
               <span class="settings-name">{{ t('users.title') }}</span>
@@ -15,7 +15,7 @@
             <span class="settings-arrow">›</span>
           </RouterLink>
 
-          <RouterLink v-if="flags.treatments" to="/admin/medications" class="settings-item">
+          <RouterLink v-if="flags.treatments" data-tour="settings-types" to="/admin/medications" class="settings-item">
             <span class="settings-icon">💊</span>
             <div class="settings-info">
               <span class="settings-name">{{ t('medications.title') }}</span>
@@ -42,7 +42,7 @@
             <span class="settings-arrow">›</span>
           </RouterLink>
 
-          <RouterLink to="/admin/audit-log" class="settings-item">
+          <RouterLink data-tour="settings-audit" to="/admin/audit-log" class="settings-item">
             <span class="settings-icon">📋</span>
             <div class="settings-info">
               <span class="settings-name">{{ t('audit.title') }}</span>
@@ -51,7 +51,7 @@
             <span class="settings-arrow">›</span>
           </RouterLink>
 
-          <RouterLink to="/admin/reports" class="settings-item">
+          <RouterLink data-tour="settings-reports" to="/admin/reports" class="settings-item">
             <span class="settings-icon">📄</span>
             <div class="settings-info">
               <span class="settings-name">{{ t('reports.title') }}</span>
@@ -109,7 +109,7 @@
         <p v-if="settingsSaved" class="saved-feedback">{{ t('settings.appSettingsSaved') }}</p>
       </section>
 
-      <section class="section">
+      <section data-tour="settings-flags" class="section">
         <h2 class="section-label">{{ t('featureFlags.sectionTitle') }}</h2>
         <p class="section-desc">{{ t('featureFlags.sectionDesc') }}</p>
         <div class="settings-list">
@@ -162,6 +162,8 @@
         </div>
       </section>
     </div>
+
+    <TourButton @start-tour="startTour" />
   </div>
 </template>
 
@@ -169,15 +171,55 @@
 import { ref, computed, reactive, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppHeader from '../../components/organisms/AppHeader.vue'
+import TourButton from '../../components/atoms/TourButton.vue'
 import { initialSync, lastSyncTime as syncLastTime } from '../../services/syncManager.js'
 import { useFeatureFlagsStore } from '../../stores/featureFlags.js'
 import { useToast } from '../../composables/useToast.js'
+import { useTour } from '../../composables/useTour.js'
 import api from '../../services/api.js'
 
 const { t } = useI18n()
 const featureFlagsStore = useFeatureFlagsStore()
 const toast = useToast()
 const syncing = ref(false)
+
+const { startTour } = useTour('settings', () => [
+  {
+    element: '[data-tour="settings-users"]',
+    popover: {
+      title: t('tour.settings.users.title'),
+      description: t('tour.settings.users.desc'),
+    }
+  },
+  {
+    element: '[data-tour="settings-types"]',
+    popover: {
+      title: t('tour.settings.types.title'),
+      description: t('tour.settings.types.desc'),
+    }
+  },
+  {
+    element: '[data-tour="settings-flags"]',
+    popover: {
+      title: t('tour.settings.featureFlags.title'),
+      description: t('tour.settings.featureFlags.desc'),
+    }
+  },
+  {
+    element: '[data-tour="settings-reports"]',
+    popover: {
+      title: t('tour.settings.reports.title'),
+      description: t('tour.settings.reports.desc'),
+    }
+  },
+  {
+    element: '[data-tour="settings-audit"]',
+    popover: {
+      title: t('tour.settings.auditLog.title'),
+      description: t('tour.settings.auditLog.desc'),
+    }
+  },
+])
 
 // Data export
 const exporting = ref(false)

@@ -5,7 +5,7 @@
     <div class="content">
       <form @submit.prevent="submit">
         <!-- Cow selector -->
-        <div class="form-group">
+        <div data-tour="issue-cow" class="form-group">
           <label>{{ $t('healthIssues.cow') }} *</label>
           <CowSearchDropdown
             v-model="form.cow_id"
@@ -15,7 +15,7 @@
         </div>
 
         <!-- Issue type — big button grid (multi-select) -->
-        <div class="form-group">
+        <div data-tour="issue-type" class="form-group">
           <label>
             {{ $t('healthIssues.issueType') }} *
             <span class="label-hint">{{ $t('healthIssues.issueTypeHint') }}</span>
@@ -37,7 +37,7 @@
         </div>
 
         <!-- Severity — 3 big buttons -->
-        <div class="form-group">
+        <div data-tour="issue-severity" class="form-group">
           <label>{{ $t('healthIssues.severity') }}</label>
           <div class="severity-row">
             <button
@@ -54,7 +54,7 @@
         </div>
 
         <!-- Teat selector — conditional -->
-        <div v-if="showTeatSelector" class="form-group">
+        <div v-if="showTeatSelector" data-tour="issue-teats" class="form-group">
           <TeatSelector v-model="form.affected_teats" />
         </div>
 
@@ -84,11 +84,13 @@
 
         <p v-if="submitError" class="form-error">{{ submitError }}</p>
 
-        <button type="submit" class="btn-primary btn-full" :disabled="submitting">
+        <button data-tour="issue-save" type="submit" class="btn-primary btn-full" :disabled="submitting">
           {{ submitting ? $t('common.saving') : $t('healthIssues.logIssue') }}
         </button>
       </form>
     </div>
+
+    <TourButton @start-tour="startTour" />
   </div>
 </template>
 
@@ -101,13 +103,53 @@ import { useIssueTypesStore } from '../stores/issueTypes'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import CowSearchDropdown from '../components/molecules/CowSearchDropdown.vue'
 import TeatSelector from '../components/molecules/TeatSelector.vue'
+import TourButton from '../components/atoms/TourButton.vue'
 import { extractApiError, resolveError } from '../utils/apiError'
+import { useTour } from '../composables/useTour.js'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const healthIssuesStore = useHealthIssuesStore()
 const issueTypesStore = useIssueTypesStore()
+
+const { startTour } = useTour('health-issues', () => [
+  {
+    element: '[data-tour="issue-cow"]',
+    popover: {
+      title: t('tour.healthIssues.cowSelect.title'),
+      description: t('tour.healthIssues.cowSelect.desc'),
+    }
+  },
+  {
+    element: '[data-tour="issue-type"]',
+    popover: {
+      title: t('tour.healthIssues.issueType.title'),
+      description: t('tour.healthIssues.issueType.desc'),
+    }
+  },
+  {
+    element: '[data-tour="issue-severity"]',
+    popover: {
+      title: t('tour.healthIssues.severity.title'),
+      description: t('tour.healthIssues.severity.desc'),
+    }
+  },
+  {
+    element: '[data-tour="issue-teats"]',
+    popover: {
+      title: t('tour.healthIssues.teats.title'),
+      description: t('tour.healthIssues.teats.desc'),
+    }
+  },
+  {
+    element: '[data-tour="issue-save"]',
+    popover: {
+      title: t('tour.healthIssues.save.title'),
+      description: t('tour.healthIssues.save.desc'),
+    }
+  },
+])
 
 const prefillCowId = route.query.cow_id || ''
 const backRoute = prefillCowId ? `/cows/${prefillCowId}` : '/'

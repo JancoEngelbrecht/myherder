@@ -5,7 +5,7 @@
     <div class="content">
       <form @submit.prevent="submit">
         <!-- Cow selector -->
-        <div class="form-group">
+        <div data-tour="treat-cow" class="form-group">
           <label>{{ $t('treatments.cow') }} *</label>
           <CowSearchDropdown
             v-model="form.cow_id"
@@ -15,7 +15,7 @@
         </div>
 
         <!-- Medications list (one row per medication) -->
-        <div class="form-group">
+        <div data-tour="treat-medication" class="form-group">
           <label>{{ $t('treatments.medications') }} *</label>
 
           <div v-for="(item, index) in form.medications" :key="index" class="med-row">
@@ -92,7 +92,7 @@
         </div>
 
         <!-- Cost (per visit, not per medication) -->
-        <div class="form-group">
+        <div data-tour="treat-dosage" class="form-group">
           <label for="cost">{{ $t('treatments.cost') }}</label>
           <input
             id="cost"
@@ -124,7 +124,7 @@
         </div>
 
         <!-- Link to health issue (optional, shown when cow is selected) -->
-        <div v-if="form.cow_id && openIssues.length" class="form-group">
+        <div v-if="form.cow_id && openIssues.length" data-tour="treat-health-link" class="form-group">
           <label for="health-issue">{{ $t('healthIssues.linkIssue') }}</label>
           <select id="health-issue" v-model="form.health_issue_id" class="form-input">
             <option value="">{{ $t('healthIssues.noLinkIssue') }}</option>
@@ -150,11 +150,13 @@
 
         <p v-if="submitError" class="form-error">{{ submitError }}</p>
 
-        <button type="submit" class="btn-primary btn-full" :disabled="submitting">
+        <button data-tour="treat-save" type="submit" class="btn-primary btn-full" :disabled="submitting">
           {{ submitting ? $t('common.saving') : $t('treatments.logTreatment') }}
         </button>
       </form>
     </div>
+
+    <TourButton @start-tour="startTour" />
   </div>
 </template>
 
@@ -169,7 +171,9 @@ import { useIssueTypesStore } from '../stores/issueTypes'
 import { formatDate, formatDateTime } from '../utils/format'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import CowSearchDropdown from '../components/molecules/CowSearchDropdown.vue'
+import TourButton from '../components/atoms/TourButton.vue'
 import { extractApiError, resolveError } from '../utils/apiError'
+import { useTour } from '../composables/useTour.js'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -178,6 +182,44 @@ const medicationsStore = useMedicationsStore()
 const treatmentsStore = useTreatmentsStore()
 const healthIssuesStore = useHealthIssuesStore()
 const issueTypesStore = useIssueTypesStore()
+
+const { startTour } = useTour('treatments', () => [
+  {
+    element: '[data-tour="treat-cow"]',
+    popover: {
+      title: t('tour.treatments.cowSelect.title'),
+      description: t('tour.treatments.cowSelect.desc'),
+    }
+  },
+  {
+    element: '[data-tour="treat-medication"]',
+    popover: {
+      title: t('tour.treatments.medication.title'),
+      description: t('tour.treatments.medication.desc'),
+    }
+  },
+  {
+    element: '[data-tour="treat-dosage"]',
+    popover: {
+      title: t('tour.treatments.dosage.title'),
+      description: t('tour.treatments.dosage.desc'),
+    }
+  },
+  {
+    element: '[data-tour="treat-health-link"]',
+    popover: {
+      title: t('tour.treatments.healthLink.title'),
+      description: t('tour.treatments.healthLink.desc'),
+    }
+  },
+  {
+    element: '[data-tour="treat-save"]',
+    popover: {
+      title: t('tour.treatments.save.title'),
+      description: t('tour.treatments.save.desc'),
+    }
+  },
+])
 
 const medications = computed(() => medicationsStore.medications)
 

@@ -79,6 +79,7 @@
   padding: 12px 8px;
   background: var(--surface-2);
   border-radius: var(--radius-sm);
+  overflow: hidden;
 }
 
 .stat-value {
@@ -95,6 +96,10 @@
   color: var(--text-secondary);
   text-align: center;
   margin-top: 4px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── Cow ranking lists ──────────────────────────────── */

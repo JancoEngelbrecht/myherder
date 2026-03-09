@@ -1663,5 +1663,174 @@
         ]
       }
     }
+  },
+  "tour": {
+    "startTour": "Start Tour",
+    "dashboard": {
+      "welcome": {
+        "title": "Welcome to MyHerder!",
+        "desc": "This is your dashboard — a quick overview of your herd. Let's walk through the key areas."
+      },
+      "stats": {
+        "title": "Herd Summary",
+        "desc": "These chips show your active, dry, pregnant, and sick cow counts at a glance."
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "desc": "Tap any card to jump straight to that feature — view cows, record milk, log breeding events, and more."
+      },
+      "nav": {
+        "title": "Navigation",
+        "desc": "Use the bottom bar to move between Home, Cows, Milk, and Breeding sections."
+      }
+    },
+    "cowList": {
+      "search": {
+        "title": "Search Cows",
+        "desc": "Type a tag number or name to quickly find a specific animal."
+      },
+      "filters": {
+        "title": "Filter by Status",
+        "desc": "Tap a chip to filter cows by status — active, sold, dead, or all."
+      },
+      "cowCard": {
+        "title": "Cow Cards",
+        "desc": "Each card shows the cow's tag, name, and status. Tap a card to see full details."
+      },
+      "addBtn": {
+        "title": "Add a Cow",
+        "desc": "Tap the + button to register a new animal in your herd."
+      }
+    },
+    "milkRecording": {
+      "session": {
+        "title": "Choose a Session",
+        "desc": "Select AM or PM to record milk for the morning or afternoon session."
+      },
+      "search": {
+        "title": "Find a Cow",
+        "desc": "Use the search bar to quickly find a cow by tag number or name."
+      },
+      "entryCard": {
+        "title": "Record Litres",
+        "desc": "Enter the litres for each cow. Cards turn green once saved."
+      },
+      "history": {
+        "title": "View History",
+        "desc": "Tap 'View History' to see past milk records, filter by date, and review trends."
+      }
+    },
+    "milkHistory": {
+      "filters": {
+        "title": "Filter Records",
+        "desc": "Use the date range and session filters to narrow down records."
+      },
+      "search": {
+        "title": "Search Records",
+        "desc": "Search by cow tag, name, or the person who recorded the milk."
+      },
+      "records": {
+        "title": "Milk Records",
+        "desc": "Each card shows the cow, litres, session, and who recorded it. Discarded records are flagged."
+      },
+      "pagination": {
+        "title": "Browse Pages",
+        "desc": "Use the pagination bar to navigate through older records."
+      }
+    },
+    "healthIssues": {
+      "cowSelect": {
+        "title": "Select a Cow",
+        "desc": "Search and select the cow with the health issue."
+      },
+      "issueType": {
+        "title": "Issue Type",
+        "desc": "Choose the type of health issue — mastitis, lameness, respiratory, etc."
+      },
+      "severity": {
+        "title": "Severity Level",
+        "desc": "Set the severity to help prioritize treatment: low, medium, or high."
+      },
+      "teats": {
+        "title": "Affected Teats",
+        "desc": "For udder-related issues, tap the affected teats on the diagram."
+      },
+      "save": {
+        "title": "Save the Issue",
+        "desc": "Add any notes and tap Save. The issue will appear in the cow's health history."
+      }
+    },
+    "treatments": {
+      "cowSelect": {
+        "title": "Select a Cow",
+        "desc": "Search and select the cow being treated."
+      },
+      "medication": {
+        "title": "Choose Medication",
+        "desc": "Select the medication from your farm's list. Withdrawal periods are shown automatically."
+      },
+      "dosage": {
+        "title": "Dosage & Cost",
+        "desc": "Enter the dosage given and the treatment cost for record-keeping."
+      },
+      "healthLink": {
+        "title": "Link to Health Issue",
+        "desc": "Optionally link this treatment to an active health issue for the same cow."
+      },
+      "save": {
+        "title": "Save Treatment",
+        "desc": "Tap Save. If the medication has a withdrawal period, the cow will be flagged automatically."
+      }
+    },
+    "breedingHub": {
+      "stats": {
+        "title": "Breeding Overview",
+        "desc": "See pregnant, open, and due-soon counts at a glance."
+      },
+      "notifications": {
+        "title": "Notifications",
+        "desc": "Check for upcoming heats, pregnancy checks, calvings, and dry-off dates."
+      },
+      "events": {
+        "title": "Recent Events",
+        "desc": "View all breeding events — inseminations, pregnancy checks, calvings, and more."
+      },
+      "logEvent": {
+        "title": "Log an Event",
+        "desc": "Tap + to record a new breeding event for any cow."
+      }
+    },
+    "analytics": {
+      "categories": {
+        "title": "Analytics Categories",
+        "desc": "Choose from Financial, Fertility, Health, or Structure analytics to explore your herd data."
+      },
+      "kpis": {
+        "title": "Today's Snapshot",
+        "desc": "These cards show today's key metrics — litres milked, active issues, and breeding actions due."
+      }
+    },
+    "settings": {
+      "users": {
+        "title": "User Management",
+        "desc": "Add workers, set PINs, and control what each user can access."
+      },
+      "types": {
+        "title": "Custom Types",
+        "desc": "Manage breed types, issue types, and medications to match your farm's needs."
+      },
+      "featureFlags": {
+        "title": "Feature Flags",
+        "desc": "Enable or disable features like breeding, milk recording, and analytics."
+      },
+      "reports": {
+        "title": "Reports",
+        "desc": "Generate and download PDF or Excel reports for any date range."
+      },
+      "auditLog": {
+        "title": "Audit Log",
+        "desc": "View a complete history of all changes made in the system."
+      }
+    }
   }
 }

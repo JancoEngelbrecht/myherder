@@ -17,7 +17,7 @@
       <template v-else>
         <!-- Stats row -->
         <section class="section">
-          <div class="stats-row">
+          <div data-tour="breed-stats" class="stats-row">
             <div class="stat-pill stat-pregnant">
               <span class="stat-num">{{ pregnantCount }}</span>
               <span class="stat-lbl">{{ t('breeding.stats.pregnant') }}</span>
@@ -36,7 +36,7 @@
         <!-- Nav cards -->
         <section class="section nav-cards">
           <!-- Notifications card -->
-          <div class="nav-card card" @click="goTo('/breed/notifications')">
+          <div data-tour="breed-notifications" class="nav-card card" @click="goTo('/breed/notifications')">
             <div class="nav-card-icon">🔔</div>
             <div class="nav-card-body">
               <div class="nav-card-header">
@@ -49,7 +49,7 @@
           </div>
 
           <!-- Recent Events card -->
-          <div class="nav-card card" @click="goTo('/breed/events')">
+          <div data-tour="breed-events" class="nav-card card" @click="goTo('/breed/events')">
             <div class="nav-card-icon">📋</div>
             <div class="nav-card-body">
               <div class="nav-card-header">
@@ -65,7 +65,9 @@
     </div>
 
     <!-- FAB -->
-    <RouterLink to="/breed/log" class="fab">+</RouterLink>
+    <RouterLink data-tour="breed-log" to="/breed/log" class="fab">+</RouterLink>
+
+    <TourButton above-fab @start-tour="startTour" />
   </div>
 </template>
 
@@ -74,14 +76,47 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import AppHeader from '../components/organisms/AppHeader.vue'
+import TourButton from '../components/atoms/TourButton.vue'
 import { useBreedingEventsStore } from '../stores/breedingEvents'
 import { useCowsStore } from '../stores/cows'
 import { resolveError } from '../utils/apiError'
+import { useTour } from '../composables/useTour.js'
 
 const { t } = useI18n()
 const router = useRouter()
 const breedingStore = useBreedingEventsStore()
 const cowsStore = useCowsStore()
+
+const { startTour } = useTour('breeding-hub', () => [
+  {
+    element: '[data-tour="breed-stats"]',
+    popover: {
+      title: t('tour.breedingHub.stats.title'),
+      description: t('tour.breedingHub.stats.desc'),
+    }
+  },
+  {
+    element: '[data-tour="breed-notifications"]',
+    popover: {
+      title: t('tour.breedingHub.notifications.title'),
+      description: t('tour.breedingHub.notifications.desc'),
+    }
+  },
+  {
+    element: '[data-tour="breed-events"]',
+    popover: {
+      title: t('tour.breedingHub.events.title'),
+      description: t('tour.breedingHub.events.desc'),
+    }
+  },
+  {
+    element: '[data-tour="breed-log"]',
+    popover: {
+      title: t('tour.breedingHub.logEvent.title'),
+      description: t('tour.breedingHub.logEvent.desc'),
+    }
+  },
+])
 
 function goTo(path) {
   router.push(path)

@@ -46,7 +46,7 @@
           </div>
 
           <div v-else class="cow-list">
-            <div v-for="item in milkCows" :key="item.cow_id" class="withdrawal-card">
+            <div v-for="item in paginatedMilkCows" :key="item.cow_id" class="withdrawal-card">
               <div class="card-top">
                 <div class="cow-id">
                   <span class="tag-number mono">{{ item.tag_number }}</span>
@@ -75,6 +75,16 @@
                 {{ $t('withdrawal.treated') }}: {{ formatDateTime(item.treatment_date) }}
               </div>
             </div>
+
+            <PaginationBar
+              v-if="milkCows.length > milkLimit"
+              :total="milkCows.length"
+              :page="milkPage"
+              :limit="milkLimit"
+              :page-size-options="[10, 20, 50]"
+              @update:page="milkPage = $event"
+              @update:limit="v => { milkLimit = v; milkPage = 1 }"
+            />
           </div>
         </div>
 
@@ -91,7 +101,7 @@
           </div>
 
           <div v-else class="cow-list">
-            <div v-for="item in meatCows" :key="item.cow_id" class="withdrawal-card meat-card">
+            <div v-for="item in paginatedMeatCows" :key="item.cow_id" class="withdrawal-card meat-card">
               <div class="card-top">
                 <div class="cow-id">
                   <span class="tag-number mono">{{ item.tag_number }}</span>
@@ -120,6 +130,16 @@
                 {{ $t('withdrawal.treated') }}: {{ formatDateTime(item.treatment_date) }}
               </div>
             </div>
+
+            <PaginationBar
+              v-if="meatCows.length > meatLimit"
+              :total="meatCows.length"
+              :page="meatPage"
+              :limit="meatLimit"
+              :page-size-options="[10, 20, 50]"
+              @update:page="meatPage = $event"
+              @update:limit="v => { meatLimit = v; meatPage = 1 }"
+            />
           </div>
         </div>
       </template>
@@ -132,15 +152,25 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useTreatmentsStore } from '../stores/treatments'
 import { formatDateTime } from '../utils/format'
 import AppHeader from '../components/organisms/AppHeader.vue'
+import PaginationBar from '../components/atoms/PaginationBar.vue'
 
 const store = useTreatmentsStore()
 const loading = computed(() => store.loadingWithdrawal)
 const withdrawalCows = computed(() => store.withdrawalCows)
 const activeTab = ref('milk')
+
+// Pagination state
+const milkPage = ref(1)
+const milkLimit = ref(10)
+const meatPage = ref(1)
+const meatLimit = ref(10)
+
+// Reset pages when switching tabs
+watch(activeTab, () => { milkPage.value = 1; meatPage.value = 1 })
 
 // Reactive timestamp — updates every 60s so expired withdrawals disappear automatically
 const nowIso = ref(new Date().toISOString())
@@ -164,6 +194,16 @@ const meatCows = computed(() =>
     (c) => c.withdrawal_end_meat && c.withdrawal_end_meat > nowIso.value,
   ),
 )
+
+// Paginated slices
+const paginatedMilkCows = computed(() => {
+  const start = (milkPage.value - 1) * milkLimit.value
+  return milkCows.value.slice(start, start + milkLimit.value)
+})
+const paginatedMeatCows = computed(() => {
+  const start = (meatPage.value - 1) * meatLimit.value
+  return meatCows.value.slice(start, start + meatLimit.value)
+})
 
 function withdrawalInfo(endDate) {
   const diff = new Date(endDate) - Date.now()
@@ -278,6 +318,7 @@ function withdrawalInfo(endDate) {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  padding-bottom: 8px;
 }
 
 .withdrawal-card {

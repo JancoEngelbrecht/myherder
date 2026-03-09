@@ -16,7 +16,7 @@
       </div>
 
       <!-- Session tabs -->
-      <div class="session-tabs">
+      <div data-tour="milk-session" class="session-tabs">
         <button
           v-for="s in sessions"
           :key="s.value"
@@ -40,14 +40,16 @@
       </div>
 
       <!-- Search -->
-      <SearchInput
-        v-model="searchQuery"
-        :placeholder="t('milkRecording.search')"
-      />
+      <div data-tour="milk-search">
+        <SearchInput
+          v-model="searchQuery"
+          :placeholder="t('milkRecording.search')"
+        />
+      </div>
     </div>
 
     <!-- View history link -->
-    <div class="history-link-row">
+    <div data-tour="milk-history" class="history-link-row">
       <router-link to="/milk/history" class="history-link">
         {{ t('milkRecording.viewHistory') }} →
       </router-link>
@@ -70,7 +72,7 @@
     </div>
 
     <!-- Cow list -->
-    <div v-else class="cow-list">
+    <div v-else data-tour="milk-entries" class="cow-list">
       <MilkEntryCard
         v-for="cow in filteredCows"
         :key="cow.id"
@@ -92,6 +94,8 @@
         discarded: summary.discarded,
       }) }}
     </div>
+
+    <TourButton @start-tour="startTour" />
   </div>
 </template>
 
@@ -101,10 +105,12 @@ import { useI18n } from 'vue-i18n'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import MilkEntryCard from '../components/molecules/MilkEntryCard.vue'
 import SearchInput from '../components/atoms/SearchInput.vue'
+import TourButton from '../components/atoms/TourButton.vue'
 import { useCowsStore, computeLifePhase } from '../stores/cows'
 import { useTreatmentsStore } from '../stores/treatments'
 import { useMilkRecordsStore } from '../stores/milkRecords'
 import { resolveError } from '../utils/apiError'
+import { useTour } from '../composables/useTour.js'
 
 const { t } = useI18n()
 
@@ -238,6 +244,37 @@ onMounted(async () => {
 })
 
 watch([selectedDate, selectedSession], loadRecords)
+
+const { startTour } = useTour('milk-recording', () => [
+  {
+    element: '[data-tour="milk-session"]',
+    popover: {
+      title: t('tour.milkRecording.session.title'),
+      description: t('tour.milkRecording.session.desc'),
+    }
+  },
+  {
+    element: '[data-tour="milk-search"]',
+    popover: {
+      title: t('tour.milkRecording.search.title'),
+      description: t('tour.milkRecording.search.desc'),
+    }
+  },
+  {
+    element: '[data-tour="milk-entries"]',
+    popover: {
+      title: t('tour.milkRecording.entryCard.title'),
+      description: t('tour.milkRecording.entryCard.desc'),
+    }
+  },
+  {
+    element: '[data-tour="milk-history"]',
+    popover: {
+      title: t('tour.milkRecording.history.title'),
+      description: t('tour.milkRecording.history.desc'),
+    }
+  },
+])
 </script>
 
 <style scoped>

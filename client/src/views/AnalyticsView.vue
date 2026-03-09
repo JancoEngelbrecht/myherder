@@ -11,7 +11,7 @@
 
       <template v-if="!offline">
         <!-- Daily KPI cards -->
-        <section class="kpi-section">
+        <section data-tour="analytics-kpis" class="kpi-section">
           <h2 class="analytics-title">{{ t('analytics.landing.todaySnapshot') }}</h2>
 
           <div v-if="loading" class="center-spinner"><div class="spinner" /></div>
@@ -89,7 +89,7 @@
         </section>
 
         <!-- Category navigation -->
-        <section class="categories-section">
+        <section data-tour="analytics-categories" class="categories-section">
           <h2 class="analytics-title">{{ t('analytics.categories.title') }}</h2>
 
           <div class="categories-grid">
@@ -144,6 +144,8 @@
         </section>
       </template>
     </div>
+
+    <TourButton v-if="!offline" @start-tour="startTour" />
   </div>
 </template>
 
@@ -151,10 +153,29 @@
 import { ref, computed, onMounted } from 'vue'
 import api from '../services/api.js'
 import AppHeader from '../components/organisms/AppHeader.vue'
+import TourButton from '../components/atoms/TourButton.vue'
 import { useAnalytics } from '../composables/useAnalytics.js'
+import { useTour } from '../composables/useTour.js'
 import '../assets/analytics.css'
 
 const { offline, flags, handleError, t } = useAnalytics()
+
+const { startTour } = useTour('analytics', () => [
+  {
+    element: '[data-tour="analytics-kpis"]',
+    popover: {
+      title: t('tour.analytics.kpis.title'),
+      description: t('tour.analytics.kpis.desc'),
+    }
+  },
+  {
+    element: '[data-tour="analytics-categories"]',
+    popover: {
+      title: t('tour.analytics.categories.title'),
+      description: t('tour.analytics.categories.desc'),
+    }
+  },
+])
 
 // ── State ─────────────────────────────────────────────
 
@@ -235,6 +256,7 @@ onMounted(() => {
   background: var(--surface);
   border-radius: var(--radius);
   padding: 14px 12px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -261,6 +283,9 @@ onMounted(() => {
   display: block;
   font-size: 0.75rem;
   color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   margin-top: 4px;
   text-align: center;
 }
@@ -389,6 +414,9 @@ onMounted(() => {
   font-size: 0.75rem;
   color: var(--text-secondary);
   margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .category-arrow {

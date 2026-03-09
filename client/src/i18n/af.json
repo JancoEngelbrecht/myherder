@@ -1663,5 +1663,174 @@
         ]
       }
     }
+  },
+  "tour": {
+    "startTour": "Begin Toer",
+    "dashboard": {
+      "welcome": {
+        "title": "Welkom by MyHerder!",
+        "desc": "Dit is jou paneelbord — 'n vinnige oorsig van jou kudde. Kom ons stap deur die sleutelareas."
+      },
+      "stats": {
+        "title": "Kudde-opsomming",
+        "desc": "Hierdie skyfies wys jou aktiewe, droë, dragtige en siek koei-tellings met 'n oogopslag."
+      },
+      "quickActions": {
+        "title": "Vinnige Aksies",
+        "desc": "Tik op enige kaart om direk na daardie funksie te spring — bekyk koeie, teken melk aan, teken teelgebeure aan, en meer."
+      },
+      "nav": {
+        "title": "Navigasie",
+        "desc": "Gebruik die onderste balk om tussen Tuis, Koeie, Melk en Teel-afdelings te beweeg."
+      }
+    },
+    "cowList": {
+      "search": {
+        "title": "Soek Koeie",
+        "desc": "Tik 'n oormerk-nommer of naam om vinnig 'n spesifieke dier te vind."
+      },
+      "filters": {
+        "title": "Filter volgens Status",
+        "desc": "Tik op 'n skyfie om koeie te filter volgens status — aktief, verkoop, dood, of alles."
+      },
+      "cowCard": {
+        "title": "Koeikaarte",
+        "desc": "Elke kaart wys die koei se oormerk, naam en status. Tik op 'n kaart om volledige besonderhede te sien."
+      },
+      "addBtn": {
+        "title": "Voeg 'n Koei By",
+        "desc": "Tik die + knoppie om 'n nuwe dier in jou kudde te registreer."
+      }
+    },
+    "milkRecording": {
+      "session": {
+        "title": "Kies 'n Sessie",
+        "desc": "Kies VM of NM om melk vir die oggend- of middagsessie aan te teken."
+      },
+      "search": {
+        "title": "Vind 'n Koei",
+        "desc": "Gebruik die soekbalk om vinnig 'n koei te vind volgens oormerknommer of naam."
+      },
+      "entryCard": {
+        "title": "Teken Liters Aan",
+        "desc": "Voer die liters in vir elke koei. Kaarte word groen sodra dit gestoor is."
+      },
+      "history": {
+        "title": "Bekyk Geskiedenis",
+        "desc": "Tik 'Bekyk Geskiedenis' om vorige melkrekords te sien, filter volgens datum, en tendense te hersien."
+      }
+    },
+    "milkHistory": {
+      "filters": {
+        "title": "Filter Rekords",
+        "desc": "Gebruik die datumreeks en sessiefilters om rekords te vernou."
+      },
+      "search": {
+        "title": "Soek Rekords",
+        "desc": "Soek volgens koei-oormerk, naam, of die persoon wat die melk aangeteken het."
+      },
+      "records": {
+        "title": "Melkrekords",
+        "desc": "Elke kaart wys die koei, liters, sessie, en wie dit aangeteken het. Weggegooi rekords word gemerk."
+      },
+      "pagination": {
+        "title": "Blaai deur Bladsye",
+        "desc": "Gebruik die bladsynommer-balk om deur ouer rekords te navigeer."
+      }
+    },
+    "healthIssues": {
+      "cowSelect": {
+        "title": "Kies 'n Koei",
+        "desc": "Soek en kies die koei met die gesondheidsprobleem."
+      },
+      "issueType": {
+        "title": "Probleemtipe",
+        "desc": "Kies die tipe gesondheidsprobleem — mastitis, kreupelheid, respiratories, ens."
+      },
+      "severity": {
+        "title": "Ernsvlak",
+        "desc": "Stel die erns om behandeling te prioritiseer: laag, medium of hoog."
+      },
+      "teats": {
+        "title": "Geaffekteerde Spene",
+        "desc": "Vir uier-verwante probleme, tik op die geaffekteerde spene op die diagram."
+      },
+      "save": {
+        "title": "Stoor die Probleem",
+        "desc": "Voeg enige notas by en tik Stoor. Die probleem sal in die koei se gesondheidsgeskiedenis verskyn."
+      }
+    },
+    "treatments": {
+      "cowSelect": {
+        "title": "Kies 'n Koei",
+        "desc": "Soek en kies die koei wat behandel word."
+      },
+      "medication": {
+        "title": "Kies Medikasie",
+        "desc": "Kies die medikasie uit jou plaas se lys. Onttrekkingsperiodes word outomaties gewys."
+      },
+      "dosage": {
+        "title": "Dosis & Koste",
+        "desc": "Voer die dosis gegee en die behandelingskoste in vir rekordhouding."
+      },
+      "healthLink": {
+        "title": "Koppel aan Gesondheidsprobleem",
+        "desc": "Koppel opsioneel hierdie behandeling aan 'n aktiewe gesondheidsprobleem vir dieselfde koei."
+      },
+      "save": {
+        "title": "Stoor Behandeling",
+        "desc": "Tik Stoor. As die medikasie 'n onttrekkingsperiode het, sal die koei outomaties gemerk word."
+      }
+    },
+    "breedingHub": {
+      "stats": {
+        "title": "Teel-oorsig",
+        "desc": "Sien dragtige, oop en binnekort-verskuldigde tellings met 'n oogopslag."
+      },
+      "notifications": {
+        "title": "Kennisgewings",
+        "desc": "Kyk vir komende hitte, dragtigheidstoetse, kalwings en afsitdatums."
+      },
+      "events": {
+        "title": "Onlangse Gebeure",
+        "desc": "Bekyk alle teelgebeure — inseminasies, dragtigheidstoetse, kalwings en meer."
+      },
+      "logEvent": {
+        "title": "Teken 'n Gebeurtenis Aan",
+        "desc": "Tik + om 'n nuwe teelgebeurtenis vir enige koei aan te teken."
+      }
+    },
+    "analytics": {
+      "categories": {
+        "title": "Analise-kategorieë",
+        "desc": "Kies tussen Finansieel, Vrugbaarheid, Gesondheid of Struktuur-analise om jou kuddedata te verken."
+      },
+      "kpis": {
+        "title": "Vandag se Oorsig",
+        "desc": "Hierdie kaarte wys vandag se sleutelmaatstawwe — liters gemelk, aktiewe probleme, en teelaksies verskuldig."
+      }
+    },
+    "settings": {
+      "users": {
+        "title": "Gebruikerbestuur",
+        "desc": "Voeg werkers by, stel PIN's, en beheer wat elke gebruiker kan toegang."
+      },
+      "types": {
+        "title": "Pasgemaakte Tipes",
+        "desc": "Bestuur rastipes, probleemtipes en medikasies om by jou plaas se behoeftes te pas."
+      },
+      "featureFlags": {
+        "title": "Kenmerk-vlae",
+        "desc": "Aktiveer of deaktiveer kenmerke soos teel, melkaantekeninge en analise."
+      },
+      "reports": {
+        "title": "Verslae",
+        "desc": "Genereer en laai PDF- of Excel-verslae af vir enige datumreeks."
+      },
+      "auditLog": {
+        "title": "Ouditlog",
+        "desc": "Bekyk 'n volledige geskiedenis van alle veranderinge wat in die stelsel gemaak is."
+      }
+    }
   }
 }
