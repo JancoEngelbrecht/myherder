@@ -2,63 +2,37 @@
  * Migration 034: Fix emoji charset for MySQL/MariaDB
  *
  * On cPanel the database may have been created with utf8 (utf8mb3) as the
- * default charset. MariaDB silently truncates 4-byte emoji characters when
- * inserting into a utf8mb3 column, causing ER_TRUNCATED_WRONG_VALUE_FOR_FIELD
+ * default charset. 4-byte emoji characters (used in issue_type_definitions)
+ * cannot be stored in utf8mb3 columns, causing ER_TRUNCATED_WRONG_VALUE_FOR_FIELD
  * and breaking farm creation via seedFarmDefaults().
  *
- * This migration converts every tenant-data table to utf8mb4_unicode_ci so
- * that emoji columns and user-generated text are stored correctly.
+ * This migration changes the emoji column on issue_type_definitions (and the
+ * global default_issue_types table) to utf8mb4. Only these columns need the
+ * fix — other tables don't store emoji.
  *
  * SQLite handles all Unicode natively — no-op on SQLite.
  */
-
-const TABLES = [
-  'cows',
-  'health_issues',
-  'health_issue_comments',
-  'treatments',
-  'medications',
-  'breeding_events',
-  'breed_types',
-  'issue_type_definitions',
-  'milk_records',
-  'users',
-  'audit_log',
-  'system_announcements',
-  'farms',
-  'app_settings',
-  'feature_flags',
-  'sync_log',
-]
 
 exports.up = async function (knex) {
   const isSQLite = knex.client.config.client === 'better-sqlite3'
   if (isSQLite) return
 
-  await knex.raw('SET FOREIGN_KEY_CHECKS=0')
-  try {
-    for (const table of TABLES) {
-      await knex.raw(
-        `ALTER TABLE \`${table}\` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
-      )
-    }
-  } finally {
-    await knex.raw('SET FOREIGN_KEY_CHECKS=1')
-  }
+  await knex.raw(
+    "ALTER TABLE `issue_type_definitions` MODIFY COLUMN `emoji` VARCHAR(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '❓'"
+  )
+  await knex.raw(
+    "ALTER TABLE `default_issue_types` MODIFY COLUMN `emoji` VARCHAR(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+  )
 }
 
 exports.down = async function (knex) {
   const isSQLite = knex.client.config.client === 'better-sqlite3'
   if (isSQLite) return
 
-  await knex.raw('SET FOREIGN_KEY_CHECKS=0')
-  try {
-    for (const table of TABLES) {
-      await knex.raw(
-        `ALTER TABLE \`${table}\` CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci`
-      )
-    }
-  } finally {
-    await knex.raw('SET FOREIGN_KEY_CHECKS=1')
-  }
+  await knex.raw(
+    "ALTER TABLE `issue_type_definitions` MODIFY COLUMN `emoji` VARCHAR(10) NOT NULL DEFAULT '❓'"
+  )
+  await knex.raw(
+    "ALTER TABLE `default_issue_types` MODIFY COLUMN `emoji` VARCHAR(10)"
+  )
 }
