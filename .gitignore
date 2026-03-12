@@ -13,7 +13,6 @@ client/node_modules/
 *.db
 
 # Build output
-client/dist/
 client/dist-ssr/
 
 # Logs
