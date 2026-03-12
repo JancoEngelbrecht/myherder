@@ -73,4 +73,33 @@ describe('errorHandler', () => {
     expect(res.json).toHaveBeenCalledWith({ error: 'Something broke' })
     process.env.NODE_ENV = prev
   })
+
+  it('500 with DB error code includes code field in response', () => {
+    const prev = process.env.NODE_ENV
+    process.env.NODE_ENV = 'production'
+    const err = { code: 'ER_TRUNCATED_WRONG_VALUE_FOR_FIELD', message: 'Sensitive details' }
+    const res = mockRes()
+
+    errorHandler(err, {}, res, noop)
+
+    expect(res.status).toHaveBeenCalledWith(500)
+    expect(res.json).toHaveBeenCalledWith({
+      error: 'Internal server error',
+      code: 'ER_TRUNCATED_WRONG_VALUE_FOR_FIELD',
+    })
+    process.env.NODE_ENV = prev
+  })
+
+  it('500 without error code omits code field from response', () => {
+    const prev = process.env.NODE_ENV
+    process.env.NODE_ENV = 'production'
+    const err = { message: 'Sensitive details' }
+    const res = mockRes()
+
+    errorHandler(err, {}, res, noop)
+
+    expect(res.status).toHaveBeenCalledWith(500)
+    expect(res.json).toHaveBeenCalledWith({ error: 'Internal server error' })
+    process.env.NODE_ENV = prev
+  })
 })

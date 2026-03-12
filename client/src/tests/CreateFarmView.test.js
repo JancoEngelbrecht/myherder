@@ -86,7 +86,7 @@ describe('CreateFarmView', () => {
     expect(wrapper.find('#cf-code').element.value).toBe('SUNNYDALEF')
   })
 
-  it('calls API on form submit with correct payload', async () => {
+  it('calls API on form submit with correct payload and 30s timeout', async () => {
     setSuperAdmin()
     mockPost.mockResolvedValue({ data: { farm: { id: 'new-id' }, admin_user: { id: 'admin-id' } } })
 
@@ -105,10 +105,10 @@ describe('CreateFarmView', () => {
       code: 'TESTFARM',
       admin_username: 'admin',
       admin_full_name: 'Admin User',
-    }))
+    }), { timeout: 30000 })
   })
 
-  it('shows error on API failure', async () => {
+  it('shows error on API failure with JSON error field', async () => {
     setSuperAdmin()
     mockPost.mockRejectedValue({ response: { data: { error: 'Farm code already exists' } } })
 
@@ -123,5 +123,59 @@ describe('CreateFarmView', () => {
     await flushPromises()
 
     expect(wrapper.find('.error-text').text()).toBe('Farm code already exists')
+  })
+
+  it('shows timeout message on ECONNABORTED error', async () => {
+    setSuperAdmin()
+    mockPost.mockRejectedValue({ code: 'ECONNABORTED', message: 'timeout of 30000ms exceeded' })
+
+    const wrapper = mount(CreateFarmView)
+    await wrapper.find('#cf-name').setValue('Test')
+    await wrapper.find('#cf-code').setValue('TEST')
+    await wrapper.find('#cf-username').setValue('admin')
+    await wrapper.find('#cf-fullname').setValue('Admin')
+    await wrapper.find('#cf-password').setValue('pass123')
+
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    // i18n stub returns the key string when locale messages are not loaded
+    expect(wrapper.find('.error-text').text()).toBe('superAdmin.errorTimeout')
+  })
+
+  it('shows network message when no response object', async () => {
+    setSuperAdmin()
+    mockPost.mockRejectedValue({ message: 'Network Error' })
+
+    const wrapper = mount(CreateFarmView)
+    await wrapper.find('#cf-name').setValue('Test')
+    await wrapper.find('#cf-code').setValue('TEST')
+    await wrapper.find('#cf-username').setValue('admin')
+    await wrapper.find('#cf-fullname').setValue('Admin')
+    await wrapper.find('#cf-password').setValue('pass123')
+
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    // i18n stub returns the key string when locale messages are not loaded
+    expect(wrapper.find('.error-text').text()).toBe('superAdmin.errorNetwork')
+  })
+
+  it('shows server error message when response is non-JSON (HTML)', async () => {
+    setSuperAdmin()
+    mockPost.mockRejectedValue({ response: { data: '<html>Internal Server Error</html>' } })
+
+    const wrapper = mount(CreateFarmView)
+    await wrapper.find('#cf-name').setValue('Test')
+    await wrapper.find('#cf-code').setValue('TEST')
+    await wrapper.find('#cf-username').setValue('admin')
+    await wrapper.find('#cf-fullname').setValue('Admin')
+    await wrapper.find('#cf-password').setValue('pass123')
+
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    // i18n stub returns the key string when locale messages are not loaded
+    expect(wrapper.find('.error-text').text()).toBe('superAdmin.errorServer')
   })
 })

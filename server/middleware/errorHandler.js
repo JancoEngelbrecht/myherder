@@ -17,5 +17,10 @@ module.exports = function errorHandler(err, _req, res, _next) {
     : err.message;
   const message = typeof raw === 'string' ? raw.replace(/['"]/g, '') : raw;
 
-  res.status(status).json({ error: message });
+  const response = { error: message };
+  if (status === 500 && err.code) {
+    response.code = err.code;
+  }
+
+  res.status(status).json(response);
 };

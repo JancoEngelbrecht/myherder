@@ -117,11 +117,19 @@ async function submit() {
   saving.value = true
   errorMsg.value = ''
   try {
-    const { data } = await api.post('/farms', form.value)
+    const { data } = await api.post('/farms', form.value, { timeout: 30000 })
     showToast(t('superAdmin.farmCreated'), 'success')
     router.push(`/super/farms/${data.farm.id}`)
   } catch (err) {
-    errorMsg.value = err.response?.data?.error || t('common.error')
+    if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+      errorMsg.value = t('superAdmin.errorTimeout')
+    } else if (!err.response) {
+      errorMsg.value = t('superAdmin.errorNetwork')
+    } else if (typeof err.response.data !== 'object' || !err.response.data?.error) {
+      errorMsg.value = t('superAdmin.errorServer')
+    } else {
+      errorMsg.value = err.response.data.error
+    }
   } finally {
     saving.value = false
   }
