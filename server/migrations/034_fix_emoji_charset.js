@@ -35,10 +35,15 @@ exports.up = async function (knex) {
   const isSQLite = knex.client.config.client === 'better-sqlite3'
   if (isSQLite) return
 
-  for (const table of TABLES) {
-    await knex.raw(
-      `ALTER TABLE \`${table}\` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
-    )
+  await knex.raw('SET FOREIGN_KEY_CHECKS=0')
+  try {
+    for (const table of TABLES) {
+      await knex.raw(
+        `ALTER TABLE \`${table}\` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
+      )
+    }
+  } finally {
+    await knex.raw('SET FOREIGN_KEY_CHECKS=1')
   }
 }
 
@@ -46,9 +51,14 @@ exports.down = async function (knex) {
   const isSQLite = knex.client.config.client === 'better-sqlite3'
   if (isSQLite) return
 
-  for (const table of TABLES) {
-    await knex.raw(
-      `ALTER TABLE \`${table}\` CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci`
-    )
+  await knex.raw('SET FOREIGN_KEY_CHECKS=0')
+  try {
+    for (const table of TABLES) {
+      await knex.raw(
+        `ALTER TABLE \`${table}\` CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci`
+      )
+    }
+  } finally {
+    await knex.raw('SET FOREIGN_KEY_CHECKS=1')
   }
 }
