@@ -474,10 +474,4 @@ function formatJson(obj) {
   font-size: 0.75rem;
   padding: 6px 14px;
 }
-
-.btn-sm {
-  font-size: 0.8rem;
-  padding: 6px 14px;
-  width: auto;
-}
 </style>

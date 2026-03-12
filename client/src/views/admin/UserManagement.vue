@@ -207,7 +207,7 @@
           </div>
         </div>
 
-        <button class="fab" @click="openAdd">+</button>
+        <button class="fab" :title="$t('users.addUser')" @click="openAdd">+</button>
       </template>
     </div>
 
@@ -620,12 +620,6 @@ async function executeToggle() {
 .user-actions {
   display: flex;
   gap: 8px;
-}
-
-.btn-sm {
-  font-size: 0.8rem;
-  padding: 6px 14px;
-  width: auto;
 }
 
 .btn-danger-outline {

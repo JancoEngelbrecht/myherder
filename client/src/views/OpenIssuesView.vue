@@ -76,7 +76,7 @@
       </template>
     </div>
 
-    <RouterLink to="/log/issue" class="fab">+</RouterLink>
+    <RouterLink to="/log/issue" class="fab" :title="t('healthIssues.logIssue')">+</RouterLink>
   </div>
 </template>
 
@@ -146,7 +146,7 @@ function onLimitChange(l) {
 
 onMounted(() => {
   load()
-  issueTypesStore.fetchAll()
+  if (!issueTypesStore.hasData) issueTypesStore.fetchAll()
 })
 </script>
 

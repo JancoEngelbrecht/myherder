@@ -11,6 +11,7 @@
       <div v-if="!offline" class="filter-chips">
         <button v-for="opt in TIME_RANGE_OPTIONS" :key="opt.value"
           class="chip" :class="{ active: selectedRange === opt.value }"
+          :aria-pressed="selectedRange === opt.value"
           @click="selectedRange = opt.value"
         >{{ t(opt.labelKey) }}</button>
       </div>

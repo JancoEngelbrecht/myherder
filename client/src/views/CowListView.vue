@@ -37,9 +37,9 @@
         <div class="filter-group">
           <span class="filter-group-title">{{ t('cows.filterGroupHerd') }}</span>
           <div class="filter-chips filter-chips-wrap">
-            <button class="chip" :class="{ active: sexFilter === '' }" @click="setSexFilter('')">{{ t('cows.filterAll') }}</button>
-            <button class="chip" :class="{ active: sexFilter === 'female' }" @click="setSexFilter('female')">{{ t('cows.filterFemale') }}</button>
-            <button class="chip" :class="{ active: sexFilter === 'male' }" @click="setSexFilter('male')">{{ t('cows.filterMale') }}</button>
+            <button class="chip" :class="{ active: sexFilter === '' }" :aria-pressed="sexFilter === ''" @click="setSexFilter('')">{{ t('cows.filterAll') }}</button>
+            <button class="chip" :class="{ active: sexFilter === 'female' }" :aria-pressed="sexFilter === 'female'" @click="setSexFilter('female')">{{ t('cows.filterFemale') }}</button>
+            <button class="chip" :class="{ active: sexFilter === 'male' }" :aria-pressed="sexFilter === 'male'" @click="setSexFilter('male')">{{ t('cows.filterMale') }}</button>
           </div>
           <select v-model="breedFilter" class="form-select filter-select" @change="onAdvancedChange">
             <option value="">{{ t('cows.filterAllBreeds') }}</option>
@@ -51,6 +51,7 @@
               :key="f.value"
               class="chip"
               :class="{ active: lifePhaseFilter === f.value }"
+              :aria-pressed="lifePhaseFilter === f.value"
               @click="setLifePhaseFilter(f.value)"
             >{{ t(f.labelKey) }}</button>
           </div>
@@ -62,12 +63,12 @@
         <div class="filter-group">
           <span class="filter-group-title">{{ t('cows.filterGroupBreeding') }}</span>
           <div class="filter-chips filter-chips-wrap">
-            <button class="chip" :class="{ active: pregnantFilter === '' }" @click="setPregnantFilter('')">{{ t('cows.filterAll') }}</button>
-            <button class="chip" :class="{ active: pregnantFilter === 'true' }" @click="setPregnantFilter('true')">{{ t('cows.filterPregnant') }}</button>
-            <button class="chip" :class="{ active: pregnantFilter === 'false' }" @click="setPregnantFilter('false')">{{ t('cows.filterNotPregnant') }}</button>
+            <button class="chip" :class="{ active: pregnantFilter === '' }" :aria-pressed="pregnantFilter === ''" @click="setPregnantFilter('')">{{ t('cows.filterAll') }}</button>
+            <button class="chip" :class="{ active: pregnantFilter === 'true' }" :aria-pressed="pregnantFilter === 'true'" @click="setPregnantFilter('true')">{{ t('cows.filterPregnant') }}</button>
+            <button class="chip" :class="{ active: pregnantFilter === 'false' }" :aria-pressed="pregnantFilter === 'false'" @click="setPregnantFilter('false')">{{ t('cows.filterNotPregnant') }}</button>
           </div>
           <div>
-            <button class="chip chip-accent" :class="{ active: readyToBreed }" @click="readyToBreed = !readyToBreed">
+            <button class="chip chip-accent" :class="{ active: readyToBreed }" :aria-pressed="readyToBreed" @click="readyToBreed = !readyToBreed">
               {{ t('cows.filterReadyToBreed') }}
             </button>
           </div>

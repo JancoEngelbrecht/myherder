@@ -1,7 +1,7 @@
 <template>
   <header class="app-header">
     <div class="header-left">
-      <button v-if="showBack" class="btn-icon" aria-label="Back" @click="handleBack">
+      <button v-if="showBack" class="btn-icon" :aria-label="t('common.back')" @click="handleBack">
         ‹
       </button>
     </div>
@@ -15,10 +15,10 @@
         <div class="header-actions">
           <SyncIndicator @click="showSyncPanel = true" />
           <SyncPanel :show="showSyncPanel" @close="showSyncPanel = false" />
-          <button class="lang-toggle" :title="locale === 'en' ? 'Switch to Afrikaans' : 'Switch to English'" @click="toggleLang">
+          <button class="lang-toggle" :title="locale === 'en' ? t('common.switchToAfrikaans') : t('common.switchToEnglish')" @click="toggleLang">
             {{ locale === 'en' ? 'AF' : 'EN' }}
           </button>
-          <RouterLink v-if="showAvatar" to="/profile" class="avatar-circle" aria-label="Profile">
+          <RouterLink v-if="showAvatar" to="/profile" class="avatar-circle" :aria-label="t('common.profile')">
             {{ initials }}
           </RouterLink>
         </div>
@@ -49,7 +49,7 @@ const props = defineProps({
 const initials = computed(() => getInitials(authStore.user))
 
 const router = useRouter()
-const { locale } = useI18n()
+const { t, locale } = useI18n()
 
 function handleBack() {
   if (window.history.state?.back) {

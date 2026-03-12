@@ -24,7 +24,7 @@ exports.up = async function (knex) {
     t.timestamps(false, true)
   })
 
-  const now = new Date().toISOString()
+  const now = knex.fn.now()
   await knex('issue_type_definitions').insert(
     DEFAULTS.map((d) => ({
       id: uuidv4(),

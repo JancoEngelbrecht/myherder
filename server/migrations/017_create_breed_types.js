@@ -86,7 +86,7 @@ exports.up = async function (knex) {
     t.timestamps(false, true)
   })
 
-  const now = new Date().toISOString()
+  const now = knex.fn.now()
   await knex('breed_types').insert(
     DEFAULTS.map((d) => ({
       id: uuidv4(),

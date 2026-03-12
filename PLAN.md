@@ -881,6 +881,29 @@ Post-audit fixes organized by priority level.
 
 ---
 
+### Phase 17: Frontend Audit Fixes — NOT STARTED
+
+**Goal:** Fix issues found in the frontend code audit (safety, quality, efficiency, dead code). Scores: Safety 78, Quality 72, Efficiency 72, Dead Code 82 — target ~84 overall.
+
+> Sub-plan: [plans/frontend-audit-fixes.md](plans/frontend-audit-fixes.md)
+
+| Tier | Scope |
+|------|-------|
+| 1A | i18n bug fix (audit.entityTypes.medication) + orphaned key cleanup |
+| 1B | Dead store exports cleanup (featureFlags, auth, router) |
+| 1C | Accessibility attributes (aria-live, aria-modal, aria-pressed, aria-current) |
+| 1D | Translate hardcoded English strings (AppHeader, SearchInput, Toast, ConfirmDialog) |
+| 1E | CSS consolidation (.btn-sm to global) |
+| 1F | Missing toast feedback + error handling |
+| 2A | issueTypesStore hasData guard |
+| 2B | Remove redundant fetchAll after cow edit |
+| 2C | Dynamic import for driver.js |
+| 2D | ConfirmDialog keyboard support |
+
+**Deliverable:** Frontend audit score improved from 76 to ~84. Zero regressions — all 645+ frontend and 575+ backend tests pass after each sub-phase.
+
+---
+
 ## Key Library Choices
 
 | Purpose | Library | Why |

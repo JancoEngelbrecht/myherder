@@ -244,7 +244,7 @@ async function confirmDeleteComment() {
 
 onMounted(() => {
   load()
-  issueTypesStore.fetchAll()
+  if (!issueTypesStore.hasData) issueTypesStore.fetchAll()
 })
 
 async function setStatus(status) {

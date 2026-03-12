@@ -120,7 +120,7 @@
         </div>
 
         <!-- FAB to add -->
-        <button class="fab" @click="openAdd">+</button>
+        <button class="fab" :title="$t('breedTypes.addTitle')" @click="openAdd">+</button>
       </template>
     </div>
 
@@ -404,11 +404,5 @@ async function executeDelete() {
 .bt-actions {
   display: flex;
   gap: 8px;
-}
-
-.btn-sm {
-  font-size: 0.8rem;
-  padding: 6px 14px;
-  width: auto;
 }
 </style>

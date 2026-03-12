@@ -858,29 +858,35 @@ exports.up = async function (knex) {
     }
   } else {
     // MySQL branch
-    for (const tableName of RECREATION_ORDER) {
-      await knex.raw(`ALTER TABLE \`${tableName}\` ADD COLUMN farm_id VARCHAR(36) NOT NULL DEFAULT '${DEFAULT_FARM_ID}'`)
-      await knex.raw(`ALTER TABLE \`${tableName}\` ALTER COLUMN farm_id DROP DEFAULT`)
-    }
+    // Disable FK checks so we can drop/replace indexes that MySQL is using as FK support indexes
+    await knex.raw('SET FOREIGN_KEY_CHECKS=0')
+    try {
+      for (const tableName of RECREATION_ORDER) {
+        await knex.raw(`ALTER TABLE \`${tableName}\` ADD COLUMN farm_id VARCHAR(36) NOT NULL DEFAULT '${DEFAULT_FARM_ID}'`)
+        await knex.raw(`ALTER TABLE \`${tableName}\` ALTER COLUMN farm_id DROP DEFAULT`)
+      }
 
-    // Users: add token_version + expand role ENUM
-    await knex.raw(`ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0`)
-    await knex.raw(`ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'worker', 'super_admin') NOT NULL DEFAULT 'worker'`)
+      // Users: add token_version + expand role ENUM
+      await knex.raw(`ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0`)
+      await knex.raw(`ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'worker', 'super_admin') NOT NULL DEFAULT 'worker'`)
 
-    // Update unique constraints
-    await knex.raw('ALTER TABLE users DROP INDEX users_username_unique, ADD UNIQUE INDEX (farm_id, username)')
-    await knex.raw('ALTER TABLE cows DROP INDEX cows_tag_number_unique, ADD UNIQUE INDEX (farm_id, tag_number)')
-    await knex.raw('ALTER TABLE breed_types DROP INDEX breed_types_code_unique, ADD UNIQUE INDEX (farm_id, code)')
-    await knex.raw('ALTER TABLE issue_type_definitions DROP INDEX issue_type_definitions_code_unique, ADD UNIQUE INDEX (farm_id, code)')
-    await knex.raw('ALTER TABLE milk_records DROP INDEX milk_records_cow_id_session_recording_date_unique, ADD UNIQUE INDEX (farm_id, cow_id, session, recording_date)')
+      // Update unique constraints
+      await knex.raw('ALTER TABLE users DROP INDEX users_username_unique, ADD UNIQUE INDEX (farm_id, username)')
+      await knex.raw('ALTER TABLE cows DROP INDEX cows_tag_number_unique, ADD UNIQUE INDEX (farm_id, tag_number)')
+      await knex.raw('ALTER TABLE breed_types DROP INDEX breed_types_code_unique, ADD UNIQUE INDEX (farm_id, code)')
+      await knex.raw('ALTER TABLE issue_type_definitions DROP INDEX issue_type_definitions_code_unique, ADD UNIQUE INDEX (farm_id, code)')
+      await knex.raw('ALTER TABLE milk_records DROP INDEX milk_records_cow_id_session_recording_date_unique, ADD UNIQUE INDEX (farm_id, cow_id, session, recording_date)')
 
-    // Composite PK changes for config tables
-    await knex.raw('ALTER TABLE feature_flags DROP PRIMARY KEY, ADD PRIMARY KEY (farm_id, `key`)')
-    await knex.raw('ALTER TABLE app_settings DROP PRIMARY KEY, ADD PRIMARY KEY (farm_id, `key`)')
+      // Composite PK changes for config tables
+      await knex.raw('ALTER TABLE feature_flags DROP PRIMARY KEY, ADD PRIMARY KEY (farm_id, `key`)')
+      await knex.raw('ALTER TABLE app_settings DROP PRIMARY KEY, ADD PRIMARY KEY (farm_id, `key`)')
 
-    // Create farm_id indexes
-    for (const idx of FARM_ID_INDEXES) {
-      await knex.raw(idx)
+      // Create farm_id indexes
+      for (const idx of FARM_ID_INDEXES) {
+        await knex.raw(idx)
+      }
+    } finally {
+      await knex.raw('SET FOREIGN_KEY_CHECKS=1')
     }
   }
 }

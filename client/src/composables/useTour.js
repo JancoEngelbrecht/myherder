@@ -1,7 +1,7 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { driver } from 'driver.js'
-import 'driver.js/dist/driver.css'
 import { useAuthStore } from '../stores/auth.js'
+
+let driverLoaded = null // module-level lazy import cache
 
 /**
  * Composable for per-feature guided tours using driver.js.
@@ -40,12 +40,28 @@ export function useTour(tourId, stepsOrFn, options = {}) {
     hasCompleted.value = false
   }
 
-  function startTour() {
+  async function startTour() {
     // Guard against calls after unmount or environment teardown
     if (!isMounted || typeof document === 'undefined') return
 
+    // Lazy-load driver.js on first tour start
+    if (!driverLoaded) {
+      driverLoaded = import('driver.js').then(async (mod) => {
+        await import('driver.js/dist/driver.css')
+        return mod.driver
+      })
+    }
+    let driverFn
+    try {
+      driverFn = await driverLoaded
+    } catch { return }
+    if (!isMounted) return // Component may have unmounted during import
+
     // Resolve steps lazily so t() picks up the current locale
-    const steps = typeof stepsOrFn === 'function' ? stepsOrFn() : stepsOrFn
+    let steps
+    try {
+      steps = typeof stepsOrFn === 'function' ? stepsOrFn() : stepsOrFn
+    } catch { return } // Bail if environment torn down (e.g. test cleanup)
 
     // Filter out steps whose target element doesn't exist in the DOM
     const activeSteps = steps.filter((step) => {
@@ -55,7 +71,7 @@ export function useTour(tourId, stepsOrFn, options = {}) {
 
     if (activeSteps.length === 0) return
 
-    driverInstance = driver({
+    driverInstance = driverFn({
       showProgress: true,
       animate: true,
       allowClose: true,

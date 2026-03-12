@@ -22,7 +22,7 @@ exports.up = async function (knex) {
     breedMap.set(bt.code.toLowerCase(), bt.id)
   }
 
-  const now = new Date().toISOString()
+  const now = knex.fn.now()
 
   for (const cow of cows) {
     const breedText = cow.breed.trim().toLowerCase()

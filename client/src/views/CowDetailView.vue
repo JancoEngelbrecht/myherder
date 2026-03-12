@@ -382,7 +382,7 @@ async function load() {
 
 onMounted(() => {
   load()
-  if (featureFlagsStore.flags.healthIssues) issueTypesStore.fetchAll()
+  if (featureFlagsStore.flags.healthIssues && !issueTypesStore.hasData) issueTypesStore.fetchAll()
   if (!breedTypesStore.hasData) breedTypesStore.fetchActive().catch(() => {})
 })
 

@@ -8,7 +8,7 @@ exports.up = async function (knex) {
   })
 
   // Insert dry_off event type
-  const now = new Date().toISOString()
+  const now = knex.fn.now()
   await knex('breeding_event_types').insert({
     id: uuidv4(),
     code: 'dry_off',

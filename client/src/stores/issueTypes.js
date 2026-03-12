@@ -11,6 +11,7 @@ export const useIssueTypesStore = defineStore('issueTypes', () => {
   const loading = ref(false)
 
   const activeTypes = computed(() => issueTypes.value.filter((t) => t.is_active))
+  const hasData = computed(() => issueTypes.value.length > 0)
 
   function getByCode(code) {
     return issueTypes.value.find((t) => t.code === code) || null
@@ -99,5 +100,5 @@ export const useIssueTypesStore = defineStore('issueTypes', () => {
     }
   }
 
-  return { issueTypes, total, loading, activeTypes, getByCode, fetchAll, create, update, remove }
+  return { issueTypes, total, loading, activeTypes, hasData, getByCode, fetchAll, create, update, remove }
 })

@@ -29,13 +29,15 @@ module.exports = {
       port: process.env.DB_PORT || 3306,
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME
+      database: process.env.DB_NAME,
+      charset: 'utf8mb4'
     },
+    pool: { min: 0, max: 5 },
     migrations: {
       directory: './server/migrations'
     },
     seeds: {
-      directory: './server/seeds'
+      directory: './server/seeds/production'
     }
   }
 };

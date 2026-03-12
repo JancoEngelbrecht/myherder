@@ -7,13 +7,13 @@
         <div class="profile-avatar">{{ initials }}</div>
         <h2 class="profile-name">{{ authStore.user?.full_name || authStore.user?.username }}</h2>
         <span class="profile-username">@{{ authStore.user?.username }}</span>
-        <span class="role-badge" :class="authStore.isAdmin ? 'role-admin' : 'role-worker'">
-          {{ authStore.isAdmin ? t('profile.roleAdmin') : t('profile.roleWorker') }}
+        <span class="role-badge" :class="authStore.isSuperAdmin ? 'role-super' : authStore.isAdmin ? 'role-admin' : 'role-worker'">
+          {{ authStore.isSuperAdmin ? t('profile.roleSuperAdmin') : authStore.isAdmin ? t('profile.roleAdmin') : t('profile.roleWorker') }}
         </span>
       </div>
 
       <div class="settings-list">
-        <RouterLink v-if="authStore.isAdmin" to="/settings" class="settings-item">
+        <RouterLink v-if="authStore.isAdmin && hasFarmContext" to="/settings" class="settings-item">
           <span class="settings-icon">⚙</span>
           <div class="settings-info">
             <span class="settings-name">{{ t('profile.settings') }}</span>
@@ -66,6 +66,7 @@ const authStore = useAuthStore()
 const showLogoutDialog = ref(false)
 
 const initials = computed(() => getInitials(authStore.user))
+const hasFarmContext = computed(() => !!authStore.user?.farm_id)
 
 async function handleLogout() {
   await authStore.logout()
@@ -129,6 +130,12 @@ async function handleLogout() {
   background: #EDE9FE;
   color: #5B21B6;
   border: 1px solid rgba(109, 40, 217, 0.15);
+}
+
+.role-super {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid rgba(146, 64, 14, 0.2);
 }
 
 .settings-list {

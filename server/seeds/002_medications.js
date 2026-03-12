@@ -7,7 +7,7 @@ exports.seed = async function (knex) {
   const count = await knex('medications').count('id as n').first()
   if (count.n > 0) return
 
-  const now = new Date().toISOString()
+  const now = knex.fn.now()
 
   await knex('medications').insert([
     {

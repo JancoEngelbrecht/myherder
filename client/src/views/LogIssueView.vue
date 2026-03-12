@@ -202,7 +202,7 @@ watch(() => form.value.issue_types, (types) => {
   if (!needsTeats) form.value.affected_teats = []
 }, { deep: true })
 
-onMounted(() => issueTypesStore.fetchAll())
+onMounted(() => { if (!issueTypesStore.hasData) issueTypesStore.fetchAll() })
 
 async function submit() {
   errors.value = {}

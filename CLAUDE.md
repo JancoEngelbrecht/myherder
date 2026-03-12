@@ -20,7 +20,19 @@ npm run seed          # knex seed:run (admin/admin123, sipho/PIN 1234)
 npm run build         # outputs client/dist/
 ```
 
-Tests: `cd client && npm run test:run` (Vitest). Lint: `npm run lint` / `npm run lint:fix`.
+```bash
+# Tests
+cd client && npm run test:run          # Frontend (Vitest, 645+ tests)
+npm test                                # Backend (Jest, 575+ tests)
+npm test -- --testPathPattern=cows      # Single backend test file
+cd client && npx vitest run src/tests/CowCard.test.js  # Single frontend test
+
+# Lint & format
+npm run lint / npm run lint:fix        # ESLint 9 flat config
+npm run format                         # Prettier
+npm run format:check                   # Prettier check (CI)
+npm run knip                           # Dead code detection
+```
 
 ## Architecture
 
@@ -32,7 +44,9 @@ Tests: `cd client && npm run test:run` (Vitest). Lint: `npm run lint` / `npm run
 
 **Offline/PWA:** `vite-plugin-pwa` with NetworkFirst strategy for `/api` routes (10s timeout). Dexie.js IndexedDB (`myherder_db`) stores `cows` and `auth` tables. The cows Pinia store falls back to IndexedDB when API calls fail.
 
-**Auth:** Two login modes — admin password (`POST /api/auth/login`, 24h JWT) and worker PIN (`POST /api/auth/login-pin`, 7d JWT, PIN is exactly 4 digits). `POST /api/auth/refresh` renews a valid JWT (auto-called when <1h from expiry). Offline login falls back to cached JWT in IndexedDB if not expired. JWT payload includes `{ id, username, full_name, role, permissions[], language }`. Admin role bypasses permission checks; workers need specific permissions (e.g., `can_manage_cows`). Token stored in both localStorage and IndexedDB.
+**Multi-Tenancy:** All tenant-scoped tables have `farm_id NOT NULL`. The `tenantScope` middleware (applied to all `/api/*` except auth/settings/announcements) extracts `farm_id` from JWT and sets `req.farmId`. Three roles: `super_admin` (cross-farm, no farm_id), `admin` (farm-scoped), `worker` (farm-scoped). Super-admin can "enter" a farm via `POST /api/farms/:id/enter` (4h scoped JWT). Frontend stores original token and restores on exit. IndexedDB is farm-scoped (`myherder_db_<farmId>`).
+
+**Auth:** Two login modes — admin password (`POST /api/auth/login`, 24h JWT) and worker PIN (`POST /api/auth/login-pin`, 7d JWT, PIN is exactly 4 digits). Login accepts optional `farm_code`; PIN login requires it. Optional TOTP 2FA (setup-2fa, confirm-2fa, verify-2fa endpoints). `POST /api/auth/refresh` renews a valid JWT (auto-called when <1h from expiry). Offline login falls back to cached JWT in IndexedDB if not expired. JWT payload includes `{ id, username, full_name, role, permissions[], language, farm_id }`. Admin role bypasses permission checks; workers need specific permissions (e.g., `can_manage_cows`). Token versioning: auth middleware checks `token_version` per request to support session revocation. Token stored in both localStorage and IndexedDB.
 
 **Permission Enforcement:** The `authorize(permission)` middleware in `server/middleware/authorize.js` gates write routes by permission. Admin role auto-bypasses. Route → permission mapping:
 | Permission | Routes gated |
@@ -129,6 +143,19 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
 - `POST /api/farms/:id/enter` — super-admin only; issues 4h farm-scoped JWT for cross-farm management
 - `POST /api/farms/:id/revoke-all-sessions` — super-admin only; bumps `token_version` for all farm users
 - `POST /api/users/:id/revoke-sessions` — admin only; bumps individual user's `token_version`
+- `GET /api/global-defaults/:type` — super-admin only; list defaults (`?all=1` for inactive too). Types: `breed-types`, `issue-types`, `medications`
+- `POST /api/global-defaults/:type` — super-admin only; create default
+- `PATCH /api/global-defaults/:type/:id` — super-admin only; update default
+- `DELETE /api/global-defaults/:type/:id` — super-admin only; soft deactivate
+- `POST /api/global-defaults/:type/push` — super-admin only; push defaults to farms. Body: `{ farm_ids: 'all' | [...] }`. Returns `{ pushed, skipped, farms_affected }`
+- `GET /api/farms/export` — super-admin only; cross-farm JSON dump (sensitive fields stripped)
+- `GET /api/farms/stats` — super-admin only; aggregate counts `{ total_farms, active_farms, total_users, active_users, total_cows, active_cows }`
+- `GET /api/announcements/active` — public (no auth); active non-expired announcements
+- `GET /api/announcements` — super-admin only; all announcements
+- `POST /api/announcements` — super-admin only; create. Body: `{ type: info|warning|maintenance, title, message?, starts_at?, expires_at? }`
+- `PATCH /api/announcements/:id` — super-admin only; update
+- `DELETE /api/announcements/:id` — super-admin only; soft deactivate
+- `POST /api/announcements/:id/dismiss` — authenticated; dismiss for current user (idempotent)
 
 ## i18n
 
@@ -180,7 +207,7 @@ When the user says "make this a feature sub-plan" (or similar):
 3. Track sub-phase progress in `MEMORY.md` as work proceeds
 4. When complete, mark the sub-plan link in `PLAN.md` with `(COMPLETE)`
 
-Existing sub-plans: `plans/breeding-v2.md` (COMPLETE), `plans/offline-sync.md` (COMPLETE)
+Sub-plans live in `plans/` — check `MEMORY.md` for full list and completion status.
 
 ## Environment
 

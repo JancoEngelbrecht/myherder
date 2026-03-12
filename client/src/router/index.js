@@ -268,6 +268,36 @@ const routes = [
     meta: { requiresAuth: true, requiresSuperAdmin: true },
   },
   {
+    path: '/super/global/medications',
+    name: 'global-medications',
+    component: () => import('../views/super/DefaultMedicationsView.vue'),
+    meta: { requiresAuth: true, requiresSuperAdmin: true },
+  },
+  {
+    path: '/super/global/issue-types',
+    name: 'global-issue-types',
+    component: () => import('../views/super/DefaultIssueTypesView.vue'),
+    meta: { requiresAuth: true, requiresSuperAdmin: true },
+  },
+  {
+    path: '/super/global/breed-types',
+    name: 'global-breed-types',
+    component: () => import('../views/super/DefaultBreedTypesView.vue'),
+    meta: { requiresAuth: true, requiresSuperAdmin: true },
+  },
+  {
+    path: '/super/global/push',
+    name: 'global-push',
+    component: () => import('../views/super/PushDefaultsView.vue'),
+    meta: { requiresAuth: true, requiresSuperAdmin: true },
+  },
+  {
+    path: '/super/announcements',
+    name: 'announcement-management',
+    component: () => import('../views/super/AnnouncementsView.vue'),
+    meta: { requiresAuth: true, requiresSuperAdmin: true },
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/',
   },
@@ -277,15 +307,6 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
 })
-
-// camelCase flag → snake_case DB key mapping for route meta
-const MODULE_KEY_MAP = {
-  breeding: 'breeding',
-  milkRecording: 'milkRecording',
-  healthIssues: 'healthIssues',
-  treatments: 'treatments',
-  analytics: 'analytics',
-}
 
 router.beforeEach(async (to) => {
   const authStore = useAuthStore()
@@ -313,8 +334,7 @@ router.beforeEach(async (to) => {
   // Module flag gating
   if (to.meta.requiresModule) {
     const featureFlagsStore = useFeatureFlagsStore()
-    const flagKey = MODULE_KEY_MAP[to.meta.requiresModule]
-    if (flagKey && !featureFlagsStore.flags[flagKey]) {
+    if (!featureFlagsStore.flags[to.meta.requiresModule]) {
       return { name: 'dashboard' }
     }
   }

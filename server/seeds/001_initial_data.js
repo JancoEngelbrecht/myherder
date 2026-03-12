@@ -23,9 +23,14 @@ const DEFAULT_FARM_ID = '00000000-0000-4000-a000-000000000099';
 // ── Main seed ────────────────────────────────────────────────────────────────
 
 exports.seed = async function (knex) {
-  // Disable FK checks for the truncation phase (SQLite pragma).
-  // This avoids having to enumerate the full dependency tree across all migrations.
-  await knex.raw('PRAGMA foreign_keys = OFF');
+  const isSQLite = knex.client.config.client === 'better-sqlite3';
+
+  // Disable FK checks for the truncation phase (dialect-specific).
+  if (isSQLite) {
+    await knex.raw('PRAGMA foreign_keys = OFF');
+  } else {
+    await knex.raw('SET FOREIGN_KEY_CHECKS=0');
+  }
   try {
     await knex('sync_log').del();
     await knex('breeding_events').del();
@@ -37,7 +42,11 @@ exports.seed = async function (knex) {
     await knex('users').del();
     await knex('farms').del();
   } finally {
-    await knex.raw('PRAGMA foreign_keys = ON');
+    if (isSQLite) {
+      await knex.raw('PRAGMA foreign_keys = ON');
+    } else {
+      await knex.raw('SET FOREIGN_KEY_CHECKS=1');
+    }
   }
 
   // ── Default farm ──────────────────────────────────────────────────────────
@@ -575,7 +584,7 @@ exports.seed = async function (knex) {
       id: uuidv4(), cow_id: C006, event_type: 'heat_observed', event_date: daysAgo(18),
       heat_signs: JSON.stringify(['restlessness']),
       expected_next_heat: daysFromNow(3),
-      dismissed_at: new Date(today.getTime() - 15 * 86400000).toISOString(),
+      dismissed_at: new Date(today.getTime() - 15 * 86400000).toISOString().replace('T', ' ').slice(0, 19),
       dismissed_by: adminId,
       dismiss_reason: 'Cow under mastitis treatment. Breeding postponed until cleared.',
       recorded_by: workerId,
@@ -868,7 +877,7 @@ exports.seed = async function (knex) {
       id: uuidv4(), cow_id: C029, event_type: 'heat_observed', event_date: daysAgo(10),
       heat_signs: JSON.stringify(['mucus_discharge']),
       expected_next_heat: daysFromNow(11),
-      dismissed_at: new Date(today.getTime() - 9 * 86400000).toISOString(),
+      dismissed_at: new Date(today.getTime() - 9 * 86400000).toISOString().replace('T', ' ').slice(0, 19),
       dismissed_by: adminId,
       dismiss_reason: 'Cow showing signs of milk fever. Breeding deferred until recovered.',
       recorded_by: workerId,
@@ -1142,10 +1151,10 @@ exports.seed = async function (knex) {
     ...e,
   }));
 
-  await knex.raw('PRAGMA ignore_check_constraints = ON');
+  if (isSQLite) await knex.raw('PRAGMA ignore_check_constraints = ON');
   try {
     await knex.batchInsert('breeding_events', normalisedBreedingEvents, 50);
   } finally {
-    await knex.raw('PRAGMA ignore_check_constraints = OFF');
+    if (isSQLite) await knex.raw('PRAGMA ignore_check_constraints = OFF');
   }
 };

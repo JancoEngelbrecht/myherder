@@ -196,6 +196,13 @@ a {
   background: var(--border);
 }
 
+/* Small inline button — override full-width default */
+.btn-sm {
+  font-size: 0.8rem;
+  padding: 6px 14px;
+  width: auto;
+}
+
 /* Small inline pill button — use alongside .btn-primary/.btn-secondary to override full-width */
 .btn-sm-pill {
   width: auto;

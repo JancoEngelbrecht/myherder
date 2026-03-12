@@ -294,7 +294,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     token, user, hydrated, isOfflineMode,
-    tempToken, pending2fa, pending2faSetup,
+    tempToken,
     activeFarmName,
     isAuthenticated, isAdmin, isSuperAdmin, isInFarmContext, canManageCows, hasPermission,
     hydrate, login, loginPin, logout, setSession,

@@ -40,6 +40,22 @@ if (isTest) {
   }
 }
 
+// ── Database Validation (production) ─────────────────────────────
+//
+// MySQL connection vars are required in production — fail fast so the
+// operator sees a clear message instead of a cryptic ECONNREFUSED later.
+
+if (isProduction) {
+  const required = ['DB_HOST', 'DB_USER', 'DB_PASSWORD', 'DB_NAME'];
+  const missing = required.filter((k) => !process.env[k]);
+  if (missing.length) {
+    throw new Error(
+      `Missing required database environment variables for production: ${missing.join(', ')}. ` +
+      'Set these in your .env or cPanel environment configuration.'
+    );
+  }
+}
+
 // ── CORS Origins ─────────────────────────────────────────────────
 //
 // - development: default to localhost dev origins

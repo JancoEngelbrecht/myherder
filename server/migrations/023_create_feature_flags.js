@@ -7,7 +7,7 @@ exports.up = async function (knex) {
     t.datetime('updated_at').defaultTo(knex.fn.now())
   })
 
-  const now = new Date().toISOString()
+  const now = knex.fn.now()
   await knex('feature_flags').insert(
     DEFAULTS.map((key) => ({ key, enabled: true, updated_at: now })),
   )

@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import api from '../services/api'
 import db from '../db/indexedDB'
@@ -14,14 +14,6 @@ const DEFAULTS = {
 export const useFeatureFlagsStore = defineStore('featureFlags', () => {
   const flags = ref({ ...DEFAULTS })
   const loading = ref(false)
-
-  // ── Computed getters ─────────────────────────────────────────
-
-  const isBreedingEnabled = computed(() => flags.value.breeding)
-  const isMilkRecordingEnabled = computed(() => flags.value.milkRecording)
-  const isHealthIssuesEnabled = computed(() => flags.value.healthIssues)
-  const isTreatmentsEnabled = computed(() => flags.value.treatments)
-  const isAnalyticsEnabled = computed(() => flags.value.analytics)
 
   // ── Helpers ──────────────────────────────────────────────────
 
@@ -74,23 +66,10 @@ export const useFeatureFlagsStore = defineStore('featureFlags', () => {
     }
   }
 
-  async function hydrateFromCache() {
-    const cached = await loadFromIndexedDB()
-    if (cached) {
-      flags.value = cached
-    }
-  }
-
   return {
     flags,
     loading,
-    isBreedingEnabled,
-    isMilkRecordingEnabled,
-    isHealthIssuesEnabled,
-    isTreatmentsEnabled,
-    isAnalyticsEnabled,
     fetchFlags,
     updateFlag,
-    hydrateFromCache,
   }
 })

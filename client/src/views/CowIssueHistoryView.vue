@@ -90,7 +90,7 @@ async function load() {
 
 onMounted(() => {
   load()
-  issueTypesStore.fetchAll()
+  if (!issueTypesStore.hasData) issueTypesStore.fetchAll()
 })
 </script>
 

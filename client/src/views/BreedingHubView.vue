@@ -65,7 +65,7 @@
     </div>
 
     <!-- FAB -->
-    <RouterLink data-tour="breed-log" to="/breed/log" class="fab">+</RouterLink>
+    <RouterLink data-tour="breed-log" to="/breed/log" class="fab" :title="t('breeding.logEvent')">+</RouterLink>
 
     <TourButton above-fab @start-tour="startTour" />
   </div>

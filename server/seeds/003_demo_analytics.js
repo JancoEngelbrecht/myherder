@@ -12,6 +12,7 @@ const DEFAULT_FARM_ID = '00000000-0000-4000-a000-000000000099';
  * health_issues, treatments) then re-inserts.
  */
 exports.seed = async function (knex) {
+  const isSQLite = knex.client.config.client === 'better-sqlite3'
   // ── Wipe existing demo data ──────────────────────────────────────────────
   await knex('treatment_medications').del();
   await knex('treatments').del();
@@ -442,7 +443,8 @@ exports.seed = async function (knex) {
   for (const e of existingEvents) {
     cowsWithEvents.add(e.cow_id);
     if (e.event_type === 'calving') {
-      existingCalvings.add(`${e.cow_id}:${e.event_date.slice(0, 7)}`);
+      const evtDateStr = e.event_date instanceof Date ? e.event_date.toISOString() : String(e.event_date)
+      existingCalvings.add(`${e.cow_id}:${evtDateStr.slice(0, 7)}`);
     }
   }
 
@@ -782,13 +784,13 @@ exports.seed = async function (knex) {
     ...e,
   }));
   if (normalisedBreedingEvents.length > 0) {
-    await knex.raw('PRAGMA ignore_check_constraints = ON');
+    if (isSQLite) await knex.raw('PRAGMA ignore_check_constraints = ON')
     try {
       for (let i = 0; i < normalisedBreedingEvents.length; i += 50) {
         await knex.batchInsert('breeding_events', normalisedBreedingEvents.slice(i, i + 50), 50);
       }
     } finally {
-      await knex.raw('PRAGMA ignore_check_constraints = OFF');
+      if (isSQLite) await knex.raw('PRAGMA ignore_check_constraints = OFF')
     }
   }
 

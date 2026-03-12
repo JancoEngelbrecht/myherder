@@ -541,12 +541,6 @@ async function doDelete() {
   gap: 8px;
 }
 
-.btn-sm {
-  font-size: 0.8rem;
-  padding: 6px 14px;
-  width: auto;
-}
-
 .badge-active {
   background: var(--success-light);
   color: var(--primary-dark);

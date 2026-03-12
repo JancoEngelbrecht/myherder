@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <TransitionGroup name="toast" tag="div" class="toast-container">
+    <TransitionGroup name="toast" tag="div" class="toast-container" role="status" aria-live="polite">
       <div
         v-for="toast in toasts"
         :key="toast.id"
@@ -9,15 +9,17 @@
         @click="dismiss(toast.id)"
       >
         <span class="toast-msg">{{ toast.message }}</span>
-        <button class="toast-close" aria-label="Dismiss">&times;</button>
+        <button class="toast-close" :aria-label="t('common.dismiss')">&times;</button>
       </div>
     </TransitionGroup>
   </Teleport>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { useToast } from '../../composables/useToast'
 
+const { t } = useI18n()
 const { toasts, dismiss } = useToast()
 </script>
 

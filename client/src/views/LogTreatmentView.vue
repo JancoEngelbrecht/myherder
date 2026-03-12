@@ -287,7 +287,7 @@ const hasWithdrawal = computed(() => previewMilkEnd.value !== null || previewMea
 
 onMounted(() => {
   medicationsStore.fetchAll()
-  issueTypesStore.fetchAll()
+  if (!issueTypesStore.hasData) issueTypesStore.fetchAll()
 })
 
 function localNow() {

@@ -1,8 +1,8 @@
 const { randomUUID: uuidv4 } = require('crypto')
 
-// ── Default breed types (from migration 017) ────────────────────────────────
+// ── Hardcoded fallback defaults (used when global tables are empty) ──
 
-const DEFAULT_BREED_TYPES = [
+const FALLBACK_BREED_TYPES = [
   { code: 'holstein', name: 'Holstein', heat_cycle_days: 21, gestation_days: 280, preg_check_days: 35, voluntary_waiting_days: 50, dry_off_days: 60, calf_max_months: 6, heifer_min_months: 15, young_bull_min_months: 15, sort_order: 0 },
   { code: 'jersey', name: 'Jersey', heat_cycle_days: 21, gestation_days: 279, preg_check_days: 35, voluntary_waiting_days: 45, dry_off_days: 60, calf_max_months: 6, heifer_min_months: 14, young_bull_min_months: 15, sort_order: 1 },
   { code: 'ayrshire', name: 'Ayrshire', heat_cycle_days: 21, gestation_days: 279, preg_check_days: 35, voluntary_waiting_days: 45, dry_off_days: 60, calf_max_months: 6, heifer_min_months: 15, young_bull_min_months: 15, sort_order: 2 },
@@ -10,9 +10,7 @@ const DEFAULT_BREED_TYPES = [
   { code: 'brahman', name: 'Brahman', heat_cycle_days: 21, gestation_days: 292, preg_check_days: 35, voluntary_waiting_days: 60, dry_off_days: 60, calf_max_months: 8, heifer_min_months: 24, young_bull_min_months: 15, sort_order: 4 },
 ]
 
-// ── Default issue types (from migration 012) ────────────────────────────────
-
-const DEFAULT_ISSUE_TYPES = [
+const FALLBACK_ISSUE_TYPES = [
   { code: 'lameness', name: 'Lameness', emoji: '🦵', requires_teat_selection: false, sort_order: 0 },
   { code: 'mastitis', name: 'Mastitis', emoji: '🍼', requires_teat_selection: true, sort_order: 1 },
   { code: 'respiratory', name: 'Respiratory', emoji: '🫁', requires_teat_selection: false, sort_order: 2 },
@@ -24,9 +22,7 @@ const DEFAULT_ISSUE_TYPES = [
   { code: 'other', name: 'Other', emoji: '❓', requires_teat_selection: false, sort_order: 8 },
 ]
 
-// ── Default medications (from seed 002) ─────────────────────────────────────
-
-const DEFAULT_MEDICATIONS = [
+const FALLBACK_MEDICATIONS = [
   { name: 'Penicillin G', active_ingredient: 'Benzylpenicillin', withdrawal_milk_hours: 72, withdrawal_meat_days: 10, default_dosage: '5ml', unit: 'ml', notes: 'Broad-spectrum antibiotic. Administer IM.' },
   { name: 'Oxytetracycline 200mg/ml', active_ingredient: 'Oxytetracycline', withdrawal_milk_hours: 96, withdrawal_meat_days: 28, default_dosage: '10ml', unit: 'ml', notes: 'Long-acting. For respiratory and systemic infections.' },
   { name: 'Flunixin Meglumine (Banamine)', active_ingredient: 'Flunixin', withdrawal_milk_hours: 36, withdrawal_meat_days: 4, default_dosage: '2ml', unit: 'ml', notes: 'NSAID. Anti-inflammatory and analgesic.' },
@@ -34,12 +30,11 @@ const DEFAULT_MEDICATIONS = [
   { name: 'Vitamins B-complex', active_ingredient: 'B-vitamins', withdrawal_milk_hours: 0, withdrawal_meat_days: 0, default_dosage: '10ml', unit: 'ml', notes: 'No withdrawal period. General supplementation.' },
 ]
 
-// ── Default feature flags ───────────────────────────────────────────────────
-
 const DEFAULT_FLAGS = ['breeding', 'milk_recording', 'health_issues', 'treatments', 'analytics']
 
 /**
  * Seed default reference data for a newly created farm.
+ * Reads from global default_* tables; falls back to hardcoded arrays if empty.
  * Must be called within a transaction (trx) for atomicity.
  *
  * @param {string} farmId - The farm UUID
@@ -47,38 +42,69 @@ const DEFAULT_FLAGS = ['breeding', 'milk_recording', 'health_issues', 'treatment
  * @param {object} trx - Knex transaction object
  */
 async function seedFarmDefaults(farmId, farmName, trx) {
-  const now = new Date().toISOString()
+  const now = trx.fn.now()
 
-  // 1. Breed types
+  // 1. Breed types — read from global defaults, fallback to hardcoded
+  let breedDefaults = await trx('default_breed_types').where('is_active', true).orderBy('sort_order')
+  if (breedDefaults.length === 0) breedDefaults = FALLBACK_BREED_TYPES
+
   await trx('breed_types').insert(
-    DEFAULT_BREED_TYPES.map((d) => ({
+    breedDefaults.map((d) => ({
       id: uuidv4(),
       farm_id: farmId,
-      ...d,
+      code: d.code,
+      name: d.name,
+      heat_cycle_days: d.heat_cycle_days,
+      gestation_days: d.gestation_days,
+      preg_check_days: d.preg_check_days,
+      voluntary_waiting_days: d.voluntary_waiting_days,
+      dry_off_days: d.dry_off_days,
+      calf_max_months: d.calf_max_months,
+      heifer_min_months: d.heifer_min_months,
+      young_bull_min_months: d.young_bull_min_months,
+      sort_order: d.sort_order ?? 0,
       is_active: true,
       created_at: now,
       updated_at: now,
     }))
   )
 
-  // 2. Issue types
+  // 2. Issue types — read from global defaults, fallback to hardcoded
+  let issueDefaults = await trx('default_issue_types').where('is_active', true).orderBy('sort_order')
+  if (issueDefaults.length === 0) issueDefaults = FALLBACK_ISSUE_TYPES
+
   await trx('issue_type_definitions').insert(
-    DEFAULT_ISSUE_TYPES.map((d) => ({
+    issueDefaults.map((d) => ({
       id: uuidv4(),
       farm_id: farmId,
-      ...d,
+      code: d.code,
+      name: d.name,
+      emoji: d.emoji,
+      requires_teat_selection: d.requires_teat_selection,
+      sort_order: d.sort_order ?? 0,
       is_active: true,
       created_at: now,
       updated_at: now,
     }))
   )
 
-  // 3. Medications
+  // 3. Medications — read from global defaults, fallback to hardcoded
+  let medDefaults = await trx('default_medications').where('is_active', true)
+  if (medDefaults.length === 0) medDefaults = FALLBACK_MEDICATIONS
+
   await trx('medications').insert(
-    DEFAULT_MEDICATIONS.map((d) => ({
+    medDefaults.map((d) => ({
       id: uuidv4(),
       farm_id: farmId,
-      ...d,
+      name: d.name,
+      active_ingredient: d.active_ingredient,
+      withdrawal_milk_hours: d.withdrawal_milk_hours,
+      withdrawal_milk_days: d.withdrawal_milk_days ?? 0,
+      withdrawal_meat_hours: d.withdrawal_meat_hours ?? 0,
+      withdrawal_meat_days: d.withdrawal_meat_days,
+      default_dosage: d.default_dosage,
+      unit: d.unit,
+      notes: d.notes,
       is_active: true,
       created_at: now,
       updated_at: now,

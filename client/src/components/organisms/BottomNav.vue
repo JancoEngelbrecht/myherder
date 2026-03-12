@@ -6,6 +6,7 @@
       :to="tab.to"
       class="nav-tab"
       :class="{ active: isActive(tab) }"
+      :aria-current="isActive(tab) ? 'page' : undefined"
     >
       <span class="nav-icon">{{ tab.icon }}</span>
       <span class="nav-label">{{ t(tab.labelKey) }}</span>

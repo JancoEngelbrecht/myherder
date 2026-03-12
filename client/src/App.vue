@@ -25,6 +25,9 @@
       {{ t('superAdmin.viewingFarm', { name: authStore.activeFarmName || '' }) }} — {{ t('superAdmin.exitFarm') }}
     </div>
 
+    <!-- System announcements -->
+    <AnnouncementBanner v-if="authStore.isAuthenticated" />
+
     <RouterView v-slot="{ Component, route }">
       <Transition name="fade" mode="out-in">
         <component :is="Component" :key="route.path" />
@@ -43,6 +46,7 @@ import { useAuthStore } from './stores/auth.js'
 import { useSyncStore } from './stores/sync.js'
 import BottomNav from './components/organisms/BottomNav.vue'
 import ToastMessage from './components/molecules/ToastMessage.vue'
+import AnnouncementBanner from './components/molecules/AnnouncementBanner.vue'
 import { init as initSync, destroyListeners as destroySync } from './services/syncManager.js'
 import { dbRecovered, clearRecoveredFlag } from './db/indexedDB.js'
 

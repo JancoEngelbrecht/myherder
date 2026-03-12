@@ -10,12 +10,48 @@
 
       <!-- Super-admin without farm context -->
       <template v-if="authStore.isSuperAdmin && !hasFarmContext">
+        <!-- System Stats -->
+        <div v-if="systemStats" class="stats-row">
+          <div class="stat-chip stat-active">
+            <span class="stat-count">{{ systemStats.active_farms }}</span>
+            <span class="stat-label">{{ t('globalDefaults.totalFarms') }}</span>
+          </div>
+          <div class="stat-chip stat-total">
+            <span class="stat-count">{{ systemStats.active_users }}</span>
+            <span class="stat-label">{{ t('globalDefaults.totalUsers') }}</span>
+          </div>
+          <div class="stat-chip stat-milking">
+            <span class="stat-count">{{ systemStats.active_cows }}</span>
+            <span class="stat-label">{{ t('globalDefaults.totalCows') }}</span>
+          </div>
+        </div>
+
         <section class="section">
           <h2 class="section-label">{{ t('superAdmin.management') }}</h2>
           <div class="actions-grid">
             <RouterLink to="/super/farms" class="action-card active-action">
               <span class="action-icon">🏢</span>
               <span class="action-label">{{ t('superAdmin.farms') }}</span>
+            </RouterLink>
+            <RouterLink to="/super/global/medications" class="action-card active-action">
+              <span class="action-icon">💊</span>
+              <span class="action-label">{{ t('globalDefaults.medications') }}</span>
+            </RouterLink>
+            <RouterLink to="/super/global/issue-types" class="action-card active-action">
+              <span class="action-icon">🩺</span>
+              <span class="action-label">{{ t('globalDefaults.issueTypes') }}</span>
+            </RouterLink>
+            <RouterLink to="/super/global/breed-types" class="action-card active-action">
+              <span class="action-icon">🐄</span>
+              <span class="action-label">{{ t('globalDefaults.breedTypes') }}</span>
+            </RouterLink>
+            <RouterLink to="/super/global/push" class="action-card active-action">
+              <span class="action-icon">📤</span>
+              <span class="action-label">{{ t('globalDefaults.pushDefaults') }}</span>
+            </RouterLink>
+            <RouterLink to="/super/announcements" class="action-card active-action">
+              <span class="action-icon">📢</span>
+              <span class="action-label">{{ t('announcements.title') }}</span>
             </RouterLink>
           </div>
         </section>
@@ -147,8 +183,21 @@ const { startTour } = useTour('dashboard', () => [
 
 const summary = ref({ active: null, dry: null, pregnant: null, sick: null })
 const summaryLoading = ref(true)
+const systemStats = ref(null)
 
 onMounted(async () => {
+  // Super-admin stats (no farm context)
+  if (authStore.isSuperAdmin && !hasFarmContext.value) {
+    try {
+      const { data } = await api.get('/farms/stats')
+      systemStats.value = data
+    } catch {
+      // silent fail
+    }
+    summaryLoading.value = false
+    return
+  }
+
   if (!hasFarmContext.value || !hasPermission('can_view_analytics')) {
     summaryLoading.value = false
     return
@@ -231,6 +280,8 @@ onMounted(async () => {
 .stat-dry { background: #FFF8E7; color: #92400E; border-color: rgba(180,83,9,0.15); }
 .stat-pregnant { background: #EDE9FE; color: #5B21B6; border-color: rgba(109,40,217,0.15); }
 .stat-sick { background: var(--danger-light); color: var(--danger); border-color: rgba(214,40,40,0.15); }
+.stat-total { background: #EEF2FF; color: #4338CA; border-color: rgba(67,56,202,0.15); }
+.stat-milking { background: #E0F2FE; color: #0369A1; border-color: rgba(3,105,161,0.15); }
 
 /* Actions */
 .actions-grid {

@@ -78,6 +78,126 @@ router.get('/', async (req, res, next) => {
   }
 })
 
+// ── Export helpers ────────────────────────────────────────────
+const EXPORT_USER_FIELDS = ['id', 'username', 'full_name', 'role', 'permissions', 'language', 'is_active', 'created_at']
+
+function groupByFarm(rows) {
+  const map = {}
+  for (const row of rows) {
+    ;(map[row.farm_id] ||= []).push(row)
+  }
+  return map
+}
+
+// GET /api/farms/export — cross-farm JSON export (bulk queries)
+router.get('/export', async (req, res, next) => {
+  try {
+    const farms = await db('farms').where('is_active', true).orderBy('name')
+    const farmIds = farms.map((f) => f.id)
+    if (farmIds.length === 0) return res.json({ _meta: { exported_at: new Date().toISOString(), farm_count: 0, total_records: 0 }, farms: [] })
+
+    const [users, cows, healthIssues, treatments, medications, milkRecords, breedingEvents, breedTypes, issueTypes, appSettings, featureFlags] =
+      await Promise.all([
+        db('users').whereIn('farm_id', farmIds).select(EXPORT_USER_FIELDS),
+        db('cows').whereIn('farm_id', farmIds),
+        db('health_issues').whereIn('farm_id', farmIds),
+        db('treatments').whereIn('farm_id', farmIds),
+        db('medications').whereIn('farm_id', farmIds),
+        db('milk_records').whereIn('farm_id', farmIds),
+        db('breeding_events').whereIn('farm_id', farmIds),
+        db('breed_types').whereIn('farm_id', farmIds),
+        db('issue_type_definitions').whereIn('farm_id', farmIds),
+        db('app_settings').whereIn('farm_id', farmIds),
+        db('feature_flags').whereIn('farm_id', farmIds),
+      ])
+
+    const grouped = {
+      users: groupByFarm(users),
+      cows: groupByFarm(cows),
+      health_issues: groupByFarm(healthIssues),
+      treatments: groupByFarm(treatments),
+      medications: groupByFarm(medications),
+      milk_records: groupByFarm(milkRecords),
+      breeding_events: groupByFarm(breedingEvents),
+      breed_types: groupByFarm(breedTypes),
+      issue_types: groupByFarm(issueTypes),
+      app_settings: groupByFarm(appSettings),
+      feature_flags: groupByFarm(featureFlags),
+    }
+
+    const farmData = farms.map((farm) => {
+      const farmUsers = (grouped.users[farm.id] || []).map((u) => {
+        let permissions = u.permissions
+        if (typeof permissions === 'string') {
+          try { permissions = JSON.parse(permissions) } catch { permissions = [] }
+        }
+        return { ...u, permissions }
+      })
+      return {
+        farm: { id: farm.id, name: farm.name, code: farm.code },
+        users: farmUsers,
+        cows: grouped.cows[farm.id] || [],
+        health_issues: grouped.health_issues[farm.id] || [],
+        treatments: grouped.treatments[farm.id] || [],
+        medications: grouped.medications[farm.id] || [],
+        milk_records: grouped.milk_records[farm.id] || [],
+        breeding_events: grouped.breeding_events[farm.id] || [],
+        breed_types: grouped.breed_types[farm.id] || [],
+        issue_types: grouped.issue_types[farm.id] || [],
+        app_settings: grouped.app_settings[farm.id] || [],
+        feature_flags: grouped.feature_flags[farm.id] || [],
+      }
+    })
+
+    const dateStr = new Date().toISOString().slice(0, 10)
+    res.set('Content-Type', 'application/json')
+    res.set('Content-Disposition', `attachment; filename="myherder-all-farms-${dateStr}.json"`)
+    res.json({
+      _meta: {
+        exported_at: new Date().toISOString(),
+        farm_count: farmData.length,
+        total_records: farmData.reduce((sum, f) =>
+          sum + Object.values(f).reduce((s, v) => s + (Array.isArray(v) ? v.length : 0), 0), 0),
+      },
+      farms: farmData,
+    })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// GET /api/farms/stats — aggregate system stats
+router.get('/stats', async (req, res, next) => {
+  try {
+    const [
+      [{ count: totalFarms }],
+      [{ count: activeFarms }],
+      [{ count: totalUsers }],
+      [{ count: activeUsers }],
+      [{ count: totalCows }],
+      [{ count: activeCows }],
+    ] = await Promise.all([
+      db('farms').count('* as count'),
+      db('farms').where('is_active', true).count('* as count'),
+      db('users').whereNull('deleted_at').count('* as count'),
+      db('users').where('is_active', true).whereNull('deleted_at').count('* as count'),
+      db('cows').whereNull('deleted_at').count('* as count'),
+      db('cows').where('status', 'active').whereNull('deleted_at').count('* as count'),
+    ])
+
+    res.json({
+      total_farms: Number(totalFarms),
+      active_farms: Number(activeFarms),
+      total_users: Number(totalUsers),
+      active_users: Number(activeUsers),
+      total_cows: Number(totalCows),
+      active_cows: Number(activeCows),
+    })
+  } catch (err) {
+    next(err)
+  }
+})
+
 // GET /api/farms/:id — farm detail with user list
 router.get('/:id', async (req, res, next) => {
   try {
@@ -108,7 +228,7 @@ router.post('/', async (req, res, next) => {
 
     const farmId = uuidv4()
     const adminId = uuidv4()
-    const now = new Date().toISOString()
+    const now = db.fn.now()
     const slug = value.code.toLowerCase()
 
     await db.transaction(async (trx) => {

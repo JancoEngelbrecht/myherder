@@ -40,6 +40,7 @@
             <button
               class="chip"
               :class="{ active: sessionFilter === '' }"
+              :aria-pressed="sessionFilter === ''"
               @click="setSessionFilter('')"
             >
               {{ t('milkHistory.filterAllSessions') }}
@@ -49,6 +50,7 @@
               :key="s"
               class="chip"
               :class="{ active: sessionFilter === s }"
+              :aria-pressed="sessionFilter === s"
               @click="setSessionFilter(s)"
             >
               {{ t(`milkHistory.${s}`) }}
@@ -76,6 +78,7 @@
             <button
               class="chip chip-accent"
               :class="{ active: discardedOnly }"
+              :aria-pressed="discardedOnly"
               @click="toggleDiscarded"
             >
               {{ t('milkHistory.filterDiscarded') }}

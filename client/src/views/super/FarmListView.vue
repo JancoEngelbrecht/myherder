@@ -4,6 +4,9 @@
 
     <div class="page-content">
       <div class="list-header">
+        <button class="btn-secondary btn-sm-pill" :disabled="exporting" @click="handleExport">
+          {{ exporting ? '...' : '📥 ' + t('globalDefaults.export') }}
+        </button>
         <RouterLink to="/super/farms/new" class="btn-primary btn-sm-pill">
           + {{ t('superAdmin.createFarm') }}
         </RouterLink>
@@ -54,6 +57,7 @@ import { useAuthStore } from '../../stores/auth.js'
 import api from '../../services/api.js'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import { useToast } from '../../composables/useToast.js'
+import { extractApiError } from '../../utils/apiError.js'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -62,6 +66,25 @@ const { showToast } = useToast()
 
 const farms = ref([])
 const loading = ref(true)
+const exporting = ref(false)
+
+async function handleExport() {
+  exporting.value = true
+  try {
+    const { data } = await api.get('/farms/export')
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `myherder-all-farms-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch {
+    showToast(t('common.error'), 'error')
+  } finally {
+    exporting.value = false
+  }
+}
 
 onMounted(async () => {
   try {
@@ -78,8 +101,8 @@ async function handleEnter(farm) {
   try {
     await authStore.enterFarm(farm.id)
     router.push('/')
-  } catch {
-    showToast(t('common.error'), 'error')
+  } catch (err) {
+    showToast(extractApiError(err), 'error')
   }
 }
 </script>

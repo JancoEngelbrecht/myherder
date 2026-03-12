@@ -1,14 +1,14 @@
 <template>
   <Transition name="fade">
-    <div v-if="show" class="dialog-overlay" @click.self="$emit('cancel')">
-      <div class="dialog" role="dialog">
-        <p class="dialog-text">{{ message }}</p>
+    <div v-if="show" class="dialog-overlay" @click.self="$emit('cancel')" @keydown.escape="$emit('cancel')">
+      <div ref="dialogEl" class="dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-msg">
+        <p id="confirm-dialog-msg" class="dialog-text">{{ message }}</p>
         <div class="dialog-actions">
           <button class="btn-danger" :disabled="loading" @click="$emit('confirm')">
-            {{ confirmLabel }}
+            {{ confirmLabel || t('common.confirm') }}
           </button>
           <button class="btn-secondary" :disabled="loading" @click="$emit('cancel')">
-            {{ cancelLabel }}
+            {{ cancelLabel || t('common.cancel') }}
           </button>
         </div>
       </div>
@@ -17,15 +17,30 @@
 </template>
 
 <script setup>
-defineProps({
+import { ref, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
+const dialogEl = ref(null)
+
+const props = defineProps({
   show: { type: Boolean, default: false },
   message: { type: String, required: true },
-  confirmLabel: { type: String, default: 'Delete' },
-  cancelLabel: { type: String, default: 'Cancel' },
+  confirmLabel: { type: String, default: '' },
+  cancelLabel: { type: String, default: '' },
   loading: { type: Boolean, default: false },
 })
 
 defineEmits(['confirm', 'cancel'])
+
+// Auto-focus the cancel button when dialog opens
+watch(() => props.show, async (visible) => {
+  if (visible) {
+    await nextTick()
+    dialogEl.value?.querySelector('.btn-secondary')?.focus()
+  }
+})
 </script>
 
 <style scoped>

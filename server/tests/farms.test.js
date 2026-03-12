@@ -253,6 +253,41 @@ describe('POST /api/farms/:id/enter', () => {
   })
 })
 
+describe('GET /api/farms/export', () => {
+  it('returns cross-farm JSON export', async () => {
+    const res = await request(app)
+      .get('/api/farms/export')
+      .set('Authorization', superAdminToken())
+    expect(res.status).toBe(200)
+    expect(res.body._meta).toBeDefined()
+    expect(res.body._meta.farm_count).toBeGreaterThanOrEqual(1)
+    expect(Array.isArray(res.body.farms)).toBe(true)
+    expect(res.body.farms[0].farm).toBeDefined()
+    expect(res.body.farms[0].users).toBeDefined()
+  })
+
+  it('rejects non-super-admin', async () => {
+    const res = await request(app)
+      .get('/api/farms/export')
+      .set('Authorization', adminToken())
+    expect(res.status).toBe(403)
+  })
+})
+
+describe('GET /api/farms/stats', () => {
+  it('returns aggregate system stats', async () => {
+    const res = await request(app)
+      .get('/api/farms/stats')
+      .set('Authorization', superAdminToken())
+    expect(res.status).toBe(200)
+    expect(typeof res.body.total_farms).toBe('number')
+    expect(typeof res.body.active_farms).toBe('number')
+    expect(typeof res.body.total_users).toBe('number')
+    expect(typeof res.body.total_cows).toBe('number')
+    expect(res.body.total_farms).toBeGreaterThanOrEqual(1)
+  })
+})
+
 describe('POST /api/farms/:id/revoke-all-sessions', () => {
   it('increments token_version for all farm users', async () => {
     const before = await db('users').where('farm_id', DEFAULT_FARM_ID).select('id', 'token_version')

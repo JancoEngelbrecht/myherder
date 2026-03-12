@@ -6,7 +6,7 @@ exports.up = async function (knex) {
   })
 
   // Seed default settings
-  const now = new Date().toISOString()
+  const now = knex.fn.now()
   await knex('app_settings').insert([
     { key: 'farm_name', value: 'MyHerder Farm', updated_at: now },
     { key: 'default_language', value: 'en', updated_at: now },

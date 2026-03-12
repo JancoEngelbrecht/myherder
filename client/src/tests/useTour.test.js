@@ -54,6 +54,9 @@ describe('useTour', () => {
     const wrapper = mount(createTestComponent('test-tour', steps))
     await nextTick()
     vi.advanceTimersByTime(400)
+    // startTour is now async (dynamic import) — flush promises
+    await vi.runAllTimersAsync()
+    await nextTick()
 
     expect(driver).toHaveBeenCalled()
     expect(driver.mock.results[0].value.drive).toHaveBeenCalled()

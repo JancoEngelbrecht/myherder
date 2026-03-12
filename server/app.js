@@ -39,12 +39,29 @@ app.use('/api/export', require('./routes/export'))
 app.use('/api/reports', require('./routes/reports'))
 app.use('/api/audit-log', require('./routes/auditLog'))
 app.use('/api/farms', require('./routes/farms'))
+app.use('/api/global-defaults', require('./routes/globalDefaults'))
+app.use('/api/announcements', require('./routes/announcements'))
 
 // Serve Vue SPA in production (no-op in test/development since client/dist may not exist)
 const clientDist = path.join(__dirname, '../client/dist')
-app.use(express.static(clientDist))
+app.use(
+  express.static(clientDist, {
+    setHeaders: (res, filePath) => {
+      const rel = path.relative(clientDist, filePath)
+      if (rel.startsWith('assets' + path.sep)) {
+        // Vite hashes every filename inside assets/ — safe to cache forever
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+      } else {
+        // Non-hashed files: index.html, sw.js, registerSW.js, manifest.json, icons, etc.
+        // Must always be re-fetched so updates are picked up immediately
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+      }
+    },
+  })
+)
 app.get('/{*path}', (req, res, next) => {
   if (req.path.startsWith('/api/')) return next()
+  res.set('Cache-Control', 'no-cache, no-store, must-revalidate')
   res.sendFile(path.join(clientDist, 'index.html'), (err) => {
     if (err) next(err)
   })

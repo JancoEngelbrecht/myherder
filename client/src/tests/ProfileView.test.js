@@ -58,6 +58,7 @@ function mountComponent(userOverrides = {}) {
     username: 'admin',
     full_name: 'John Doe',
     role: 'admin',
+    farm_id: 'test-farm-id',
     permissions: [],
     ...userOverrides,
   }

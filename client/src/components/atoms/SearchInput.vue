@@ -4,6 +4,7 @@ import { ref, watch } from 'vue'
 const props = defineProps({
   modelValue: { type: String, default: '' },
   placeholder: { type: String, default: 'Search...' },
+  clearLabel: { type: String, default: 'Clear' },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -49,7 +50,7 @@ function clear() {
       autocomplete="off"
       @input="onInput"
     />
-    <button v-if="internal" class="search-clear" type="button" :aria-label="'Clear'" @click="clear">
+    <button v-if="internal" class="search-clear" type="button" :aria-label="clearLabel" @click="clear">
       ✕
     </button>
   </div>
