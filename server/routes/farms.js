@@ -33,7 +33,7 @@ const updateSchema = Joi.object({
   name: Joi.string().min(2).max(100),
   code: Joi.string().pattern(/^[A-Z0-9]{3,10}$/)
     .messages({ 'string.pattern.base': 'Farm code must be 3-10 uppercase alphanumeric characters' }),
-  is_active: Joi.boolean(),
+  is_active: Joi.boolean().truthy(1).falsy(0),
 }).min(1)
 
 const listQuerySchema = Joi.object({
@@ -198,19 +198,104 @@ router.get('/stats', async (req, res, next) => {
   }
 })
 
-// GET /api/farms/:id — farm detail with user list
+// ── Feature flag helpers ─────────────────────────────────────
+
+const FLAG_KEY_MAP = {
+  breeding: 'breeding',
+  milk_recording: 'milkRecording',
+  health_issues: 'healthIssues',
+  treatments: 'treatments',
+  analytics: 'analytics',
+}
+const FLAG_REVERSE_MAP = Object.fromEntries(
+  Object.entries(FLAG_KEY_MAP).map(([dbKey, apiKey]) => [apiKey, dbKey]),
+)
+
+async function getFarmFlags(farmId) {
+  const rows = await db('feature_flags').where('farm_id', farmId).select('key', 'enabled')
+  const flags = {}
+  for (const row of rows) {
+    const apiKey = FLAG_KEY_MAP[row.key]
+    if (apiKey) flags[apiKey] = !!row.enabled
+  }
+  return flags
+}
+
+const flagUpdateSchema = Joi.object({
+  breeding: Joi.boolean(),
+  milkRecording: Joi.boolean(),
+  healthIssues: Joi.boolean(),
+  treatments: Joi.boolean(),
+  analytics: Joi.boolean(),
+}).min(1)
+
+// GET /api/farms/:id — farm detail with user list + feature flags
 router.get('/:id', async (req, res, next) => {
   try {
     const farm = await db('farms').where('id', req.params.id).first()
     if (!farm) return res.status(404).json({ error: 'Farm not found' })
 
-    const users = await db('users')
-      .where({ farm_id: farm.id })
-      .whereNull('deleted_at')
-      .select('id', 'username', 'full_name', 'role', 'is_active', 'created_at')
-      .orderBy('full_name')
+    const [users, featureFlags] = await Promise.all([
+      db('users')
+        .where({ farm_id: farm.id })
+        .whereNull('deleted_at')
+        .select('id', 'username', 'full_name', 'role', 'is_active', 'created_at')
+        .orderBy('full_name'),
+      getFarmFlags(farm.id),
+    ])
 
-    res.json({ ...farm, users: users.map(sanitizeUser) })
+    res.json({ ...farm, users: users.map(sanitizeUser), feature_flags: featureFlags })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// PATCH /api/farms/:id/feature-flags — toggle feature flags for a farm
+router.patch('/:id/feature-flags', async (req, res, next) => {
+  try {
+    const farm = await db('farms').where('id', req.params.id).first()
+    if (!farm) return res.status(404).json({ error: 'Farm not found' })
+
+    const { error, value } = validateBody(flagUpdateSchema, req.body)
+    if (error) return res.status(400).json({ error: joiMsg(error) })
+
+    const now = new Date().toISOString()
+    const isSqlite = db.client.config.client === 'better-sqlite3'
+    await db.transaction(async (trx) => {
+      for (const [apiKey, enabled] of Object.entries(value)) {
+        const dbKey = FLAG_REVERSE_MAP[apiKey]
+        if (!dbKey) continue
+        const updated = await trx('feature_flags')
+          .where({ key: dbKey, farm_id: farm.id })
+          .update({ enabled, updated_at: now })
+        if (updated === 0) {
+          // Row doesn't exist — insert it
+          if (isSqlite) {
+            await trx.raw(
+              'INSERT OR IGNORE INTO feature_flags (farm_id, key, enabled, updated_at) VALUES (?, ?, ?, ?)',
+              [farm.id, dbKey, enabled, now],
+            )
+          } else {
+            await trx.raw(
+              'INSERT INTO feature_flags (farm_id, `key`, enabled, updated_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE enabled = VALUES(enabled), updated_at = VALUES(updated_at)',
+              [farm.id, dbKey, enabled, now],
+            )
+          }
+        }
+      }
+    })
+
+    await logAudit({
+      farmId: farm.id,
+      userId: req.user.id,
+      action: 'update',
+      entityType: 'feature_flags',
+      entityId: farm.id,
+      newValues: value,
+    })
+
+    const flags = await getFarmFlags(farm.id)
+    res.json(flags)
   } catch (err) {
     next(err)
   }
@@ -327,29 +412,62 @@ router.patch('/:id', async (req, res, next) => {
   }
 })
 
-// DELETE /api/farms/:id — soft deactivate
+// DELETE /api/farms/:id — permanently delete farm and all data
 router.delete('/:id', async (req, res, next) => {
   try {
     const farm = await db('farms').where('id', req.params.id).first()
     if (!farm) return res.status(404).json({ error: 'Farm not found' })
 
-    await db('farms').where('id', farm.id).update({
-      is_active: false,
-      updated_at: new Date().toISOString(),
-    })
+    const isSQLite = !['mysql', 'mysql2'].includes(db.client.config.client)
 
-    await logAudit({
-      farmId: farm.id,
-      userId: req.user.id,
-      action: 'deactivate',
-      entityType: 'farm',
-      entityId: farm.id,
-      oldValues: { is_active: true },
-      newValues: { is_active: false },
-    })
+    // MySQL: disable FK checks outside transaction to avoid issues on rollback
+    if (!isSQLite) await db.raw('SET FOREIGN_KEY_CHECKS=0')
+    try {
+      await db.transaction(async (trx) => {
+        // Guard: refuse to delete if super-admin users are assigned to this farm
+        const superAdminCount = await trx('users')
+          .where({ farm_id: farm.id, role: 'super_admin' })
+          .count('* as c')
+          .first()
+        if (Number(superAdminCount.c) > 0) {
+          throw Object.assign(new Error('Cannot delete farm with super-admin users. Reassign them first.'), { status: 409 })
+        }
 
-    res.json({ message: 'Farm deactivated' })
+        // Collect user IDs for announcement_dismissals cleanup (inside transaction for atomicity)
+        const farmUserIds = await trx('users').where('farm_id', farm.id).pluck('id')
+
+        // Delete in FK-safe order
+        await trx('audit_log').where('farm_id', farm.id).del()
+        // Two-pass sync_log: first by farm_id (post-032 rows), then by user_id (pre-032 NULL farm_id rows)
+        await trx('sync_log').where('farm_id', farm.id).del()
+        if (farmUserIds.length > 0) {
+          await trx('sync_log').whereIn('user_id', farmUserIds).del()
+          // announcement_dismissals must come before users (MySQL FK: user_id → users.id)
+          await trx('announcement_dismissals').whereIn('user_id', farmUserIds).del()
+        }
+        await trx('health_issue_comments').where('farm_id', farm.id).del()
+        await trx('treatments').where('farm_id', farm.id).del()
+        await trx('milk_records').where('farm_id', farm.id).del()
+        await trx('breeding_events').where('farm_id', farm.id).del()
+        await trx('health_issues').where('farm_id', farm.id).del()
+        await trx('cows').where('farm_id', farm.id).del()
+        await trx('medications').where('farm_id', farm.id).del()
+        await trx('breed_types').where('farm_id', farm.id).del()
+        await trx('issue_type_definitions').where('farm_id', farm.id).del()
+        await trx('feature_flags').where('farm_id', farm.id).del()
+        await trx('app_settings').where('farm_id', farm.id).del()
+        // Silently preserves super_admin users — guaranteed zero by guard above
+        await trx('users').where('farm_id', farm.id).whereNot('role', 'super_admin').del()
+        await trx('farms').where('id', farm.id).del()
+      })
+    } finally {
+      if (!isSQLite) await db.raw('SET FOREIGN_KEY_CHECKS=1')
+    }
+
+    // No audit_log entry — the farm and its log are gone
+    res.json({ message: 'Farm permanently deleted' })
   } catch (err) {
+    if (err.status === 409) return res.status(409).json({ error: err.message })
     next(err)
   }
 })

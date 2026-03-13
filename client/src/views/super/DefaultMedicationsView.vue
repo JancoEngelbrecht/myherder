@@ -132,12 +132,14 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
-import { extractApiError } from '../../utils/apiError'
+import { extractApiError, resolveError } from '../../utils/apiError'
 import { useToast } from '../../composables/useToast.js'
 
+const { t } = useI18n()
 const { showToast } = useToast()
 
 const items = ref([])
@@ -164,7 +166,7 @@ async function load() {
     const { data } = await api.get('/global-defaults/medications?all=1')
     items.value = data
   } catch (err) {
-    showToast(extractApiError(err), 'error')
+    showToast(resolveError(extractApiError(err), t), 'error')
   } finally {
     loading.value = false
   }
@@ -219,7 +221,7 @@ async function save() {
     showForm.value = false
     await load()
   } catch (err) {
-    formError.value = extractApiError(err)
+    formError.value = resolveError(extractApiError(err), t)
   } finally {
     saving.value = false
   }
@@ -234,7 +236,7 @@ async function doDeactivate() {
     deactivateTarget.value = null
     await load()
   } catch (err) {
-    showToast(extractApiError(err), 'error')
+    showToast(resolveError(extractApiError(err), t), 'error')
   } finally {
     deactivating.value = false
   }

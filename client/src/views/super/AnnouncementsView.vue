@@ -108,7 +108,7 @@ import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
-import { extractApiError } from '../../utils/apiError'
+import { extractApiError, resolveError } from '../../utils/apiError'
 import { useToast } from '../../composables/useToast.js'
 
 const { showToast } = useToast()
@@ -134,7 +134,7 @@ async function load() {
     const { data } = await api.get('/announcements')
     items.value = data
   } catch (err) {
-    showToast(extractApiError(err), 'error')
+    showToast(resolveError(extractApiError(err), t), 'error')
   } finally {
     loading.value = false
   }
@@ -212,7 +212,7 @@ async function save() {
     showForm.value = false
     await load()
   } catch (err) {
-    formError.value = extractApiError(err)
+    formError.value = resolveError(extractApiError(err), t)
   } finally {
     saving.value = false
   }
@@ -228,7 +228,7 @@ async function doDeactivate() {
     showToast(t('announcements.deactivated'), 'success')
     await load()
   } catch (err) {
-    showToast(extractApiError(err), 'error')
+    showToast(resolveError(extractApiError(err), t), 'error')
   } finally {
     deactivating.value = false
   }

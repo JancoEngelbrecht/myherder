@@ -23,7 +23,7 @@ const schema = Joi.object({
   calf_max_months: Joi.number().integer().min(1).max(24).default(6),
   heifer_min_months: Joi.number().integer().min(6).max(48).default(15),
   young_bull_min_months: Joi.number().integer().min(6).max(48).default(15),
-  is_active: Joi.boolean().default(true),
+  is_active: Joi.boolean().truthy(1).falsy(0).default(true),
   sort_order: Joi.number().integer().min(0).default(0),
 })
 

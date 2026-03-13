@@ -142,6 +142,41 @@ describe('POST /api/treatments', () => {
     expect(res.body.withdrawal_end_meat).toBeNull()
   })
 
+  it('stores null milk withdrawal for a heifer (non-milking life phase)', async () => {
+    // 10-month-old female = heifer with default thresholds
+    const dob = new Date(Date.now() - 10 * 30.44 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    const heiferId = await createCow({ sex: 'female', dob })
+    const medId = await createMedication({ withdrawal_milk_hours: 48, withdrawal_meat_days: 7 })
+
+    const res = await postTreatment({
+      cow_id: heiferId,
+      medications: [{ medication_id: medId }],
+      treatment_date: '2026-01-15T10:00:00.000Z',
+    })
+
+    expect(res.status).toBe(201)
+    // Milk withdrawal should be skipped for heifer
+    expect(res.body.withdrawal_end_milk).toBeNull()
+    // Meat withdrawal should still be stored
+    expect(res.body.withdrawal_end_meat).not.toBeNull()
+  })
+
+  it('stores milk withdrawal for an adult cow', async () => {
+    // 20-month-old female = cow (past heiferMin=15)
+    const dob = new Date(Date.now() - 20 * 30.44 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    const adultId = await createCow({ sex: 'female', dob })
+    const medId = await createMedication({ withdrawal_milk_hours: 48 })
+
+    const res = await postTreatment({
+      cow_id: adultId,
+      medications: [{ medication_id: medId }],
+      treatment_date: '2026-01-15T10:00:00.000Z',
+    })
+
+    expect(res.status).toBe(201)
+    expect(res.body.withdrawal_end_milk).not.toBeNull()
+  })
+
   it('returns 400 for empty medications array', async () => {
     const cowId = await createCow()
     const res = await postTreatment({
@@ -295,6 +330,49 @@ describe('GET /api/treatments/withdrawal', () => {
     expect(entry).toBeDefined()
     expect(entry.sex).toBe('male')
     expect(new Date(entry.withdrawal_end_meat) > new Date()).toBe(true)
+  })
+
+  it('excludes heifer (by age) from milk withdrawal results', async () => {
+    // A 10-month-old female with default breed thresholds is a heifer (calfMax=6, heiferMin=15)
+    const dob = new Date(Date.now() - 10 * 30.44 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    const heifer = await createCow({ sex: 'female', dob })
+    const med = await createMedication({ withdrawal_milk_hours: 999, withdrawal_meat_days: 30 })
+    await postTreatment({
+      cow_id: heifer,
+      medications: [{ medication_id: med }],
+      treatment_date: new Date().toISOString(),
+    })
+
+    const res = await request(app).get('/api/treatments/withdrawal').set('Authorization', adminToken())
+    expect(res.status).toBe(200)
+
+    const entry = res.body.find((t) => t.cow_id === heifer)
+    // Heifer should appear (meat withdrawal is active) but milk withdrawal should be nulled
+    expect(entry).toBeDefined()
+    expect(entry.withdrawal_end_milk).toBeNull()
+    expect(new Date(entry.withdrawal_end_meat) > new Date()).toBe(true)
+  })
+
+  it('excludes sold/dead cows from withdrawal results entirely', async () => {
+    const soldCow = await createCow({ sex: 'female', status: 'sold' })
+    const med = await createMedication({ withdrawal_milk_hours: 999 })
+    // Directly insert treatment (POST would reject deleted cow but we want to test the withdrawal filter)
+    const id = randomUUID()
+    const now = new Date().toISOString()
+    const futureDate = new Date(Date.now() + 999 * 3600000).toISOString()
+    await db('treatments').insert({
+      id, farm_id: DEFAULT_FARM_ID, cow_id: soldCow, medication_id: med,
+      administered_by: (await db('users').where({ farm_id: DEFAULT_FARM_ID }).first()).id,
+      treatment_date: now, withdrawal_end_milk: futureDate,
+      created_at: now, updated_at: now,
+    })
+    await db('treatment_medications').insert({
+      id: randomUUID(), treatment_id: id, medication_id: med,
+    })
+
+    const res = await request(app).get('/api/treatments/withdrawal').set('Authorization', adminToken())
+    expect(res.status).toBe(200)
+    expect(res.body.find((t) => t.cow_id === soldCow)).toBeUndefined()
   })
 
   it('returns at most one entry per cow (the latest withdrawal)', async () => {

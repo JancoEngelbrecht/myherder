@@ -23,7 +23,7 @@ const breedTypeSchema = Joi.object({
   calf_max_months: Joi.number().integer().min(1).default(6),
   heifer_min_months: Joi.number().integer().min(1).default(15),
   young_bull_min_months: Joi.number().integer().min(1).default(15),
-  is_active: Joi.boolean().default(true),
+  is_active: Joi.boolean().truthy(1).falsy(0).default(true),
   sort_order: Joi.number().integer().min(0).default(0),
 })
 
@@ -37,7 +37,7 @@ const breedTypeUpdateSchema = Joi.object({
   calf_max_months: Joi.number().integer().min(1),
   heifer_min_months: Joi.number().integer().min(1),
   young_bull_min_months: Joi.number().integer().min(1),
-  is_active: Joi.boolean(),
+  is_active: Joi.boolean().truthy(1).falsy(0),
   sort_order: Joi.number().integer().min(0),
 }).min(1)
 
@@ -45,16 +45,16 @@ const issueTypeSchema = Joi.object({
   name: Joi.string().min(1).max(100).required(),
   code: Joi.string().min(1).max(50),
   emoji: Joi.string().max(10).allow('', null),
-  requires_teat_selection: Joi.boolean().default(false),
-  is_active: Joi.boolean().default(true),
+  requires_teat_selection: Joi.boolean().truthy(1).falsy(0).default(false),
+  is_active: Joi.boolean().truthy(1).falsy(0).default(true),
   sort_order: Joi.number().integer().min(0).default(0),
 })
 
 const issueTypeUpdateSchema = Joi.object({
   name: Joi.string().min(1).max(100),
   emoji: Joi.string().max(10).allow('', null),
-  requires_teat_selection: Joi.boolean(),
-  is_active: Joi.boolean(),
+  requires_teat_selection: Joi.boolean().truthy(1).falsy(0),
+  is_active: Joi.boolean().truthy(1).falsy(0),
   sort_order: Joi.number().integer().min(0),
 }).min(1)
 
@@ -68,7 +68,7 @@ const medicationSchema = Joi.object({
   default_dosage: Joi.alternatives().try(Joi.number().min(0), Joi.string().max(100)).allow(null),
   unit: Joi.string().max(20).allow('', null),
   notes: Joi.string().max(2000).allow('', null),
-  is_active: Joi.boolean().default(true),
+  is_active: Joi.boolean().truthy(1).falsy(0).default(true),
 })
 
 const medicationUpdateSchema = Joi.object({
@@ -81,7 +81,7 @@ const medicationUpdateSchema = Joi.object({
   default_dosage: Joi.alternatives().try(Joi.number().min(0), Joi.string().max(100)).allow(null),
   unit: Joi.string().max(20).allow('', null),
   notes: Joi.string().max(2000).allow('', null),
-  is_active: Joi.boolean(),
+  is_active: Joi.boolean().truthy(1).falsy(0),
 }).min(1)
 
 const pushSchema = Joi.object({

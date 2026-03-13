@@ -151,7 +151,7 @@ import CowSearchDropdown from '../components/molecules/CowSearchDropdown.vue'
 import TourButton from '../components/atoms/TourButton.vue'
 import api from '../services/api'
 import db from '../db/indexedDB'
-import { extractApiError } from '../utils/apiError'
+import { extractApiError, resolveError } from '../utils/apiError'
 import { useToast } from '../composables/useToast'
 import { useTour } from '../composables/useTour.js'
 
@@ -257,7 +257,7 @@ async function fetchRecords() {
       records.value = await getLocalRecords()
       total.value = records.value.length
     } catch {
-      toast.show(extractApiError(err), 'error')
+      toast.show(resolveError(extractApiError(err), t), 'error')
     }
   } finally {
     loading.value = false

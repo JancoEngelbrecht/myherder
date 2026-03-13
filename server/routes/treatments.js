@@ -7,8 +7,11 @@ const tenantScope = require('../middleware/tenantScope')
 const authorize = require('../middleware/authorize')
 const { requireAdmin } = authorize
 const { calcWithdrawalDates } = require('../services/withdrawalService')
+const { computeLifePhase, NON_MILKING_PHASES } = require('../helpers/lifePhase')
 const { joiMsg, MAX_PAGE_SIZE, validateBody, validateQuery } = require('../helpers/constants')
 const { logAudit } = require('../services/auditService')
+
+const INACTIVE_STATUSES = new Set(['sold', 'dead'])
 
 const router = express.Router()
 router.use(authenticate)
@@ -156,15 +159,34 @@ router.get('/withdrawal', async (req, res, next) => {
     const now = new Date().toISOString()
 
     // Fetch all treatments with active milk or meat withdrawal
+    // Inline join breed_types for life phase computation (not in treatmentQuery to keep it lean)
     const rows = await treatmentQuery(req.farmId)
+      .leftJoin('breed_types as bt', 'c.breed_type_id', 'bt.id')
+      .select('c.status', 'c.dob', 'c.life_phase_override', 'bt.calf_max_months', 'bt.heifer_min_months', 'bt.young_bull_min_months')
       .where(function () {
         this.where('t.withdrawal_end_milk', '>', now)
           .orWhere('t.withdrawal_end_meat', '>', now)
       })
 
+    // Exclude sold/dead cows and null out milk withdrawal for non-milking life phases
+    const filtered = []
+    for (const row of rows) {
+      if (INACTIVE_STATUSES.has(row.status)) continue
+      const lifePhase = computeLifePhase(row, row)
+      row.life_phase = lifePhase
+      if (NON_MILKING_PHASES.has(lifePhase)) {
+        row.withdrawal_end_milk = null
+      }
+      // After nulling milk, check if this row still has any active withdrawal
+      if ((row.withdrawal_end_milk && row.withdrawal_end_milk > now) ||
+          (row.withdrawal_end_meat && row.withdrawal_end_meat > now)) {
+        filtered.push(row)
+      }
+    }
+
     // Aggregate per cow: keep the worst (latest) milk and meat end dates
     const byCow = {}
-    for (const row of rows) {
+    for (const row of filtered) {
       const existing = byCow[row.cow_id]
       if (!existing) {
         byCow[row.cow_id] = { ...row }
@@ -217,6 +239,12 @@ router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
     if (!cow) return res.status(404).json({ error: 'Cow not found' })
 
     const isMale = cow.sex === 'male'
+    // Fetch breed type for life phase computation
+    const breedType = cow.breed_type_id
+      ? await db('breed_types').where('id', cow.breed_type_id).where('farm_id', req.farmId).first()
+      : null
+    const lifePhase = computeLifePhase(cow, breedType)
+    const skipMilkWithdrawal = isMale || NON_MILKING_PHASES.has(lifePhase)
 
     // Batch-fetch all medications in a single query and build a lookup map
     const medIds = value.medications.map((item) => item.medication_id)
@@ -245,7 +273,7 @@ router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
         med.withdrawal_meat_hours,
         med.withdrawal_meat_days,
       )
-      if (!isMale && withdrawalEndMilk && (!maxMilk || withdrawalEndMilk > maxMilk)) maxMilk = withdrawalEndMilk
+      if (!skipMilkWithdrawal && withdrawalEndMilk && (!maxMilk || withdrawalEndMilk > maxMilk)) maxMilk = withdrawalEndMilk
       if (withdrawalEndMeat && (!maxMeat || withdrawalEndMeat > maxMeat)) maxMeat = withdrawalEndMeat
 
       medRecords.push({ med, dosage: item.dosage || null })

@@ -47,6 +47,8 @@
 import { ref, watch, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '../../services/api.js'
+import db from '../../db/indexedDB.js'
+import { isOfflineError } from '../../services/syncManager.js'
 
 const props = defineProps({
   modelValue: { type: [String, null], default: null }, // cow id
@@ -65,16 +67,30 @@ const showDropdown = ref(false)
 const searching = ref(false)
 const containerRef = ref(null)
 let debounceTimer = null
+let searchGeneration = 0
+let loadGeneration = 0
 
-// If initial value set, load the cow
+// If initial value set, load the cow (with IndexedDB fallback)
 watch(() => props.modelValue, async (id) => {
   if (id && !selectedCow.value) {
+    const gen = ++loadGeneration
     try {
       const r = await api.get(`/cows/${id}`)
+      if (gen !== loadGeneration) return
       selectedCow.value = r.data
       query.value = ''
-    } catch {
-      // ignore
+    } catch (err) {
+      if (gen !== loadGeneration) return
+      if (isOfflineError(err)) {
+        try {
+          const local = await db.cows.get(id)
+          if (gen !== loadGeneration) return
+          if (local && !local.deleted_at) {
+            selectedCow.value = local
+            query.value = ''
+          }
+        } catch { /* IndexedDB not ready */ }
+      }
     }
   }
 }, { immediate: true })
@@ -105,17 +121,45 @@ function onBlur() {
 }
 
 async function search() {
+  const gen = ++searchGeneration
   searching.value = true
   showDropdown.value = true
   try {
     const params = { search: query.value }
     if (props.sexFilter) params.sex = props.sexFilter
     const r = await api.get('/cows', { params })
+    if (gen !== searchGeneration) return
     results.value = r.data.slice(0, 8)
-  } catch {
-    results.value = []
+  } catch (err) {
+    if (gen !== searchGeneration) return
+    if (isOfflineError(err)) {
+      const offline = await searchIndexedDB(query.value, props.sexFilter)
+      if (gen !== searchGeneration) return
+      results.value = offline
+    } else {
+      results.value = []
+    }
   } finally {
-    searching.value = false
+    if (gen === searchGeneration) searching.value = false
+  }
+}
+
+async function searchIndexedDB(term, sexFilter) {
+  try {
+    const lowerTerm = term.toLowerCase()
+    let all = await db.cows.toArray()
+    if (sexFilter) {
+      all = all.filter((c) => c.sex === sexFilter)
+    }
+    return all
+      .filter((c) =>
+        !c.deleted_at &&
+        ((c.tag_number && c.tag_number.toLowerCase().includes(lowerTerm)) ||
+          (c.name && c.name.toLowerCase().includes(lowerTerm)))
+      )
+      .slice(0, 8)
+  } catch {
+    return []
   }
 }
 

@@ -619,7 +619,16 @@ async function executeToggle() {
 
 .user-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+}
+
+.user-actions .btn-sm {
+  width: auto;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  border-radius: 8px;
+  white-space: nowrap;
 }
 
 .btn-danger-outline {

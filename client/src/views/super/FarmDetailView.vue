@@ -43,6 +43,9 @@
             >
               {{ t('superAdmin.reactivateFarm') }}
             </button>
+            <button class="btn-danger btn-sm-pill" @click="showDeleteFarm = true">
+              {{ t('superAdmin.deleteFarm') }}
+            </button>
           </div>
         </div>
 
@@ -110,7 +113,30 @@
             </div>
           </div>
         </div>
-      </template>
+
+        <!-- Feature Flags Section -->
+        <div class="card flags-card">
+          <h3 class="section-title">{{ t('featureFlags.sectionTitle') }}</h3>
+          <p class="flags-desc">{{ t('featureFlags.sectionDesc') }}</p>
+
+          <div class="flags-list">
+            <label v-for="flag in flagList" :key="`${flag.key}-${flagsKey}`" class="flag-row" :class="{ 'flag-disabled': togglingFlags.has(flag.key) }">
+              <div class="flag-info">
+                <span class="flag-name">{{ t(`featureFlags.${flag.key}.name`) }}</span>
+                <span class="flag-desc">{{ t(`featureFlags.${flag.key}.desc`) }}</span>
+              </div>
+              <input
+                type="checkbox"
+                class="toggle"
+                :checked="farmFlags[flag.key]"
+                :disabled="togglingFlags.has(flag.key)"
+                @change="toggleFlag(flag.key, $event.target.checked)"
+              />
+            </label>
+          </div>
+        </div>
+
+      </template><!-- end farm loaded -->
 
       <!-- Deactivate Confirm Dialog -->
       <ConfirmDialog
@@ -144,12 +170,37 @@
         @confirm="revokeUserSessions"
         @cancel="revokeTarget = null"
       />
+
+      <!-- Hard Delete Farm Dialog (typed confirmation) -->
+      <Transition name="fade">
+        <div v-if="showDeleteFarm" ref="deleteDialogOverlay" class="dialog-overlay" tabindex="-1" @click.self="cancelDelete" @keydown.escape="cancelDelete">
+          <div class="dialog" role="dialog" aria-modal="true">
+            <p class="dialog-text">{{ t('superAdmin.deleteConfirmMessage', { name: farm?.name }) }}</p>
+            <div class="form-group">
+              <label>{{ t('superAdmin.typeToConfirm', { name: farm?.name }) }}</label>
+              <input v-model="deleteConfirmInput" class="form-input" :placeholder="farm?.name" />
+            </div>
+            <div class="dialog-actions">
+              <button
+                class="btn-danger"
+                :disabled="deleting || deleteConfirmInput !== farm?.name"
+                @click="hardDeleteFarm"
+              >
+                {{ t('superAdmin.deleteFarmConfirm') }}
+              </button>
+              <button class="btn-secondary" :disabled="deleting" @click="cancelDelete">
+                {{ t('common.cancel') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth.js'
@@ -157,6 +208,7 @@ import api from '../../services/api.js'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import { useToast } from '../../composables/useToast.js'
+import { extractApiError, resolveError } from '../../utils/apiError.js'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -166,6 +218,17 @@ const { showToast } = useToast()
 
 const farm = ref(null)
 const loading = ref(true)
+const farmFlags = ref({})
+const togglingFlags = ref(new Set())
+const flagsKey = ref(0)
+
+const flagList = [
+  { key: 'breeding' },
+  { key: 'milkRecording' },
+  { key: 'healthIssues' },
+  { key: 'treatments' },
+  { key: 'analytics' },
+]
 
 const editMode = ref(false)
 const editForm = ref({ name: '', code: '' })
@@ -181,15 +244,45 @@ const revoking = ref(false)
 const revokeTarget = ref(null)
 const revokingUser = ref(false)
 
+const showDeleteFarm = ref(false)
+const deleteConfirmInput = ref('')
+const deleting = ref(false)
+const deleteDialogOverlay = ref(null)
+
+watch(showDeleteFarm, async (visible) => {
+  if (visible) {
+    await nextTick()
+    deleteDialogOverlay.value?.focus()
+  }
+})
+
 async function fetchFarm() {
   try {
     const { data } = await api.get(`/farms/${route.params.id}`)
     farm.value = data
+    farmFlags.value = data.feature_flags || {}
     editForm.value = { name: data.name, code: data.code }
-  } catch {
-    showToast(t('common.error'), 'error')
+  } catch (err) {
+    showToast(resolveError(extractApiError(err), t), 'error')
   } finally {
     loading.value = false
+  }
+}
+
+async function toggleFlag(key, enabled) {
+  if (togglingFlags.value.has(key)) return
+  const prev = farmFlags.value[key]
+  farmFlags.value = { ...farmFlags.value, [key]: enabled }
+  togglingFlags.value.add(key)
+  try {
+    const { data } = await api.patch(`/farms/${farm.value.id}/feature-flags`, { [key]: enabled })
+    farmFlags.value = data
+  } catch (err) {
+    farmFlags.value = { ...farmFlags.value, [key]: prev }
+    flagsKey.value++
+    showToast(resolveError(extractApiError(err), t), 'error')
+  } finally {
+    togglingFlags.value.delete(key)
   }
 }
 
@@ -199,8 +292,8 @@ async function handleEnter() {
   try {
     await authStore.enterFarm(farm.value.id)
     router.push('/')
-  } catch {
-    showToast(t('common.error'), 'error')
+  } catch (err) {
+    showToast(resolveError(extractApiError(err), t), 'error')
   }
 }
 
@@ -213,7 +306,7 @@ async function saveEdit() {
     editMode.value = false
     showToast(t('superAdmin.farmUpdated'), 'success')
   } catch (err) {
-    editError.value = err.response?.data?.error || t('common.error')
+    editError.value = resolveError(extractApiError(err), t)
   } finally {
     editSaving.value = false
   }
@@ -222,14 +315,32 @@ async function saveEdit() {
 async function deactivate() {
   deactivating.value = true
   try {
-    await api.delete(`/farms/${farm.value.id}`)
-    farm.value.is_active = false
+    const { data } = await api.patch(`/farms/${farm.value.id}`, { is_active: false })
+    farm.value = { ...farm.value, ...data }
     showDeactivate.value = false
     showToast(t('superAdmin.farmDeactivated'), 'success')
-  } catch {
-    showToast(t('common.error'), 'error')
+  } catch (err) {
+    showToast(resolveError(extractApiError(err), t), 'error')
   } finally {
     deactivating.value = false
+  }
+}
+
+function cancelDelete() {
+  showDeleteFarm.value = false
+  deleteConfirmInput.value = ''
+}
+
+async function hardDeleteFarm() {
+  deleting.value = true
+  try {
+    await api.delete(`/farms/${farm.value.id}`)
+    showToast(t('superAdmin.farmDeleted'), 'success')
+    router.push('/super/farms')
+  } catch (err) {
+    showToast(resolveError(extractApiError(err), t), 'error')
+  } finally {
+    deleting.value = false
   }
 }
 
@@ -238,8 +349,8 @@ async function reactivate() {
     const { data } = await api.patch(`/farms/${farm.value.id}`, { is_active: true })
     farm.value = { ...farm.value, ...data }
     showToast(t('superAdmin.farmUpdated'), 'success')
-  } catch {
-    showToast(t('common.error'), 'error')
+  } catch (err) {
+    showToast(resolveError(extractApiError(err), t), 'error')
   }
 }
 
@@ -249,8 +360,8 @@ async function revokeUserSessions() {
     await api.post(`/users/${revokeTarget.value.id}/revoke-sessions`)
     showToast(t('users.sessionsRevoked', { name: revokeTarget.value.full_name }), 'success')
     revokeTarget.value = null
-  } catch {
-    showToast(t('common.error'), 'error')
+  } catch (err) {
+    showToast(resolveError(extractApiError(err), t), 'error')
   } finally {
     revokingUser.value = false
   }
@@ -262,8 +373,8 @@ async function revokeAllSessions() {
     await api.post(`/farms/${farm.value.id}/revoke-all-sessions`)
     showRevokeAll.value = false
     showToast(t('superAdmin.sessionsRevoked'), 'success')
-  } catch {
-    showToast(t('common.error'), 'error')
+  } catch (err) {
+    showToast(resolveError(extractApiError(err), t), 'error')
   } finally {
     revoking.value = false
   }
@@ -410,4 +521,118 @@ async function revokeAllSessions() {
   background: var(--danger-light);
   color: var(--danger);
 }
+
+.flags-card {
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.flags-desc {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin: 4px 0 12px;
+}
+
+.flags-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.flag-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.flag-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.flag-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.flag-name {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.flag-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.toggle {
+  width: 44px;
+  height: 24px;
+  appearance: none;
+  background: var(--border);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.toggle:checked {
+  background: var(--primary);
+}
+
+.toggle:checked::after {
+  transform: translateX(20px);
+}
+
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  padding: 24px;
+}
+
+.dialog {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: var(--shadow-lg);
+}
+
+.dialog-text {
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.dialog-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fade-enter-active,
+.fade-leave-active { transition: opacity 0.2s; }
+.fade-enter-from,
+.fade-leave-to { opacity: 0; }
 </style>

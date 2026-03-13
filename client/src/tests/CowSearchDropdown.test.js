@@ -2,12 +2,26 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import CowSearchDropdown from '../components/molecules/CowSearchDropdown.vue'
 import api from '../services/api.js'
+import db from '../db/indexedDB.js'
 
 vi.mock('../services/api.js', () => ({
   default: {
     get: vi.fn(),
     post: vi.fn(),
   },
+}))
+
+vi.mock('../db/indexedDB.js', () => ({
+  default: {
+    cows: {
+      get: vi.fn().mockResolvedValue(null),
+      toArray: vi.fn().mockResolvedValue([]),
+    },
+  },
+}))
+
+vi.mock('../services/syncManager.js', () => ({
+  isOfflineError: vi.fn((err) => !err.response),
 }))
 
 const MOCK_COWS = [
@@ -107,5 +121,113 @@ describe('CowSearchDropdown', () => {
     const items = wrapper.findAll('.dropdown-item')
     expect(items).toHaveLength(1)
     expect(items[0].text()).toContain('F-001')
+  })
+
+  it('falls back to IndexedDB search when offline', async () => {
+    const offlineCows = [
+      { id: 'local-1', tag_number: 'OFF-001', name: 'OfflineBessie', sex: 'female' },
+      { id: 'local-2', tag_number: 'OFF-002', name: 'OfflineDaisy', sex: 'female' },
+      { id: 'local-3', tag_number: 'ZZZ-999', name: 'NoMatch', sex: 'female' },
+    ]
+    api.get.mockRejectedValue(new Error('Network Error'))
+    db.cows.toArray.mockResolvedValue(offlineCows)
+
+    const wrapper = mount(CowSearchDropdown)
+    await wrapper.find('input').setValue('OFF')
+    vi.runAllTimers()
+    await flushPromises()
+
+    const items = wrapper.findAll('.dropdown-item')
+    expect(items).toHaveLength(2)
+    expect(wrapper.text()).toContain('OFF-001')
+    expect(wrapper.text()).toContain('OFF-002')
+    expect(wrapper.text()).not.toContain('ZZZ-999')
+  })
+
+  it('applies sexFilter when searching IndexedDB offline', async () => {
+    const offlineCows = [
+      { id: 'local-1', tag_number: 'TAG-100', name: 'Bull', sex: 'male' },
+      { id: 'local-2', tag_number: 'TAG-200', name: 'Cow', sex: 'female' },
+    ]
+    api.get.mockRejectedValue(new Error('Network Error'))
+    db.cows.toArray.mockResolvedValue(offlineCows)
+
+    const wrapper = mount(CowSearchDropdown, { props: { sexFilter: 'female' } })
+    await wrapper.find('input').setValue('TAG')
+    vi.runAllTimers()
+    await flushPromises()
+
+    const items = wrapper.findAll('.dropdown-item')
+    expect(items).toHaveLength(1)
+    expect(wrapper.text()).toContain('TAG-200')
+    expect(wrapper.text()).not.toContain('TAG-100')
+  })
+
+  it('loads initial cow from IndexedDB when offline', async () => {
+    const localCow = { id: 'cow-99', tag_number: 'LOC-001', name: 'LocalCow', sex: 'female' }
+    api.get.mockRejectedValue(new Error('Network Error'))
+    db.cows.get.mockResolvedValue(localCow)
+
+    const wrapper = mount(CowSearchDropdown, { props: { modelValue: 'cow-99' } })
+    await flushPromises()
+
+    expect(wrapper.find('.selected-cow').exists()).toBe(true)
+    expect(wrapper.find('.selected-cow').text()).toContain('LOC-001')
+  })
+
+  it('excludes soft-deleted cows from offline search results', async () => {
+    const offlineCows = [
+      { id: 'c1', tag_number: 'TAG-001', name: 'Alive', sex: 'female', deleted_at: null },
+      { id: 'c2', tag_number: 'TAG-002', name: 'Deleted', sex: 'female', deleted_at: '2026-01-01' },
+    ]
+    api.get.mockRejectedValue(new Error('Network Error'))
+    db.cows.toArray.mockResolvedValue(offlineCows)
+
+    const wrapper = mount(CowSearchDropdown)
+    await wrapper.find('input').setValue('TAG')
+    vi.runAllTimers()
+    await flushPromises()
+
+    const items = wrapper.findAll('.dropdown-item')
+    expect(items).toHaveLength(1)
+    expect(wrapper.text()).toContain('TAG-001')
+    expect(wrapper.text()).not.toContain('TAG-002')
+  })
+
+  it('does not load soft-deleted cow by ID from IndexedDB', async () => {
+    const deletedCow = { id: 'cow-del', tag_number: 'DEL-001', name: 'Gone', sex: 'female', deleted_at: '2026-01-01' }
+    api.get.mockRejectedValue(new Error('Network Error'))
+    db.cows.get.mockResolvedValue(deletedCow)
+
+    const wrapper = mount(CowSearchDropdown, { props: { modelValue: 'cow-del' } })
+    await flushPromises()
+
+    expect(wrapper.find('.selected-cow').exists()).toBe(false)
+  })
+
+  it('returns empty results when IndexedDB throws during offline search', async () => {
+    api.get.mockRejectedValue(new Error('Network Error'))
+    db.cows.toArray.mockRejectedValue(new Error('DatabaseClosedError'))
+
+    const wrapper = mount(CowSearchDropdown)
+    await wrapper.find('input').setValue('TAG')
+    vi.runAllTimers()
+    await flushPromises()
+
+    expect(wrapper.findAll('.dropdown-item')).toHaveLength(0)
+  })
+
+  it('does not show results from a 500 server error via IndexedDB fallback', async () => {
+    const serverErr = new Error('Internal Server Error')
+    serverErr.response = { status: 500 }
+    api.get.mockRejectedValue(serverErr)
+
+    const wrapper = mount(CowSearchDropdown)
+    await wrapper.find('input').setValue('TAG')
+    vi.runAllTimers()
+    await flushPromises()
+
+    expect(db.cows.toArray).not.toHaveBeenCalled()
+    expect(wrapper.findAll('.dropdown-item')).toHaveLength(0)
   })
 })

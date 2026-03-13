@@ -5,6 +5,7 @@ const {
   MS_PER_DAY, RECURRENCE_WINDOW_DAYS,
   getIssueTypeDefMap, parseIssueCodes,
 } = require('./helpers');
+const { computeLifePhase, NON_MILKING_PHASES } = require('../../helpers/lifePhase');
 
 const router = express.Router();
 
@@ -156,21 +157,29 @@ router.get('/withdrawal-days', async (req, res, next) => {
     const { start, endTs } = defaultRange(req.query.from, req.query.to);
 
     const rows = await db('treatments')
-      .where('farm_id', req.farmId)
+      .where('treatments.farm_id', req.farmId)
+      .join('cows as c', 'c.id', 'treatments.cow_id')
+      .leftJoin('breed_types as bt', 'c.breed_type_id', 'bt.id')
+      .whereNull('c.deleted_at')
       .whereBetween('treatment_date', [start, endTs])
       .whereNotNull('withdrawal_end_milk')
       .select(
         db.raw(`${monthExpr('treatment_date')} as month`),
         'treatment_date',
         'withdrawal_end_milk',
-        'cow_id'
+        'treatments.cow_id',
+        'c.sex', 'c.dob', 'c.life_phase_override',
+        'bt.calf_max_months', 'bt.heifer_min_months', 'bt.young_bull_min_months'
       )
       .orderBy('month');
+
+    // Filter out non-milking life phases (heifers, calves)
+    const milkRows = rows.filter(row => !NON_MILKING_PHASES.has(computeLifePhase(row, row)));
 
     // Accumulate per-month totals in JS (avoids SQLite date arithmetic limitations)
     const monthMap = {};  // { 'YYYY-MM': { total_withdrawal_days, cow_ids: Set } }
 
-    for (const row of rows) {
+    for (const row of milkRows) {
       const month = row.month;
       const treatDate = new Date(row.treatment_date);
       const endDate = new Date(row.withdrawal_end_milk);

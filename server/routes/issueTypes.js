@@ -14,8 +14,8 @@ router.use(tenantScope)
 const schema = Joi.object({
   name: Joi.string().max(100).required(),
   emoji: Joi.string().max(10).required(),
-  requires_teat_selection: Joi.boolean().default(false),
-  is_active: Joi.boolean().default(true),
+  requires_teat_selection: Joi.boolean().truthy(1).falsy(0).default(false),
+  is_active: Joi.boolean().truthy(1).falsy(0).default(true),
   sort_order: Joi.number().integer().min(0).default(0),
 })
 

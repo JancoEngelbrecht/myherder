@@ -77,6 +77,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import api from '../../services/api.js'
+import { extractApiError, resolveError } from '../../utils/apiError'
 
 const { t } = useI18n()
 
@@ -123,7 +124,7 @@ async function generate() {
     a.click()
     URL.revokeObjectURL(url)
   } catch (err) {
-    error.value = err.response?.data?.error || t('common.genericError')
+    error.value = resolveError(extractApiError(err), t)
   } finally {
     generating.value = false
   }

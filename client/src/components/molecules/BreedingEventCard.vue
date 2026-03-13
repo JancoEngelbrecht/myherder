@@ -19,13 +19,13 @@
       <!-- Auto-calculated dates -->
       <div v-if="hasAutoDates" class="auto-dates">
         <span v-if="event.expected_next_heat" class="date-chip">
-          🔥 {{ t('breeding.dates.nextHeat') }}: <span class="mono">{{ event.expected_next_heat }}</span>
+          🔥 {{ t('breeding.dates.nextHeat') }}: <span class="mono">{{ formatDate(event.expected_next_heat) }}</span>
         </span>
         <span v-if="event.expected_preg_check" class="date-chip">
-          🩺 {{ t('breeding.dates.pregCheck') }}: <span class="mono">{{ event.expected_preg_check }}</span>
+          🩺 {{ t('breeding.dates.pregCheck') }}: <span class="mono">{{ formatDate(event.expected_preg_check) }}</span>
         </span>
         <span v-if="event.expected_calving" class="date-chip">
-          🐮 {{ t('breeding.dates.calving') }}: <span class="mono">{{ event.expected_calving }}</span>
+          🐮 {{ t('breeding.dates.calving') }}: <span class="mono">{{ formatDate(event.expected_calving) }}</span>
         </span>
       </div>
 

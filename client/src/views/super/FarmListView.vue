@@ -57,7 +57,7 @@ import { useAuthStore } from '../../stores/auth.js'
 import api from '../../services/api.js'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import { useToast } from '../../composables/useToast.js'
-import { extractApiError } from '../../utils/apiError.js'
+import { extractApiError, resolveError } from '../../utils/apiError.js'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -79,8 +79,8 @@ async function handleExport() {
     a.download = `myherder-all-farms-${new Date().toISOString().slice(0, 10)}.json`
     a.click()
     URL.revokeObjectURL(url)
-  } catch {
-    showToast(t('common.error'), 'error')
+  } catch (err) {
+    showToast(resolveError(extractApiError(err), t), 'error')
   } finally {
     exporting.value = false
   }
@@ -90,8 +90,8 @@ onMounted(async () => {
   try {
     const { data } = await api.get('/farms')
     farms.value = data
-  } catch {
-    showToast(t('common.error'), 'error')
+  } catch (err) {
+    showToast(resolveError(extractApiError(err), t), 'error')
   } finally {
     loading.value = false
   }
@@ -102,7 +102,7 @@ async function handleEnter(farm) {
     await authStore.enterFarm(farm.id)
     router.push('/')
   } catch (err) {
-    showToast(extractApiError(err), 'error')
+    showToast(resolveError(extractApiError(err), t), 'error')
   }
 }
 </script>

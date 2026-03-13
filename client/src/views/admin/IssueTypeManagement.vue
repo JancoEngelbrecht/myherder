@@ -187,9 +187,11 @@ import AppHeader from '../../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import SearchInput from '../../components/atoms/SearchInput.vue'
 import PaginationBar from '../../components/atoms/PaginationBar.vue'
+import { useI18n } from 'vue-i18n'
 import { useToast } from '../../composables/useToast'
-import { extractApiError } from '../../utils/apiError'
+import { extractApiError, resolveError } from '../../utils/apiError'
 
+const { t } = useI18n()
 const store = useIssueTypesStore()
 const toast = useToast()
 
@@ -292,7 +294,7 @@ async function save() {
     showForm.value = false
     editing.value = null
   } catch (err) {
-    formError.value = extractApiError(err)
+    formError.value = resolveError(extractApiError(err), t)
   } finally {
     saving.value = false
   }
@@ -308,7 +310,7 @@ async function doDeactivate() {
     await store.update(deactivateTarget.value.id, { ...deactivateTarget.value, is_active: false })
     deactivateTarget.value = null
   } catch (err) {
-    toast.show(extractApiError(err), 'error')
+    toast.show(resolveError(extractApiError(err), t), 'error')
   } finally {
     deactivating.value = false
   }
@@ -318,7 +320,7 @@ async function doActivate(type) {
   try {
     await store.update(type.id, { ...type, is_active: true })
   } catch (err) {
-    toast.show(extractApiError(err), 'error')
+    toast.show(resolveError(extractApiError(err), t), 'error')
   }
 }
 
@@ -334,7 +336,7 @@ async function doDelete() {
     deleteTarget.value = null
   } catch (err) {
     deleteTarget.value = null
-    pageError.value = extractApiError(err)
+    pageError.value = resolveError(extractApiError(err), t)
   } finally {
     deleting.value = false
   }

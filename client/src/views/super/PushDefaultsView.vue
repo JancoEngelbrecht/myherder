@@ -76,7 +76,7 @@ import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
-import { extractApiError } from '../../utils/apiError'
+import { extractApiError, resolveError } from '../../utils/apiError'
 import { useToast } from '../../composables/useToast.js'
 
 const { t } = useI18n()
@@ -110,7 +110,7 @@ onMounted(async () => {
     const { data } = await api.get('/farms?active=1')
     farms.value = data
   } catch (err) {
-    showToast(extractApiError(err), 'error')
+    showToast(resolveError(extractApiError(err), t), 'error')
   } finally {
     loadingFarms.value = false
   }
@@ -132,7 +132,7 @@ async function doPush() {
     result.value = data
     showConfirm.value = false
   } catch (err) {
-    error.value = extractApiError(err)
+    error.value = resolveError(extractApiError(err), t)
     showConfirm.value = false
   } finally {
     pushing.value = false

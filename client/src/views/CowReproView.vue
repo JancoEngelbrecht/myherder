@@ -37,9 +37,9 @@
             <div class="progress-fill" :style="{ width: `${gestationPct}%` }" />
           </div>
           <div class="gestation-dates">
-            <span class="mono">{{ latestEvent.event_date?.slice(0, 10) }}</span>
+            <span class="mono">{{ formatDate(latestEvent.event_date) }}</span>
             <span class="pct-label">{{ gestationPct }}%</span>
-            <span class="mono">{{ latestEvent.expected_calving }}</span>
+            <span class="mono">{{ formatDate(latestEvent.expected_calving) }}</span>
           </div>
         </div>
 
@@ -51,28 +51,28 @@
               <span class="date-icon">🔥</span>
               <div class="date-body">
                 <span class="date-key">{{ t('breeding.dates.nextHeat') }}</span>
-                <span class="date-val mono">{{ latestEvent.expected_next_heat }}</span>
+                <span class="date-val mono">{{ formatDate(latestEvent.expected_next_heat) }}</span>
               </div>
             </div>
             <div v-if="latestEvent.expected_preg_check" class="date-item">
               <span class="date-icon">🩺</span>
               <div class="date-body">
                 <span class="date-key">{{ t('breeding.dates.pregCheck') }}</span>
-                <span class="date-val mono">{{ latestEvent.expected_preg_check }}</span>
+                <span class="date-val mono">{{ formatDate(latestEvent.expected_preg_check) }}</span>
               </div>
             </div>
             <div v-if="latestEvent.expected_calving" class="date-item">
               <span class="date-icon">🐮</span>
               <div class="date-body">
                 <span class="date-key">{{ t('breeding.dates.calving') }}</span>
-                <span class="date-val mono">{{ latestEvent.expected_calving }}</span>
+                <span class="date-val mono">{{ formatDate(latestEvent.expected_calving) }}</span>
               </div>
             </div>
             <div v-if="latestEvent.expected_dry_off" class="date-item">
               <span class="date-icon">🌿</span>
               <div class="date-body">
                 <span class="date-key">{{ t('breeding.dates.dryOff') }}</span>
-                <span class="date-val mono">{{ latestEvent.expected_dry_off }}</span>
+                <span class="date-val mono">{{ formatDate(latestEvent.expected_dry_off) }}</span>
               </div>
             </div>
           </div>
@@ -227,6 +227,11 @@ const lifetimeStats = computed(() => {
     lastCalving: sorted[sorted.length - 1].event_date.slice(0, 10),
   }
 })
+
+function formatDate(iso) {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+}
 
 function goToEdit(id) {
   router.push(`/breed/edit/${id}?from=/cows/${cowId.value}/repro`)

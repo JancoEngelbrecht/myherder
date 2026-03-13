@@ -3,6 +3,7 @@ const db = require('../../config/database')
 const { formatDate } = require('../../services/reportService')
 const { batchMedications, getIssueTypeMap, parseJsonColumn, MS_PER_DAY } = require('./helpers')
 const { generateReport } = require('./shared')
+const { computeLifePhase, NON_MILKING_PHASES } = require('../../helpers/lifePhase')
 
 const router = express.Router()
 
@@ -21,9 +22,10 @@ const withdrawalColumns = [
 ]
 
 async function getWithdrawalData(from, to, farmId) {
-  const treatments = await db('treatments as t')
+  const rawTreatments = await db('treatments as t')
     .join('cows as c', 't.cow_id', 'c.id')
     .join('users as u', 't.administered_by', 'u.id')
+    .leftJoin('breed_types as bt', 'c.breed_type_id', 'bt.id')
     .where('t.farm_id', farmId)
     .whereNull('c.deleted_at')
     .where('c.sex', 'female')
@@ -34,9 +36,14 @@ async function getWithdrawalData(from, to, farmId) {
       't.id', 't.cow_id', 't.treatment_date',
       't.withdrawal_end_milk', 't.withdrawal_end_meat',
       'c.tag_number', 'c.name as cow_name',
+      'c.dob', 'c.life_phase_override', 'c.sex',
+      'bt.calf_max_months', 'bt.heifer_min_months',
       'u.full_name as administered_by_name',
     )
     .orderBy('t.treatment_date', 'asc')
+
+  // Exclude heifers and calves — they aren't being milked
+  const treatments = rawTreatments.filter(t => !NON_MILKING_PHASES.has(computeLifePhase(t, t)))
 
   if (!treatments.length) {
     return { rows: [], summaryRow: { tag_number: 'TOTAL', medications: '0 treatments' } }

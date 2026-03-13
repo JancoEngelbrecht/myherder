@@ -26,7 +26,7 @@ const updateSchema = Joi.object({
   message: Joi.string().max(2000).allow('', null),
   starts_at: Joi.string().isoDate().allow(null),
   expires_at: Joi.string().isoDate().allow(null),
-  is_active: Joi.boolean(),
+  is_active: Joi.boolean().truthy(1).falsy(0),
 }).min(1)
 
 // ── Public routes (no auth) ──────────────────────────────────

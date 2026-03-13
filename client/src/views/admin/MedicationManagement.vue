@@ -236,8 +236,12 @@ import AppHeader from '../../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import SearchInput from '../../components/atoms/SearchInput.vue'
 import PaginationBar from '../../components/atoms/PaginationBar.vue'
-import { extractApiError } from '../../utils/apiError'
+import { useI18n } from 'vue-i18n'
+import { extractApiError, resolveError } from '../../utils/apiError'
+import { useToast } from '../../composables/useToast'
 
+const { t } = useI18n()
+const { showToast } = useToast()
 const store = useMedicationsStore()
 
 const loading = computed(() => store.loading)
@@ -272,10 +276,8 @@ const editing = ref(null)
 const saving = ref(false)
 const formError = ref('')
 const deactivateTarget = ref(null)
-const deactivateError = ref('')
 const deactivating = ref(false)
 const deleteTarget = ref(null)
-const deleteError = ref('')
 const deleting = ref(false)
 
 function emptyForm() {
@@ -351,7 +353,7 @@ async function save() {
     showForm.value = false
     editing.value = null
   } catch (err) {
-    formError.value = extractApiError(err)
+    formError.value = resolveError(extractApiError(err), t)
   } finally {
     saving.value = false
   }
@@ -359,17 +361,15 @@ async function save() {
 
 function confirmDeactivate(med) {
   deactivateTarget.value = med
-  deactivateError.value = ''
 }
 
 async function doDeactivate() {
   deactivating.value = true
-  deactivateError.value = ''
   try {
     await store.deactivate(deactivateTarget.value.id)
     deactivateTarget.value = null
   } catch (err) {
-    deactivateError.value = extractApiError(err)
+    showToast(resolveError(extractApiError(err), t), 'error')
   } finally {
     deactivating.value = false
   }
@@ -377,17 +377,15 @@ async function doDeactivate() {
 
 function confirmDelete(med) {
   deleteTarget.value = med
-  deleteError.value = ''
 }
 
 async function doDelete() {
   deleting.value = true
-  deleteError.value = ''
   try {
     await store.remove(deleteTarget.value.id)
     deleteTarget.value = null
   } catch (err) {
-    deleteError.value = extractApiError(err)
+    showToast(resolveError(extractApiError(err), t), 'error')
   } finally {
     deleting.value = false
   }

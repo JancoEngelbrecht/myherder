@@ -63,7 +63,7 @@
               </div>
             </template>
             <div
-              v-if="cow?.sex !== 'male' && tx.withdrawal_end_milk && new Date(tx.withdrawal_end_milk) > new Date()"
+              v-if="cow?.sex !== 'male' && lifePhase !== 'heifer' && lifePhase !== 'calf' && tx.withdrawal_end_milk && new Date(tx.withdrawal_end_milk) > new Date()"
               class="tx-withdrawal"
             >
               🥛 {{ t('cowDetail.milkClear') }}: <span class="mono">{{ formatDateTime(tx.withdrawal_end_milk) }}</span>
@@ -79,8 +79,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useCowsStore } from '../stores/cows.js'
+import { useCowsStore, computeLifePhase } from '../stores/cows.js'
 import { useTreatmentsStore } from '../stores/treatments.js'
+import { useBreedTypesStore } from '../stores/breedTypes.js'
 import { formatDate, formatDateTime } from '../utils/format.js'
 import AppHeader from '../components/organisms/AppHeader.vue'
 
@@ -88,6 +89,7 @@ const { t } = useI18n()
 const route = useRoute()
 const cowsStore = useCowsStore()
 const treatmentsStore = useTreatmentsStore()
+const breedTypesStore = useBreedTypesStore()
 
 // UUID — keep as string
 const cowId = route.params.id
@@ -97,8 +99,15 @@ const error = ref('')
 
 const cowTreatments = computed(() => treatmentsStore.getCowTreatments(cowId))
 
+const lifePhase = computed(() => {
+  if (!cow.value) return null
+  const bt = cow.value.breed_type_id ? breedTypesStore.getById(cow.value.breed_type_id) : null
+  return computeLifePhase(cow.value, bt)
+})
+
 const onWithdrawal = computed(() => {
   if (cow.value?.sex === 'male') return false
+  if (lifePhase.value === 'heifer' || lifePhase.value === 'calf') return false
   const now = new Date()
   return cowTreatments.value.some(
     (tx) => tx.withdrawal_end_milk && new Date(tx.withdrawal_end_milk) > now,
@@ -107,6 +116,7 @@ const onWithdrawal = computed(() => {
 
 const cowWithdrawalEnd = computed(() => {
   if (cow.value?.sex === 'male') return null
+  if (lifePhase.value === 'heifer' || lifePhase.value === 'calf') return null
   const now = new Date()
   const dates = cowTreatments.value
     .filter((tx) => tx.withdrawal_end_milk && new Date(tx.withdrawal_end_milk) > now)

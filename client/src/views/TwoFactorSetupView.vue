@@ -81,6 +81,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { extractApiError, resolveError } from '../utils/apiError'
 import { useAuthStore } from '../stores/auth.js'
 import QRCode from 'qrcode'
 
@@ -108,7 +109,7 @@ onMounted(async () => {
     setupData.value = await authStore.setup2fa()
     qrDataUrl.value = await QRCode.toDataURL(setupData.value.qr_uri, { width: 256 })
   } catch (err) {
-    setupError.value = err.response?.data?.error || t('login.errorNetwork')
+    setupError.value = resolveError(extractApiError(err), t)
   } finally {
     setupLoading.value = false
   }

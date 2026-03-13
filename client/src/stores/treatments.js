@@ -5,6 +5,7 @@ import api from '../services/api'
 import db from '../db/indexedDB'
 import { enqueue, dequeueByEntityId, isOfflineError } from '../services/syncManager'
 import { extractApiError } from '../utils/apiError'
+import { computeLifePhase } from './cows'
 
 export const useTreatmentsStore = defineStore('treatments', () => {
   const treatments = ref([])
@@ -69,15 +70,29 @@ export const useTreatmentsStore = defineStore('treatments', () => {
           existing.withdrawal_end_meat = t.withdrawal_end_meat
         }
       }
-      // Resolve sex from cached cows so the frontend can split milk vs meat
+      // Resolve sex + life phase from cached cows so the frontend can split milk vs meat
       const cowIds = Object.keys(byCow)
       if (cowIds.length > 0) {
         const cows = await db.cows.bulkGet(cowIds)
+        // Try to fetch breed types for accurate life phase thresholds
+        const breedTypeIds = [...new Set(cows.filter(c => c?.breed_type_id).map(c => c.breed_type_id))]
+        let breedTypeMap = {}
+        try {
+          if (breedTypeIds.length) {
+            const bts = await db.breed_types.bulkGet(breedTypeIds)
+            for (const bt of bts) {
+              if (bt) breedTypeMap[bt.id] = bt
+            }
+          }
+        } catch {
+          // breed_types table may not exist offline — use defaults
+        }
         for (const cow of cows) {
           if (cow && byCow[cow.id]) {
             byCow[cow.id].sex = cow.sex
             byCow[cow.id].tag_number = byCow[cow.id].tag_number || cow.tag_number
             byCow[cow.id].cow_name = byCow[cow.id].cow_name || cow.name
+            byCow[cow.id].life_phase = computeLifePhase(cow, breedTypeMap[cow.breed_type_id] ?? null)
           }
         }
       }

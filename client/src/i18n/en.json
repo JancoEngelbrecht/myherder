@@ -964,7 +964,12 @@
     "inactive": "Inactive",
     "users": "Users",
     "cows": "Cows",
-    "created": "Created"
+    "created": "Created",
+    "deleteFarm": "Delete Farm",
+    "deleteFarmConfirm": "Delete Permanently",
+    "deleteConfirmMessage": "This will PERMANENTLY delete farm \"{name}\" and ALL its data (cows, milk records, treatments, health issues, breeding events, users, etc). This cannot be undone.",
+    "typeToConfirm": "Type \"{name}\" to confirm:",
+    "farmDeleted": "Farm permanently deleted"
   },
   "help": {
     "title": "Help Library",

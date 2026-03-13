@@ -138,8 +138,8 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
 - `GET /api/farms` — super-admin only; returns farms array with `user_count`, `cow_count` stats. `?active=0|1` filter
 - `GET /api/farms/:id` — super-admin only; farm detail with `users` array (sanitized)
 - `POST /api/farms` — super-admin only; atomic create: farm + admin user + seed defaults (breed types, issue types, medications, feature flags, settings). Body: `{ name, code, admin_username, admin_password, admin_full_name }`. Code: uppercase alphanumeric 3-10 chars
-- `PATCH /api/farms/:id` — super-admin only; update `{ name?, code?, is_active? }`
-- `DELETE /api/farms/:id` — super-admin only; soft deactivate (sets `is_active: false`)
+- `PATCH /api/farms/:id` — super-admin only; update `{ name?, code?, is_active? }`. Use `{ is_active: false/true }` for deactivation/reactivation
+- `DELETE /api/farms/:id` — super-admin only; **hard delete** — permanently removes farm and all tenant-scoped data in a transaction. Returns 409 if super-admin users are assigned to the farm
 - `POST /api/farms/:id/enter` — super-admin only; issues 4h farm-scoped JWT for cross-farm management
 - `POST /api/farms/:id/revoke-all-sessions` — super-admin only; bumps `token_version` for all farm users
 - `POST /api/users/:id/revoke-sessions` — admin only; bumps individual user's `token_version`

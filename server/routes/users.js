@@ -54,7 +54,7 @@ const updateSchema = Joi.object({
   permissions: Joi.array().items(Joi.string().valid(...ALL_PERMISSIONS)),
   password: Joi.string().min(6).max(128),
   pin: Joi.string().pattern(/^\d{4}$/),
-  is_active: Joi.boolean(),
+  is_active: Joi.boolean().truthy(1).falsy(0),
 }).min(1)
 
 const usersQuerySchema = Joi.object({

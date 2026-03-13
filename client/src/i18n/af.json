@@ -964,7 +964,12 @@
     "inactive": "Onaktief",
     "users": "Gebruikers",
     "cows": "Koeie",
-    "created": "Geskep"
+    "created": "Geskep",
+    "deleteFarm": "Verwyder Plaas",
+    "deleteFarmConfirm": "Verwyder Permanent",
+    "deleteConfirmMessage": "Dit sal plaas \"{name}\" en AL sy data (koeie, melkrekords, behandelings, gesondheidskwessies, teelgebeurtenisse, gebruikers, ens.) PERMANENT verwyder. Dit kan nie ongedaan gemaak word nie.",
+    "typeToConfirm": "Tik \"{name}\" om te bevestig:",
+    "farmDeleted": "Plaas permanent verwyder"
   },
   "help": {
     "title": "Hulpbiblioteek",
