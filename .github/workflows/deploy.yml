@@ -8,16 +8,16 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy via SSH
-        env:
-          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
-          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H myherder.co.za >> ~/.ssh/known_hosts 2>/dev/null
 
-          ssh -o StrictHostKeyChecking=no myherder@myherder.co.za bash -l -c '
+      - name: Deploy via SSH
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no myherder@myherder.co.za 'bash -s' << 'DEPLOY'
             source /home/myherder/nodevenv/repositories/myherder/24/bin/activate
             cd /home/myherder/repositories/myherder
 
@@ -33,4 +33,4 @@ jobs:
             touch tmp/restart.txt
 
             echo "Deployed commit: $(git log --oneline -1)"
-          '
+          DEPLOY
