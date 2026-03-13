@@ -420,3 +420,87 @@ Knex uses a lock table (`knex_migrations_lock`) to prevent concurrent migration 
 Required for SQLite. Without it, Knex throws warnings when inserting rows without specifying every column. This tells Knex to send `NULL` for unspecified columns.
 
 **Gotcha:** This does NOT bypass `NOT NULL` constraints. SQLite enforces `NOT NULL` at the engine level even when Knex sends `NULL`. Every insert must explicitly include values for NOT NULL columns.
+
+---
+
+## 13. MySQL Charset & Collation in Migrations
+
+### utf8mb4 for emoji support
+MySQL's default `utf8` is 3-byte only. Columns storing emojis need `utf8mb4`:
+
+```js
+// Creating a table with emoji column
+table.string('emoji', 10).collate('utf8mb4_unicode_ci');
+```
+
+### Altering existing columns
+MySQL blocks `CONVERT TO CHARACTER SET` on tables with FK references (even with `FOREIGN_KEY_CHECKS=0`). Use `MODIFY COLUMN` on specific columns instead:
+
+```js
+// CORRECT — modify only the column that needs it
+await knex.raw(
+  `ALTER TABLE \`issue_types\` MODIFY COLUMN \`emoji\` VARCHAR(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
+);
+
+// WRONG — fails on tables with foreign keys
+await knex.raw(`ALTER TABLE \`issue_types\` CONVERT TO CHARACTER SET utf8mb4`);
+```
+
+---
+
+## 14. MySQL DateTime Gotchas
+
+### `knex.fn.now()` — always use for timestamps
+MySQL strict mode rejects ISO 8601 strings for DATETIME columns:
+
+```js
+// CORRECT — works on both SQLite and MySQL
+await knex('items').insert({ created_at: knex.fn.now() });
+
+// CORRECT inside transactions
+await trx('items').insert({ created_at: trx.fn.now() });
+
+// WRONG — MySQL strict mode rejects this
+await knex('items').insert({ created_at: new Date().toISOString() });
+```
+
+### MySQL2 returns Date objects
+MySQL2 driver returns `DATETIME`/`TIMESTAMP` as JS Date objects (not strings). Guard string methods:
+
+```js
+const dateStr = val instanceof Date ? val.toISOString() : String(val);
+const month = dateStr.slice(0, 7); // Safe on both dialects
+```
+
+---
+
+## 15. MySQL FK Constraint Workarounds
+
+When migrations need to drop/recreate indexes on FK columns:
+
+```js
+exports.up = async function (knex) {
+  const isSQLite = knex.client.config.client === 'better-sqlite3';
+
+  if (!isSQLite) {
+    await knex.raw('SET FOREIGN_KEY_CHECKS = 0');
+    try {
+      await knex.schema.alterTable('table', (t) => {
+        t.dropUnique(['col1', 'col2']);
+        t.unique(['col1', 'col2', 'col3']);
+      });
+    } finally {
+      await knex.raw('SET FOREIGN_KEY_CHECKS = 1');
+    }
+  }
+};
+```
+
+### PRAGMA guards for cross-dialect seeds
+SQLite PRAGMAs are no-ops on MySQL but pollute logs:
+```js
+const isSQLite = knex.client.config.client === 'better-sqlite3';
+if (isSQLite) {
+  await knex.raw('PRAGMA ignore_check_constraints = ON');
+}
+```

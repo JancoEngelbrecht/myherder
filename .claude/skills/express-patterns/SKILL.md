@@ -526,3 +526,47 @@ app.use((err, req, res, next) => {
 - **Don't use synchronous functions** — they block the entire event loop
 - **Don't skip `helmet()`** — it's a one-line security improvement
 - **Don't hardcode secrets** — use environment variables, validate them at startup
+
+## Tenant-Scoped Routes
+
+### tenantScope middleware
+All routes except auth/settings/announcements go through `tenantScope`, which sets `req.farmId` from JWT:
+
+```js
+// Every query must scope by farm_id
+const items = await db('items').where({ farm_id: req.farmId });
+
+// Every insert must include farm_id
+await db('items').insert({ ...value, id: uuid(), farm_id: req.farmId });
+
+// Updates/deletes must scope lookup by farm_id (not just id)
+const item = await db('items').where({ id: req.params.id, farm_id: req.farmId }).first();
+if (!item) return res.status(404).json({ error: { code: 'NOT_FOUND' } });
+```
+
+### Query helpers accept farmId
+Never use global caches — they leak data across tenants:
+```js
+function baseQuery(db, farmId) {
+  return db('items').where('items.farm_id', farmId).whereNull('items.deleted_at');
+}
+```
+
+## API Error Translation
+
+Backend returns i18n keys as error messages. Frontend must translate:
+
+```js
+// client/src/utils/apiError.js exports:
+// - extractApiError(err) — extracts error string from Axios error
+// - resolveError(t, errorString) — translates i18n key, falls back to raw string
+
+// Usage in Vue components:
+import { extractApiError, resolveError } from '@/utils/apiError';
+
+catch (err) {
+  toast.error(resolveError(t, extractApiError(err)));
+}
+```
+
+**Common mistake:** Using `extractApiError()` alone shows raw keys like `"errors.network"` to users. Always wrap with `resolveError(t, ...)`.
