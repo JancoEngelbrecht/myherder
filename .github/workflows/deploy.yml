@@ -8,22 +8,29 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Pull latest code on cPanel
+      - name: Deploy via SSH
+        env:
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
-          curl -s -o /dev/null -w "%{http_code}" \
-            -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_API_TOKEN }}" \
-            "https://${{ secrets.CPANEL_DOMAIN }}:2083/execute/VersionControl/update?repository_root=%2Fhome%2Fmyherder%2Frepositories%2Fmyherder"
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H myherder.co.za >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Deploy HEAD commit on cPanel
-        run: |
-          RESPONSE=$(curl -s -w "\n%{http_code}" \
-            -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_API_TOKEN }}" \
-            "https://${{ secrets.CPANEL_DOMAIN }}:2083/execute/VersionControlDeployment/create?repository_root=%2Fhome%2Fmyherder%2Frepositories%2Fmyherder")
-          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          BODY=$(echo "$RESPONSE" | head -n -1)
-          echo "HTTP Status: $HTTP_CODE"
-          echo "Response: $BODY"
-          if [ "$HTTP_CODE" -ne 200 ]; then
-            echo "Deployment failed!"
-            exit 1
-          fi
+          ssh -o StrictHostKeyChecking=no myherder@myherder.co.za bash -l -c '
+            source /home/myherder/nodevenv/repositories/myherder/24/bin/activate
+            cd /home/myherder/repositories/myherder
+
+            # Clean any dirty files that block git pull
+            git checkout -- package.json package-lock.json 2>/dev/null || true
+
+            git pull origin main
+
+            npm install --production
+
+            npx knex migrate:latest --env production
+
+            touch tmp/restart.txt
+
+            echo "Deployed commit: $(git log --oneline -1)"
+          '
