@@ -34,6 +34,18 @@ const updateSchema = Joi.object({
 
 // GET /api/announcements/active — active, non-expired announcements
 // Must be BEFORE /:id routes
+// Temporary debug endpoint — remove after fixing
+router.get('/debug', async (_req, res, next) => {
+  try {
+    const all = await db('system_announcements').select('*')
+    const now = db.fn.now()
+    const nowJs = new Date().toISOString()
+    res.json({ count: all.length, now: nowJs, rows: all.map(r => ({ id: r.id, title: r.title, is_active: r.is_active, is_active_type: typeof r.is_active, starts_at: r.starts_at, starts_at_type: typeof r.starts_at, expires_at: r.expires_at })) })
+  } catch (err) {
+    next(err)
+  }
+})
+
 router.get('/active', async (_req, res, next) => {
   try {
     const now = db.fn.now()
