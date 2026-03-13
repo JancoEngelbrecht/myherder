@@ -1,0 +1,4 @@
+---
+deployment:
+  tasks:
+    - /bin/bash -l -c 'source /home/myherder/nodevenv/repositories/myherder/24/bin/activate && cd /home/myherder/repositories/myherder && npm install --production && npx knex migrate:latest --env production && touch tmp/restart.txt'
