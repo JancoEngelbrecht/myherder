@@ -234,6 +234,24 @@ describe('DELETE /api/announcements/:id/permanent', () => {
     expect(dismissals.length).toBe(0)
   })
 
+  it('permanently deletes an active-but-expired announcement', async () => {
+    await db('system_announcements').insert({
+      id: 'ann-expired', type: 'info', title: 'Expired Active',
+      is_active: true, expires_at: '2020-01-01T00:00:00.000Z',
+      created_by: SUPER_ADMIN_ID,
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    })
+
+    const res = await request(app)
+      .delete('/api/announcements/ann-expired/permanent')
+      .set('Authorization', superAdminToken())
+    expect(res.status).toBe(200)
+    expect(res.body.deleted).toBe(true)
+
+    const ann = await db('system_announcements').where('id', 'ann-expired').first()
+    expect(ann).toBeUndefined()
+  })
+
   it('returns 400 when announcement is still active', async () => {
     await db('system_announcements').insert({
       id: 'ann-active', type: 'info', title: 'Still Active',

@@ -5,6 +5,7 @@ const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const requireSuperAdmin = require('../middleware/requireSuperAdmin')
 const { joiMsg, validateBody } = require('../helpers/constants')
+const { logAudit } = require('../services/auditService')
 
 const router = express.Router()
 
@@ -125,7 +126,7 @@ router.delete('/:id', authenticate, requireSuperAdmin, async (req, res, next) =>
   }
 })
 
-// DELETE /api/announcements/:id/permanent — hard delete (inactive only)
+// DELETE /api/announcements/:id/permanent — hard delete (inactive or expired)
 router.delete('/:id/permanent', authenticate, requireSuperAdmin, async (req, res, next) => {
   try {
     const existing = await db('system_announcements').where('id', req.params.id).first()
@@ -137,6 +138,8 @@ router.delete('/:id/permanent', authenticate, requireSuperAdmin, async (req, res
       await trx('announcement_dismissals').where('announcement_id', existing.id).del()
       await trx('system_announcements').where('id', existing.id).del()
     })
+
+    await logAudit({ farmId: null, userId: req.user.id, action: 'delete', entityType: 'announcement', entityId: existing.id, oldValues: existing })
 
     res.json({ deleted: true })
   } catch (err) {
