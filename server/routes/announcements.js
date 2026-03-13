@@ -9,6 +9,15 @@ const { logAudit } = require('../services/auditService')
 
 const router = express.Router()
 
+// ── Helpers ─────────────────────────────────────────────────
+
+/** Convert ISO string to MySQL-compatible 'YYYY-MM-DD HH:MM:SS' */
+function toMySQLDate(iso) {
+  if (!iso) return null
+  const d = new Date(iso)
+  return d.toISOString().slice(0, 19).replace('T', ' ')
+}
+
 // ── Validation ───────────────────────────────────────────────
 
 const VALID_TYPES = ['info', 'warning', 'maintenance']
@@ -72,18 +81,20 @@ router.post('/', authenticate, requireSuperAdmin, async (req, res, next) => {
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const id = uuidv4()
-    const now = new Date().toISOString()
+    if (value.starts_at) value.starts_at = toMySQLDate(value.starts_at)
+    if (value.expires_at) value.expires_at = toMySQLDate(value.expires_at)
     const record = {
       id,
       ...value,
       is_active: true,
       created_by: req.user.id,
-      created_at: now,
-      updated_at: now,
+      created_at: db.fn.now(),
+      updated_at: db.fn.now(),
     }
     await db('system_announcements').insert(record)
 
-    res.status(201).json(record)
+    const inserted = await db('system_announcements').where('id', id).first()
+    res.status(201).json(inserted)
   } catch (err) {
     next(err)
   }
@@ -98,9 +109,11 @@ router.patch('/:id', authenticate, requireSuperAdmin, async (req, res, next) => 
     const { error, value } = validateBody(updateSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
+    if (value.starts_at) value.starts_at = toMySQLDate(value.starts_at)
+    if (value.expires_at) value.expires_at = toMySQLDate(value.expires_at)
     await db('system_announcements')
       .where('id', existing.id)
-      .update({ ...value, updated_at: new Date().toISOString() })
+      .update({ ...value, updated_at: db.fn.now() })
 
     const updated = await db('system_announcements').where('id', existing.id).first()
     res.json(updated)
@@ -117,7 +130,7 @@ router.delete('/:id', authenticate, requireSuperAdmin, async (req, res, next) =>
 
     await db('system_announcements')
       .where('id', existing.id)
-      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .update({ is_active: false, updated_at: db.fn.now() })
 
     const updated = await db('system_announcements').where('id', existing.id).first()
     res.json(updated)
@@ -156,7 +169,7 @@ router.post('/:id/dismiss', authenticate, async (req, res, next) => {
 
     // Upsert dismissal (ignore if already dismissed)
     await db('announcement_dismissals')
-      .insert({ announcement_id: ann.id, user_id: req.user.id, dismissed_at: new Date().toISOString() })
+      .insert({ announcement_id: ann.id, user_id: req.user.id, dismissed_at: db.fn.now() })
       .onConflict(['announcement_id', 'user_id'])
       .ignore()
 
