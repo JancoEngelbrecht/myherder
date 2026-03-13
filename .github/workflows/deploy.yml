@@ -1,0 +1,29 @@
+name: Deploy to cPanel
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull latest code on cPanel
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_API_TOKEN }}" \
+            "https://${{ secrets.CPANEL_DOMAIN }}:2083/execute/VersionControl/update?repository_root=%2Fhome%2Fmyherder%2Frepositories%2Fmyherder"
+
+      - name: Deploy HEAD commit on cPanel
+        run: |
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -H "Authorization: cpanel ${{ secrets.CPANEL_USER }}:${{ secrets.CPANEL_API_TOKEN }}" \
+            "https://${{ secrets.CPANEL_DOMAIN }}:2083/execute/VersionControlDeployment/create?repository_root=%2Fhome%2Fmyherder%2Frepositories%2Fmyherder")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "Deployment failed!"
+            exit 1
+          fi

@@ -32,38 +32,84 @@ export const useAuthStore = defineStore('auth', () => {
   async function hydrate() {
     if (hydrated.value) return
     try {
-      // Initialize farm-scoped DB before reading session
       const storedFarmId = localStorage.getItem('farm_id')
-      if (!storedFarmId) {
-        // No farm context — skip DB access (no session to restore)
-        return
-      }
-      await initDb(storedFarmId)
-      const stored = await db.auth.get('session')
-      if (stored?.token) {
-        const payload = decodeToken(stored.token)
-        if (!payload) {
-          await db.auth.delete('session')
-          localStorage.removeItem('auth_token')
-        } else {
-          token.value = stored.token
-          user.value = stored.user
-          localStorage.setItem('auth_token', stored.token)
-          if (payload.exp) {
-            const msUntilExpiry = payload.exp * 1000 - Date.now()
-            if (msUntilExpiry < 60 * 60 * 1000) {
-              refreshToken().catch(() => {})
+
+      // Try IndexedDB first (has richer user data from setSession)
+      let restored = false
+      let restoredPayload = null
+      if (storedFarmId) {
+        try {
+          await initDb(storedFarmId)
+          const stored = await db.auth.get('session')
+          if (stored?.token) {
+            const payload = decodeToken(stored.token)
+            if (!payload) {
+              await db.auth.delete('session')
+              localStorage.removeItem('auth_token')
+            } else {
+              token.value = stored.token
+              user.value = stored.user
+              localStorage.setItem('auth_token', stored.token)
+              restored = true
+              restoredPayload = payload
             }
           }
-          // Restore feature flags (super-admin without farm context skips)
-          if (payload.role !== 'super_admin' || payload.farm_id) {
-            const featureFlagsStore = useFeatureFlagsStore()
-            featureFlagsStore.fetchFlags().catch(() => {})
+        } catch {
+          // IndexedDB unavailable — fall through to localStorage
+        }
+      }
+
+      // Fallback: restore from localStorage token (survives IndexedDB eviction)
+      if (!restored) {
+        const storedToken = localStorage.getItem('auth_token')
+        if (storedToken) {
+          const payload = decodeToken(storedToken)
+          if (!payload) {
+            localStorage.removeItem('auth_token')
+          } else {
+            token.value = storedToken
+            user.value = {
+              id: payload.id,
+              username: payload.username,
+              full_name: payload.full_name,
+              role: payload.role,
+              permissions: payload.permissions || [],
+              language: payload.language,
+              farm_id: payload.farm_id || null,
+              token_version: payload.token_version ?? 0,
+            }
+            restored = true
+            restoredPayload = payload
+            // Re-initialize DB (may have failed above, or farm_id came from token only)
+            if (payload.farm_id && !storedFarmId) {
+              localStorage.setItem('farm_id', String(payload.farm_id))
+            }
+            try {
+              await initDb(payload.farm_id || null)
+              // Persist session to IndexedDB for future hydrations
+              await db.auth.put({ key: 'session', token: storedToken, user: user.value })
+            } catch {
+              // DB still unavailable — continue without it
+            }
           }
         }
       }
+
+      if (restored && restoredPayload) {
+        if (restoredPayload.exp) {
+          const msUntilExpiry = restoredPayload.exp * 1000 - Date.now()
+          if (msUntilExpiry < 60 * 60 * 1000) {
+            refreshToken().catch(() => {})
+          }
+        }
+        // Restore feature flags (super-admin without farm context skips)
+        if (restoredPayload.role !== 'super_admin' || restoredPayload.farm_id) {
+          const featureFlagsStore = useFeatureFlagsStore()
+          featureFlagsStore.fetchFlags().catch(() => {})
+        }
+      }
     } catch {
-      // IndexedDB unavailable or no stored session
+      // Unexpected error — continue unauthenticated
     } finally {
       hydrated.value = true
     }

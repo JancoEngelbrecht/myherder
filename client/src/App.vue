@@ -66,16 +66,16 @@ async function handleExitFarm() {
   router.push('/super/farms')
 }
 
-// Start sync engine when user is authenticated
+// Start sync engine only after hydration completes and user is authenticated
 let syncInitialized = false
 watch(
-  () => authStore.isAuthenticated,
-  async (authed) => {
-    if (authed && !syncInitialized) {
+  () => authStore.isAuthenticated && authStore.hydrated,
+  async (ready) => {
+    if (ready && !syncInitialized) {
       await initSync()
       syncInitialized = true
     }
-    if (!authed && syncInitialized) {
+    if (!ready && syncInitialized) {
       destroySync()
       syncInitialized = false
     }
