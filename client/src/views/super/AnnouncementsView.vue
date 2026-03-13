@@ -81,8 +81,8 @@
 
             <div class="defaults-actions">
               <button class="btn-secondary btn-sm" @click="openEdit(ann)">{{ $t('common.edit') }}</button>
-              <button v-if="ann.is_active" class="btn-danger btn-sm" @click="confirmDeactivate(ann)">{{ $t('announcements.deactivate') }}</button>
-              <button v-if="!ann.is_active" class="btn-danger btn-sm" @click="confirmDelete(ann)">{{ $t('common.delete') }}</button>
+              <button v-if="ann.is_active && !canDelete(ann)" class="btn-danger btn-sm" @click="confirmDeactivate(ann)">{{ $t('announcements.deactivate') }}</button>
+              <button v-if="canDelete(ann)" class="btn-danger btn-sm" @click="confirmDelete(ann)">{{ $t('common.delete') }}</button>
             </div>
           </div>
         </div>
@@ -172,6 +172,12 @@ function statusLabel(ann) {
   if (ann.expires_at && new Date(ann.expires_at) < new Date()) return t('announcements.expired')
   if (ann.starts_at && new Date(ann.starts_at) > new Date()) return t('announcements.scheduled')
   return t('announcements.active')
+}
+
+function canDelete(ann) {
+  if (!ann.is_active) return true
+  if (ann.expires_at && new Date(ann.expires_at) < new Date()) return true
+  return false
 }
 
 function toLocalInput(iso) {

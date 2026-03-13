@@ -130,7 +130,8 @@ router.delete('/:id/permanent', authenticate, requireSuperAdmin, async (req, res
   try {
     const existing = await db('system_announcements').where('id', req.params.id).first()
     if (!existing) return res.status(404).json({ error: 'Announcement not found' })
-    if (existing.is_active) return res.status(400).json({ error: 'Deactivate announcement before deleting permanently' })
+    const isExpired = existing.expires_at && new Date(existing.expires_at) < new Date()
+    if (existing.is_active && !isExpired) return res.status(400).json({ error: 'Deactivate announcement before deleting permanently' })
 
     await db.transaction(async (trx) => {
       await trx('announcement_dismissals').where('announcement_id', existing.id).del()
