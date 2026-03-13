@@ -36,7 +36,7 @@ const updateSchema = Joi.object({
 // Must be BEFORE /:id routes
 router.get('/active', async (_req, res, next) => {
   try {
-    const now = new Date().toISOString()
+    const now = db.fn.now()
     const rows = await db('system_announcements')
       .where('is_active', true)
       .where(function () {

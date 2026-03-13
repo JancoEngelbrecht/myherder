@@ -1,10 +1,12 @@
 <template>
-  <div v-for="ann in visible" :key="ann.id" class="announcement-banner" :class="`banner-${ann.type}`">
-    <div class="announcement-content">
-      <strong>{{ ann.title }}</strong>
-      <span v-if="ann.message"> — {{ ann.message }}</span>
+  <div v-if="visible.length" class="announcement-stack">
+    <div v-for="ann in visible" :key="ann.id" class="announcement-banner" :class="`banner-${ann.type}`">
+      <div class="announcement-content">
+        <strong>{{ ann.title }}</strong>
+        <span v-if="ann.message"> — {{ ann.message }}</span>
+      </div>
+      <button class="dismiss-btn" :title="$t('announcements.dismiss')" @click="dismiss(ann.id)">✕</button>
     </div>
-    <button class="dismiss-btn" :title="$t('announcements.dismiss')" @click="dismiss(ann.id)">✕</button>
   </div>
 </template>
 
@@ -46,6 +48,14 @@ function dismiss(id) {
 </script>
 
 <style scoped>
+.announcement-stack {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  right: 0;
+  z-index: 200;
+}
+
 .announcement-banner {
   display: flex;
   align-items: center;
