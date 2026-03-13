@@ -210,7 +210,7 @@ describe('DELETE /api/announcements/:id', () => {
   })
 })
 
-describe('DELETE /api/announcements/:id/permanent', () => {
+describe('POST /api/announcements/:id/permanent', () => {
   it('permanently deletes an inactive announcement and its dismissals', async () => {
     await db('system_announcements').insert({
       id: 'ann-perm', type: 'info', title: 'To Delete',
@@ -223,7 +223,7 @@ describe('DELETE /api/announcements/:id/permanent', () => {
     })
 
     const res = await request(app)
-      .delete('/api/announcements/ann-perm/permanent')
+      .post('/api/announcements/ann-perm/permanent')
       .set('Authorization', superAdminToken())
     expect(res.status).toBe(200)
     expect(res.body.deleted).toBe(true)
@@ -243,7 +243,7 @@ describe('DELETE /api/announcements/:id/permanent', () => {
     })
 
     const res = await request(app)
-      .delete('/api/announcements/ann-expired/permanent')
+      .post('/api/announcements/ann-expired/permanent')
       .set('Authorization', superAdminToken())
     expect(res.status).toBe(200)
     expect(res.body.deleted).toBe(true)
@@ -260,14 +260,14 @@ describe('DELETE /api/announcements/:id/permanent', () => {
     })
 
     const res = await request(app)
-      .delete('/api/announcements/ann-active/permanent')
+      .post('/api/announcements/ann-active/permanent')
       .set('Authorization', superAdminToken())
     expect(res.status).toBe(400)
   })
 
   it('returns 404 for non-existent announcement', async () => {
     const res = await request(app)
-      .delete('/api/announcements/nonexistent/permanent')
+      .post('/api/announcements/nonexistent/permanent')
       .set('Authorization', superAdminToken())
     expect(res.status).toBe(404)
   })
@@ -280,7 +280,7 @@ describe('DELETE /api/announcements/:id/permanent', () => {
     })
 
     const res = await request(app)
-      .delete('/api/announcements/ann-auth/permanent')
+      .post('/api/announcements/ann-auth/permanent')
       .set('Authorization', adminToken())
     expect(res.status).toBe(403)
   })

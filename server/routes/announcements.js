@@ -126,8 +126,9 @@ router.delete('/:id', authenticate, requireSuperAdmin, async (req, res, next) =>
   }
 })
 
-// DELETE /api/announcements/:id/permanent — hard delete (inactive or expired)
-router.delete('/:id/permanent', authenticate, requireSuperAdmin, async (req, res, next) => {
+// POST /api/announcements/:id/permanent — hard delete (inactive or expired)
+// Uses POST instead of DELETE because cPanel Passenger/LiteSpeed strips sub-paths on DELETE requests
+router.post('/:id/permanent', authenticate, requireSuperAdmin, async (req, res, next) => {
   try {
     const existing = await db('system_announcements').where('id', req.params.id).first()
     if (!existing) return res.status(404).json({ error: 'Announcement not found' })

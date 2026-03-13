@@ -258,7 +258,7 @@ function confirmDelete(ann) { deleteTarget.value = ann }
 async function doDelete() {
   deleting.value = true
   try {
-    await api.delete(`/announcements/${deleteTarget.value.id}/permanent`)
+    await api.post(`/announcements/${deleteTarget.value.id}/permanent`)
     showToast(t('announcements.deleted'), 'success')
     await load()
   } catch (err) {
