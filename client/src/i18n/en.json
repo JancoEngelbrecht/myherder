@@ -1880,6 +1880,8 @@
     "created": "Announcement created",
     "updated": "Announcement updated",
     "deactivated": "Announcement deactivated",
+    "deleteConfirm": "Permanently delete this announcement? This cannot be undone.",
+    "deleted": "Announcement deleted",
     "dismiss": "Dismiss",
     "active": "Active",
     "expired": "Expired",

@@ -1880,6 +1880,8 @@
     "created": "Aankondiging geskep",
     "updated": "Aankondiging opgedateer",
     "deactivated": "Aankondiging gedeaktiveer",
+    "deleteConfirm": "Verwyder hierdie aankondiging permanent? Dit kan nie ongedaan gemaak word nie.",
+    "deleted": "Aankondiging verwyder",
     "dismiss": "Verwerp",
     "active": "Aktief",
     "expired": "Verval",

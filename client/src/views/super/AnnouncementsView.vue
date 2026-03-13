@@ -82,6 +82,7 @@
             <div class="defaults-actions">
               <button class="btn-secondary btn-sm" @click="openEdit(ann)">{{ $t('common.edit') }}</button>
               <button v-if="ann.is_active" class="btn-danger btn-sm" @click="confirmDeactivate(ann)">{{ $t('announcements.deactivate') }}</button>
+              <button v-if="!ann.is_active" class="btn-danger btn-sm" @click="confirmDelete(ann)">{{ $t('common.delete') }}</button>
             </div>
           </div>
         </div>
@@ -98,6 +99,16 @@
       :loading="deactivating"
       @confirm="doDeactivate"
       @cancel="deactivateTarget = null"
+    />
+
+    <ConfirmDialog
+      :show="!!deleteTarget"
+      :message="$t('announcements.deleteConfirm')"
+      :confirm-label="$t('common.delete')"
+      :cancel-label="$t('common.cancel')"
+      :loading="deleting"
+      @confirm="doDelete"
+      @cancel="deleteTarget = null"
     />
   </div>
 </template>
@@ -124,6 +135,8 @@ const saving = ref(false)
 const formError = ref('')
 const deactivateTarget = ref(null)
 const deactivating = ref(false)
+const deleteTarget = ref(null)
+const deleting = ref(false)
 
 const emptyForm = () => ({ title: '', message: '', type: 'info', starts_at: '', expires_at: '' })
 const form = ref(emptyForm())
@@ -224,13 +237,29 @@ async function doDeactivate() {
   deactivating.value = true
   try {
     await api.delete(`/announcements/${deactivateTarget.value.id}`)
-    deactivateTarget.value = null
     showToast(t('announcements.deactivated'), 'success')
     await load()
   } catch (err) {
     showToast(resolveError(extractApiError(err), t), 'error')
   } finally {
+    deactivateTarget.value = null
     deactivating.value = false
+  }
+}
+
+function confirmDelete(ann) { deleteTarget.value = ann }
+
+async function doDelete() {
+  deleting.value = true
+  try {
+    await api.delete(`/announcements/${deleteTarget.value.id}/permanent`)
+    showToast(t('announcements.deleted'), 'success')
+    await load()
+  } catch (err) {
+    showToast(resolveError(extractApiError(err), t), 'error')
+  } finally {
+    deleteTarget.value = null
+    deleting.value = false
   }
 }
 </script>

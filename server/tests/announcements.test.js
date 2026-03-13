@@ -210,6 +210,64 @@ describe('DELETE /api/announcements/:id', () => {
   })
 })
 
+describe('DELETE /api/announcements/:id/permanent', () => {
+  it('permanently deletes an inactive announcement and its dismissals', async () => {
+    await db('system_announcements').insert({
+      id: 'ann-perm', type: 'info', title: 'To Delete',
+      is_active: false, created_by: SUPER_ADMIN_ID,
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    })
+    await db('announcement_dismissals').insert({
+      announcement_id: 'ann-perm', user_id: SUPER_ADMIN_ID,
+      dismissed_at: new Date().toISOString(),
+    })
+
+    const res = await request(app)
+      .delete('/api/announcements/ann-perm/permanent')
+      .set('Authorization', superAdminToken())
+    expect(res.status).toBe(200)
+    expect(res.body.deleted).toBe(true)
+
+    const ann = await db('system_announcements').where('id', 'ann-perm').first()
+    expect(ann).toBeUndefined()
+    const dismissals = await db('announcement_dismissals').where('announcement_id', 'ann-perm')
+    expect(dismissals.length).toBe(0)
+  })
+
+  it('returns 400 when announcement is still active', async () => {
+    await db('system_announcements').insert({
+      id: 'ann-active', type: 'info', title: 'Still Active',
+      is_active: true, created_by: SUPER_ADMIN_ID,
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    })
+
+    const res = await request(app)
+      .delete('/api/announcements/ann-active/permanent')
+      .set('Authorization', superAdminToken())
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 404 for non-existent announcement', async () => {
+    const res = await request(app)
+      .delete('/api/announcements/nonexistent/permanent')
+      .set('Authorization', superAdminToken())
+    expect(res.status).toBe(404)
+  })
+
+  it('rejects non-super-admin', async () => {
+    await db('system_announcements').insert({
+      id: 'ann-auth', type: 'info', title: 'Auth Test',
+      is_active: false, created_by: SUPER_ADMIN_ID,
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    })
+
+    const res = await request(app)
+      .delete('/api/announcements/ann-auth/permanent')
+      .set('Authorization', adminToken())
+    expect(res.status).toBe(403)
+  })
+})
+
 describe('POST /api/announcements/:id/dismiss', () => {
   it('dismisses an announcement for current user', async () => {
     await db('system_announcements').insert({

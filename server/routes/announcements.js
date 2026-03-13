@@ -125,6 +125,24 @@ router.delete('/:id', authenticate, requireSuperAdmin, async (req, res, next) =>
   }
 })
 
+// DELETE /api/announcements/:id/permanent — hard delete (inactive only)
+router.delete('/:id/permanent', authenticate, requireSuperAdmin, async (req, res, next) => {
+  try {
+    const existing = await db('system_announcements').where('id', req.params.id).first()
+    if (!existing) return res.status(404).json({ error: 'Announcement not found' })
+    if (existing.is_active) return res.status(400).json({ error: 'Deactivate announcement before deleting permanently' })
+
+    await db.transaction(async (trx) => {
+      await trx('announcement_dismissals').where('announcement_id', existing.id).del()
+      await trx('system_announcements').where('id', existing.id).del()
+    })
+
+    res.json({ deleted: true })
+  } catch (err) {
+    next(err)
+  }
+})
+
 // POST /api/announcements/:id/dismiss — user dismissal
 router.post('/:id/dismiss', authenticate, async (req, res, next) => {
   try {
