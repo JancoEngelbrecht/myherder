@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <AppHeader :title="$t('globalDefaults.issueTypes')" show-back back-to="/" />
+    <AppHeader :title="$t('globalDefaults.issueTypes')" show-back back-to="/super/defaults" />
 
     <div class="page-content defaults-content">
       <!-- Add / Edit Form -->

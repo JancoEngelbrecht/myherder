@@ -1841,6 +1841,7 @@
     }
   },
   "globalDefaults": {
+    "title": "Standaarde",
     "medications": "Standaard Medikasie",
     "issueTypes": "Standaard Probleemtipes",
     "breedTypes": "Standaard Rastipes",

@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <AppHeader :title="$t('globalDefaults.pushDefaults')" show-back back-to="/" />
+    <AppHeader :title="$t('globalDefaults.pushDefaults')" show-back back-to="/super/defaults" />
 
     <div class="page-content push-content">
       <div class="card push-card">

@@ -1841,6 +1841,7 @@
     }
   },
   "globalDefaults": {
+    "title": "Defaults",
     "medications": "Default Medications",
     "issueTypes": "Default Issue Types",
     "breedTypes": "Default Breed Types",

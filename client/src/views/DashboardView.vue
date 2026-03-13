@@ -33,21 +33,9 @@
               <span class="action-icon">🏢</span>
               <span class="action-label">{{ t('superAdmin.farms') }}</span>
             </RouterLink>
-            <RouterLink to="/super/global/medications" class="action-card active-action">
-              <span class="action-icon">💊</span>
-              <span class="action-label">{{ t('globalDefaults.medications') }}</span>
-            </RouterLink>
-            <RouterLink to="/super/global/issue-types" class="action-card active-action">
-              <span class="action-icon">🩺</span>
-              <span class="action-label">{{ t('globalDefaults.issueTypes') }}</span>
-            </RouterLink>
-            <RouterLink to="/super/global/breed-types" class="action-card active-action">
-              <span class="action-icon">🐄</span>
-              <span class="action-label">{{ t('globalDefaults.breedTypes') }}</span>
-            </RouterLink>
-            <RouterLink to="/super/global/push" class="action-card active-action">
-              <span class="action-icon">📤</span>
-              <span class="action-label">{{ t('globalDefaults.pushDefaults') }}</span>
+            <RouterLink to="/super/defaults" class="action-card active-action">
+              <span class="action-icon">⚙️</span>
+              <span class="action-label">{{ t('globalDefaults.title') }}</span>
             </RouterLink>
             <RouterLink to="/super/announcements" class="action-card active-action">
               <span class="action-icon">📢</span>

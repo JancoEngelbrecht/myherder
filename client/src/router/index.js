@@ -268,6 +268,12 @@ const routes = [
     meta: { requiresAuth: true, requiresSuperAdmin: true },
   },
   {
+    path: '/super/defaults',
+    name: 'defaults-hub',
+    component: () => import('../views/super/DefaultsHubView.vue'),
+    meta: { requiresAuth: true, requiresSuperAdmin: true },
+  },
+  {
     path: '/super/global/medications',
     name: 'global-medications',
     component: () => import('../views/super/DefaultMedicationsView.vue'),
