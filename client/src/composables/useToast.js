@@ -15,5 +15,5 @@ export function useToast() {
     toasts.value = toasts.value.filter((t) => t.id !== id)
   }
 
-  return { toasts, show, dismiss }
+  return { toasts, show, showToast: show, dismiss }
 }

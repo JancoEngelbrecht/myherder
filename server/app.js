@@ -7,6 +7,9 @@ const errorHandler = require('./middleware/errorHandler')
 
 const app = express()
 
+// Trust first proxy (Passenger/cPanel reverse proxy) so express-rate-limit reads X-Forwarded-For correctly
+if (isProduction) app.set('trust proxy', 1)
+
 app.use(helmet())
 // corsOrigins is always a non-null array — never pass undefined to cors()
 app.use(cors({ origin: corsOrigins, credentials: true }))
