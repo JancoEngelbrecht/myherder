@@ -35,6 +35,14 @@ describe('calcWithdrawalDates', () => {
     expect(withdrawalEndMilk).toEqual(new Date('2026-01-02T00:00:00.000Z'))
   })
 
+  it('combines hours and days for both milk and meat', () => {
+    const { withdrawalEndMilk, withdrawalEndMeat } = calcWithdrawalDates(BASE, 12, 2, 6, 3)
+    // milk: 12h + 2*24h = 60h after 2026-01-01T12:00Z = 2026-01-04T00:00Z
+    expect(withdrawalEndMilk).toEqual(new Date('2026-01-04T00:00:00.000Z'))
+    // meat: 6h + 3*24h = 78h after 2026-01-01T12:00Z = 2026-01-04T18:00Z
+    expect(withdrawalEndMeat).toEqual(new Date('2026-01-04T18:00:00.000Z'))
+  })
+
   it('returns Date instances (not strings)', () => {
     const { withdrawalEndMilk, withdrawalEndMeat } = calcWithdrawalDates(BASE, 1, 0, 0, 1)
     expect(withdrawalEndMilk).toBeInstanceOf(Date)

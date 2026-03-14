@@ -2,12 +2,21 @@ const { randomUUID } = require('crypto')
 const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
-const { WORKER_ID, DEFAULT_FARM_ID, seedUsers } = require('./helpers/setup')
+const { WORKER_ID, DEFAULT_FARM_ID, seedUsers, seedFarmUser, tokenForFarm } = require('./helpers/setup')
 const { adminToken, workerToken } = require('./helpers/tokens')
+
+// Second worker for ownership tests
+let WORKER_B_ID
+let workerBToken
 
 beforeAll(async () => {
   await db.migrate.latest()
   await seedUsers(db)
+  // Create second worker for ownership tests
+  WORKER_B_ID = await seedFarmUser(db, DEFAULT_FARM_ID, {
+    username: 'worker_b', pin: '5678', role: 'worker',
+  })
+  workerBToken = tokenForFarm(DEFAULT_FARM_ID, WORKER_B_ID, { role: 'worker', username: 'worker_b' })
 })
 
 afterAll(() => db.destroy())
@@ -540,5 +549,169 @@ describe('GET /api/sync/pull', () => {
     expect(res.status).toBe(200)
     const deletedIds = res.body.deleted.map((d) => d.id)
     expect(deletedIds).toContain(cowId)
+  })
+})
+
+// ─── Ownership checks ─────────────────────────────────────────────────────────
+
+describe('POST /api/sync/push — ownership enforcement', () => {
+  let cowId
+
+  beforeAll(async () => {
+    cowId = await createCow()
+  })
+
+  afterAll(async () => {
+    await db('milk_records').where('cow_id', cowId).del()
+    await db('cows').where('id', cowId).del()
+  })
+
+  it('blocks worker B from updating worker A milk record', async () => {
+    const recordId = randomUUID()
+    const now = new Date().toISOString()
+    await db('milk_records').insert({
+      id: recordId,
+      farm_id: DEFAULT_FARM_ID,
+      cow_id: cowId,
+      recording_date: '2026-03-01',
+      session: 'morning',
+      litres: 5,
+      recorded_by: WORKER_ID,  // Worker A owns this
+      created_at: now,
+      updated_at: now,
+    })
+
+    const res = await request(app)
+      .post('/api/sync/push')
+      .set('Authorization', workerBToken)  // Worker B tries to update
+      .send({
+        deviceId: randomUUID(),
+        changes: [{
+          entityType: 'milkRecords',
+          action: 'update',
+          id: recordId,
+          data: { litres: 10 },
+          updatedAt: new Date().toISOString(),
+        }],
+      })
+
+    expect(res.status).toBe(200)
+    expect(res.body.results[0].status).toBe('error')
+    expect(res.body.results[0].error).toContain('Cannot modify records owned by another user')
+
+    // Verify DB was not changed
+    const record = await db('milk_records').where('id', recordId).first()
+    expect(record.litres).toBe(5)
+
+    await db('milk_records').where('id', recordId).del()
+  })
+
+  it('blocks worker B from deleting worker A milk record', async () => {
+    const recordId = randomUUID()
+    const now = new Date().toISOString()
+    await db('milk_records').insert({
+      id: recordId,
+      farm_id: DEFAULT_FARM_ID,
+      cow_id: cowId,
+      recording_date: '2026-03-02',
+      session: 'morning',
+      litres: 7,
+      recorded_by: WORKER_ID,
+      created_at: now,
+      updated_at: now,
+    })
+
+    const res = await request(app)
+      .post('/api/sync/push')
+      .set('Authorization', workerBToken)
+      .send({
+        deviceId: randomUUID(),
+        changes: [{
+          entityType: 'milkRecords',
+          action: 'delete',
+          id: recordId,
+          updatedAt: new Date().toISOString(),
+        }],
+      })
+
+    expect(res.status).toBe(200)
+    expect(res.body.results[0].status).toBe('error')
+    expect(res.body.results[0].error).toContain('Cannot delete records owned by another user')
+
+    // Record still exists
+    const record = await db('milk_records').where('id', recordId).first()
+    expect(record).toBeTruthy()
+
+    await db('milk_records').where('id', recordId).del()
+  })
+
+  it('allows admin to update any worker milk record', async () => {
+    const recordId = randomUUID()
+    const now = new Date().toISOString()
+    await db('milk_records').insert({
+      id: recordId,
+      farm_id: DEFAULT_FARM_ID,
+      cow_id: cowId,
+      recording_date: '2026-03-03',
+      session: 'morning',
+      litres: 5,
+      recorded_by: WORKER_ID,
+      created_at: now,
+      updated_at: now,
+    })
+
+    const res = await request(app)
+      .post('/api/sync/push')
+      .set('Authorization', adminToken())
+      .send({
+        deviceId: randomUUID(),
+        changes: [{
+          entityType: 'milkRecords',
+          action: 'update',
+          id: recordId,
+          data: { litres: 15 },
+          updatedAt: new Date().toISOString(),
+        }],
+      })
+
+    expect(res.status).toBe(200)
+    expect(res.body.results[0].status).toBe('applied')
+
+    await db('milk_records').where('id', recordId).del()
+  })
+
+  it('allows worker to update their OWN record', async () => {
+    const recordId = randomUUID()
+    const now = new Date().toISOString()
+    await db('milk_records').insert({
+      id: recordId,
+      farm_id: DEFAULT_FARM_ID,
+      cow_id: cowId,
+      recording_date: '2026-03-04',
+      session: 'morning',
+      litres: 5,
+      recorded_by: WORKER_ID,
+      created_at: now,
+      updated_at: now,
+    })
+
+    const res = await request(app)
+      .post('/api/sync/push')
+      .set('Authorization', workerToken())
+      .send({
+        deviceId: randomUUID(),
+        changes: [{
+          entityType: 'milkRecords',
+          action: 'update',
+          id: recordId,
+          data: { litres: 8 },
+          updatedAt: new Date().toISOString(),
+        }],
+      })
+
+    expect(res.status).toBe(200)
+    expect(res.body.results[0].status).toBe('applied')
+
+    await db('milk_records').where('id', recordId).del()
   })
 })

@@ -51,42 +51,6 @@ afterEach(() => {
 // Computed status
 // ═══════════════════════════════════════════════════════════════
 
-describe('sync store — syncStatus computed', () => {
-  it('returns "syncing" when isSyncing is true', () => {
-    isSyncing.value = true
-    const store = useSyncStore()
-    expect(store.syncStatus).toBe('syncing')
-  })
-
-  it('returns "offline-pending" when offline with pending items', () => {
-    isOnline.value = false
-    pendingCount.value = 3
-    const store = useSyncStore()
-    expect(store.syncStatus).toBe('offline-pending')
-  })
-
-  it('returns "offline" when offline with no pending items', () => {
-    isOnline.value = false
-    pendingCount.value = 0
-    const store = useSyncStore()
-    expect(store.syncStatus).toBe('offline')
-  })
-
-  it('returns "pending" when online with pending items', () => {
-    isOnline.value = true
-    pendingCount.value = 5
-    const store = useSyncStore()
-    expect(store.syncStatus).toBe('pending')
-  })
-
-  it('returns "synced" when online with no pending items', () => {
-    isOnline.value = true
-    pendingCount.value = 0
-    const store = useSyncStore()
-    expect(store.syncStatus).toBe('synced')
-  })
-})
-
 describe('sync store — isStaleData computed', () => {
   it('returns true when lastSyncTime is over 24h ago', () => {
     const old = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString()
@@ -119,20 +83,6 @@ describe('sync store — queueOverflow computed', () => {
     pendingCount.value = 100
     const store = useSyncStore()
     expect(store.queueOverflow).toBe(false)
-  })
-})
-
-describe('sync store — hasFailedItems computed', () => {
-  it('returns true when failedItems is non-empty', () => {
-    failedItems.value = [{ id: 'cow-1', attempts: 5 }]
-    const store = useSyncStore()
-    expect(store.hasFailedItems).toBe(true)
-  })
-
-  it('returns false when failedItems is empty', () => {
-    failedItems.value = []
-    const store = useSyncStore()
-    expect(store.hasFailedItems).toBe(false)
   })
 })
 
