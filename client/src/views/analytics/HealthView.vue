@@ -27,15 +27,15 @@
                 <span class="stat-label">{{ t('analytics.health.openIssues') }}</span>
               </div>
               <div class="stat-chip">
-                <span class="stat-value mono">{{ resolutionStats?.cure_rate != null ? resolutionStats.cure_rate + '%' : '—' }}</span>
+                <span class="stat-value mono">{{ resolutionStats?.cure_rate != null ? Math.round(resolutionStats.cure_rate) + '%' : '—' }}</span>
                 <span class="stat-label">{{ t('analytics.health.cureRate') }}</span>
               </div>
               <div class="stat-chip">
-                <span class="stat-value mono" :class="{ warn: resolutionStats?.avg_days_to_resolve > 7 }">{{ resolutionStats?.avg_days_to_resolve != null ? resolutionStats.avg_days_to_resolve + 'd' : '—' }}</span>
+                <span class="stat-value mono" :class="{ warn: resolutionStats?.avg_days_to_resolve > 7 }">{{ resolutionStats?.avg_days_to_resolve != null ? Math.round(resolutionStats.avg_days_to_resolve) + 'd' : '—' }}</span>
                 <span class="stat-label">{{ t('analytics.health.avgDaysToResolve') }}</span>
               </div>
               <div class="stat-chip">
-                <span class="stat-value mono" :class="{ danger: resolutionStats?.recurrence_rate > 15 }">{{ resolutionStats?.recurrence_rate != null ? resolutionStats.recurrence_rate + '%' : '—' }}</span>
+                <span class="stat-value mono" :class="{ danger: resolutionStats?.recurrence_rate > 15 }">{{ resolutionStats?.recurrence_rate != null ? Math.round(resolutionStats.recurrence_rate) + '%' : '—' }}</span>
                 <span class="stat-label">{{ t('analytics.health.recurrenceRate') }}</span>
               </div>
             </div>
@@ -44,7 +44,7 @@
               <p class="panel-label">{{ t('analytics.health.topIncidence') }} <span style="text-transform: none; letter-spacing: normal; font-weight: 400;">({{ t('analytics.health.topIncidenceDesc') }})</span></p>
               <div class="stat-chips-3col">
                 <div v-for="inc in resolutionStats.top_incidence" :key="inc.code" class="stat-chip">
-                  <span class="stat-value mono" :class="incidenceColor(inc.rate)">{{ inc.rate }}</span>
+                  <span class="stat-value mono" :class="incidenceColor(inc.rate)">{{ Math.round(inc.rate) }}</span>
                   <span class="stat-label">{{ inc.emoji }} {{ inc.name }}</span>
                 </div>
               </div>

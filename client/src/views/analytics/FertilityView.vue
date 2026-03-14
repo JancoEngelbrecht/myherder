@@ -30,7 +30,7 @@
               <span class="stat-label">{{ t('analytics.notPregnantCount') }}</span>
             </div>
             <div class="stat-chip">
-              <span class="stat-value mono">{{ conceptionData?.first_service_rate != null ? conceptionData.first_service_rate + '%' : '—' }}</span>
+              <span class="stat-value mono">{{ conceptionData?.first_service_rate != null ? Math.round(conceptionData.first_service_rate) + '%' : '—' }}</span>
               <span class="stat-label">{{ t('analytics.fertility.conceptionRate') }}</span>
             </div>
             <div class="stat-chip">
@@ -38,7 +38,7 @@
               <span class="stat-label">{{ t('analytics.servicesPerConception') }}</span>
             </div>
             <div class="stat-chip">
-              <span class="stat-value mono">{{ breedingData?.pregnancy_rate != null ? breedingData.pregnancy_rate + '%' : '—' }}</span>
+              <span class="stat-value mono">{{ breedingData?.pregnancy_rate != null ? Math.round(breedingData.pregnancy_rate) + '%' : '—' }}</span>
               <span class="stat-label">{{ t('analytics.pregnancyRate') }}</span>
             </div>
             <div class="stat-chip">
