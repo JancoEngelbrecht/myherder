@@ -66,21 +66,21 @@ function dismiss(id) {
 }
 
 .banner-info {
-  background: #DBEAFE;
-  color: #1E40AF;
-  border-bottom: 1px solid #93C5FD;
+  background: var(--announce-info-bg);
+  color: var(--announce-info-text);
+  border-bottom: 1px solid var(--announce-info-border);
 }
 
 .banner-warning {
-  background: #FEF3C7;
-  color: #92400E;
-  border-bottom: 1px solid #FCD34D;
+  background: var(--announce-warning-bg);
+  color: var(--announce-warning-text);
+  border-bottom: 1px solid var(--announce-warning-border);
 }
 
 .banner-maintenance {
-  background: #FEE2E2;
-  color: #991B1B;
-  border-bottom: 1px solid #FCA5A5;
+  background: var(--announce-maintenance-bg);
+  color: var(--announce-maintenance-text);
+  border-bottom: 1px solid var(--announce-maintenance-border);
 }
 
 .announcement-content {

@@ -267,7 +267,7 @@ onMounted(async () => {
 .nav-card-title {
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .nav-card-badge {
@@ -312,6 +312,6 @@ onMounted(async () => {
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
   font-weight: 500;
-  border: 1px solid rgba(214, 40, 40, 0.2);
+  border: 1px solid rgba(220, 38, 38, 0.2);
 }
 </style>

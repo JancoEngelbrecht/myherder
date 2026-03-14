@@ -64,24 +64,24 @@ const label = computed(() => {
 }
 
 .synced .dot {
-  background: #22C55E;
-  box-shadow: 0 0 4px rgba(34,197,94,0.5);
+  background: var(--synced);
+  box-shadow: 0 0 4px rgba(34, 197, 94, 0.5);
 }
 
 .syncing .dot {
   background: var(--warning);
-  box-shadow: 0 0 4px rgba(224,124,36,0.5);
+  box-shadow: 0 0 4px rgba(217, 119, 6, 0.5);
   animation: pulse 1s infinite;
 }
 
 .pending .dot {
   background: var(--warning);
-  box-shadow: 0 0 4px rgba(224,124,36,0.5);
+  box-shadow: 0 0 4px rgba(217, 119, 6, 0.5);
 }
 
 .offline .dot {
   background: var(--danger);
-  box-shadow: 0 0 4px rgba(214,40,40,0.4);
+  box-shadow: 0 0 4px rgba(220, 38, 38, 0.4);
 }
 
 @keyframes pulse {

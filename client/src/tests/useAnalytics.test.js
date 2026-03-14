@@ -44,9 +44,9 @@ describe('useAnalytics', () => {
   })
 
   it('chartColors exports expected color keys', () => {
-    expect(chartColors.primary).toBe('#2D6A4F')
-    expect(chartColors.danger).toBe('#D62828')
-    expect(chartColors.warning).toBe('#E07C24')
+    expect(chartColors.primary).toBe('#047857')
+    expect(chartColors.danger).toBe('#DC2626')
+    expect(chartColors.warning).toBe('#D97706')
   })
 
   it('useTimeRange() returns default 12-month range', () => {

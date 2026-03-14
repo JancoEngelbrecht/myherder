@@ -322,20 +322,20 @@ async function submit() {
 }
 
 .severity-btn.sev-low.selected {
-  border-color: #4CAF50;
-  background: #f1f8e9;
-  color: #2e7d32;
+  border-color: var(--primary);
+  background: var(--primary-bg);
+  color: var(--primary-dark);
 }
 
 .severity-btn.sev-medium.selected {
   border-color: var(--warning);
-  background: #fff8e1;
-  color: #e07c24;
+  background: var(--warning-light);
+  color: var(--warning);
 }
 
 .severity-btn.sev-high.selected {
   border-color: var(--danger);
-  background: #fce4e4;
+  background: var(--danger-light);
   color: var(--danger);
 }
 

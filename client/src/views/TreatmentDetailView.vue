@@ -274,13 +274,13 @@ async function handleDelete() {
 }
 
 .withdrawal-row.active {
-  color: #d62828;
+  color: var(--danger);
 }
 
 .active-tag {
-  background: #fce4e4;
-  border: 1px solid #ef9a9a;
-  color: #d62828;
+  background: var(--danger-light);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  color: var(--danger);
   border-radius: 4px;
   padding: 1px 6px;
   font-size: 0.7rem;

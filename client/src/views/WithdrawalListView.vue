@@ -266,7 +266,7 @@ function withdrawalInfo(endDate) {
 }
 
 .meat-banner {
-  background: #8B4513;
+  background: var(--withdrawal);
 }
 
 .alert-icon {
@@ -326,12 +326,12 @@ function withdrawalInfo(endDate) {
   border: 2px solid var(--danger);
   border-radius: var(--radius);
   padding: 16px;
-  box-shadow: 0 2px 12px rgba(214, 40, 40, 0.12);
+  box-shadow: 0 2px 12px rgba(220, 38, 38, 0.12);
 }
 
 .meat-card {
-  border-color: #8B4513;
-  box-shadow: 0 2px 12px rgba(139, 69, 19, 0.12);
+  border-color: var(--withdrawal);
+  box-shadow: 0 2px 12px rgba(146, 64, 14, 0.12);
 }
 
 .card-top {
@@ -354,7 +354,7 @@ function withdrawalInfo(endDate) {
 }
 
 .meat-card .tag-number {
-  color: #8B4513;
+  color: var(--withdrawal);
 }
 
 .cow-name {
@@ -383,8 +383,8 @@ function withdrawalInfo(endDate) {
 }
 
 .meat-med {
-  background: #f5e6d3;
-  color: #8B4513;
+  background: var(--withdrawal-bg);
+  color: var(--withdrawal);
 }
 
 .withdrawal-row {

@@ -522,8 +522,8 @@ onMounted(() => {
 }
 
 .alert-badge.heat {
-  background: color-mix(in srgb, #e07c24 12%, transparent);
-  color: #e07c24;
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  color: var(--warning);
 }
 
 .alert-badge.calving {
@@ -542,8 +542,8 @@ onMounted(() => {
 }
 
 .alert-badge.dryoff {
-  background: color-mix(in srgb, #2D6A4F 12%, transparent);
-  color: #2D6A4F;
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
 }
 
 /* ── Attention section ── */

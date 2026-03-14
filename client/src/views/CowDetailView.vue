@@ -458,8 +458,8 @@ async function handleDelete() {
   flex-shrink: 0;
 }
 
-.sex-female { background: #FFF0F6; }
-.sex-male { background: #EFF6FF; }
+.sex-female { background: var(--sex-female-bg); }
+.sex-male { background: var(--sex-male-bg); }
 
 .cow-hero-tag {
   font-size: 0.875rem;
@@ -555,8 +555,8 @@ async function handleDelete() {
   transition: background 0.1s;
 }
 
-.parent-card.sire { background: #EFF6FF; border-color: #BFDBFE; }
-.parent-card.dam { background: #FFF0F6; border-color: #FBCFE8; }
+.parent-card.sire { background: var(--sex-male-bg); border-color: var(--sex-male-border); }
+.parent-card.dam { background: var(--sex-female-bg); border-color: var(--sex-female-border); }
 .parent-card.unknown { background: var(--surface-2); opacity: 0.7; }
 
 .parent-role {
@@ -710,9 +710,9 @@ async function handleDelete() {
 }
 
 .withdrawal-active-badge {
-  background: #fce4e4;
-  border: 1.5px solid #ef9a9a;
-  color: #d62828;
+  background: var(--danger-light);
+  border: 1.5px solid rgba(220, 38, 38, 0.3);
+  color: var(--danger);
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 0.85rem;

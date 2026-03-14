@@ -123,18 +123,18 @@ async function handleLogout() {
 .role-admin {
   background: var(--success-light);
   color: var(--primary-dark);
-  border: 1px solid rgba(45, 106, 79, 0.2);
+  border: 1px solid rgba(4, 120, 87, 0.2);
 }
 
 .role-worker {
-  background: #EDE9FE;
-  color: #5B21B6;
-  border: 1px solid rgba(109, 40, 217, 0.15);
+  background: var(--badge-pregnant-bg);
+  color: var(--badge-pregnant-text);
+  border: 1px solid rgba(91, 33, 182, 0.15);
 }
 
 .role-super {
-  background: #FEF3C7;
-  color: #92400E;
+  background: var(--warning-light);
+  color: var(--warning-dark);
   border: 1px solid rgba(146, 64, 14, 0.2);
 }
 

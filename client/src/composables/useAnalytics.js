@@ -6,14 +6,14 @@ import { useToast } from './useToast'
 import { extractApiError, resolveError } from '../utils/apiError'
 
 export const chartColors = {
-  primary: '#2D6A4F',
-  primaryLight: 'rgba(45, 106, 79, 0.15)',
-  danger: '#D62828',
-  dangerLight: 'rgba(214, 40, 40, 0.15)',
-  warning: '#E07C24',
-  warningLight: 'rgba(224, 124, 36, 0.15)',
-  info: '#3A86FF',
-  infoLight: 'rgba(58, 134, 255, 0.15)',
+  primary: '#047857',
+  primaryLight: 'rgba(4, 120, 87, 0.15)',
+  danger: '#DC2626',
+  dangerLight: 'rgba(220, 38, 38, 0.15)',
+  warning: '#D97706',
+  warningLight: 'rgba(217, 119, 6, 0.15)',
+  info: '#2563EB',
+  infoLight: 'rgba(37, 99, 235, 0.15)',
   purple: '#7C3AED',
   purpleLight: 'rgba(124, 58, 237, 0.15)',
 }
@@ -36,7 +36,7 @@ const commonOptions = {
     },
     y: {
       beginAtZero: true,
-      grid: { color: 'rgba(0,0,0,0.06)' },
+      grid: { color: 'rgba(0, 0, 0, 0.06)' },
       ticks: { font: { family: "'JetBrains Mono', monospace", size: 11 } },
     },
   },

@@ -362,13 +362,13 @@ async function handleDelete() {
   display: inline-block;
 }
 
-.issue-sev-low { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
-.issue-sev-medium { background: #fff8e1; color: #e07c24; border-color: #ffe082; }
-.issue-sev-high { background: #fce4e4; color: var(--danger); border-color: #ef9a9a; }
+.issue-sev-low { background: var(--primary-bg); color: var(--primary-dark); border-color: var(--primary-light); }
+.issue-sev-medium { background: var(--warning-light); color: var(--warning); border-color: rgba(217, 119, 6, 0.3); }
+.issue-sev-high { background: var(--danger-light); color: var(--danger); border-color: rgba(220, 38, 38, 0.3); }
 
-.issue-status-open { background: #fff8e1; color: #e07c24; border-color: #ffe082; }
-.issue-status-treating { background: #e3f2fd; color: #1565c0; border-color: #90caf9; }
-.issue-status-resolved { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
+.issue-status-open { background: var(--warning-light); color: var(--warning); border-color: rgba(217, 119, 6, 0.3); }
+.issue-status-treating { background: var(--info-light); color: var(--info); border-color: rgba(37, 99, 235, 0.3); }
+.issue-status-resolved { background: var(--primary-bg); color: var(--primary-dark); border-color: var(--primary-light); }
 
 .section-label {
   display: block;

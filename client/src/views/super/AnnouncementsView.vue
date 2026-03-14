@@ -279,9 +279,9 @@ async function doDelete() {
 .chip-row { display: flex; gap: 8px; }
 .chip { padding: 8px 16px; border-radius: var(--radius-full); border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 0.85rem; }
 .chip.active { color: white; border-color: transparent; }
-.chip-info.active { background: #2563EB; }
-.chip-warning.active { background: #D97706; }
-.chip-maintenance.active { background: #DC2626; }
+.chip-info.active { background: var(--info); }
+.chip-warning.active { background: var(--warning); }
+.chip-maintenance.active { background: var(--danger); }
 .form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; }
 .form-actions .btn-primary, .form-actions .btn-secondary { width: auto; padding: 10px 20px; }
 .spinner-wrap { display: flex; justify-content: center; padding: 40px; }
@@ -290,9 +290,9 @@ async function doDelete() {
 .ann-card.inactive { opacity: 0.6; }
 .ann-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
 .ann-type-badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: var(--radius-full); margin-right: 8px; }
-.type-info { background: #DBEAFE; color: #1E40AF; }
-.type-warning { background: #FEF3C7; color: #92400E; }
-.type-maintenance { background: #FEE2E2; color: #991B1B; }
+.type-info { background: var(--announce-info-bg); color: var(--announce-info-text); }
+.type-warning { background: var(--announce-warning-bg); color: var(--announce-warning-text); }
+.type-maintenance { background: var(--announce-maintenance-bg); color: var(--announce-maintenance-text); }
 .ann-title-text { font-weight: 600; }
 .ann-message { font-size: 0.85rem; color: var(--text-secondary); margin: 0 0 8px; }
 .ann-meta { display: flex; gap: 16px; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px; }
@@ -300,5 +300,5 @@ async function doDelete() {
 .badge-active { background: var(--success-light); color: var(--primary-dark); }
 .badge-inactive { background: var(--border); color: var(--text-secondary); }
 .badge-expired { background: var(--danger-light); color: var(--danger); }
-.badge-scheduled { background: #DBEAFE; color: #1E40AF; }
+.badge-scheduled { background: var(--announce-info-bg); color: var(--announce-info-text); }
 </style>

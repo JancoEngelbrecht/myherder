@@ -155,9 +155,9 @@ onMounted(load)
 }
 
 .withdrawal-active-badge {
-  background: #fce4e4;
-  border: 1.5px solid #ef9a9a;
-  color: #d62828;
+  background: var(--danger-light);
+  border: 1.5px solid rgba(220, 38, 38, 0.3);
+  color: var(--danger);
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 0.85rem;
@@ -240,7 +240,7 @@ onMounted(load)
 
 .tx-withdrawal {
   font-size: 0.8rem;
-  color: #d62828;
+  color: var(--danger);
   margin-top: 4px;
 }
 </style>

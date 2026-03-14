@@ -131,7 +131,7 @@ async function handleClearFailed() {
 .sync-panel-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--overlay);
   z-index: 500;
   display: flex;
   align-items: flex-end;
@@ -190,7 +190,7 @@ async function handleClearFailed() {
   border-radius: 50%;
 }
 
-.status-dot.synced { background: #22C55E; }
+.status-dot.synced { background: var(--synced); }
 .status-dot.syncing { background: var(--warning); animation: pulse 1s infinite; }
 .status-dot.pending { background: var(--warning); }
 .status-dot.offline { background: var(--danger); }
@@ -267,8 +267,8 @@ async function handleClearFailed() {
 }
 
 .warning-banner {
-  background: rgba(224, 124, 36, 0.1);
-  border: 1px solid rgba(224, 124, 36, 0.3);
+  background: rgba(217, 119, 6, 0.1);
+  border: 1px solid rgba(217, 119, 6, 0.3);
   border-radius: var(--radius);
   padding: 10px 14px;
   font-size: 0.8125rem;

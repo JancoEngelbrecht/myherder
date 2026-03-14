@@ -263,12 +263,12 @@ onMounted(async () => {
   white-space: nowrap;
 }
 
-.stat-active { background: var(--success-light); color: var(--primary-dark); border-color: rgba(45,106,79,0.2); }
-.stat-dry { background: #FFF8E7; color: #78350F; border-color: rgba(180,83,9,0.15); }
-.stat-pregnant { background: #EDE9FE; color: #4C1D95; border-color: rgba(109,40,217,0.15); }
-.stat-sick { background: var(--danger-light); color: var(--danger); border-color: rgba(214,40,40,0.15); }
-.stat-total { background: #EEF2FF; color: #3730A3; border-color: rgba(67,56,202,0.15); }
-.stat-milking { background: #E0F2FE; color: #075985; border-color: rgba(3,105,161,0.15); }
+.stat-active { background: var(--success-light); color: var(--primary-dark); border-color: rgba(4, 120, 87, 0.2); }
+.stat-dry { background: var(--badge-dry-bg); color: var(--badge-dry-text); border-color: rgba(146, 64, 14, 0.15); }
+.stat-pregnant { background: var(--badge-pregnant-bg); color: var(--badge-pregnant-text); border-color: rgba(91, 33, 182, 0.15); }
+.stat-sick { background: var(--danger-light); color: var(--danger); border-color: rgba(220, 38, 38, 0.15); }
+.stat-total { background: #EEF2FF; color: #3730A3; border-color: rgba(67, 56, 202, 0.15); }
+.stat-milking { background: #EFF6FF; color: #1D4ED8; border-color: rgba(29, 78, 216, 0.15); }
 
 /* Actions */
 .actions-grid {
@@ -346,12 +346,12 @@ onMounted(async () => {
 }
 
 .withdrawal-action {
-  background: #fce4e4;
-  border-color: #ef9a9a;
+  background: var(--danger-light);
+  border-color: rgba(220, 38, 38, 0.25);
 }
 
 .issues-action {
-  background: #fff8e1;
-  border-color: #ffe082;
+  background: var(--warning-light);
+  border-color: rgba(217, 119, 6, 0.25);
 }
 </style>

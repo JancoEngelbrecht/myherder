@@ -592,7 +592,7 @@ async function executeToggle() {
 
 .badge-worker {
   background: var(--warning-light, #fef3cd);
-  color: var(--warning-dark, #856404);
+  color: var(--warning-dark);
 }
 
 .badge-active {

@@ -92,11 +92,11 @@ const lifePhase = computed(() => {
 }
 
 .sex-female {
-  background: #FFF0F6;
+  background: var(--sex-female-bg);
 }
 
 .sex-male {
-  background: #EFF6FF;
+  background: var(--sex-male-bg);
 }
 
 .cow-info {
@@ -145,13 +145,13 @@ const lifePhase = computed(() => {
 }
 
 .bull-tag.external {
-  background: #FEF3C7;
-  color: #92400E;
+  background: var(--warning-light);
+  color: var(--warning-dark);
 }
 
 .bull-tag.ai {
-  background: #DBEAFE;
-  color: #1E40AF;
+  background: var(--info-light);
+  color: var(--announce-info-text);
 }
 
 .cow-chevron {

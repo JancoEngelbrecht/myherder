@@ -60,7 +60,7 @@ const formattedDate = computed(() => {
 .card-discarded {
   border-color: var(--danger);
   border-width: 2px;
-  background: var(--danger-light, rgba(214, 40, 40, 0.04));
+  background: var(--danger-light);
 }
 
 .card-top {
@@ -109,8 +109,8 @@ const formattedDate = computed(() => {
 .discarded-badge {
   font-size: 0.72rem;
   color: var(--danger);
-  background: var(--danger-light, rgba(214, 40, 40, 0.1));
-  border: 1px solid rgba(214, 40, 40, 0.2);
+  background: var(--danger-light);
+  border: 1px solid rgba(220, 38, 38, 0.2);
   border-radius: 6px;
   padding: 0.1rem 0.4rem;
   font-weight: 600;

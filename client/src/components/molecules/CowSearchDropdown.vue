@@ -285,6 +285,6 @@ onUnmounted(() => {
 }
 
 .clear-btn:hover {
-  background: rgba(0,0,0,0.08);
+  background: var(--surface-2);
 }
 </style>

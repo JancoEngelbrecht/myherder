@@ -55,19 +55,19 @@ const { toasts, dismiss } = useToast()
 .toast-error {
   background: var(--danger-light);
   color: var(--danger);
-  border: 1px solid rgba(214, 40, 40, 0.2);
+  border: 1px solid rgba(220, 38, 38, 0.2);
 }
 
 .toast-success {
   background: var(--success-light);
   color: var(--success);
-  border: 1px solid rgba(45, 106, 79, 0.2);
+  border: 1px solid rgba(4, 120, 87, 0.2);
 }
 
 .toast-warning {
   background: var(--warning-light);
   color: var(--warning);
-  border: 1px solid rgba(224, 124, 36, 0.2);
+  border: 1px solid rgba(217, 119, 6, 0.2);
 }
 
 .toast-msg {

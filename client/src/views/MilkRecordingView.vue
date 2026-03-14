@@ -286,7 +286,7 @@ const { startTour } = useTour('milk-recording', () => [
   border-radius: var(--radius-sm);
   font-size: 0.85rem;
   font-weight: 500;
-  border: 1px solid rgba(214, 40, 40, 0.2);
+  border: 1px solid rgba(220, 38, 38, 0.2);
 }
 
 .controls {

@@ -102,15 +102,15 @@ onUnmounted(() => {
 }
 
 .banner-warning {
-  background: rgba(224, 124, 36, 0.15);
+  background: rgba(217, 119, 6, 0.15);
   color: var(--warning);
-  border-bottom: 1px solid rgba(224, 124, 36, 0.3);
+  border-bottom: 1px solid rgba(217, 119, 6, 0.3);
 }
 
 .banner-info {
-  background: rgba(45, 106, 79, 0.1);
+  background: rgba(4, 120, 87, 0.1);
   color: var(--primary);
-  border-bottom: 1px solid rgba(45, 106, 79, 0.2);
+  border-bottom: 1px solid rgba(4, 120, 87, 0.2);
 }
 
 .banner-farm {
