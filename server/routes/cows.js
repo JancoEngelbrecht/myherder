@@ -8,6 +8,7 @@ const authorize = require('../middleware/authorize');
 const { requireAdmin } = authorize;
 const { logAudit } = require('../services/auditService');
 const { ISO_DATE_RE, MAX_SEARCH_LENGTH, DEFAULT_PAGE_SIZE, parsePagination, COW_STATUSES, joiMsg, validateBody, validateQuery } = require('../helpers/constants');
+const { isMySQL } = require('./analytics/helpers');
 
 const router = express.Router();
 router.use(auth);
@@ -66,19 +67,25 @@ async function findCowOrFail(id, farmId) {
 
 // ── Routes ──────────────────────────────────────────────────────
 
-// ── Life-phase SQL CASE expression (plain string) ───
+// ── Life-phase SQL CASE expression ───
 // Mirrors client-side computeLifePhase() logic using breed-specific thresholds
-const LIFE_PHASE_SQL = `CASE
+// Portable: uses DATEDIFF on MySQL, julianday on SQLite
+function lifePhaseSql() {
+  const ageMonths = isMySQL()
+    ? 'DATEDIFF(NOW(), c.dob) / 30.44'
+    : '(julianday(\'now\') - julianday(c.dob)) / 30.44';
+  return `CASE
     WHEN c.life_phase_override IS NOT NULL THEN c.life_phase_override
     WHEN c.dob IS NULL AND c.sex = 'male' THEN 'bull'
     WHEN c.dob IS NULL THEN 'cow'
-    WHEN c.sex = 'male' AND (julianday('now') - julianday(c.dob)) / 30.44 < COALESCE(bt.calf_max_months, 6) THEN 'calf'
-    WHEN c.sex = 'male' AND (julianday('now') - julianday(c.dob)) / 30.44 < COALESCE(bt.young_bull_min_months, 15) THEN 'young_bull'
+    WHEN c.sex = 'male' AND ${ageMonths} < COALESCE(bt.calf_max_months, 6) THEN 'calf'
+    WHEN c.sex = 'male' AND ${ageMonths} < COALESCE(bt.young_bull_min_months, 15) THEN 'young_bull'
     WHEN c.sex = 'male' THEN 'bull'
-    WHEN (julianday('now') - julianday(c.dob)) / 30.44 < COALESCE(bt.calf_max_months, 6) THEN 'calf'
-    WHEN (julianday('now') - julianday(c.dob)) / 30.44 < COALESCE(bt.heifer_min_months, 15) THEN 'heifer'
+    WHEN ${ageMonths} < COALESCE(bt.calf_max_months, 6) THEN 'calf'
+    WHEN ${ageMonths} < COALESCE(bt.heifer_min_months, 15) THEN 'heifer'
     ELSE 'cow'
   END`;
+}
 
 // ── Last calving date subquery (plain string) ───
 const LAST_CALVING_SQL = `(
@@ -119,7 +126,7 @@ router.get('/', async (req, res, next) => {
 
     // Life phase filter (SQL-computed from dob/sex/breed thresholds)
     if (q.life_phase) {
-      query.whereRaw(`${LIFE_PHASE_SQL} = ?`, [q.life_phase]);
+      query.whereRaw(`${lifePhaseSql()} = ?`, [q.life_phase]);
     }
 
     // Pregnant filter (uses cow.status which is updated by breeding events)
@@ -133,16 +140,19 @@ router.get('/', async (req, res, next) => {
 
     // Days in Milk range (days since last calving)
     if (q.dim_min !== undefined || q.dim_max !== undefined) {
+      const dimExpr = isMySQL()
+        ? `DATEDIFF(NOW(), ${LAST_CALVING_SQL})`
+        : `julianday('now') - julianday(${LAST_CALVING_SQL})`;
       if (q.dim_min !== undefined) {
         const dimMin = parseInt(String(q.dim_min), 10);
         if (!isNaN(dimMin) && dimMin >= 0) {
-          query.whereRaw(`julianday('now') - julianday(${LAST_CALVING_SQL}) >= ?`, [dimMin]);
+          query.whereRaw(`${dimExpr} >= ?`, [dimMin]);
         }
       }
       if (q.dim_max !== undefined) {
         const dimMax = parseInt(String(q.dim_max), 10);
         if (!isNaN(dimMax) && dimMax >= 0) {
-          query.whereRaw(`julianday('now') - julianday(${LAST_CALVING_SQL}) <= ?`, [dimMax]);
+          query.whereRaw(`${dimExpr} <= ?`, [dimMax]);
         }
       }
     }
@@ -153,12 +163,15 @@ router.get('/', async (req, res, next) => {
 
     // Average daily milk yield range (last 7 days)
     if (q.yield_min !== undefined || q.yield_max !== undefined) {
+      const sevenDaysAgo = isMySQL()
+        ? "DATE_SUB(NOW(), INTERVAL 7 DAY)"
+        : "date('now', '-7 days')";
       const yieldSub = `(
         SELECT AVG(daily_total) FROM (
           SELECT mr.recording_date, SUM(mr.litres) as daily_total
           FROM milk_records mr
           WHERE mr.cow_id = c.id AND mr.farm_id = c.farm_id
-            AND mr.recording_date >= date('now', '-7 days')
+            AND mr.recording_date >= ${sevenDaysAgo}
           GROUP BY mr.recording_date
         )
       )`;

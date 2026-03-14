@@ -179,13 +179,12 @@ describe('useMilkRecordsStore', () => {
       expect(api.post).toHaveBeenCalledWith('/milk-records', expect.objectContaining({ litres: 3 }))
     })
 
-    it('recovers from 409 by PUTting the existing record id', async () => {
+    it('sets error status on 409 conflict', async () => {
       api.get.mockResolvedValue({ data: [] })
       const conflictError = Object.assign(new Error('Conflict'), {
-        response: { status: 409, data: { id: 'existing-id' } },
+        response: { status: 409, data: { recorded_by_name: 'Sipho' } },
       })
       api.post.mockRejectedValue(conflictError)
-      api.put.mockResolvedValue({ data: { ...RECORD, id: 'existing-id' } })
 
       const store = useMilkRecordsStore()
       await store.fetchSession('2026-02-22', 'morning')
@@ -193,8 +192,7 @@ describe('useMilkRecordsStore', () => {
       store.autoSave('cow-1', 12.5, 'morning', '2026-02-22')
       await vi.runAllTimersAsync()
 
-      expect(api.put).toHaveBeenCalledWith('/milk-records/existing-id', expect.any(Object))
-      expect(store.getStatus('cow-1')).toBe('saved')
+      expect(store.getStatus('cow-1')).toBe('error')
     })
 
     it('sets syncStatus to error on unrecoverable failure', async () => {

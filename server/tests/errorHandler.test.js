@@ -74,7 +74,7 @@ describe('errorHandler', () => {
     process.env.NODE_ENV = prev
   })
 
-  it('500 with DB error code includes code field in response', () => {
+  it('500 with DB error code hides code in production', () => {
     const prev = process.env.NODE_ENV
     process.env.NODE_ENV = 'production'
     const err = { code: 'ER_TRUNCATED_WRONG_VALUE_FOR_FIELD', message: 'Sensitive details' }
@@ -85,8 +85,22 @@ describe('errorHandler', () => {
     expect(res.status).toHaveBeenCalledWith(500)
     expect(res.json).toHaveBeenCalledWith({
       error: 'Internal server error',
-      code: 'ER_TRUNCATED_WRONG_VALUE_FOR_FIELD',
     })
+    process.env.NODE_ENV = prev
+  })
+
+  it('500 with DB error code includes code in non-production', () => {
+    const prev = process.env.NODE_ENV
+    process.env.NODE_ENV = 'test'
+    const err = { code: 'SQLITE_CONSTRAINT', status: 500 }
+    const res = mockRes()
+
+    errorHandler(err, {}, res, noop)
+
+    expect(res.status).toHaveBeenCalledWith(500)
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ code: 'SQLITE_CONSTRAINT' }),
+    )
     process.env.NODE_ENV = prev
   })
 

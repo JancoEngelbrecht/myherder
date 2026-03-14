@@ -102,6 +102,21 @@ describe('auth middleware', () => {
     expect(res.json).toHaveBeenCalledWith({ error: 'Temporary token not valid for this endpoint' })
     expect(next).not.toHaveBeenCalled()
   })
+
+  it('returns 401 for tokens missing token_version', async () => {
+    const payload = { id: 'u1', username: 'admin', role: 'admin', permissions: [] }
+    const token = jwt.sign(payload, JWT_SECRET)
+    const req = { headers: { authorization: `Bearer ${token}` } }
+    const res = mockRes()
+    const next = jest.fn()
+
+    auth(req, res, next)
+    await new Promise((r) => setTimeout(r, 10))
+
+    expect(res.status).toHaveBeenCalledWith(401)
+    expect(res.json).toHaveBeenCalledWith({ error: 'Token revoked' })
+    expect(next).not.toHaveBeenCalled()
+  })
 })
 
 // ── authorize middleware ────────────────────────────────────────────────────────

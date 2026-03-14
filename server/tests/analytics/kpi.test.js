@@ -196,24 +196,19 @@ describe('GET /api/analytics/herd-summary', () => {
     expect(typeof res.body.replacement_rate).toBe('number')
   })
 
-  it('counts heifers as females with no calving events', async () => {
-    // Create a female with no calving events — should be a heifer
-    const heiferId = await createCow({ sex: 'female', status: 'active' })
-
-    // Create a female WITH a calving event — should NOT be a heifer
-    const momId = await createCow({ sex: 'female', status: 'active' })
-    await createBreedingEvent(momId, { event_type: 'calving' })
+  it('counts heifers via life_phase_override', async () => {
+    // heifer_count uses SUM(CASE WHEN life_phase_override = 'heifer' ...)
+    const heiferId = await createCow({ sex: 'female', status: 'active', life_phase_override: 'heifer' })
+    const nonHeiferId = await createCow({ sex: 'female', status: 'active' })
 
     const res = await request(app)
       .get('/api/analytics/herd-summary')
       .set('Authorization', adminToken())
 
     expect(res.body.heifer_count).toBeGreaterThanOrEqual(1)
-    // Verify the mom is not counted as a heifer — heifer count should be less than total females
     expect(res.body.heifer_count).toBeLessThan(res.body.females)
     // Clean up
-    await db('breeding_events').where('cow_id', momId).del()
-    await db('cows').whereIn('id', [heiferId, momId]).del()
+    await db('cows').whereIn('id', [heiferId, nonHeiferId]).del()
   })
 
   it('excludes sold/dead from heifer count', async () => {

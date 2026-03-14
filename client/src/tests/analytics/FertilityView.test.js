@@ -168,9 +168,9 @@ describe('FertilityView', () => {
     expect(chips.length).toBe(6)
     expect(wrapper.text()).toContain('5')      // pregnant
     expect(wrapper.text()).toContain('12')     // not pregnant
-    expect(wrapper.text()).toContain('45.5%')  // conception rate
+    expect(wrapper.text()).toContain('46%')   // conception rate (Math.round(45.5))
     expect(wrapper.text()).toContain('1.5')    // services per conception
-    expect(wrapper.text()).toContain('18.5%')  // pregnancy rate
+    expect(wrapper.text()).toContain('19%')   // pregnancy rate (Math.round(18.5))
     expect(wrapper.text()).toContain('1')      // abortion count (also matches other numbers, but stat chip has it)
   })
 

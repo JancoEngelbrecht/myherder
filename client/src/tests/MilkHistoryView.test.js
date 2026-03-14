@@ -158,7 +158,7 @@ describe('MilkHistoryView', () => {
       sort: 'recording_date',
       order: 'desc',
       page: 1,
-      limit: 25,
+      limit: 20,
     })
     expect(milkCall[1].params).toHaveProperty('from')
     expect(milkCall[1].params).toHaveProperty('to')

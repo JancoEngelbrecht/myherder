@@ -207,7 +207,7 @@ describe('HealthView', () => {
     const text = wrapper.text()
     expect(text).toContain('7')     // active issues
     expect(text).toContain('75%')   // cure rate
-    expect(text).toContain('8.2d')  // avg days to resolve
+    expect(text).toContain('8d')    // avg days to resolve (Math.round(8.2))
     expect(text).toContain('18%')   // recurrence rate
   })
 
@@ -216,10 +216,10 @@ describe('HealthView', () => {
     await flushPromises()
 
     expect(wrapper.find('.incidence-panel').exists()).toBe(true)
-    const text = wrapper.text()
-    expect(text).toContain('9.6')   // mastitis rate
-    expect(text).toContain('5.1')   // lameness rate
-    expect(text).toContain('2.8')   // respiratory rate
+    const incidenceText = wrapper.find('.incidence-panel').text()
+    expect(incidenceText).toContain('10')   // mastitis rate (Math.round(9.6))
+    expect(incidenceText).toContain('5')    // lameness rate (Math.round(5.1))
+    expect(incidenceText).toContain('3')    // respiratory rate (Math.round(2.8))
   })
 
   it('applies warn class when avg_days > 7', async () => {

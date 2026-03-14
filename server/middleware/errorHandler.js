@@ -18,7 +18,7 @@ module.exports = function errorHandler(err, _req, res, _next) {
   const message = typeof raw === 'string' ? raw.replace(/['"]/g, '') : raw;
 
   const response = { error: message };
-  if (status === 500 && err.code) {
+  if (status === 500 && err.code && process.env.NODE_ENV !== 'production') {
     response.code = err.code;
   }
 

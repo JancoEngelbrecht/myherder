@@ -438,7 +438,7 @@ router.post('/refresh', refreshLimiter, async (req, res, next) => {
       return res.status(401).json({ error: 'User not found or inactive' });
     }
 
-    if (typeof decoded.token_version === 'number' && decoded.token_version !== user.token_version) {
+    if (typeof decoded.token_version !== 'number' || decoded.token_version !== user.token_version) {
       return res.status(401).json({ error: 'Token revoked' });
     }
 

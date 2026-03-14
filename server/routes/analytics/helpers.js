@@ -158,6 +158,7 @@ module.exports = {
   round2,
   localDate,
   defaultRange,
+  isMySQL,
   MS_PER_DAY,
   RECURRENCE_WINDOW_DAYS,
   PREDICTION_MONTHS,
