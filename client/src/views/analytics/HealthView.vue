@@ -21,7 +21,7 @@
         <section v-if="flags.healthIssues" class="analytics-card">
           <div v-if="statsLoading || resolutionStatsLoading" class="center-spinner"><div class="spinner" /></div>
           <template v-else>
-            <div class="stat-chips">
+            <div class="stat-chips" @click="toggleChip">
               <div class="stat-chip">
                 <span class="stat-value mono">{{ activeIssues }}</span>
                 <span class="stat-label">{{ t('analytics.health.openIssues') }}</span>
@@ -224,11 +224,15 @@ import {
   useAnalytics, chartColors, formatMonth,
   barChartOptions, horizontalBarOptions,
   useTimeRange, TIME_RANGE_OPTIONS,
-  horizontalAnnotation, verticalAnnotation,
 } from '../../composables/useAnalytics.js'
 
 const { offline, flags, handleError, t } = useAnalytics()
 const { selectedRange, dateRange } = useTimeRange()
+
+function toggleChip(e) {
+  const chip = e.target.closest('.stat-chip')
+  if (chip) chip.classList.toggle('expanded')
+}
 
 // ── State ─────────────────────────────────────────────
 
@@ -341,11 +345,6 @@ const resolutionByTypeOptions = computed(() => ({
   ...horizontalBarOptions,
   plugins: {
     legend: { display: false },
-    annotation: {
-      annotations: {
-        target: verticalAnnotation(7, t('analytics.health.target7d'), chartColors.danger),
-      },
-    },
   },
   scales: {
     ...horizontalBarOptions.scales,
@@ -377,11 +376,6 @@ const cureRateTrendOptions = computed(() => ({
   maintainAspectRatio: false,
   plugins: {
     legend: { display: false },
-    annotation: {
-      annotations: {
-        target: horizontalAnnotation(80, t('analytics.health.target80pct'), chartColors.warning),
-      },
-    },
   },
   scales: {
     y: {
@@ -419,11 +413,6 @@ const recurrenceOptions = computed(() => ({
   ...horizontalBarOptions,
   plugins: {
     legend: { display: false },
-    annotation: {
-      annotations: {
-        concern: verticalAnnotation(10, t('analytics.health.concern10pct'), chartColors.danger),
-      },
-    },
   },
   scales: {
     ...horizontalBarOptions.scales,

@@ -20,7 +20,7 @@
         <!-- 1. Stat Chips (6) -->
         <section class="analytics-card">
           <div v-if="overviewLoading || conceptionLoading" class="center-spinner"><div class="spinner" /></div>
-          <div v-else class="stat-chips">
+          <div v-else class="stat-chips" @click="toggleChip">
             <div class="stat-chip">
               <span class="stat-value mono">{{ breedingData?.pregnant_count ?? '—' }}</span>
               <span class="stat-label">{{ t('analytics.pregnantCount') }}</span>
@@ -146,11 +146,15 @@ import AppHeader from '../../components/organisms/AppHeader.vue'
 import {
   useAnalytics, chartColors, formatMonth, barChartOptions,
   useTimeRange, TIME_RANGE_OPTIONS,
-  horizontalAnnotation, verticalAnnotation,
 } from '../../composables/useAnalytics.js'
 
 const { offline, handleError, t } = useAnalytics()
 const { selectedRange, dateRange } = useTimeRange()
+
+function toggleChip(e) {
+  const chip = e.target.closest('.stat-chip')
+  if (chip) chip.classList.toggle('expanded')
+}
 
 // ── State ─────────────────────────────────────────────
 
@@ -272,11 +276,6 @@ const calvingHistogramOptions = computed(() => ({
   maintainAspectRatio: false,
   plugins: {
     legend: { display: false },
-    annotation: {
-      annotations: {
-        target: verticalAnnotation(1.5, t('analytics.fertility.target400'), chartColors.danger, 'start'),
-      },
-    },
   },
   scales: {
     y: {
@@ -314,11 +313,6 @@ const daysOpenHistogramOptions = computed(() => ({
   maintainAspectRatio: false,
   plugins: {
     legend: { display: false },
-    annotation: {
-      annotations: {
-        target: verticalAnnotation(2.5, t('analytics.fertility.target120'), chartColors.danger, 'start'),
-      },
-    },
   },
   scales: {
     y: {
@@ -395,11 +389,6 @@ const conceptionTrendOptions = computed(() => ({
   maintainAspectRatio: false,
   plugins: {
     legend: { display: false },
-    annotation: {
-      annotations: {
-        target: horizontalAnnotation(50, t('analytics.fertility.target50pct'), chartColors.warning),
-      },
-    },
   },
   scales: {
     y: {

@@ -20,7 +20,7 @@
         <!-- Stat Chips -->
         <section class="analytics-card">
           <div v-if="summaryLoading || ageLoading || turnoverLoading" class="center-spinner"><div class="spinner" /></div>
-          <div v-else class="stat-chips">
+          <div v-else class="stat-chips" @click="toggleChip">
             <div class="stat-chip">
               <span class="stat-value mono">{{ herdSummary.total }}</span>
               <span class="stat-label">{{ t('analytics.structure.totalHerd') }}</span>
@@ -152,12 +152,17 @@ import api from '../../services/api.js'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import {
   useAnalytics, chartColors, formatMonth,
-  lineChartOptions, barChartOptions, horizontalAnnotation,
+  lineChartOptions, barChartOptions,
   useTimeRange, TIME_RANGE_OPTIONS,
 } from '../../composables/useAnalytics.js'
 
 const { offline, handleError, t } = useAnalytics()
 const { selectedRange, dateRange } = useTimeRange()
+
+function toggleChip(e) {
+  const chip = e.target.closest('.stat-chip')
+  if (chip) chip.classList.toggle('expanded')
+}
 
 // ── State ─────────────────────────────────────────────
 
@@ -240,11 +245,6 @@ const mortalityOptions = computed(() => ({
   ...barChartOptions,
   plugins: {
     legend: { display: true, position: 'bottom' },
-    annotation: {
-      annotations: {
-        benchmark: horizontalAnnotation(2, t('analytics.structure.mortalityBenchmark'), chartColors.warning),
-      },
-    },
   },
   scales: {
     ...barChartOptions.scales,

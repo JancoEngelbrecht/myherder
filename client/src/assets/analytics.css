@@ -90,6 +90,11 @@
   line-height: 1.2;
 }
 
+.stat-chip {
+  cursor: pointer;
+  position: relative;
+}
+
 .stat-label {
   display: block;
   font-size: 0.6875rem;
@@ -100,6 +105,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: white-space 0.15s;
+}
+
+.stat-chip.expanded .stat-label {
+  white-space: normal;
+  word-break: break-word;
+  overflow: visible;
 }
 
 /* ── Cow ranking lists ──────────────────────────────── */
