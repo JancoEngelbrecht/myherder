@@ -48,7 +48,7 @@
         </div>
 
         <!-- Result -->
-        <div v-if="result" class="result-card card">
+        <div v-if="result" class="result-summary">
           <p><strong>{{ $t('globalDefaults.pushed') }}:</strong> <span class="mono">{{ result.pushed }}</span></p>
           <p><strong>{{ $t('globalDefaults.skipped') }}:</strong> <span class="mono">{{ result.skipped }}</span></p>
           <p><strong>{{ $t('globalDefaults.farmsAffected') }}:</strong> <span class="mono">{{ result.farms_affected }}</span></p>
@@ -147,13 +147,13 @@ async function doPush() {
 .chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .chip { padding: 8px 16px; border-radius: var(--radius-full); border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 0.85rem; }
 .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
-.checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 0; }
+.checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px 0; }
 .select-all { font-weight: 600; margin-bottom: 4px; }
 .farm-checkboxes { max-height: 300px; overflow-y: auto; }
 .farm-code { font-size: 0.8rem; color: var(--text-muted); }
 .form-actions { margin-top: 20px; }
 .form-actions .btn-primary { width: auto; padding: 10px 24px; }
-.result-card { margin-top: 16px; padding: 16px; background: var(--success-light); }
-.result-card p { margin: 4px 0; }
+.result-summary { margin-top: 16px; padding: 0 0 0 16px; border-left: 3px solid var(--primary); }
+.result-summary p { margin: 4px 0; }
 .spinner-wrap { display: flex; justify-content: center; padding: 20px; }
 </style>

@@ -1,5 +1,5 @@
 ---
-description: Audit anything — a plan, implementation, architecture, PR, or specific files. Identifies issues without making changes.
+description: Audit anything — a plan, implementation, architecture, security, UI design, or specific files. Read-only report with findings and verdict.
 ---
 
 Audit the target the user specifies. Determine the **audit type** from context:
@@ -67,6 +67,41 @@ Launch **2 parallel agents** using the @auditor persona:
 - Is it testable?
 - Can parts be changed independently without ripple effects?
 - Are there simpler alternatives that achieve the same goal?
+
+### SECURITY AUDIT
+**Trigger:** User says "audit security", "security review", "check for vulnerabilities", or asks about threats.
+
+Launch the **@security** agent for a deep security analysis:
+
+- Map the full attack surface (routes, WebSocket handlers, file uploads, URL params)
+- Trace data flow from user input to storage/output
+- Check auth boundaries on every state-changing operation
+- Review dependencies for known vulnerabilities (`npm audit`)
+- Test implicit trust assumptions ("the frontend validates this")
+- Rate findings by exploitability and impact
+
+This is deeper than the SAFETY category in a regular audit — it includes threat modeling, attack chain tracing, and business logic security.
+
+### DESIGN AUDIT
+**Trigger:** User says "audit the design", "audit the UI", "audit CSS", or references visual/design quality.
+
+Launch **2 parallel agents** using the @auditor persona (load the `frontend-design` skill first):
+
+**Agent 1 — Visual Quality & Anti-Patterns:**
+- Run the AI Slop Test — does this look like generic AI output?
+- Typography: Is there a clear type scale? Appropriate font choice? Minimum sizes met?
+- Color: OKLCH usage? Tinted neutrals? Palette cohesion? Dark mode done correctly?
+- Spatial: Consistent spacing scale? Unnecessary card nesting? Touch targets adequate?
+- Motion: Appropriate timing/easing? `prefers-reduced-motion` respected?
+
+**Agent 2 — Accessibility & Interaction:**
+- WCAG AA contrast ratios met for all text and UI components?
+- All interactive elements have 8 states (default, hover, focus, active, disabled, loading, error, success)?
+- Focus styles present and visible (`:focus-visible`, 3:1 contrast, 2-3px)?
+- Semantic HTML used (`<dialog>`, `<label>`, `<fieldset>`, skip links)?
+- Forms: visible labels, blur validation, specific error messages?
+- Responsive: mobile-first? Container queries? Real device considerations?
+- UX writing: specific button labels? Actionable error messages? Consistent terminology?
 
 ### FILE AUDIT
 **Trigger:** User points to specific files or a directory.

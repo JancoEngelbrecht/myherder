@@ -47,17 +47,16 @@ For each fix, using the @builder agent:
 6. If the fix touches frontend, verify i18n keys exist
 
 ### Step 4: VERIFY
-Run the project's test suites:
+Run the project's test suites (check CLAUDE.md for exact commands):
 ```bash
-cd server && npm test
-cd client && npm run test:run
+npm test
 npm run lint
 ```
 
 - If tests fail → determine if the failure is caused by the fix or was pre-existing
   - If caused by the fix → revert and re-approach. The fix is wrong if it breaks tests.
   - If pre-existing → note it but do not fix unrelated test failures in this pass
-- If lint fails → run `npm run lint:fix`, then fix remaining issues manually
+- If lint fails → run lint fix command, then fix remaining issues manually
 
 **Do NOT proceed until tests pass.**
 

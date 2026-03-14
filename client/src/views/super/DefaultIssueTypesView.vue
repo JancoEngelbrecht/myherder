@@ -192,8 +192,8 @@ async function doDeactivate() {
 .defaults-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
 .defaults-name { font-weight: 600; font-size: 1rem; display: block; }
 .defaults-sub { font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 2px; }
-.detail-pill { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; }
-.defaults-actions { display: flex; gap: 8px; margin-top: auto; }
+.detail-pill { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px; }
+.defaults-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
 .badge-active { background: var(--success-light); color: var(--primary-dark); }
 .badge-inactive { background: var(--border); color: var(--text-secondary); }
 </style>

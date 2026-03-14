@@ -51,19 +51,26 @@ const { t } = useI18n()
   gap: 6px;
   box-shadow: var(--shadow-card);
   text-decoration: none;
-  aspect-ratio: 1;
+  aspect-ratio: 4 / 3;
   text-align: center;
-}
-
-.active-action {
   cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.1s;
+  transition: transform 0.1s, box-shadow 0.15s, border-color 0.15s;
   color: var(--text);
 }
 
-.active-action:active {
+.action-card:hover {
+  box-shadow: var(--shadow);
+  border-color: var(--primary-light);
+}
+
+.action-card:active {
   transform: scale(0.97);
   box-shadow: none;
+}
+
+.action-card:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 .action-icon {

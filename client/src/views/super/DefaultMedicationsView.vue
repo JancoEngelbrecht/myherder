@@ -265,8 +265,8 @@ async function doDeactivate() {
 .withdrawal-pill { font-size: 0.8rem; font-family: var(--font-mono); padding: 4px 10px; border-radius: var(--radius-full); font-weight: 500; }
 .withdrawal-pill.milk { background: var(--warning-light); color: var(--warning); }
 .withdrawal-pill.meat { background: var(--danger-light); color: var(--danger); }
-.withdrawal-pill.none { background: var(--success-light); color: var(--primary); }
-.defaults-actions { display: flex; gap: 8px; margin-top: auto; }
+.withdrawal-pill.none { background: var(--success-light); color: var(--primary-dark); }
+.defaults-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
 .badge-active { background: var(--success-light); color: var(--primary-dark); }
 .badge-inactive { background: var(--border); color: var(--text-secondary); }
 </style>

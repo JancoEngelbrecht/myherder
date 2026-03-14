@@ -218,9 +218,9 @@ async function doDeactivate() {
 .defaults-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
 .defaults-name { font-weight: 600; font-size: 1rem; display: block; }
 .defaults-sub { font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 2px; }
-.breed-stats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; font-size: 0.8rem; color: var(--text-muted); }
+.breed-stats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; font-size: 0.8rem; color: var(--text-secondary); }
 .stat-pill { background: var(--bg); padding: 3px 8px; border-radius: var(--radius-sm); }
-.defaults-actions { display: flex; gap: 8px; margin-top: auto; }
+.defaults-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
 .badge-active { background: var(--success-light); color: var(--primary-dark); }
 .badge-inactive { background: var(--border); color: var(--text-secondary); }
 </style>
