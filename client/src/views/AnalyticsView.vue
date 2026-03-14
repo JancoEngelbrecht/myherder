@@ -36,8 +36,8 @@
             <div v-if="flags.milkRecording" class="kpi-card">
               <div class="kpi-value mono">{{ kpis.cows_milked_today }}</div>
               <div class="kpi-label">{{ t('analytics.landing.cowsMilked') }}</div>
-              <div class="kpi-compare mono" :class="cowsDiff >= 0 ? 'trend-up' : 'trend-down'">
-                {{ cowsDiff >= 0 ? '+' : '' }}{{ cowsDiff }} {{ t('analytics.landing.vsExpected') }}
+              <div class="kpi-compare mono" :class="kpis.cows_milked_today >= kpis.cows_expected ? 'trend-up' : 'trend-down'">
+                {{ t('analytics.landing.ofExpected', { expected: kpis.cows_expected }) }}
               </div>
             </div>
 
@@ -202,9 +202,6 @@ const litresTrendPct = computed(() => {
   return Math.round(((kpis.value.litres_today - avg) / avg) * 100)
 })
 
-const cowsDiff = computed(() =>
-  kpis.value.cows_milked_today - kpis.value.cows_expected
-)
 
 const statusBreakdown = computed(() => {
   const allStatuses = ['active', 'dry', 'pregnant', 'sick', 'sold', 'dead']

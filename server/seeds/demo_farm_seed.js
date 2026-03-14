@@ -684,8 +684,10 @@ async function main() {
 
           let status = 'resolved'
           let resolvedAt = null
-          if (daysOld < 7) {
-            status = Math.random() < 0.4 ? 'open' : 'treating'
+          if (daysOld < 3) {
+            status = 'open' // Very recent issues always open
+          } else if (daysOld < 10) {
+            status = Math.random() < 0.5 ? 'open' : 'treating'
           } else if (daysOld < 21) {
             status = Math.random() < 0.15 ? 'treating' : 'resolved'
           }

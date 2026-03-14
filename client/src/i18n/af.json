@@ -194,7 +194,8 @@
       "breedingDue": "Teelt Aksies",
       "totalHerd": "Totale Kudde",
       "vs7dayAvg": "vs 7-dag gem.",
-      "vsExpected": "vs verwag"
+      "vsExpected": "vs verwag",
+      "ofExpected": "van {expected} verwag"
     },
     "categories": {
       "title": "Gedetailleerde Analise",

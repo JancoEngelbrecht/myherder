@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('../../config/database');
 const {
-  round2, localDate, defaultRange, monthExpr,
+  toStr, round2, localDate, defaultRange, monthExpr,
   MS_PER_DAY, PREDICTION_MONTHS,
   getIssueTypeDefMap, parseIssueCodes, batchCountServices,
 } = require('./helpers');
@@ -242,7 +242,7 @@ router.get('/conception-rate', async (req, res, next) => {
       const services = serviceCountMap.get(check.id) || 0;
       if (services === 0) continue;
 
-      const month = check.event_date.slice(0, 7);
+      const month = toStr(check.event_date).slice(0, 7);
       if (!monthlyData[month]) monthlyData[month] = { total: 0, conceptions: 0 };
 
       total_first_services++;

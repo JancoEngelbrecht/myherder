@@ -206,8 +206,8 @@ router.get('/withdrawal', async (req, res, next) => {
 
     const result = Object.values(byCow)
     result.sort((a, b) => {
-      const aEnd = a.withdrawal_end_milk || a.withdrawal_end_meat || ''
-      const bEnd = b.withdrawal_end_milk || b.withdrawal_end_meat || ''
+      const aEnd = String(a.withdrawal_end_milk || a.withdrawal_end_meat || '')
+      const bEnd = String(b.withdrawal_end_milk || b.withdrawal_end_meat || '')
       return aEnd.localeCompare(bEnd)
     })
 

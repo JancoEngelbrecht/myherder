@@ -123,7 +123,7 @@ router.get('/upcoming', async (req, res, next) => {
           map[row.cow_id] = row
         }
       }
-      return Object.values(map).sort((a, b) => a[dateField].localeCompare(b[dateField]))
+      return Object.values(map).sort((a, b) => String(a[dateField] ?? '').localeCompare(String(b[dateField] ?? '')))
     }
 
     // Build needs-attention list: overdue items with alert metadata
@@ -140,7 +140,7 @@ router.get('/upcoming', async (req, res, next) => {
       ...toOverdueItems(overduePregChecks, 'preg_check', 'expected_preg_check'),
       ...toOverdueItems(overdueCalvings, 'calving', 'expected_calving'),
       ...toOverdueItems(overdueDryOffs, 'dry_off', 'expected_dry_off'),
-    ].sort((a, b) => a.alert_date.localeCompare(b.alert_date))
+    ].sort((a, b) => String(a.alert_date ?? '').localeCompare(String(b.alert_date ?? '')))
 
     res.json({
       heats: latestPerCow(heatsRaw, 'expected_next_heat').map(parseJsonFields),

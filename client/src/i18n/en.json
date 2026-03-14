@@ -194,7 +194,8 @@
       "breedingDue": "Breeding Due",
       "totalHerd": "Total Herd",
       "vs7dayAvg": "vs 7-day avg",
-      "vsExpected": "vs expected"
+      "vsExpected": "vs expected",
+      "ofExpected": "of {expected} expected"
     },
     "categories": {
       "title": "Detailed Analytics",

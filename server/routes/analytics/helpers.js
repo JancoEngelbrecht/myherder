@@ -2,6 +2,12 @@ const Joi = require('joi');
 const db = require('../../config/database');
 const { ISO_DATE_RE, joiMsg, MS_PER_DAY } = require('../../helpers/constants');
 
+/** Coerce a DB date/datetime value to a string (MySQL2 returns Date objects) */
+function toStr(val) {
+  if (val instanceof Date) return val.toISOString()
+  return String(val ?? '')
+}
+
 /** Round to 2 decimal places — prevents floating-point display artifacts */
 function round2(n) {
   return Math.round(n * 100) / 100;
@@ -148,6 +154,7 @@ async function batchCountServices(positiveChecks, farmId) {
 }
 
 module.exports = {
+  toStr,
   round2,
   localDate,
   defaultRange,

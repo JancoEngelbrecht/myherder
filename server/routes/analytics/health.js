@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('../../config/database');
 const {
-  round2, defaultRange, monthExpr, dayDiffExpr,
+  toStr, round2, defaultRange, monthExpr, dayDiffExpr,
   MS_PER_DAY, RECURRENCE_WINDOW_DAYS,
   getIssueTypeDefMap, parseIssueCodes,
 } = require('./helpers');
@@ -81,7 +81,7 @@ router.get('/issue-frequency', async (req, res, next) => {
 
     for (const issue of issues) {
       if (!issue.observed_at) continue;
-      const month = issue.observed_at.slice(0, 7);
+      const month = toStr(issue.observed_at).slice(0, 7);
       const codes = parseIssueCodes(issue.issue_types);
 
       for (const code of codes) {

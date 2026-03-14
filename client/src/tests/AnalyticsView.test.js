@@ -123,8 +123,9 @@ describe('AnalyticsView (Landing Page)', () => {
     const wrapper = createWrapper()
     await flushPromises()
 
-    // 42 - 48 = -6
-    expect(wrapper.text()).toContain('6')
+    // 42 of 48 expected — trend-down because milked < expected
+    expect(wrapper.text()).toContain('42')
+    expect(wrapper.text()).toContain('ofExpected')
     expect(wrapper.find('.trend-down').exists()).toBe(true)
   })
 
