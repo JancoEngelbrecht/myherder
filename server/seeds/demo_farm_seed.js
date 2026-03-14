@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Demo Farm Seed Script
  *
@@ -130,7 +129,7 @@ async function main() {
   if (existing) {
     console.log('[demo-seed] Demo farm already exists (code=DEMO) — skipping.')
     await knex.destroy()
-    process.exit(0)
+    process.exit(0) // eslint-disable-line n/no-process-exit
   }
 
   const isSQLite = (knexConfig.client === 'better-sqlite3')
@@ -961,8 +960,8 @@ main()
     console.log('[demo-seed] Done.')
     return knex.destroy()
   })
-  .then(() => process.exit(0))
+  .then(() => process.exit(0)) // eslint-disable-line n/no-process-exit
   .catch((err) => {
     console.error('[demo-seed] FAILED:', err)
-    knex.destroy().then(() => process.exit(1))
+    knex.destroy().then(() => process.exit(1)) // eslint-disable-line n/no-process-exit
   })

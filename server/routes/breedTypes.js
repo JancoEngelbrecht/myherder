@@ -5,7 +5,7 @@ const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const { requireAdmin } = require('../middleware/authorize')
 const tenantScope = require('../middleware/tenantScope')
-const { toCode, joiMsg } = require('../helpers/constants')
+const { toCode, joiMsg, validateBody, validateQuery } = require('../helpers/constants')
 
 const router = express.Router()
 router.use(authenticate)
@@ -36,7 +36,7 @@ const breedTypeQuerySchema = Joi.object({
 // GET /api/breed-types — active only by default; ?all=1 for all
 router.get('/', async (req, res, next) => {
   try {
-    const { error: qError } = breedTypeQuerySchema.validate(req.query, { allowUnknown: false })
+    const { error: qError } = validateQuery(breedTypeQuerySchema, req.query)
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
     const query = db('breed_types')
@@ -55,7 +55,7 @@ router.get('/', async (req, res, next) => {
 // POST /api/breed-types — admin only
 router.post('/', requireAdmin, async (req, res, next) => {
   try {
-    const { error, value } = schema.validate(req.body)
+    const { error, value } = validateBody(schema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const code = toCode(value.name)
@@ -83,7 +83,7 @@ router.put('/:id', requireAdmin, async (req, res, next) => {
     const existing = await db('breed_types').where({ id: req.params.id }).where('farm_id', req.farmId).first()
     if (!existing) return res.status(404).json({ error: 'Breed type not found' })
 
-    const { error, value } = schema.validate(req.body)
+    const { error, value } = validateBody(schema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const now = new Date().toISOString()

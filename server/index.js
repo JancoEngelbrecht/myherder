@@ -8,13 +8,13 @@ const server = app.listen(port, () => {
 
 server.on('error', (err) => {
   console.error('Server failed to start:', err.message)
-  process.exit(1)
+  process.exit(1) // eslint-disable-line n/no-process-exit
 })
 
 function shutdown(signal) {
   console.log(`\n${signal} received — shutting down gracefully`)
   server.close(() => {
-    db.destroy().then(() => process.exit(0)).catch(() => process.exit(1))
+    db.destroy().then(() => process.exit(0)).catch(() => process.exit(1)) // eslint-disable-line n/no-process-exit
   })
 }
 

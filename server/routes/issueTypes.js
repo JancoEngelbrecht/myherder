@@ -5,7 +5,7 @@ const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const { requireAdmin } = require('../middleware/authorize')
 const tenantScope = require('../middleware/tenantScope')
-const { toCode, MAX_SEARCH_LENGTH, DEFAULT_PAGE_SIZE, parsePagination, joiMsg } = require('../helpers/constants')
+const { toCode, MAX_SEARCH_LENGTH, MAX_PAGE_SIZE, DEFAULT_PAGE_SIZE, parsePagination, joiMsg, validateBody, validateQuery } = require('../helpers/constants')
 
 const router = express.Router()
 router.use(authenticate)
@@ -23,13 +23,13 @@ const issueTypeQuerySchema = Joi.object({
   all: Joi.string().valid('0', '1'),
   search: Joi.string().max(100).allow(''),
   page: Joi.number().integer().min(1),
-  limit: Joi.number().integer().min(1).max(100),
+  limit: Joi.number().integer().min(1).max(MAX_PAGE_SIZE),
 })
 
 // GET /api/issue-types — active only by default; ?all=1 for all
 router.get('/', async (req, res, next) => {
   try {
-    const { error: qError } = issueTypeQuerySchema.validate(req.query, { allowUnknown: false })
+    const { error: qError } = validateQuery(issueTypeQuerySchema, req.query)
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
     const query = db('issue_type_definitions')
@@ -64,7 +64,7 @@ router.get('/', async (req, res, next) => {
 // POST /api/issue-types — admin only
 router.post('/', requireAdmin, async (req, res, next) => {
   try {
-    const { error, value } = schema.validate(req.body)
+    const { error, value } = validateBody(schema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const code = toCode(value.name)
@@ -92,7 +92,7 @@ router.put('/:id', requireAdmin, async (req, res, next) => {
     const existing = await db('issue_type_definitions').where({ id: req.params.id }).where('farm_id', req.farmId).first()
     if (!existing) return res.status(404).json({ error: 'Issue type not found' })
 
-    const { error, value } = schema.validate(req.body)
+    const { error, value } = validateBody(schema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const now = new Date().toISOString()

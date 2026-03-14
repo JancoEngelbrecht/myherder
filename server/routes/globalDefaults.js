@@ -4,7 +4,7 @@ const Joi = require('joi')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const requireSuperAdmin = require('../middleware/requireSuperAdmin')
-const { joiMsg, validateBody, validateQuery } = require('../helpers/constants')
+const { joiMsg, validateBody, validateQuery, toCode } = require('../helpers/constants')
 
 const router = express.Router()
 router.use(authenticate)
@@ -96,10 +96,6 @@ const listQuerySchema = Joi.object({
 })
 
 // ── Helpers ──────────────────────────────────────────────────
-
-function toCode(name) {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
-}
 
 // ── Entity config (DRY CRUD) ────────────────────────────────
 

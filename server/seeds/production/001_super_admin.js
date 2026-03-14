@@ -16,7 +16,6 @@ exports.seed = async function (knex) {
     .first()
 
   if (existing) {
-    // eslint-disable-next-line no-console
     console.log('Super admin already exists — skipping seed.')
     return
   }
@@ -51,6 +50,5 @@ exports.seed = async function (knex) {
     updated_at: now,
   })
 
-  // eslint-disable-next-line no-console
   console.log(`Super admin user '${username}' created successfully.`)
 }

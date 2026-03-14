@@ -7,7 +7,7 @@ const tenantScope = require('../middleware/tenantScope');
 const authorize = require('../middleware/authorize');
 const { requireAdmin } = authorize;
 const { logAudit } = require('../services/auditService');
-const { ISO_DATE_RE, MAX_SEARCH_LENGTH, DEFAULT_PAGE_SIZE, parsePagination, COW_STATUSES, joiMsg, validateBody, validateQuery } = require('../helpers/constants');
+const { ISO_DATE_RE, MAX_SEARCH_LENGTH, MAX_PAGE_SIZE, DEFAULT_PAGE_SIZE, parsePagination, COW_STATUSES, joiMsg, validateBody, validateQuery } = require('../helpers/constants');
 const { isMySQL } = require('./analytics/helpers');
 
 const router = express.Router();
@@ -48,7 +48,7 @@ const cowQuerySchema = Joi.object({
   yield_min: Joi.number().min(0),
   yield_max: Joi.number().min(0),
   page: Joi.number().integer().min(1),
-  limit: Joi.number().integer().min(1).max(100),
+  limit: Joi.number().integer().min(1).max(MAX_PAGE_SIZE),
   sort: Joi.string().valid('tag_number', 'name', 'dob', 'status'),
   order: Joi.string().valid('asc', 'desc'),
 });

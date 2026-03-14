@@ -6,7 +6,7 @@ const authenticate = require('../middleware/auth')
 const tenantScope = require('../middleware/tenantScope')
 const authorize = require('../middleware/authorize')
 const { requireAdmin } = authorize
-const { MAX_SEARCH_LENGTH, DEFAULT_PAGE_SIZE, parsePagination, joiMsg, validateBody, validateQuery } = require('../helpers/constants')
+const { MAX_SEARCH_LENGTH, MAX_PAGE_SIZE, DEFAULT_PAGE_SIZE, parsePagination, joiMsg, validateBody, validateQuery } = require('../helpers/constants')
 const { logAudit } = require('../services/auditService')
 
 const router = express.Router()
@@ -60,7 +60,7 @@ const issueQuerySchema = Joi.object({
   status: Joi.string().valid('open', 'treating', 'resolved'),
   search: Joi.string().max(100).allow(''),
   page: Joi.number().integer().min(1),
-  limit: Joi.number().integer().min(1).max(100),
+  limit: Joi.number().integer().min(1).max(MAX_PAGE_SIZE),
 })
 
 // GET /api/health-issues

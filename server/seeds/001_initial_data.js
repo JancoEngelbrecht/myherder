@@ -37,7 +37,7 @@ exports.seed = async function (knex) {
     await knex('treatments').del();
     await knex('health_issues').del();
     await knex('medications').del();
-    try { await knex('milk_records').del(); } catch (_) { /* table may not exist */ }
+    try { await knex('milk_records').del(); } catch { /* table may not exist */ }
     await knex('cows').del();
     await knex('users').del();
     await knex('farms').del();

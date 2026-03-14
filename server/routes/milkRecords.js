@@ -6,7 +6,7 @@ const authenticate = require('../middleware/auth')
 const tenantScope = require('../middleware/tenantScope')
 const authorize = require('../middleware/authorize')
 const { requireAdmin } = authorize
-const { ISO_DATE_RE, joiMsg, validateBody, validateQuery } = require('../helpers/constants')
+const { ISO_DATE_RE, MAX_SEARCH_LENGTH, MAX_PAGE_SIZE, joiMsg, validateBody, validateQuery } = require('../helpers/constants')
 const { logAudit } = require('../services/auditService')
 
 const router = express.Router()
@@ -19,8 +19,6 @@ const VALID_ORDERS = ['asc', 'desc']
 
 // ── Validation ──────────────────────────────────────────────────────────────
 
-const MAX_SEARCH_LENGTH = 100
-
 const querySchema = Joi.object({
   date: Joi.string().pattern(ISO_DATE_RE),
   from: Joi.string().pattern(ISO_DATE_RE),
@@ -31,7 +29,7 @@ const querySchema = Joi.object({
   search: Joi.string().max(MAX_SEARCH_LENGTH).allow(''),
   discarded: Joi.boolean(),
   page: Joi.number().integer().min(1),
-  limit: Joi.number().integer().min(1).max(100),
+  limit: Joi.number().integer().min(1).max(MAX_PAGE_SIZE),
   sort: Joi.string().valid(...VALID_SORT_FIELDS),
   order: Joi.string().valid(...VALID_ORDERS),
 })

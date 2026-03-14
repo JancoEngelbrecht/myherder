@@ -57,20 +57,6 @@ async function createMilkRecord(cowId, overrides = {}) {
   return id
 }
 
-async function createBreedingEvent(cowId, overrides = {}) {
-  const id = randomUUID()
-  await db('breeding_events').insert({
-    id,
-    farm_id: DEFAULT_FARM_ID,
-    cow_id: cowId,
-    event_type: 'ai_insemination',
-    event_date: new Date().toISOString(),
-    recorded_by: ADMIN_ID,
-    ...overrides,
-  })
-  return id
-}
-
 // ─── GET /api/analytics/daily-kpis ───────────────────────────────────────────
 
 describe('GET /api/analytics/daily-kpis', () => {

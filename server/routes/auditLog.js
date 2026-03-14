@@ -4,7 +4,7 @@ const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const { requireAdmin } = require('../middleware/authorize')
 const tenantScope = require('../middleware/tenantScope')
-const { ISO_DATE_RE, parsePagination, joiMsg, validateQuery } = require('../helpers/constants')
+const { ISO_DATE_RE, MAX_PAGE_SIZE, parsePagination, joiMsg, validateQuery } = require('../helpers/constants')
 
 const router = express.Router()
 router.use(authenticate)
@@ -15,7 +15,7 @@ router.use(tenantScope)
 
 const auditQuerySchema = Joi.object({
   page: Joi.number().integer().min(1),
-  limit: Joi.number().integer().min(1).max(100),
+  limit: Joi.number().integer().min(1).max(MAX_PAGE_SIZE),
   entity_type: Joi.string().max(100),
   entity_id: Joi.string().max(100),
   user_id: Joi.string().max(100),
