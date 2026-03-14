@@ -173,7 +173,7 @@ router.get('/', async (req, res, next) => {
           WHERE mr.cow_id = c.id AND mr.farm_id = c.farm_id
             AND mr.recording_date >= ${sevenDaysAgo}
           GROUP BY mr.recording_date
-        )
+        ) AS daily_yields
       )`;
       if (q.yield_min !== undefined) {
         const yMin = parseFloat(String(q.yield_min));
@@ -192,10 +192,11 @@ router.get('/', async (req, res, next) => {
     const sortCol = sortMap[String(q.sort)] || 'c.tag_number';
     const sortOrder = q.order === 'desc' ? 'desc' : 'asc';
 
-    const [[{ count: total }], cows] = await Promise.all([
-      query.clone().clearSelect().count('* as count'),
+    const [countRow, cows] = await Promise.all([
+      query.clone().clearSelect().clearOrder().count('* as count').first(),
       query.orderBy(sortCol, sortOrder).limit(limit).offset(offset),
     ]);
+    const total = Number(countRow?.count ?? 0);
 
     res.set('X-Total-Count', String(total));
     res.json(cows);
