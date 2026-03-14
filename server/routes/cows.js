@@ -122,11 +122,22 @@ router.get('/', async (req, res, next) => {
 
     if (q.status) query.where('c.status', q.status);
     if (q.sex) query.where('c.sex', q.sex);
-    if (q.breed_type_id) query.where('c.breed_type_id', q.breed_type_id);
+
+    // Breed filter: match by code to handle cross-farm breed_type_id mismatches
+    // (cows may reference breed types seeded under a different farm_id)
+    if (q.breed_type_id) {
+      const selectedBt = await db('breed_types').where('id', q.breed_type_id).select('code').first();
+      if (selectedBt) {
+        const matchingIds = await db('breed_types').where('code', selectedBt.code).pluck('id');
+        query.whereIn('c.breed_type_id', matchingIds);
+      } else {
+        query.where('c.breed_type_id', q.breed_type_id);
+      }
+    }
 
     // Life phase filter (SQL-computed from dob/sex/breed thresholds)
     if (q.life_phase) {
-      query.whereRaw(`${lifePhaseSql()} = ?`, [q.life_phase]);
+      query.whereRaw(`(${lifePhaseSql()}) = ?`, [q.life_phase]);
     }
 
     // Pregnant filter (uses cow.status which is updated by breeding events)
@@ -201,6 +212,11 @@ router.get('/', async (req, res, next) => {
     res.set('X-Total-Count', String(total));
     res.json(cows);
   } catch (err) {
+    // Temporary: surface SQL error details for debugging
+    if (err.sqlMessage || err.code) {
+      console.error('GET /api/cows SQL error:', err.sqlMessage || err.message, 'code:', err.code, 'query:', req.query);
+      return res.status(500).json({ error: err.sqlMessage || err.message });
+    }
     next(err);
   }
 });
