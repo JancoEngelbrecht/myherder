@@ -79,7 +79,7 @@ export const useTreatmentsStore = defineStore('treatments', () => {
         const breedTypeMap = {}
         try {
           if (breedTypeIds.length) {
-            const bts = await db.breed_types.bulkGet(breedTypeIds)
+            const bts = await db.breedTypes.bulkGet(breedTypeIds)
             for (const bt of bts) {
               if (bt) breedTypeMap[bt.id] = bt
             }
@@ -95,6 +95,20 @@ export const useTreatmentsStore = defineStore('treatments', () => {
             byCow[cow.id].life_phase = computeLifePhase(cow, breedTypeMap[cow.breed_type_id] ?? null)
           }
         }
+      }
+      // Mirror server logic: null out milk withdrawal for non-milking life phases
+      // Must match NON_MILKING_PHASES in server/helpers/lifePhase.js
+      const NON_MILKING_PHASES = new Set(['heifer', 'calf'])
+      const nowMs = Date.now()
+      for (const id of Object.keys(byCow)) {
+        const entry = byCow[id]
+        if (entry.sex === 'male' || NON_MILKING_PHASES.has(entry.life_phase)) {
+          entry.withdrawal_end_milk = null
+        }
+        // Drop entries with no remaining active withdrawal
+        const hasMilk = entry.withdrawal_end_milk && new Date(entry.withdrawal_end_milk).getTime() > nowMs
+        const hasMeat = entry.withdrawal_end_meat && new Date(entry.withdrawal_end_meat).getTime() > nowMs
+        if (!hasMilk && !hasMeat) delete byCow[id]
       }
       withdrawalCows.value = Object.values(byCow)
       error.value = extractApiError(err)

@@ -179,7 +179,9 @@ const withdrawalMap = computed(() => {
 })
 
 function isOnWithdrawal(cowId) {
-  return cowId in withdrawalMap.value
+  const entry = withdrawalMap.value[cowId]
+  if (!entry?.withdrawal_end_milk) return false
+  return new Date(entry.withdrawal_end_milk).getTime() > Date.now()
 }
 
 function withdrawalEndDate(cowId) {

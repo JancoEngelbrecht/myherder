@@ -130,6 +130,60 @@ describe('MilkRecordingView', () => {
     expect(wrapper.find('.search-input').exists()).toBe(true)
   })
 
+  it('does not flag cow as on-withdrawal when only meat withdrawal is active', async () => {
+    const futureMeat = new Date(Date.now() + 86400000 * 5).toISOString()
+    api.get.mockImplementation((url) => {
+      if (url === '/cows') return Promise.resolve({ data: [{ id: 'cow-1', tag_number: '001', name: 'Letty', sex: 'female', status: 'active' }] })
+      if (url === '/treatments/withdrawal') return Promise.resolve({ data: [{ cow_id: 'cow-1', withdrawal_end_milk: null, withdrawal_end_meat: futureMeat, tag_number: '001', cow_name: 'Letty', sex: 'female', life_phase: 'heifer' }] })
+      if (url === '/milk-records') return Promise.resolve({ data: [] })
+      if (url.includes('feature-flags')) return Promise.resolve({ data: { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true } })
+      return Promise.resolve({ data: [] })
+    })
+
+    const wrapper = mount(MilkRecordingView, { global: { stubs } })
+    await flushPromises()
+
+    const card = wrapper.findComponent(stubs.MilkEntryCard)
+    expect(card.exists()).toBe(true)
+    expect(card.props('onWithdrawal')).toBe(false)
+  })
+
+  it('flags cow as on-withdrawal when milk withdrawal is active', async () => {
+    const futureMilk = new Date(Date.now() + 86400000 * 5).toISOString()
+    api.get.mockImplementation((url) => {
+      if (url === '/cows') return Promise.resolve({ data: [{ id: 'cow-2', tag_number: '002', name: 'Daisy', sex: 'female', status: 'active' }] })
+      if (url === '/treatments/withdrawal') return Promise.resolve({ data: [{ cow_id: 'cow-2', withdrawal_end_milk: futureMilk, withdrawal_end_meat: null, tag_number: '002', cow_name: 'Daisy', sex: 'female', life_phase: 'cow' }] })
+      if (url === '/milk-records') return Promise.resolve({ data: [] })
+      if (url.includes('feature-flags')) return Promise.resolve({ data: { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true } })
+      return Promise.resolve({ data: [] })
+    })
+
+    const wrapper = mount(MilkRecordingView, { global: { stubs } })
+    await flushPromises()
+
+    const card = wrapper.findComponent(stubs.MilkEntryCard)
+    expect(card.exists()).toBe(true)
+    expect(card.props('onWithdrawal')).toBe(true)
+  })
+
+  it('does not flag cow when milk withdrawal is expired', async () => {
+    const pastMilk = new Date(Date.now() - 86400000).toISOString()
+    api.get.mockImplementation((url) => {
+      if (url === '/cows') return Promise.resolve({ data: [{ id: 'cow-3', tag_number: '003', name: 'Bella', sex: 'female', status: 'active' }] })
+      if (url === '/treatments/withdrawal') return Promise.resolve({ data: [{ cow_id: 'cow-3', withdrawal_end_milk: pastMilk, withdrawal_end_meat: null, tag_number: '003', cow_name: 'Bella', sex: 'female', life_phase: 'cow' }] })
+      if (url === '/milk-records') return Promise.resolve({ data: [] })
+      if (url.includes('feature-flags')) return Promise.resolve({ data: { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true } })
+      return Promise.resolve({ data: [] })
+    })
+
+    const wrapper = mount(MilkRecordingView, { global: { stubs } })
+    await flushPromises()
+
+    const card = wrapper.findComponent(stubs.MilkEntryCard)
+    expect(card.exists()).toBe(true)
+    expect(card.props('onWithdrawal')).toBe(false)
+  })
+
   it('updates time to session default when switching to a past date', async () => {
     const wrapper = createWrapper()
     await flushPromises()
