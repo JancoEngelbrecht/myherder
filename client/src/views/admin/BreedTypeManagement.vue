@@ -90,7 +90,7 @@
 
       <!-- List -->
       <template v-else>
-        <div class="bt-list">
+        <div data-tour="bt-list" class="bt-list">
           <div
             v-for="bt in store.types"
             :key="bt.id"
@@ -106,7 +106,7 @@
                 {{ bt.is_active ? t('common.active') : t('common.inactive') }}
               </span>
             </div>
-            <div class="timing-summary mono">
+            <div data-tour="bt-timing" class="timing-summary mono">
               <span>{{ bt.gestation_days }}d gest</span>
               <span>{{ bt.heat_cycle_days }}d heat</span>
               <span>{{ bt.preg_check_days }}d preg</span>
@@ -120,9 +120,11 @@
         </div>
 
         <!-- FAB to add -->
-        <button class="fab" :title="$t('breedTypes.addTitle')" @click="openAdd">+</button>
+        <button data-tour="bt-add" class="fab" :title="$t('breedTypes.addTitle')" @click="openAdd">+</button>
       </template>
     </div>
+
+    <TourButton @start-tour="startTour" />
 
     <ConfirmDialog
       :show="!!deleting"
@@ -140,12 +142,38 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppHeader from '../../components/organisms/AppHeader.vue'
+import TourButton from '../../components/atoms/TourButton.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import { useBreedTypesStore } from '../../stores/breedTypes'
 import { extractApiError, resolveError } from '../../utils/apiError'
+import { useTour } from '../../composables/useTour'
 
 const { t } = useI18n()
 const store = useBreedTypesStore()
+
+const { startTour } = useTour('breed-type-management', () => [
+  {
+    element: '[data-tour="bt-list"]',
+    popover: {
+      title: t('tour.breedTypeManagement.list.title'),
+      description: t('tour.breedTypeManagement.list.desc'),
+    }
+  },
+  {
+    element: '[data-tour="bt-timing"]',
+    popover: {
+      title: t('tour.breedTypeManagement.timing.title'),
+      description: t('tour.breedTypeManagement.timing.desc'),
+    }
+  },
+  {
+    element: '[data-tour="bt-add"]',
+    popover: {
+      title: t('tour.breedTypeManagement.add.title'),
+      description: t('tour.breedTypeManagement.add.desc'),
+    }
+  },
+], { autoStart: false })
 
 const formMode = ref(null) // null | 'add' | 'edit'
 const editing = ref(null)

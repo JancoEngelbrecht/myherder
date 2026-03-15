@@ -128,7 +128,7 @@
       </div>
 
       <!-- Search (hidden while form is open) -->
-      <div v-if="!showForm" class="search-bar">
+      <div v-if="!showForm" data-tour="med-search" class="search-bar">
         <SearchInput
           v-model="searchQuery"
           :placeholder="$t('common.search.placeholder')"
@@ -145,7 +145,7 @@
       </div>
 
       <!-- List -->
-      <div v-else-if="!showForm" class="med-list">
+      <div v-else-if="!showForm" data-tour="med-list" class="med-list">
         <div
           v-for="med in allMedications"
           :key="med.id"
@@ -162,7 +162,7 @@
             </span>
           </div>
 
-          <div class="withdrawal-info">
+          <div data-tour="med-withdrawal" class="withdrawal-info">
             <span v-if="med.withdrawal_milk_hours > 0 || med.withdrawal_milk_days > 0" class="withdrawal-pill milk">
               🥛 <template v-if="med.withdrawal_milk_days > 0">{{ med.withdrawal_milk_days }}d </template><template v-if="med.withdrawal_milk_hours > 0">{{ med.withdrawal_milk_hours }}h </template>{{ $t('medications.milkWithdrawal') }}
             </span>
@@ -203,7 +203,9 @@
     </div>
 
     <!-- FAB -->
-    <button v-if="!showForm" class="fab" :title="$t('medications.addMedication')" @click="openAdd">+</button>
+    <button v-if="!showForm" data-tour="med-add" class="fab" :title="$t('medications.addMedication')" @click="openAdd">+</button>
+
+    <TourButton @start-tour="startTour" />
 
     <!-- Delete ConfirmDialog -->
     <ConfirmDialog
@@ -233,15 +235,48 @@
 import { ref, computed, onMounted } from 'vue'
 import { useMedicationsStore } from '../../stores/medications'
 import AppHeader from '../../components/organisms/AppHeader.vue'
+import TourButton from '../../components/atoms/TourButton.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import SearchInput from '../../components/atoms/SearchInput.vue'
 import PaginationBar from '../../components/atoms/PaginationBar.vue'
 import { useI18n } from 'vue-i18n'
 import { extractApiError, resolveError } from '../../utils/apiError'
 import { useToast } from '../../composables/useToast'
+import { useTour } from '../../composables/useTour'
 
 const { t } = useI18n()
 const { showToast } = useToast()
+
+const { startTour } = useTour('medication-management', () => [
+  {
+    element: '[data-tour="med-search"]',
+    popover: {
+      title: t('tour.medicationManagement.search.title'),
+      description: t('tour.medicationManagement.search.desc'),
+    }
+  },
+  {
+    element: '[data-tour="med-list"]',
+    popover: {
+      title: t('tour.medicationManagement.list.title'),
+      description: t('tour.medicationManagement.list.desc'),
+    }
+  },
+  {
+    element: '[data-tour="med-withdrawal"]',
+    popover: {
+      title: t('tour.medicationManagement.withdrawal.title'),
+      description: t('tour.medicationManagement.withdrawal.desc'),
+    }
+  },
+  {
+    element: '[data-tour="med-add"]',
+    popover: {
+      title: t('tour.medicationManagement.add.title'),
+      description: t('tour.medicationManagement.add.desc'),
+    }
+  },
+], { autoStart: false })
 const store = useMedicationsStore()
 
 const loading = computed(() => store.loading)

@@ -159,14 +159,14 @@
           <p>{{ t('users.noUsers') }}</p>
         </div>
 
-        <div v-else class="user-list">
+        <div v-else data-tour="um-list" class="user-list">
           <div v-for="user in users" :key="user.id" class="card user-card" :class="{ inactive: !user.is_active }">
             <div class="user-header">
               <div class="user-info">
                 <span class="user-name">{{ user.full_name }}</span>
                 <span class="user-username mono">@{{ user.username }}</span>
               </div>
-              <div class="user-badges">
+              <div data-tour="um-badges" class="user-badges">
                 <span class="badge" :class="user.role === 'admin' ? 'badge-admin' : 'badge-worker'">
                   {{ user.role === 'admin' ? t('users.roleAdmin') : t('users.roleWorker') }}
                 </span>
@@ -207,9 +207,11 @@
           </div>
         </div>
 
-        <button class="fab" :title="$t('users.addUser')" @click="openAdd">+</button>
+        <button data-tour="um-add" class="fab" :title="$t('users.addUser')" @click="openAdd">+</button>
       </template>
     </div>
+
+    <TourButton @start-tour="startTour" />
 
     <ConfirmDialog
       :show="!!toggling"
@@ -247,15 +249,41 @@
 import { ref, onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppHeader from '../../components/organisms/AppHeader.vue'
+import TourButton from '../../components/atoms/TourButton.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import { useAuthStore } from '../../stores/auth'
 import api from '../../services/api'
 import { extractApiError, resolveError } from '../../utils/apiError'
 import { useToast } from '../../composables/useToast'
+import { useTour } from '../../composables/useTour'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
 const toast = useToast()
+
+const { startTour } = useTour('user-management', () => [
+  {
+    element: '[data-tour="um-list"]',
+    popover: {
+      title: t('tour.userManagement.list.title'),
+      description: t('tour.userManagement.list.desc'),
+    }
+  },
+  {
+    element: '[data-tour="um-badges"]',
+    popover: {
+      title: t('tour.userManagement.badges.title'),
+      description: t('tour.userManagement.badges.desc'),
+    }
+  },
+  {
+    element: '[data-tour="um-add"]',
+    popover: {
+      title: t('tour.userManagement.add.title'),
+      description: t('tour.userManagement.add.desc'),
+    }
+  },
+], { autoStart: false })
 
 const currentUserId = computed(() => authStore.user?.id)
 

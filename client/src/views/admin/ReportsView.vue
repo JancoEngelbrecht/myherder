@@ -6,7 +6,7 @@
       <!-- Report Type Selection -->
       <section class="section">
         <h2 class="section-label">{{ t('reports.selectReport') }}</h2>
-        <div class="report-grid">
+        <div data-tour="reports-types" class="report-grid">
           <button
             v-for="report in reportTypes"
             :key="report.key"
@@ -24,7 +24,7 @@
       <!-- Date Range -->
       <section class="section">
         <h2 class="section-label">{{ t('reports.dateRange') }}</h2>
-        <div class="date-row">
+        <div data-tour="reports-dates" class="date-row">
           <div class="form-group">
             <label class="form-label">{{ t('reports.from') }}</label>
             <input v-model="dateFrom" type="date" class="form-input" />
@@ -39,7 +39,7 @@
       <!-- Format Selection -->
       <section class="section">
         <h2 class="section-label">{{ t('reports.format') }}</h2>
-        <div class="filter-chips">
+        <div data-tour="reports-format" class="filter-chips">
           <button
             class="chip"
             :class="{ active: format === 'pdf' }"
@@ -59,6 +59,7 @@
 
       <!-- Generate Button -->
       <button
+        data-tour="reports-generate"
         class="btn-primary generate-btn"
         :disabled="!canGenerate || generating"
         @click="generate"
@@ -69,6 +70,8 @@
 
       <p v-if="error" class="error-msg">{{ error }}</p>
     </div>
+
+    <TourButton @start-tour="startTour" />
   </div>
 </template>
 
@@ -76,10 +79,43 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppHeader from '../../components/organisms/AppHeader.vue'
+import TourButton from '../../components/atoms/TourButton.vue'
 import api from '../../services/api.js'
 import { extractApiError, resolveError } from '../../utils/apiError'
+import { useTour } from '../../composables/useTour'
 
 const { t } = useI18n()
+
+const { startTour } = useTour('reports', () => [
+  {
+    element: '[data-tour="reports-types"]',
+    popover: {
+      title: t('tour.reports.types.title'),
+      description: t('tour.reports.types.desc'),
+    }
+  },
+  {
+    element: '[data-tour="reports-dates"]',
+    popover: {
+      title: t('tour.reports.dates.title'),
+      description: t('tour.reports.dates.desc'),
+    }
+  },
+  {
+    element: '[data-tour="reports-format"]',
+    popover: {
+      title: t('tour.reports.format.title'),
+      description: t('tour.reports.format.desc'),
+    }
+  },
+  {
+    element: '[data-tour="reports-generate"]',
+    popover: {
+      title: t('tour.reports.generate.title'),
+      description: t('tour.reports.generate.desc'),
+    }
+  },
+])
 
 const reportTypes = [
   { key: 'treatmentHistory', icon: '💉', slug: 'treatment-history' },

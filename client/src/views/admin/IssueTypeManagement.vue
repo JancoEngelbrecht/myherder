@@ -83,7 +83,7 @@
       <div v-if="pageError" class="page-error">{{ pageError }}</div>
 
       <!-- Search (hidden while form is open) -->
-      <div v-if="!showForm" class="search-bar">
+      <div v-if="!showForm" data-tour="it-search" class="search-bar">
         <SearchInput
           v-model="searchQuery"
           :placeholder="$t('common.search.placeholder')"
@@ -100,7 +100,7 @@
       </div>
 
       <!-- List -->
-      <div v-else-if="!showForm" class="it-list">
+      <div v-else-if="!showForm" data-tour="it-list" class="it-list">
         <div
           v-for="type in allTypes"
           :key="type.id"
@@ -154,7 +154,9 @@
     </div>
 
     <!-- FAB -->
-    <button v-if="!showForm" class="fab" :title="$t('issueTypes.addTitle')" @click="openAdd">+</button>
+    <button v-if="!showForm" data-tour="it-add" class="fab" :title="$t('issueTypes.addTitle')" @click="openAdd">+</button>
+
+    <TourButton @start-tour="startTour" />
 
     <!-- Delete ConfirmDialog -->
     <ConfirmDialog
@@ -184,16 +186,42 @@
 import { ref, computed, onMounted } from 'vue'
 import { useIssueTypesStore } from '../../stores/issueTypes'
 import AppHeader from '../../components/organisms/AppHeader.vue'
+import TourButton from '../../components/atoms/TourButton.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import SearchInput from '../../components/atoms/SearchInput.vue'
 import PaginationBar from '../../components/atoms/PaginationBar.vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from '../../composables/useToast'
+import { useTour } from '../../composables/useTour'
 import { extractApiError, resolveError } from '../../utils/apiError'
 
 const { t } = useI18n()
 const store = useIssueTypesStore()
 const toast = useToast()
+
+const { startTour } = useTour('issue-type-management', () => [
+  {
+    element: '[data-tour="it-search"]',
+    popover: {
+      title: t('tour.issueTypeManagement.search.title'),
+      description: t('tour.issueTypeManagement.search.desc'),
+    }
+  },
+  {
+    element: '[data-tour="it-list"]',
+    popover: {
+      title: t('tour.issueTypeManagement.list.title'),
+      description: t('tour.issueTypeManagement.list.desc'),
+    }
+  },
+  {
+    element: '[data-tour="it-add"]',
+    popover: {
+      title: t('tour.issueTypeManagement.add.title'),
+      description: t('tour.issueTypeManagement.add.desc'),
+    }
+  },
+], { autoStart: false })
 
 const searchQuery = ref('')
 const page = ref(1)

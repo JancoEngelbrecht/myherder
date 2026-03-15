@@ -4,7 +4,7 @@
 
     <div class="page-content audit-content">
       <!-- Entity type filter chips -->
-      <div class="filter-chips filter-chips-wrap">
+      <div data-tour="audit-filters" class="filter-chips filter-chips-wrap">
         <button
           v-for="type in entityTypeFilters"
           :key="type"
@@ -17,7 +17,7 @@
       </div>
 
       <!-- Advanced filters toggle -->
-      <button class="advanced-toggle" @click="showAdvanced = !showAdvanced">
+      <button data-tour="audit-advanced" class="advanced-toggle" @click="showAdvanced = !showAdvanced">
         {{ t('audit.advancedFilters') }}
         <span v-if="advancedFilterCount > 0" class="filter-badge">{{ advancedFilterCount }}</span>
         <span class="toggle-arrow" :class="{ open: showAdvanced }">&#9662;</span>
@@ -77,7 +77,7 @@
       </div>
 
       <!-- Entries list -->
-      <div v-else class="audit-list">
+      <div v-else data-tour="audit-entries" class="audit-list">
         <div v-for="entry in entries" :key="entry.id" class="card audit-card">
           <div class="audit-header">
             <span class="audit-action badge" :class="`badge-${entry.action}`">
@@ -118,6 +118,8 @@
         @update:limit="onLimitChange"
       />
     </div>
+
+    <TourButton @start-tour="startTour" />
   </div>
 </template>
 
@@ -125,10 +127,36 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppHeader from '../../components/organisms/AppHeader.vue'
+import TourButton from '../../components/atoms/TourButton.vue'
 import PaginationBar from '../../components/atoms/PaginationBar.vue'
 import api from '../../services/api'
+import { useTour } from '../../composables/useTour'
 
 const { t } = useI18n()
+
+const { startTour } = useTour('audit-log', () => [
+  {
+    element: '[data-tour="audit-filters"]',
+    popover: {
+      title: t('tour.auditLog.filters.title'),
+      description: t('tour.auditLog.filters.desc'),
+    }
+  },
+  {
+    element: '[data-tour="audit-advanced"]',
+    popover: {
+      title: t('tour.auditLog.advanced.title'),
+      description: t('tour.auditLog.advanced.desc'),
+    }
+  },
+  {
+    element: '[data-tour="audit-entries"]',
+    popover: {
+      title: t('tour.auditLog.entries.title'),
+      description: t('tour.auditLog.entries.desc'),
+    }
+  },
+], { autoStart: false })
 
 const entries = ref([])
 const total = ref(0)
