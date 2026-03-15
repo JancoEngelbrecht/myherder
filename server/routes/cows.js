@@ -196,21 +196,27 @@ router.get('/', async (req, res, next) => {
       }
     }
 
-    // Pagination
-    const { limit, offset } = parsePagination(q, { defaultLimit: DEFAULT_PAGE_SIZE });
-
     const sortMap = { tag_number: 'c.tag_number', name: 'c.name', dob: 'c.dob', status: 'c.status' };
     const sortCol = sortMap[String(q.sort)] || 'c.tag_number';
     const sortOrder = q.order === 'desc' ? 'desc' : 'asc';
 
-    const [countRow, cows] = await Promise.all([
-      query.clone().clearSelect().clearOrder().count('* as count').first(),
-      query.orderBy(sortCol, sortOrder).limit(limit).offset(offset),
-    ]);
-    const total = Number(countRow?.count ?? 0);
+    // When page/limit not provided, return all cows (used by MilkRecordingView etc.)
+    const paginated = q.page !== undefined || q.limit !== undefined;
 
-    res.set('X-Total-Count', String(total));
-    res.json(cows);
+    if (paginated) {
+      const { limit, offset } = parsePagination(q, { defaultLimit: DEFAULT_PAGE_SIZE });
+      const [countRow, cows] = await Promise.all([
+        query.clone().clearSelect().clearOrder().count('* as count').first(),
+        query.orderBy(sortCol, sortOrder).limit(limit).offset(offset),
+      ]);
+      const total = Number(countRow?.count ?? 0);
+      res.set('X-Total-Count', String(total));
+      res.json(cows);
+    } else {
+      const cows = await query.orderBy(sortCol, sortOrder);
+      res.set('X-Total-Count', String(cows.length));
+      res.json(cows);
+    }
   } catch (err) {
     // Temporary: surface SQL error details for debugging
     if (err.sqlMessage || err.code) {
