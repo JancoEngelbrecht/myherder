@@ -571,15 +571,16 @@ describe('syncManager — visibility change', () => {
     // Mock Date.now to be 31s after init (past 30s debounce)
     const originalNow = Date.now
     Date.now = () => originalNow() + 31_000
+    try {
+      Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: true, configurable: true })
+      document.dispatchEvent(new Event('visibilitychange'))
 
-    Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: true, configurable: true })
-    document.dispatchEvent(new Event('visibilitychange'))
-
-    await vi.waitFor(() => {
-      expect(api.get).toHaveBeenCalledWith('/sync/pull', expect.any(Object))
-    })
-
-    Date.now = originalNow
+      await vi.waitFor(() => {
+        expect(api.get).toHaveBeenCalledWith('/sync/pull', expect.any(Object))
+      })
+    } finally {
+      Date.now = originalNow
+    }
   })
 
   it('does not sync when page becomes hidden', async () => {
@@ -633,14 +634,12 @@ describe('syncManager — periodic pull', () => {
     // Mock Date.now to be past the 5-minute threshold
     const originalNow = Date.now
     Date.now = () => originalNow() + PULL_INTERVAL_MS + 1000
-
-    // Manually trigger the polling logic by calling sync() —
-    // this is what the interval callback does when the time threshold is met
-    await sync()
-
-    expect(api.get).toHaveBeenCalledWith('/sync/pull', expect.any(Object))
-
-    Date.now = originalNow
+    try {
+      await sync()
+      expect(api.get).toHaveBeenCalledWith('/sync/pull', expect.any(Object))
+    } finally {
+      Date.now = originalNow
+    }
   })
 
   it('does not pull before PULL_INTERVAL_MS elapses via visibility change', async () => {
