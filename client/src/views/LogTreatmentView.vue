@@ -23,7 +23,8 @@
               <select
                 v-model="item.medication_id"
                 class="form-input med-select"
-                @change="onMedChange(index)"
+                @focus="item._prevMedId = item.medication_id"
+                @change="onMedChange(index, item._prevMedId)"
               >
                 <option value="">{{ $t('treatments.selectMedication') }}</option>
                 <option v-for="med in medications" :key="med.id" :value="med.id">
@@ -304,15 +305,26 @@ function removeMed(index) {
   form.value.medications.splice(index, 1)
 }
 
-function onMedChange(index) {
+function onMedChange(index, prevMedId) {
   const item = form.value.medications[index]
   const med = medications.value.find((m) => m.id === item.medication_id)
   // Always sync unit from selected medication (clear if none selected)
   item.unit = med?.unit || ''
-  // Auto-fill default dosage only if the dosage field is still blank
-  if (med?.default_dosage && !item.dosage) {
+  if (!med) {
+    item.dosage = ''
+    return
+  }
+  // Auto-fill default dosage: always fill if empty, or if current value matches
+  // the previous medication's default (i.e. it was auto-filled, not hand-edited)
+  if (med.default_dosage) {
     const numeric = parseFloat(String(med.default_dosage))
-    if (!isNaN(numeric)) item.dosage = String(numeric)
+    if (isNaN(numeric)) return
+    const prevMed = prevMedId ? medications.value.find((m) => m.id === prevMedId) : null
+    const prevDefault = prevMed?.default_dosage ? parseFloat(String(prevMed.default_dosage)) : null
+    const currentDosage = item.dosage ? parseFloat(item.dosage) : null
+    if (!item.dosage || currentDosage === prevDefault) {
+      item.dosage = String(numeric)
+    }
   }
 }
 
