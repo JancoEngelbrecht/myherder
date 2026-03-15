@@ -67,10 +67,10 @@ describe('ReportsView', () => {
     vi.clearAllMocks()
   })
 
-  it('renders all 7 report type cards', () => {
+  it('renders all 6 report type cards', () => {
     const wrapper = mountComponent()
     const cards = wrapper.findAll('.report-card')
-    expect(cards).toHaveLength(7)
+    expect(cards).toHaveLength(6)
   })
 
   it('selects report type on click', async () => {
@@ -102,7 +102,7 @@ describe('ReportsView', () => {
     await wrapper.find('.generate-btn').trigger('click')
     await flushPromises()
 
-    expect(mockGet).toHaveBeenCalledWith('/reports/withdrawal-compliance', {
+    expect(mockGet).toHaveBeenCalledWith('/reports/treatment-history', {
       params: { from: '2025-01-01', to: '2025-12-31', format: 'pdf' },
       responseType: 'blob',
     })
@@ -172,7 +172,7 @@ describe('ReportsView', () => {
     await wrapper.find('.generate-btn').trigger('click')
     await flushPromises()
 
-    expect(mockGet).toHaveBeenCalledWith('/reports/withdrawal-compliance', {
+    expect(mockGet).toHaveBeenCalledWith('/reports/treatment-history', {
       params: { from: '2025-01-01', to: '2025-12-31', format: 'xlsx' },
       responseType: 'blob',
     })

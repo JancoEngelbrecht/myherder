@@ -900,10 +900,6 @@
     "generate": "Genereer Verslag",
     "generating": "Genereer tans…",
     "types": {
-      "withdrawalCompliance": {
-        "name": "Onttrekking-nakoming",
-        "desc": "Verifieer dat melk behoorlik weggegooi is tydens medikasie-onttrekkingsperiodes"
-      },
       "treatmentHistory": {
         "name": "Behandelingsgeskiedenis",
         "desc": "Volledige naspeurbaarheid van alle behandelings, medikasie, koste en veeartsenbesoeke"
@@ -1633,14 +1629,13 @@
         },
         "steps": [
           "Gaan na Instellings → Verslae.",
-          "Kies die verslagtipe: Onttrekking-nakoming, Behandelingsgeskiedenis, Weggegooi Melk, Medikasiegebruik, Melkproduksie, Teling, of Kudde-gesondheid.",
+          "Kies die verslagtipe: Behandelingsgeskiedenis, Weggegooi Melk, Medikasiegebruik, Melkproduksie, Teling, of Kudde-gesondheid.",
           "Stel die datumreeks — alle verslae vereis 'n 'van' en 'tot' datum.",
           "Kies die formaat — PDF vir druk, Excel vir verdere analise.",
           "Tik 'Genereer'. Die verslag laai af na jou toestel."
         ],
         "next": "Die verslaglêer is afgelaai en kan gedeel, gedruk, of geliasseer word vir nakomingsrekords.",
         "tips": [
-          "Onttrekking-nakomingsverslae is belangrik vir suiwelinspeksies.",
           "Behandelingsgeskiedenisverslae is nuttig vir veearts-besoeke — hulle wys alle medikasie wat gebruik is.",
           "Melkproduksieverslae wys per-koei produksie-opsommings.",
           "Excel-formaat laat jou toe om jou eie analise in 'n sigblad te doen."

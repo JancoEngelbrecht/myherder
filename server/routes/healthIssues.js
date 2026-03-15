@@ -181,7 +181,10 @@ router.delete('/:id', requireAdmin, async (req, res, next) => {
       return res.status(409).json({ error: 'Cannot delete: issue has linked treatments' })
     }
 
-    await db('health_issues').where({ id: req.params.id }).where('farm_id', req.farmId).delete()
+    await db.transaction(async (trx) => {
+      await trx('health_issue_comments').where({ health_issue_id: req.params.id }).delete()
+      await trx('health_issues').where({ id: req.params.id }).where('farm_id', req.farmId).delete()
+    })
     await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'delete', entityType: 'health_issue', entityId: req.params.id, oldValues: existing })
     res.json({ message: 'Health issue deleted' })
   } catch (err) {

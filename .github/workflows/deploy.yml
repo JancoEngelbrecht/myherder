@@ -29,6 +29,9 @@ jobs:
 
             npx knex migrate:latest --env production
 
+            # Kill lsnode process so LiteSpeed spawns a fresh one with new code
+            # (touch tmp/restart.txt does NOT work with LiteSpeed)
+            pkill -u myherder -f 'lsnode:' 2>/dev/null || true
             touch tmp/restart.txt
 
             echo "Deployed commit: $(git log --oneline -1)"

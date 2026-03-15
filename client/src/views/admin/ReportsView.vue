@@ -82,7 +82,6 @@ import { extractApiError, resolveError } from '../../utils/apiError'
 const { t } = useI18n()
 
 const reportTypes = [
-  { key: 'withdrawalCompliance', icon: '🛡️', slug: 'withdrawal-compliance' },
   { key: 'treatmentHistory', icon: '💉', slug: 'treatment-history' },
   { key: 'discardedMilk', icon: '🥛', slug: 'discarded-milk' },
   { key: 'medicationUsage', icon: '💊', slug: 'medication-usage' },
@@ -92,8 +91,13 @@ const reportTypes = [
 ]
 
 const selectedReport = ref(null)
-const dateFrom = ref('')
-const dateTo = ref('')
+
+// Default: last 12 months
+const now = new Date()
+const toDate = now.toISOString().slice(0, 10)
+const fromDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()).toISOString().slice(0, 10)
+const dateFrom = ref(fromDate)
+const dateTo = ref(toDate)
 const format = ref('pdf')
 const generating = ref(false)
 const error = ref('')

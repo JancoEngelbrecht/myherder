@@ -171,6 +171,7 @@ import { useHealthIssuesStore } from '../stores/healthIssues.js'
 import { useIssueTypesStore } from '../stores/issueTypes.js'
 import { useAuthStore } from '../stores/auth.js'
 import { formatDate, formatDateTime } from '../utils/format.js'
+import { extractApiError, resolveError } from '../utils/apiError.js'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import TeatSelector from '../components/molecules/TeatSelector.vue'
 import ConfirmDialog from '../components/molecules/ConfirmDialog.vue'
@@ -263,8 +264,8 @@ async function handleDelete() {
   try {
     await healthIssuesStore.remove(route.params.id)
     router.back()
-  } catch {
-    error.value = t('common.error')
+  } catch (err) {
+    error.value = resolveError(extractApiError(err), t)
     showDeleteDialog.value = false
   } finally {
     deleting.value = false

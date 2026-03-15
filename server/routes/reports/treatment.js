@@ -1,95 +1,12 @@
 const express = require('express')
 const db = require('../../config/database')
 const { formatDate } = require('../../services/reportService')
-const { batchMedications, getIssueTypeMap, parseJsonColumn, MS_PER_DAY } = require('./helpers')
+const { batchMedications, getIssueTypeMap, parseJsonColumn } = require('./helpers')
 const { generateReport } = require('./shared')
-const { computeLifePhase, NON_MILKING_PHASES } = require('../../helpers/lifePhase')
 
 const router = express.Router()
 
-// ── 1. Withdrawal Compliance ────────────────────────────────
-
-const withdrawalColumns = [
-  { header: 'Tag #', key: 'tag_number', width: 1 },
-  { header: 'Cow Name', key: 'cow_name', width: 1.5 },
-  { header: 'Treatment Date', key: 'treatment_date', width: 1.2 },
-  { header: 'Medication(s)', key: 'medications', width: 2 },
-  { header: 'Active Ingredient(s)', key: 'active_ingredients', width: 1.8 },
-  { header: 'W/D End (Milk)', key: 'withdrawal_end_milk', width: 1.2 },
-  { header: 'W/D End (Meat)', key: 'withdrawal_end_meat', width: 1.2 },
-  { header: 'W/D Days', key: 'withdrawal_days', width: 0.8 },
-  { header: 'Administered By', key: 'administered_by', width: 1.2 },
-]
-
-async function getWithdrawalData(from, to, farmId) {
-  const rawTreatments = await db('treatments as t')
-    .join('cows as c', 't.cow_id', 'c.id')
-    .join('users as u', 't.administered_by', 'u.id')
-    .leftJoin('breed_types as bt', 'c.breed_type_id', 'bt.id')
-    .where('t.farm_id', farmId)
-    .whereNull('c.deleted_at')
-    .where('c.sex', 'female')
-    .whereNotNull('t.withdrawal_end_milk')
-    .where('t.withdrawal_end_milk', '>=', from)
-    .where('t.treatment_date', '<=', `${to} 23:59:59`)
-    .select(
-      't.id', 't.cow_id', 't.treatment_date',
-      't.withdrawal_end_milk', 't.withdrawal_end_meat',
-      'c.tag_number', 'c.name as cow_name',
-      'c.dob', 'c.life_phase_override', 'c.sex',
-      'bt.calf_max_months', 'bt.heifer_min_months',
-      'u.full_name as administered_by_name',
-    )
-    .orderBy('t.treatment_date', 'asc')
-
-  // Exclude heifers and calves — they aren't being milked
-  const treatments = rawTreatments.filter(t => !NON_MILKING_PHASES.has(computeLifePhase(t, t)))
-
-  if (!treatments.length) {
-    return { rows: [], summaryRow: { tag_number: 'TOTAL', medications: '0 treatments' } }
-  }
-
-  const medsMap = await batchMedications(treatments.map((t) => t.id), farmId)
-
-  const rows = treatments.map((t) => {
-    const meds = medsMap[t.id] || []
-    const wdDays = t.withdrawal_end_milk
-      ? Math.ceil((new Date(t.withdrawal_end_milk) - new Date(t.treatment_date)) / MS_PER_DAY)
-      : 0
-
-    return {
-      tag_number: t.tag_number,
-      cow_name: t.cow_name || '—',
-      treatment_date: formatDate(t.treatment_date),
-      medications: meds.map((m) => m.name).join(', ') || '—',
-      active_ingredients: meds.map((m) => m.active_ingredient).filter(Boolean).join(', ') || '—',
-      withdrawal_end_milk: t.withdrawal_end_milk ? formatDate(t.withdrawal_end_milk) : '—',
-      withdrawal_end_meat: t.withdrawal_end_meat ? formatDate(t.withdrawal_end_meat) : '—',
-      withdrawal_days: wdDays,
-      administered_by: t.administered_by_name,
-    }
-  })
-
-  return {
-    rows,
-    summaryRow: {
-      tag_number: 'TOTAL',
-      medications: `${treatments.length} treatments`,
-    },
-  }
-}
-
-router.get('/withdrawal-compliance', (req, res, next) => {
-  generateReport(req, res, next, {
-    title: 'Withdrawal Compliance Report',
-    sheetName: 'Withdrawal Compliance',
-    slug: 'withdrawal-compliance',
-    columns: withdrawalColumns,
-    getData: getWithdrawalData,
-  })
-})
-
-// ── 2. Treatment History ────────────────────────────────────
+// ── 1. Treatment History ────────────────────────────────────
 
 const treatmentHistoryColumns = [
   { header: 'Tag #', key: 'tag_number', width: 1 },

@@ -358,6 +358,30 @@ describe('DELETE /api/health-issues/:id', () => {
     expect(row).toBeUndefined()
   })
 
+  it('deletes an issue that has comments', async () => {
+    const cowId = await createCow()
+    const issueId = await createIssue(cowId)
+    const adminId = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa'
+    const now = new Date().toISOString()
+    await db('health_issue_comments').insert({
+      id: randomUUID(),
+      farm_id: DEFAULT_FARM_ID,
+      health_issue_id: issueId,
+      user_id: adminId,
+      comment: 'Should be deleted too',
+      created_at: now,
+      updated_at: now,
+    })
+
+    const res = await request(app)
+      .delete(`/api/health-issues/${issueId}`)
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    const comments = await db('health_issue_comments').where({ health_issue_id: issueId })
+    expect(comments).toHaveLength(0)
+  })
+
   it('returns 403 for a worker token', async () => {
     const cowId = await createCow()
     const issueId = await createIssue(cowId)

@@ -900,10 +900,6 @@
     "generate": "Generate Report",
     "generating": "Generating…",
     "types": {
-      "withdrawalCompliance": {
-        "name": "Withdrawal Compliance",
-        "desc": "Verify milk was properly discarded during medication withdrawal periods"
-      },
       "treatmentHistory": {
         "name": "Treatment History",
         "desc": "Complete traceability of all treatments, medications, costs and vet visits"
@@ -1633,14 +1629,13 @@
         },
         "steps": [
           "Go to Settings \u2192 Reports.",
-          "Choose the report type: Withdrawal Compliance, Treatment History, Discarded Milk, Medication Usage, Milk Production, Breeding, or Herd Health.",
+          "Choose the report type: Treatment History, Discarded Milk, Medication Usage, Milk Production, Breeding, or Herd Health.",
           "Set the date range — all reports require a 'from' and 'to' date.",
           "Choose the format — PDF for printing, Excel for further analysis.",
           "Tap 'Generate'. The report downloads to your device."
         ],
         "next": "The report file is downloaded and can be shared, printed, or filed for compliance records.",
         "tips": [
-          "Withdrawal Compliance reports are important for dairy inspections.",
           "Treatment History reports are useful for vet visits — they show all medications used.",
           "Milk Production reports show per-cow production summaries.",
           "Excel format allows you to do your own analysis in a spreadsheet."

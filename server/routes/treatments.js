@@ -332,8 +332,10 @@ router.delete('/:id', requireAdmin, async (req, res, next) => {
     const existing = await db('treatments').where({ id: req.params.id }).where('farm_id', req.farmId).first()
     if (!existing) return res.status(404).json({ error: 'Treatment not found' })
 
-    // treatment_medications rows are removed by ON DELETE CASCADE
-    await db('treatments').where({ id: req.params.id }).where('farm_id', req.farmId).delete()
+    await db.transaction(async (trx) => {
+      await trx('treatment_medications').where({ treatment_id: req.params.id }).delete()
+      await trx('treatments').where({ id: req.params.id }).where('farm_id', req.farmId).delete()
+    })
     await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'delete', entityType: 'treatment', entityId: req.params.id, oldValues: existing })
     res.json({ message: 'Treatment deleted' })
   } catch (err) {

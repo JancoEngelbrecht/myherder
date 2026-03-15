@@ -105,95 +105,29 @@ async function seedMilkRecord(cowId, overrides = {}) {
 
 describe('Reports API — Auth & Validation', () => {
   it('returns 401 without token', async () => {
-    const res = await request(app).get('/api/reports/withdrawal-compliance?from=2025-01-01&to=2025-12-31')
+    const res = await request(app).get('/api/reports/treatment-history?from=2025-01-01&to=2025-12-31')
     expect(res.status).toBe(401)
   })
 
   it('returns 403 for worker', async () => {
     const res = await request(app)
-      .get('/api/reports/withdrawal-compliance?from=2025-01-01&to=2025-12-31')
+      .get('/api/reports/treatment-history?from=2025-01-01&to=2025-12-31')
       .set('Authorization', workerToken())
     expect(res.status).toBe(403)
   })
 
   it('returns 400 when from/to missing', async () => {
     const res = await request(app)
-      .get('/api/reports/withdrawal-compliance')
+      .get('/api/reports/treatment-history')
       .set('Authorization', adminToken())
     expect(res.status).toBe(400)
   })
 
   it('returns 400 when format invalid', async () => {
     const res = await request(app)
-      .get('/api/reports/withdrawal-compliance?from=2025-01-01&to=2025-12-31&format=csv')
+      .get('/api/reports/treatment-history?from=2025-01-01&to=2025-12-31&format=csv')
       .set('Authorization', adminToken())
     expect(res.status).toBe(400)
-  })
-})
-
-// ── Withdrawal Compliance Report ────────────────────────────
-
-describe('GET /api/reports/withdrawal-compliance', () => {
-  let cowId, medId
-
-  beforeAll(async () => {
-    cowId = await seedCow({ tag_number: 'WC001', name: 'Daisy' })
-    medId = await seedMedication({
-      name: 'Penicillin',
-      active_ingredient: 'Benzylpenicillin',
-      withdrawal_milk_days: 3,
-      withdrawal_meat_days: 7,
-    })
-  })
-
-  it('returns PDF with correct Content-Type and Content-Disposition', async () => {
-    const res = await request(app)
-      .get('/api/reports/withdrawal-compliance?from=2025-01-01&to=2025-12-31')
-      .set('Authorization', adminToken())
-    expect(res.status).toBe(200)
-    expect(res.headers['content-type']).toMatch(/application\/pdf/)
-    expect(res.headers['content-disposition']).toMatch(/attachment.*withdrawal-compliance.*\.pdf/)
-  })
-
-  it('returns XLSX with correct Content-Type and Content-Disposition', async () => {
-    const res = await request(app)
-      .get('/api/reports/withdrawal-compliance?from=2025-01-01&to=2025-12-31&format=xlsx')
-      .set('Authorization', adminToken())
-    expect(res.status).toBe(200)
-    expect(res.headers['content-type']).toMatch(/spreadsheetml/)
-    expect(res.headers['content-disposition']).toMatch(/attachment.*withdrawal-compliance.*\.xlsx/)
-  })
-
-  it('returns empty report when no treatments in range', async () => {
-    const res = await request(app)
-      .get('/api/reports/withdrawal-compliance?from=2020-01-01&to=2020-12-31&format=xlsx')
-      .set('Authorization', adminToken())
-    expect(res.status).toBe(200)
-    // Still returns a valid file (empty table)
-    expect(res.body.length || res.headers['content-length']).toBeTruthy()
-  })
-
-  it('includes treatment with withdrawal period in report', async () => {
-    await seedTreatment(cowId, medId, {
-      treatment_date: '2025-01-15',
-      withdrawal_end_milk: '2025-01-18T00:00:00.000Z',
-      withdrawal_end_meat: '2025-01-22T00:00:00.000Z',
-    })
-
-    const res = await request(app)
-      .get('/api/reports/withdrawal-compliance?from=2025-01-01&to=2025-12-31&format=xlsx')
-      .set('Authorization', adminToken())
-    expect(res.status).toBe(200)
-    expect(res.headers['content-type']).toMatch(/spreadsheetml/)
-  })
-
-  it('includes medication names and active ingredients', async () => {
-    // PDF generation succeeds with medication data included
-    const res = await request(app)
-      .get('/api/reports/withdrawal-compliance?from=2025-01-01&to=2025-12-31')
-      .set('Authorization', adminToken())
-    expect(res.status).toBe(200)
-    expect(res.headers['content-type']).toMatch(/application\/pdf/)
   })
 })
 

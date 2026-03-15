@@ -127,7 +127,6 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
 - `PATCH /api/settings` — admin only; upserts settings `{ farm_name?, default_language? }`
 - `GET /api/export` — admin only; JSON dump of all tables (hashes stripped)
 - `GET /api/reports/*` — admin only; all endpoints require `from` (YYYY-MM-DD), `to` (YYYY-MM-DD), optional `format` (pdf|xlsx, default pdf). Returns binary file with Content-Disposition attachment header.
-  - `GET /api/reports/withdrawal-compliance` — treatments with milk withdrawal in range; shows withdrawal periods, medications, and duration
   - `GET /api/reports/treatment-history` — all treatments with medications, costs, vet visits, linked health issues
   - `GET /api/reports/discarded-milk` — all discarded milk records with reasons
   - `GET /api/reports/medication-usage` — grouped by medication: usage count, total cost, % of treatments
