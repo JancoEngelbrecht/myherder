@@ -120,7 +120,6 @@
     "purposeBoth": "Beide",
     "lifePhaseOverride": "Lewensfase Oorskryf",
     "lifePhaseAuto": "Outo (van ouderdom)",
-    "isDry": "Tans Droog",
     "fromCalvingBanner": "Registreer kalf van kalfgeboorte. Alle velde kan gewysig word."
   },
   "cowCard": {
@@ -533,7 +532,6 @@
     "saved": "✓ Gestoor",
     "syncError": "⚠ Fout",
     "withdrawalBanner": "⚠ MELK WEGGEGOOI — Onttrekking tot {date}",
-    "dryLabel": "Droog — geen melk",
     "summary": "{recorded} van {total} opgeteken • {litres} L • {discarded} weggegooi",
     "noActiveCows": "Geen aktiewe koeie om op te teken",
     "sessionTime": "Melktyd",
@@ -1833,6 +1831,98 @@
       "auditLog": {
         "title": "Ouditlog",
         "desc": "Bekyk 'n volledige geskiedenis van alle veranderinge wat in die stelsel gemaak is."
+      }
+    },
+    "userManagement": {
+      "list": {
+        "title": "Gebruikerlys",
+        "desc": "Elke kaart wys 'n gebruiker se naam, rol, status en toestemmingsaantal."
+      },
+      "badges": {
+        "title": "Rol & Status",
+        "desc": "Kentekens wys of 'n gebruiker 'n admin of werker is, en of hul rekening aktief is."
+      },
+      "add": {
+        "title": "Voeg 'n Gebruiker By",
+        "desc": "Tik + om 'n nuwe gebruiker te skep. Kies admin (wagwoord) of werker (4-syfer PIN) en stel hul toestemmings."
+      }
+    },
+    "medicationManagement": {
+      "search": {
+        "title": "Soek Medikasie",
+        "desc": "Tik 'n naam om vinnig 'n spesifieke medikasie te vind."
+      },
+      "list": {
+        "title": "Medikasiekaarte",
+        "desc": "Elke kaart wys die medikasienaam, aktiewe bestanddeel en onttrekkingsperiodes."
+      },
+      "withdrawal": {
+        "title": "Onttrekkingsperiodes",
+        "desc": "Gekleurde pille wys melk- en vleis-onttrekkingstye. Koeie op hierdie medikasie word outomaties gemerk."
+      },
+      "add": {
+        "title": "Voeg Medikasie By",
+        "desc": "Tik + om 'n nuwe medikasie te registreer met onttrekkingsperiodes en verstekdosis."
+      }
+    },
+    "issueTypeManagement": {
+      "search": {
+        "title": "Soek Probleemtipes",
+        "desc": "Tik 'n naam om die lys van gesondheidsprobleemtipes te filter."
+      },
+      "list": {
+        "title": "Probleemtipe-kaarte",
+        "desc": "Elke kaart wys die emoji, naam, kode, en of speenseleksie vereis word."
+      },
+      "add": {
+        "title": "Voeg Probleemtipe By",
+        "desc": "Tik + om 'n nuwe gesondheidsprobleemtipe te skep met 'n emoji, naam en speenseleksie-opsie."
+      }
+    },
+    "breedTypeManagement": {
+      "list": {
+        "title": "Rastipes",
+        "desc": "Elke kaart wys 'n ras en sy sleutel reproduktiewe tydsberekeninge."
+      },
+      "timing": {
+        "title": "Tydsverstekwaardes",
+        "desc": "Hierdie waardes beheer outomaties berekende teeldatums — dragtigheid, hitteperiode, dragtigheidstoets en afsitdae."
+      },
+      "add": {
+        "title": "Voeg Rastipe By",
+        "desc": "Tik + om 'n nuwe ras te registreer met sy reproduktiewe tydsverstekwaardes."
+      }
+    },
+    "auditLog": {
+      "filters": {
+        "title": "Filter volgens Tipe",
+        "desc": "Tik op 'n skyfie om slegs veranderinge aan 'n spesifieke entiteit te wys — gebruikers, koeie, behandelings, ens."
+      },
+      "advanced": {
+        "title": "Gevorderde Filters",
+        "desc": "Vernou resultate volgens aksietipe, gebruiker of datumreeks vir gedetailleerde ouditering."
+      },
+      "entries": {
+        "title": "Oudit-inskrywings",
+        "desc": "Elke inskrywing wys wat verander het, wie dit gedoen het, en wanneer. Tik 'Wys Besonderhede' om die ou en nuwe waardes te sien."
+      }
+    },
+    "reports": {
+      "types": {
+        "title": "Kies 'n Verslag",
+        "desc": "Kies die tipe verslag wat jy wil hê — behandelings, melkproduksie, teel, gesondheid, en meer."
+      },
+      "dates": {
+        "title": "Datumreeks",
+        "desc": "Stel die begin- en einddatums vir die data wat jy in die verslag wil insluit."
+      },
+      "format": {
+        "title": "Uitvoerformaat",
+        "desc": "Kies PDF vir 'n drukbare dokument of Excel vir 'n sigblad wat jy verder kan ontleed."
+      },
+      "generate": {
+        "title": "Genereer Verslag",
+        "desc": "Tik Genereer om jou verslag te skep en af te laai. Dit kan 'n oomblik neem vir groot datumreekse."
       }
     }
   },

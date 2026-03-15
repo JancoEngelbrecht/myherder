@@ -11,7 +11,6 @@
       <div class="cow-info">
         <span class="mono tag-number">{{ cow.tag_number }}</span>
         <span v-if="cow.name" class="cow-name">{{ cow.name }}</span>
-        <span v-if="cow.status === 'dry'" class="dry-badge">{{ t('milkRecording.dryLabel') }}</span>
       </div>
 
       <!-- Litres input + sync badge -->
@@ -22,7 +21,6 @@
             type="number"
             class="form-input litres-input"
             :class="{ 'input-withdrawal': onWithdrawal }"
-            :disabled="isDisabled"
             min="0"
             max="999.99"
             step="0.5"
@@ -59,8 +57,6 @@ const emit = defineEmits(['update'])
 const inputRef = ref(null)
 const focused = ref(false)
 
-const isDisabled = computed(() => props.cow.status === 'dry')
-
 // Sync the DOM input value from the record prop, but ONLY when the user
 // is not actively editing. This prevents Vue's DOM patching from resetting
 // the browser's number-input state and eating keystrokes.
@@ -84,14 +80,13 @@ function onBlur() {
 
 // Populate initial value when the component mounts with an existing record
 onMounted(() => {
-  if (inputRef.value && props.record && !isDisabled.value) {
+  if (inputRef.value && props.record) {
     inputRef.value.value = props.record.litres
   }
 })
 
 const cardClass = computed(() => ({
   'card-withdrawal': props.onWithdrawal,
-  'card-dry': props.cow.status === 'dry',
 }))
 
 const formattedWithdrawalDate = computed(() => {
@@ -137,10 +132,6 @@ function handleInput(event) {
 .card-withdrawal {
   border-color: var(--danger);
   border-width: 2px;
-}
-
-.card-dry {
-  opacity: 0.65;
 }
 
 .withdrawal-banner {
@@ -192,16 +183,6 @@ function handleInput(event) {
   color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.dry-badge {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.1rem 0.4rem;
   white-space: nowrap;
 }
 

@@ -85,11 +85,11 @@
       />
     </div>
 
-    <!-- Summary footer — counts only active (milkable) cows -->
-    <div v-if="!milkStore.loading && activeCows.length > 0" class="summary-footer">
+    <!-- Summary footer -->
+    <div v-if="!milkStore.loading && filteredCows.length > 0" class="summary-footer">
       {{ t('milkRecording.summary', {
         recorded: summary.recorded,
-        total: activeCows.length,
+        total: filteredCows.length,
         litres: summary.litres,
         discarded: summary.discarded,
       }) }}
@@ -143,18 +143,12 @@ const searchQuery = ref('')
 
 const isToday = computed(() => selectedDate.value === today)
 
-// ── Qualifying cows (only "cow" life phase, active/dry, sorted active first) ─
+// ── Qualifying cows (only active female cows in "cow" life phase) ────────────
 
 const isMilkable = (c) => c.sex !== 'male' && computeLifePhase(c) === 'cow'
 
-const qualifyingCows = computed(() => {
-  const active = cowsStore.cows.filter((c) => isMilkable(c) && c.status === 'active')
-  const dry = cowsStore.cows.filter((c) => isMilkable(c) && c.status === 'dry')
-  return [...active, ...dry]
-})
-
-const activeCows = computed(() =>
-  qualifyingCows.value.filter((c) => c.status === 'active'),
+const qualifyingCows = computed(() =>
+  cowsStore.cows.filter((c) => isMilkable(c) && c.status === 'active'),
 )
 
 const filteredCows = computed(() => {
@@ -188,15 +182,11 @@ function withdrawalEndDate(cowId) {
   return withdrawalMap.value[cowId]?.withdrawal_end_milk ?? null
 }
 
-// ── Summary — based on active (milkable) cows only, within current filter ─────
-
-const summaryActiveCows = computed(() =>
-  filteredCows.value.filter((c) => c.status === 'active'),
-)
+// ── Summary ─────────────────────────────────────────────────────────────────
 
 const summary = computed(() => {
   let recorded = 0, litres = 0, discarded = 0
-  for (const c of summaryActiveCows.value) {
+  for (const c of filteredCows.value) {
     const r = milkStore.getRecord(c.id)
     if (r) {
       recorded++

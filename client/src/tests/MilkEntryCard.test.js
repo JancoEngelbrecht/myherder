@@ -10,7 +10,6 @@ const activeCow = {
   status: 'active',
 }
 
-const dryCow = { ...activeCow, status: 'dry' }
 const noNameCow = { ...activeCow, name: null }
 
 const savedRecord = {
@@ -51,16 +50,6 @@ describe('MilkEntryCard', () => {
     expect(wrapper.find('.cow-name').exists()).toBe(false)
   })
 
-  it('shows the dry badge for a dry cow', () => {
-    const wrapper = mountCard({ cow: dryCow })
-    expect(wrapper.find('.dry-badge').exists()).toBe(true)
-  })
-
-  it('does not show the dry badge for an active cow', () => {
-    const wrapper = mountCard()
-    expect(wrapper.find('.dry-badge').exists()).toBe(false)
-  })
-
   // ─── Withdrawal banner ────────────────────────────────────────────────────
 
   it('shows the withdrawal banner when onWithdrawal=true', () => {
@@ -82,21 +71,6 @@ describe('MilkEntryCard', () => {
   })
 
   // ─── Input behaviour ──────────────────────────────────────────────────────
-
-  it('input is enabled for active cows', () => {
-    const wrapper = mountCard()
-    expect(wrapper.find('input').element.disabled).toBe(false)
-  })
-
-  it('input is disabled for dry cows', () => {
-    const wrapper = mountCard({ cow: dryCow })
-    expect(wrapper.find('input').element.disabled).toBe(true)
-  })
-
-  it('shows no pre-filled value for dry cows even with a record', () => {
-    const wrapper = mountCard({ cow: dryCow, record: savedRecord })
-    expect(wrapper.find('input').element.value).toBe('')
-  })
 
   it('shows the record litres as input value for active cows', () => {
     const wrapper = mountCard({ record: savedRecord })

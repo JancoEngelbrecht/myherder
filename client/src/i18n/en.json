@@ -120,7 +120,6 @@
     "purposeBoth": "Both",
     "lifePhaseOverride": "Life Phase Override",
     "lifePhaseAuto": "Auto (from age)",
-    "isDry": "Currently Dry",
     "fromCalvingBanner": "Registering calf from calving event. All fields can be changed."
   },
   "cowCard": {
@@ -533,7 +532,6 @@
     "saved": "✓ Saved",
     "syncError": "⚠ Error",
     "withdrawalBanner": "⚠ MILK DISCARDED — Withdrawal until {date}",
-    "dryLabel": "Dry — no milk",
     "summary": "{recorded} of {total} recorded • {litres} L • {discarded} discarded",
     "noActiveCows": "No active cows to record",
     "sessionTime": "Recording time",
@@ -1833,6 +1831,98 @@
       "auditLog": {
         "title": "Audit Log",
         "desc": "View a complete history of all changes made in the system."
+      }
+    },
+    "userManagement": {
+      "list": {
+        "title": "User List",
+        "desc": "Each card shows a user's name, role, status, and permission count."
+      },
+      "badges": {
+        "title": "Role & Status",
+        "desc": "Badges show if a user is an admin or worker, and whether their account is active."
+      },
+      "add": {
+        "title": "Add a User",
+        "desc": "Tap + to create a new user. Choose admin (password) or worker (4-digit PIN) and set their permissions."
+      }
+    },
+    "medicationManagement": {
+      "search": {
+        "title": "Search Medications",
+        "desc": "Type a name to quickly find a specific medication."
+      },
+      "list": {
+        "title": "Medication Cards",
+        "desc": "Each card shows the medication name, active ingredient, and withdrawal periods."
+      },
+      "withdrawal": {
+        "title": "Withdrawal Periods",
+        "desc": "Coloured pills show milk and meat withdrawal times. Cows on these medications are automatically flagged."
+      },
+      "add": {
+        "title": "Add Medication",
+        "desc": "Tap + to register a new medication with its withdrawal periods and default dosage."
+      }
+    },
+    "issueTypeManagement": {
+      "search": {
+        "title": "Search Issue Types",
+        "desc": "Type a name to filter the list of health issue types."
+      },
+      "list": {
+        "title": "Issue Type Cards",
+        "desc": "Each card shows the emoji, name, code, and whether teat selection is required."
+      },
+      "add": {
+        "title": "Add Issue Type",
+        "desc": "Tap + to create a new health issue type with an emoji, name, and teat selection option."
+      }
+    },
+    "breedTypeManagement": {
+      "list": {
+        "title": "Breed Types",
+        "desc": "Each card shows a breed and its key reproductive timings."
+      },
+      "timing": {
+        "title": "Timing Defaults",
+        "desc": "These values control auto-calculated breeding dates — gestation, heat cycle, pregnancy check, and dry-off days."
+      },
+      "add": {
+        "title": "Add Breed Type",
+        "desc": "Tap + to register a new breed with its reproductive timing defaults."
+      }
+    },
+    "auditLog": {
+      "filters": {
+        "title": "Filter by Type",
+        "desc": "Tap a chip to show only changes to a specific entity — users, cows, treatments, etc."
+      },
+      "advanced": {
+        "title": "Advanced Filters",
+        "desc": "Narrow results by action type, user, or date range for detailed auditing."
+      },
+      "entries": {
+        "title": "Audit Entries",
+        "desc": "Each entry shows what changed, who did it, and when. Tap 'Show Details' to see the old and new values."
+      }
+    },
+    "reports": {
+      "types": {
+        "title": "Choose a Report",
+        "desc": "Select the type of report you want — treatments, milk production, breeding, health, and more."
+      },
+      "dates": {
+        "title": "Date Range",
+        "desc": "Set the start and end dates for the data you want to include in the report."
+      },
+      "format": {
+        "title": "Output Format",
+        "desc": "Choose PDF for a printable document or Excel for a spreadsheet you can analyse further."
+      },
+      "generate": {
+        "title": "Generate Report",
+        "desc": "Tap Generate to create and download your report. It may take a moment for large date ranges."
       }
     }
   },
