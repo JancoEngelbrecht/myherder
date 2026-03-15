@@ -155,8 +155,8 @@ router.get('/upcoming', async (req, res, next) => {
 })
 
 // GET /api/breeding-events?cow_id=X&event_type=X&cow_status=X&date_from=X&date_to=X&page=N&limit=N
-// - With cow_id: returns plain array (no pagination needed for per-cow views)
-// - Without cow_id: returns { data: [...], total: N } with server-side pagination
+// - With cow_id only (no page/limit): returns plain array (per-cow repro views)
+// - With page/limit (with or without cow_id): returns { data: [...], total: N } with server-side pagination
 // - event_type: single value or comma-separated (e.g. "ai_insemination,bull_service")
 // - cow_status: 'active', 'pregnant', or 'dry'
 // - date_from / date_to: ISO date strings to filter event_date range
@@ -188,26 +188,31 @@ router.get('/', async (req, res, next) => {
       if (date_to) q.where('be.event_date', '<=', date_to)
     }
 
-    // Per-cow query: plain array, no pagination
-    if (cow_id) {
+    // Per-cow query without pagination: plain array (used by CowReproView)
+    if (cow_id && !qValue.page && !qValue.limit) {
       const query = breedingQuery(req.farmId).orderBy('be.event_date', 'desc').where('be.cow_id', cow_id)
       applyFilters(query)
       const rows = await query
       return res.json(rows.map(parseJsonFields))
     }
 
-    // Global list: server-side pagination
+    // Paginated list (global or per-cow with page/limit)
     const page  = Math.max(1, Number(qValue.page)  || 1)
     const limit = Math.min(100, Math.max(1, Number(qValue.limit) || 20))
     const offset = (page - 1) * limit
 
+    const applyAllFilters = (q) => {
+      applyFilters(q)
+      if (cow_id) q.where('be.cow_id', cow_id)
+    }
+
     const [rows, [{ count }]] = await Promise.all([
-      breedingQuery(req.farmId).modify(applyFilters).orderBy('be.event_date', 'desc').limit(limit).offset(offset),
+      breedingQuery(req.farmId).modify(applyAllFilters).orderBy('be.event_date', 'desc').limit(limit).offset(offset),
       db('breeding_events as be')
         .where('be.farm_id', req.farmId)
         .join('cows as c', 'be.cow_id', 'c.id')
         .whereNull('c.deleted_at')
-        .modify(applyFilters)
+        .modify(applyAllFilters)
         .count('be.id as count'),
     ])
 

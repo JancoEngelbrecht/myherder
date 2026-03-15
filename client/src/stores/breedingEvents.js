@@ -30,8 +30,8 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
     try {
       const payload = (await api.get('/breeding-events', { params: filters })).data
 
-      if (filters.cow_id) {
-        // Plain array — per-cow repro view; cache locally but do NOT overwrite global list
+      if (filters.cow_id && !filters.page && !filters.limit) {
+        // cow_id without pagination → plain array; return directly without updating global paginated state
         await db.breedingEvents.bulkPut(payload)
         return payload
       }
@@ -43,10 +43,15 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
       return payload.data
     } catch (err) {
       error.value = extractApiError(err)
-      if (filters.cow_id) {
+      if (filters.cow_id && !filters.page && !filters.limit) {
+        // Non-paginated cow query — return plain array from IndexedDB
         return db.breedingEvents.where('cow_id').equals(filters.cow_id).toArray()
       }
-      const local = await db.breedingEvents.orderBy('event_date').reverse().toArray()
+      // Paginated fallback (global or cow-filtered)
+      let local = await db.breedingEvents.orderBy('event_date').reverse().toArray()
+      if (filters.cow_id) {
+        local = local.filter((e) => e.cow_id === filters.cow_id)
+      }
       events.value = local
       total.value = local.length
       return local
