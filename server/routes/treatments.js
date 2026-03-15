@@ -156,7 +156,8 @@ router.get('/', async (req, res, next) => {
 // GET /api/treatments/withdrawal — cows on active milk or meat withdrawal
 router.get('/withdrawal', async (req, res, next) => {
   try {
-    const now = new Date().toISOString()
+    const nowStr = new Date().toISOString()
+    const nowMs = Date.now()
 
     // Fetch all treatments with active milk or meat withdrawal
     // Inline join breed_types for life phase computation (not in treatmentQuery to keep it lean)
@@ -164,8 +165,8 @@ router.get('/withdrawal', async (req, res, next) => {
       .leftJoin('breed_types as bt', 'c.breed_type_id', 'bt.id')
       .select('c.status', 'c.dob', 'c.life_phase_override', 'bt.calf_max_months', 'bt.heifer_min_months', 'bt.young_bull_min_months')
       .where(function () {
-        this.where('t.withdrawal_end_milk', '>', now)
-          .orWhere('t.withdrawal_end_meat', '>', now)
+        this.where('t.withdrawal_end_milk', '>', nowStr)
+          .orWhere('t.withdrawal_end_meat', '>', nowStr)
       })
 
     // Exclude sold/dead cows and null out milk withdrawal for non-milking life phases
@@ -178,8 +179,8 @@ router.get('/withdrawal', async (req, res, next) => {
         row.withdrawal_end_milk = null
       }
       // After nulling milk, check if this row still has any active withdrawal
-      if ((row.withdrawal_end_milk && row.withdrawal_end_milk > now) ||
-          (row.withdrawal_end_meat && row.withdrawal_end_meat > now)) {
+      if ((row.withdrawal_end_milk && new Date(row.withdrawal_end_milk).getTime() > nowMs) ||
+          (row.withdrawal_end_meat && new Date(row.withdrawal_end_meat).getTime() > nowMs)) {
         filtered.push(row)
       }
     }
