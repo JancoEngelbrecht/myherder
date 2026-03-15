@@ -156,7 +156,7 @@
     <!-- FAB -->
     <button v-if="!showForm" data-tour="it-add" class="fab" :title="$t('issueTypes.addTitle')" @click="openAdd">+</button>
 
-    <TourButton @start-tour="startTour" />
+    <TourButton above-fab @start-tour="startTour" />
 
     <!-- Delete ConfirmDialog -->
     <ConfirmDialog

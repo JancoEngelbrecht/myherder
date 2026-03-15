@@ -124,7 +124,7 @@
       </template>
     </div>
 
-    <TourButton @start-tour="startTour" />
+    <TourButton above-fab @start-tour="startTour" />
 
     <ConfirmDialog
       :show="!!deleting"

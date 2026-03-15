@@ -205,7 +205,7 @@
     <!-- FAB -->
     <button v-if="!showForm" data-tour="med-add" class="fab" :title="$t('medications.addMedication')" @click="openAdd">+</button>
 
-    <TourButton @start-tour="startTour" />
+    <TourButton above-fab @start-tour="startTour" />
 
     <!-- Delete ConfirmDialog -->
     <ConfirmDialog
