@@ -233,6 +233,7 @@ function withdrawalInfo(endDate) {
   background: #fff5f5;
   min-height: 100vh;
   transition: background 0.2s;
+  overflow-x: hidden;
 }
 
 .withdrawal-page.meat-theme {
@@ -259,6 +260,7 @@ function withdrawalInfo(endDate) {
   font-weight: 600;
   font-size: 0.95rem;
   margin-bottom: 14px;
+  word-break: break-word;
 }
 
 .milk-banner {
@@ -327,6 +329,7 @@ function withdrawalInfo(endDate) {
   border-radius: var(--radius);
   padding: 16px;
   box-shadow: 0 2px 12px rgba(220, 38, 38, 0.12);
+  overflow: hidden;
 }
 
 .meat-card {
@@ -392,6 +395,8 @@ function withdrawalInfo(endDate) {
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .wd-label {
@@ -402,7 +407,9 @@ function withdrawalInfo(endDate) {
 .wd-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .wd-date {
