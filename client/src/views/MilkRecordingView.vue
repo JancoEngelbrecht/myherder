@@ -239,7 +239,7 @@ async function loadRecords() {
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 onMounted(async () => {
-  if (cowsStore.cows.length === 0) await cowsStore.fetchAll()
+  await cowsStore.fetchAll()
   await loadRecords()
 })
 
