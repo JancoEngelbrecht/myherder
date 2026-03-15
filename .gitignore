@@ -26,6 +26,9 @@ Thumbs.db
 # Editor
 .idea/
 
+# Claude Code
+.claude/settings*.json
+
 # Vite
 client/.vite/
 
