@@ -86,10 +86,10 @@
     </div>
 
     <!-- Summary footer -->
-    <div v-if="!milkStore.loading && filteredCows.length > 0" class="summary-footer">
+    <div v-if="!milkStore.loading && qualifyingCows.length > 0" class="summary-footer">
       {{ t('milkRecording.summary', {
         recorded: summary.recorded,
-        total: filteredCows.length,
+        total: qualifyingCows.length,
         litres: summary.litres,
         discarded: summary.discarded,
       }) }}
@@ -186,7 +186,7 @@ function withdrawalEndDate(cowId) {
 
 const summary = computed(() => {
   let recorded = 0, litres = 0, discarded = 0
-  for (const c of filteredCows.value) {
+  for (const c of qualifyingCows.value) {
     const r = milkStore.getRecord(c.id)
     if (r) {
       recorded++
