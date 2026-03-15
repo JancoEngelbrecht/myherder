@@ -68,7 +68,7 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
 - `GET /api/analytics/herd-summary` returns `{ total, by_status: [{status, count}], milking_count, dry_count, heifer_count, males, females, replacement_rate }`
 - `GET /api/analytics/unhealthiest?from&to` — top 10 cows by issue count; returns `[{ id, tag_number, name, sex, issue_count }]`
 - `GET /api/analytics/milk-trends?from&to` — monthly milk totals (default last 12 months); returns `{ months: [{ month, total_litres, record_count, avg_per_cow }] }`
-- `GET /api/analytics/top-producers?from&to` — top 10 cows by total litres; returns `[{ id, tag_number, name, total_litres, days_recorded, avg_daily_litres }]`
+- `GET /api/analytics/top-producers?from&to` — top 10 cows by avg daily litres (min 3 recording days); returns `[{ id, tag_number, name, total_litres, days_recorded, avg_daily_litres }]`
 - `GET /api/analytics/wasted-milk?from&to` — monthly discarded milk; returns `{ months: [{ month, discarded_litres, discard_count }], total_discarded }`
 - `GET /api/analytics/breeding-overview?from&to` — returns `{ pregnant_count, not_pregnant_count, repro_status: { pregnant, not_pregnant, bred_awaiting_check, dry, heifer_not_bred }, abortion_count, pregnancy_rate, calvings_by_month: [{ month, count }], avg_services_per_conception }`
 - `GET /api/analytics/breeding-activity?from&to` — monthly inseminations vs conceptions; returns `{ months: [{ month, inseminations, conceptions }] }`
@@ -76,7 +76,7 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
 - `GET /api/analytics/seasonal-prediction` — top 3 predicted issue types for next 2 months; returns `{ predictions: [{ month, month_name, issues: [{ type, code, emoji, historical_avg }] }], years_of_data }`
 - `GET /api/analytics/daily-kpis` — today's snapshot: `{ litres_today, litres_7day_avg, cows_milked_today, cows_expected, active_health_issues, breeding_actions_due }`
 - `GET /api/analytics/litres-per-cow?from&to` — monthly avg litres per cow per day; returns `{ months: [{ month, avg_litres_per_cow_per_day, cow_count }] }`
-- `GET /api/analytics/bottom-producers?from&to` — bottom 10 cows by total litres; returns `[{ id, tag_number, name, total_litres, days_recorded, avg_daily_litres }]`
+- `GET /api/analytics/bottom-producers?from&to` — bottom 10 cows by avg daily litres (min 3 recording days); returns `[{ id, tag_number, name, total_litres, days_recorded, avg_daily_litres }]`
 - `GET /api/analytics/calving-interval?from&to` — avg days between successive calvings per cow; returns `{ avg_calving_interval_days, cow_count, intervals: [{ cow_id, tag_number, name, interval_days, calving_count }] }`
 - `GET /api/analytics/days-open?from&to` — avg days from calving to next confirmed pregnancy; returns `{ avg_days_open, cow_count, records: [{ cow_id, tag_number, name, days_open }] }`
 - `GET /api/analytics/conception-rate?from&to` — first-service conception rate; returns `{ first_service_rate, total_first_services, first_service_conceptions, by_month: [{ month, rate, total, conceptions }] }`

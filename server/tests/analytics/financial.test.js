@@ -123,11 +123,12 @@ describe('GET /api/analytics/milk-trends', () => {
 describe('GET /api/analytics/top-producers', () => {
   it('returns array of cows with avg_daily_litres', async () => {
     const cowId = await createCow()
-    const today = new Date().toISOString().slice(0, 10)
-    await createMilkRecord(cowId, { litres: 25, recording_date: today })
+    await createMilkRecord(cowId, { litres: 25, recording_date: '2024-06-01' })
+    await createMilkRecord(cowId, { litres: 20, recording_date: '2024-06-02' })
+    await createMilkRecord(cowId, { litres: 22, recording_date: '2024-06-03' })
 
     const res = await request(app)
-      .get('/api/analytics/top-producers')
+      .get('/api/analytics/top-producers?from=2024-06-01&to=2024-06-30')
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
@@ -152,6 +153,8 @@ describe('GET /api/analytics/top-producers', () => {
   it('respects from/to date range', async () => {
     const cowId = await createCow()
     await createMilkRecord(cowId, { litres: 30, recording_date: '2020-04-15' })
+    await createMilkRecord(cowId, { litres: 28, recording_date: '2020-04-16' })
+    await createMilkRecord(cowId, { litres: 25, recording_date: '2020-04-17' })
 
     const res = await request(app)
       .get('/api/analytics/top-producers?from=2020-04-01&to=2020-04-30')
@@ -161,6 +164,20 @@ describe('GET /api/analytics/top-producers', () => {
     const found = res.body.find((r) => r.id === cowId)
     expect(found).toBeDefined()
     expect(found.total_litres).toBeGreaterThanOrEqual(30)
+  })
+
+  it('excludes cows with fewer than 3 recording days', async () => {
+    const cowId = await createCow()
+    await createMilkRecord(cowId, { litres: 50, recording_date: '2024-08-01' })
+    await createMilkRecord(cowId, { litres: 50, recording_date: '2024-08-02' })
+
+    const res = await request(app)
+      .get('/api/analytics/top-producers?from=2024-08-01&to=2024-08-31')
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    const found = res.body.find((r) => r.id === cowId)
+    expect(found).toBeUndefined()
   })
 
   it('returns empty for date range with no data', async () => {
@@ -318,13 +335,14 @@ describe('GET /api/analytics/litres-per-cow', () => {
 // ─── GET /api/analytics/bottom-producers ─────────────────────────────────────
 
 describe('GET /api/analytics/bottom-producers', () => {
-  it('returns array sorted by total_litres ascending', async () => {
+  it('returns array sorted by avg_daily_litres ascending', async () => {
     const cowId = await createCow()
-    const today = new Date().toISOString().slice(0, 10)
-    await createMilkRecord(cowId, { litres: 2, recording_date: today, session: 'afternoon' })
+    await createMilkRecord(cowId, { litres: 2, recording_date: '2024-07-01', session: 'afternoon' })
+    await createMilkRecord(cowId, { litres: 3, recording_date: '2024-07-02' })
+    await createMilkRecord(cowId, { litres: 2, recording_date: '2024-07-03' })
 
     const res = await request(app)
-      .get('/api/analytics/bottom-producers')
+      .get('/api/analytics/bottom-producers?from=2024-07-01&to=2024-07-31')
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
@@ -348,6 +366,8 @@ describe('GET /api/analytics/bottom-producers', () => {
   it('respects from/to date range', async () => {
     const cowId = await createCow()
     await createMilkRecord(cowId, { litres: 3, recording_date: '2020-05-10' })
+    await createMilkRecord(cowId, { litres: 4, recording_date: '2020-05-11' })
+    await createMilkRecord(cowId, { litres: 2, recording_date: '2020-05-12' })
 
     const res = await request(app)
       .get('/api/analytics/bottom-producers?from=2020-05-01&to=2020-05-31')
@@ -357,6 +377,20 @@ describe('GET /api/analytics/bottom-producers', () => {
     const found = res.body.find((r) => r.id === cowId)
     expect(found).toBeDefined()
     expect(found.total_litres).toBeGreaterThanOrEqual(3)
+  })
+
+  it('excludes cows with fewer than 3 recording days', async () => {
+    const cowId = await createCow()
+    await createMilkRecord(cowId, { litres: 1, recording_date: '2024-09-01' })
+    await createMilkRecord(cowId, { litres: 1, recording_date: '2024-09-02' })
+
+    const res = await request(app)
+      .get('/api/analytics/bottom-producers?from=2024-09-01&to=2024-09-30')
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    const found = res.body.find((r) => r.id === cowId)
+    expect(found).toBeUndefined()
   })
 
   it('returns empty for date range with no data', async () => {

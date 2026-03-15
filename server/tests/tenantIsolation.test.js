@@ -429,11 +429,20 @@ describe('Analytics isolation', () => {
   })
 
   it('Financial: Farm B top-producers returns only Farm B cows', async () => {
+    // Seed 3 milk records for Farm B cow so it passes the >= 3 days gate
+    const now = new Date().toISOString()
+    await db('milk_records').insert([
+      { id: randomUUID(), farm_id: farmBId, cow_id: cowB1, recorded_by: farmAAdminId, session: 'morning', litres: 10, recording_date: '2026-03-01', created_at: now, updated_at: now },
+      { id: randomUUID(), farm_id: farmBId, cow_id: cowB1, recorded_by: farmAAdminId, session: 'morning', litres: 10, recording_date: '2026-03-02', created_at: now, updated_at: now },
+      { id: randomUUID(), farm_id: farmBId, cow_id: cowB1, recorded_by: farmAAdminId, session: 'morning', litres: 10, recording_date: '2026-03-03', created_at: now, updated_at: now },
+    ])
     const res = await request(app)
       .get('/api/analytics/top-producers?from=2026-01-01&to=2026-12-31')
       .set('Authorization', farmBToken)
     expect(res.status).toBe(200)
+    expect(res.body.length).toBeGreaterThan(0)
     const ids = res.body.map((c) => c.id)
+    expect(ids).toContain(cowB1)
     expect(ids).not.toContain(cowA1)
   })
 
@@ -494,7 +503,8 @@ describe('Export isolation', () => {
     expect(allCowIds).not.toContain(cowA2)
     expect(tables.treatments.length).toBe(0)
     expect(tables.health_issues.length).toBe(0)
-    expect(tables.milk_records.length).toBe(0)
+    expect(tables.milk_records.length).toBe(3)
+    expect(tables.milk_records.every((r) => r.cow_id === cowB1)).toBe(true)
     expect(tables.breeding_events.length).toBe(0)
     expect(tables.medications.length).toBe(0)
   })

@@ -134,7 +134,8 @@ function checkPermission(entityType, user) {
 
 // ── Process a Single Change ─────────────────────────────────────
 
-async function processChange(entityType, action, id, data, clientUpdatedAt, user) {
+async function processChange(entityType, action, id, data, clientUpdatedAt, user, trx) {
+  const qb = trx || db
   const mapping = ENTITY_MAP[entityType]
   if (!mapping) {
     return { id, entityType, status: 'error', error: `Unknown entity type: ${entityType}` }
@@ -153,11 +154,11 @@ async function processChange(entityType, action, id, data, clientUpdatedAt, user
 
   try {
     if (action === 'create') {
-      return await handleCreate(table, id, safeData, user, mapping.ownerField)
+      return await handleCreate(qb, table, entityType, id, safeData, user, mapping.ownerField)
     } else if (action === 'update') {
-      return await handleUpdate(table, entityType, id, safeData, clientUpdatedAt, user, mapping.ownerField)
+      return await handleUpdate(qb, table, entityType, id, safeData, clientUpdatedAt, user, mapping.ownerField)
     } else if (action === 'delete') {
-      return await handleDelete(table, entityType, id, softDelete, user, mapping.ownerField)
+      return await handleDelete(qb, table, entityType, id, softDelete, user, mapping.ownerField)
     } else {
       return { id, entityType, status: 'error', error: `Unknown action: ${action}` }
     }
@@ -179,14 +180,27 @@ function pickFields(data, allowedFields) {
   return result
 }
 
-async function handleCreate(table, id, data, user, ownerField) {
-  const existing = await db(table).where({ id }).where('farm_id', user.farm_id).first()
+async function handleCreate(qb, table, entityType, id, data, user, ownerField) {
+  const existing = await qb(table).where({ id }).where('farm_id', user.farm_id).first()
   if (existing) {
     // Already exists — verify ownership before returning data
     if (ownerField && user && user.role !== 'admin' && existing[ownerField] !== user.id) {
-      return { id, entityType: tableToEntity(table), status: 'error', error: 'Cannot access records owned by another user' }
+      return { id, entityType, status: 'error', error: 'Cannot access records owned by another user' }
     }
-    return { id, entityType: tableToEntity(table), status: 'applied', serverData: existing }
+    return { id, entityType, status: 'applied', serverData: existing }
+  }
+
+  // Milk records: check business-key uniqueness (cow_id + session + recording_date)
+  if (table === 'milk_records' && data && data.cow_id && data.session && data.recording_date) {
+    const duplicate = await qb(table)
+      .where('farm_id', user.farm_id)
+      .where('cow_id', data.cow_id)
+      .where('session', data.session)
+      .where('recording_date', data.recording_date)
+      .first()
+    if (duplicate) {
+      return { id, entityType, status: 'conflict', serverData: duplicate, error: 'Duplicate milk record for this cow/session/date' }
+    }
   }
 
   const now = new Date().toISOString()
@@ -205,12 +219,12 @@ async function handleCreate(table, id, data, user, ownerField) {
   // Remove any client-side-only fields
   delete row.autoId
 
-  await db(table).insert(row)
-  return { id, entityType: tableToEntity(table), status: 'applied', serverData: row }
+  await qb(table).insert(row)
+  return { id, entityType, status: 'applied', serverData: row }
 }
 
-async function handleUpdate(table, entityType, id, data, clientUpdatedAt, user, ownerField) {
-  const existing = await db(table).where({ id }).where('farm_id', user.farm_id).first()
+async function handleUpdate(qb, table, entityType, id, data, clientUpdatedAt, user, ownerField) {
+  const existing = await qb(table).where({ id }).where('farm_id', user.farm_id).first()
   if (!existing) {
     return { id, entityType, status: 'error', error: 'Record not found' }
   }
@@ -220,11 +234,15 @@ async function handleUpdate(table, entityType, id, data, clientUpdatedAt, user, 
     return { id, entityType, status: 'error', error: 'Cannot modify records owned by another user' }
   }
 
-  // Conflict check: last-write-wins
+  // Conflict check: last-write-wins (use Date objects for reliable comparison)
   const serverUpdatedAt = existing.updated_at
-  if (serverUpdatedAt && clientUpdatedAt && serverUpdatedAt > clientUpdatedAt) {
-    // Server is newer — conflict, return server version
-    return { id, entityType, status: 'conflict', serverData: existing }
+  if (serverUpdatedAt && clientUpdatedAt) {
+    const serverTime = new Date(serverUpdatedAt).getTime()
+    const clientTime = new Date(clientUpdatedAt).getTime()
+    if (!isNaN(serverTime) && !isNaN(clientTime) && serverTime > clientTime) {
+      // Server is newer — conflict, return server version
+      return { id, entityType, status: 'conflict', serverData: existing }
+    }
   }
 
   // Client is newer or equal — apply
@@ -241,12 +259,12 @@ async function handleUpdate(table, entityType, id, data, clientUpdatedAt, user, 
   delete updateData.created_at
   delete updateData.autoId
 
-  await db(table).where({ id }).where('farm_id', user.farm_id).update(updateData)
+  await qb(table).where({ id }).where('farm_id', user.farm_id).update(updateData)
   return { id, entityType, status: 'applied', serverData: { ...existing, ...updateData } }
 }
 
-async function handleDelete(table, entityType, id, softDelete, user, ownerField) {
-  const existing = await db(table).where({ id }).where('farm_id', user.farm_id).first()
+async function handleDelete(qb, table, entityType, id, softDelete, user, ownerField) {
+  const existing = await qb(table).where({ id }).where('farm_id', user.farm_id).first()
   if (!existing) {
     return { id, entityType, status: 'applied' } // Already gone
   }
@@ -258,9 +276,9 @@ async function handleDelete(table, entityType, id, softDelete, user, ownerField)
 
   if (softDelete) {
     const now = new Date().toISOString()
-    await db(table).where({ id }).where('farm_id', user.farm_id).update({ deleted_at: now, updated_at: now })
+    await qb(table).where({ id }).where('farm_id', user.farm_id).update({ deleted_at: now, updated_at: now })
   } else {
-    await db(table).where({ id }).where('farm_id', user.farm_id).delete()
+    await qb(table).where({ id }).where('farm_id', user.farm_id).delete()
   }
 
   return { id, entityType, status: 'applied' }

@@ -6,6 +6,12 @@ module.exports = {
     connection: { filename: ':memory:' },
     useNullAsDefault: true,
     migrations: { directory: './server/migrations' },
+    pool: {
+      afterCreate: (conn, cb) => {
+        conn.pragma('foreign_keys = ON')
+        cb(null, conn)
+      },
+    },
   },
 
   development: {
@@ -19,7 +25,13 @@ module.exports = {
     },
     seeds: {
       directory: './server/seeds'
-    }
+    },
+    pool: {
+      afterCreate: (conn, cb) => {
+        conn.pragma('foreign_keys = ON')
+        cb(null, conn)
+      },
+    },
   },
 
   production: {

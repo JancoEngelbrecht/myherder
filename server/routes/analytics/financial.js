@@ -52,7 +52,8 @@ router.get('/top-producers', async (req, res, next) => {
       .sum('m.litres as total_litres')
       .countDistinct('m.recording_date as days_recorded')
       .groupBy('c.id', 'c.tag_number', 'c.name')
-      .orderBy('total_litres', 'desc')
+      .havingRaw('COUNT(DISTINCT m.recording_date) >= 3')
+      .orderByRaw('(SUM(m.litres) / COUNT(DISTINCT m.recording_date)) DESC')
       .limit(10);
 
     const result = rows.map(r => ({
@@ -177,7 +178,8 @@ router.get('/bottom-producers', async (req, res, next) => {
       .sum('m.litres as total_litres')
       .countDistinct('m.recording_date as days_recorded')
       .groupBy('c.id', 'c.tag_number', 'c.name')
-      .orderBy('total_litres', 'asc')
+      .havingRaw('COUNT(DISTINCT m.recording_date) >= 3')
+      .orderByRaw('(SUM(m.litres) / COUNT(DISTINCT m.recording_date)) ASC')
       .limit(10);
 
     const result = rows.map(r => ({

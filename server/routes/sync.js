@@ -3,6 +3,7 @@ const Joi = require('joi')
 const rateLimit = require('express-rate-limit')
 const authenticate = require('../middleware/auth')
 const tenantScope = require('../middleware/tenantScope')
+const db = require('../config/database')
 const { processChange, pullData, logSync } = require('../services/syncService')
 const { joiMsg, validateBody, validateQuery } = require('../helpers/constants')
 
@@ -64,24 +65,29 @@ router.post('/push', syncPushLimiter, authenticate, tenantScope, async (req, res
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const { deviceId, changes } = value
-    const results = []
-    let errorCount = 0
 
-    for (const change of changes) {
-      const result = await processChange(
-        change.entityType,
-        change.action,
-        change.id,
-        change.data,
-        change.updatedAt,
-        req.user,
-      )
-      results.push(result)
-
-      if (result.status === 'error') errorCount++
-    }
+    // Transaction ensures partial writes are rolled back if an uncaught error
+    // crashes the loop. Individual item errors (permissions, conflicts, not-found)
+    // are caught by processChange and do NOT cause rollback — partial success is by design.
+    const results = await db.transaction(async (trx) => {
+      const batchResults = []
+      for (const change of changes) {
+        const result = await processChange(
+          change.entityType,
+          change.action,
+          change.id,
+          change.data,
+          change.updatedAt,
+          req.user,
+          trx,
+        )
+        batchResults.push(result)
+      }
+      return batchResults
+    })
 
     // Determine overall status
+    const errorCount = results.filter((r) => r.status === 'error').length
     let status = 'success'
     if (errorCount === changes.length) status = 'failed'
     else if (errorCount > 0) status = 'partial'
