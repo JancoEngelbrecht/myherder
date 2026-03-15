@@ -68,6 +68,11 @@ async function refreshPendingCount() {
   failedItems.value = all
 }
 
+// ── Periodic Pull State ─────────────────────────────────────────
+
+let lastPullMs = 0
+const PULL_INTERVAL_MS = 5 * 60_000 // Pull every 5 minutes even with no pending items
+
 // ── Sync Operations ─────────────────────────────────────────────
 
 async function pushChanges() {
@@ -211,8 +216,6 @@ async function sync() {
 // ── Connectivity ────────────────────────────────────────────────
 
 let pollIntervalId = null
-let lastPullMs = 0
-const PULL_INTERVAL_MS = 5 * 60_000 // Pull every 5 minutes even with no pending items
 
 function startPolling() {
   stopPolling()
@@ -224,16 +227,7 @@ function startPolling() {
     } else if (isOnline.value) {
       // Online, no pending items — periodic pull to catch server-side changes
       if (Date.now() - lastPullMs >= PULL_INTERVAL_MS) {
-        if (isSyncing.value) return // sync in-flight from another trigger — skip
-        isSyncing.value = true
-        try {
-          await pullChanges()
-          lastPullMs = Date.now()
-        } catch {
-          // pullChanges handles offline errors internally
-        } finally {
-          isSyncing.value = false
-        }
+        await sync()
       }
     } else {
       // Offline — check connectivity via health endpoint
@@ -264,8 +258,10 @@ function handleOffline() {
   isOnline.value = false
 }
 
+const VISIBILITY_DEBOUNCE_MS = 30_000
+
 function handleVisibilityChange() {
-  if (document.visibilityState === 'visible') {
+  if (document.visibilityState === 'visible' && Date.now() - lastPullMs >= VISIBILITY_DEBOUNCE_MS) {
     sync()
   }
 }

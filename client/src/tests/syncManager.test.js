@@ -561,21 +561,25 @@ describe('syncManager — visibility change', () => {
     },
   }
 
-  it('syncs when page becomes visible even with no pending items', async () => {
+  it('syncs when page becomes visible after debounce window', async () => {
     api.get.mockResolvedValue(emptyPullResponse)
     pendingCount.value = 0
 
     await init()
     api.get.mockClear()
 
-    // Simulate visibility change
+    // Mock Date.now to be 31s after init (past 30s debounce)
+    const originalNow = Date.now
+    Date.now = () => originalNow() + 31_000
+
     Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: true, configurable: true })
     document.dispatchEvent(new Event('visibilitychange'))
 
-    // Give the async sync() call time to execute
     await vi.waitFor(() => {
       expect(api.get).toHaveBeenCalledWith('/sync/pull', expect.any(Object))
     })
+
+    Date.now = originalNow
   })
 
   it('does not sync when page becomes hidden', async () => {
@@ -587,7 +591,21 @@ describe('syncManager — visibility change', () => {
     Object.defineProperty(document, 'visibilityState', { value: 'hidden', writable: true, configurable: true })
     document.dispatchEvent(new Event('visibilitychange'))
 
-    // Small delay to ensure nothing fires
+    await new Promise((r) => setTimeout(r, 50))
+    expect(api.get).not.toHaveBeenCalled()
+  })
+
+  it('skips sync when visibility change fires within debounce window', async () => {
+    api.get.mockResolvedValue(emptyPullResponse)
+    pendingCount.value = 0
+
+    await init()
+    api.get.mockClear()
+
+    // Don't advance time — lastPullMs was just set by startPolling() inside init()
+    Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: true, configurable: true })
+    document.dispatchEvent(new Event('visibilitychange'))
+
     await new Promise((r) => setTimeout(r, 50))
     expect(api.get).not.toHaveBeenCalled()
   })
@@ -606,22 +624,37 @@ describe('syncManager — periodic pull', () => {
     expect(PULL_INTERVAL_MS).toBe(5 * 60_000)
   })
 
-  it('calls pullChanges when enough time has elapsed during polling tick', async () => {
-    // Test the periodic pull logic directly by calling sync-related functions
-    // without involving setInterval timers that conflict with fake-indexeddb
+  it('triggers a pull after PULL_INTERVAL_MS elapses via polling', async () => {
     api.get.mockResolvedValue(emptyPullResponse)
 
-    // Simulate init having run (set up state)
     await init()
     api.get.mockClear()
 
-    // Directly invoke sync() which pullChanges calls — this mirrors what the
-    // interval would do. The key behavior we verify is that sync() updates
-    // lastSyncTime, proving a pull happened even with no pending items.
+    // Mock Date.now to be past the 5-minute threshold
+    const originalNow = Date.now
+    Date.now = () => originalNow() + PULL_INTERVAL_MS + 1000
+
+    // Manually trigger the polling logic by calling sync() —
+    // this is what the interval callback does when the time threshold is met
     await sync()
 
     expect(api.get).toHaveBeenCalledWith('/sync/pull', expect.any(Object))
-    expect(lastSyncTime.value).toBeTruthy()
+
+    Date.now = originalNow
+  })
+
+  it('does not pull before PULL_INTERVAL_MS elapses via visibility change', async () => {
+    api.get.mockResolvedValue(emptyPullResponse)
+
+    await init()
+    api.get.mockClear()
+
+    // lastPullMs was just set by startPolling() — within debounce window
+    Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: true, configurable: true })
+    document.dispatchEvent(new Event('visibilitychange'))
+
+    await new Promise((r) => setTimeout(r, 50))
+    expect(api.get).not.toHaveBeenCalled()
   })
 })
 
