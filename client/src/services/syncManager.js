@@ -199,6 +199,7 @@ async function sync() {
     await pushChanges()
     await pullChanges()
     isOnline.value = true
+    lastPullMs = Date.now()
   } catch {
     // Push/pull errors are handled internally
   } finally {
@@ -210,26 +211,39 @@ async function sync() {
 // ── Connectivity ────────────────────────────────────────────────
 
 let pollIntervalId = null
+let lastPullMs = 0
+const PULL_INTERVAL_MS = 5 * 60_000 // Pull every 5 minutes even with no pending items
 
 function startPolling() {
   stopPolling()
+  lastPullMs = Date.now()
   pollIntervalId = setInterval(async () => {
-    // Nothing to do if online with no pending items
-    if (isOnline.value && pendingCount.value === 0) return
-
-    // If online but have pending items, just sync
     if (isOnline.value && pendingCount.value > 0) {
+      // Online with pending items — push + pull
       await sync()
-      return
-    }
-
-    // Offline — check connectivity via health endpoint
-    try {
-      await api.get('/sync/health')
-      isOnline.value = true
-      await sync()
-    } catch {
-      isOnline.value = false
+    } else if (isOnline.value) {
+      // Online, no pending items — periodic pull to catch server-side changes
+      if (Date.now() - lastPullMs >= PULL_INTERVAL_MS) {
+        if (isSyncing.value) return // sync in-flight from another trigger — skip
+        isSyncing.value = true
+        try {
+          await pullChanges()
+          lastPullMs = Date.now()
+        } catch {
+          // pullChanges handles offline errors internally
+        } finally {
+          isSyncing.value = false
+        }
+      }
+    } else {
+      // Offline — check connectivity via health endpoint
+      try {
+        await api.get('/sync/health')
+        isOnline.value = true
+        await sync()
+      } catch {
+        isOnline.value = false
+      }
     }
   }, 30_000)
 }
@@ -251,7 +265,7 @@ function handleOffline() {
 }
 
 function handleVisibilityChange() {
-  if (document.visibilityState === 'visible' && pendingCount.value > 0) {
+  if (document.visibilityState === 'visible') {
     sync()
   }
 }
@@ -344,4 +358,7 @@ export {
 
   // Helpers
   isOfflineError,
+
+  // Constants (for testing)
+  PULL_INTERVAL_MS,
 }

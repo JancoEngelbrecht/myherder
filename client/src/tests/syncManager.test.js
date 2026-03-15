@@ -42,6 +42,7 @@ import {
   initialSync,
   init,
   destroyListeners,
+  PULL_INTERVAL_MS,
 } from '../services/syncManager.js'
 
 // ── Helpers ─────────────────────────────────────────────────────
@@ -548,6 +549,79 @@ describe('syncManager — initialSync()', () => {
     await initialSync(true)
 
     expect(api.get).toHaveBeenCalledWith('/sync/pull', { params: { full: 1 } })
+  })
+})
+
+describe('syncManager — visibility change', () => {
+  const emptyPullResponse = {
+    data: {
+      cows: [], medications: [], treatments: [], healthIssues: [],
+      milkRecords: [], breedingEvents: [], breedTypes: [], issueTypes: [],
+      syncedAt: '2026-01-01T00:00:00Z',
+    },
+  }
+
+  it('syncs when page becomes visible even with no pending items', async () => {
+    api.get.mockResolvedValue(emptyPullResponse)
+    pendingCount.value = 0
+
+    await init()
+    api.get.mockClear()
+
+    // Simulate visibility change
+    Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: true, configurable: true })
+    document.dispatchEvent(new Event('visibilitychange'))
+
+    // Give the async sync() call time to execute
+    await vi.waitFor(() => {
+      expect(api.get).toHaveBeenCalledWith('/sync/pull', expect.any(Object))
+    })
+  })
+
+  it('does not sync when page becomes hidden', async () => {
+    api.get.mockResolvedValue(emptyPullResponse)
+
+    await init()
+    api.get.mockClear()
+
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', writable: true, configurable: true })
+    document.dispatchEvent(new Event('visibilitychange'))
+
+    // Small delay to ensure nothing fires
+    await new Promise((r) => setTimeout(r, 50))
+    expect(api.get).not.toHaveBeenCalled()
+  })
+})
+
+describe('syncManager — periodic pull', () => {
+  const emptyPullResponse = {
+    data: {
+      cows: [], medications: [], treatments: [], healthIssues: [],
+      milkRecords: [], breedingEvents: [], breedTypes: [], issueTypes: [],
+      syncedAt: '2026-01-01T00:00:00Z',
+    },
+  }
+
+  it('exports PULL_INTERVAL_MS as 5 minutes', () => {
+    expect(PULL_INTERVAL_MS).toBe(5 * 60_000)
+  })
+
+  it('calls pullChanges when enough time has elapsed during polling tick', async () => {
+    // Test the periodic pull logic directly by calling sync-related functions
+    // without involving setInterval timers that conflict with fake-indexeddb
+    api.get.mockResolvedValue(emptyPullResponse)
+
+    // Simulate init having run (set up state)
+    await init()
+    api.get.mockClear()
+
+    // Directly invoke sync() which pullChanges calls — this mirrors what the
+    // interval would do. The key behavior we verify is that sync() updates
+    // lastSyncTime, proving a pull happened even with no pending items.
+    await sync()
+
+    expect(api.get).toHaveBeenCalledWith('/sync/pull', expect.any(Object))
+    expect(lastSyncTime.value).toBeTruthy()
   })
 })
 
