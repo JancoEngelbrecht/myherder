@@ -244,6 +244,8 @@ function withdrawalInfo(endDate) {
   padding: 80px 16px 120px;
   max-width: 600px;
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .filter-chips {
