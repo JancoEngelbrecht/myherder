@@ -16,7 +16,7 @@ const { seedUsers, seedFarm, seedFarmUser, tokenForFarm, seedCow } = require('./
 // ── Farm context ───────────────────────────────────────────────────────────────
 
 let farmAId, farmBId, farmCId
-let farmAAdminId
+let farmAAdminId, farmBAdminId
 let farmAToken, farmBToken, farmCToken
 
 // Shared entity IDs created in Farm A
@@ -40,7 +40,7 @@ beforeAll(async () => {
   farmCId = await seedFarm(db, 'FARMC', 'Empty Farm')
 
   farmAAdminId = await seedFarmUser(db, farmAId, { username: 'admin_a', password: 'pass123' })
-  const farmBAdminId = await seedFarmUser(db, farmBId, { username: 'admin_b', password: 'pass123' })
+  farmBAdminId = await seedFarmUser(db, farmBId, { username: 'admin_b', password: 'pass123' })
   const farmCAdminId = await seedFarmUser(db, farmCId, { username: 'admin_c', password: 'pass123' })
 
   farmAToken = tokenForFarm(farmAId, farmAAdminId)
@@ -432,9 +432,9 @@ describe('Analytics isolation', () => {
     // Seed 3 milk records for Farm B cow so it passes the >= 3 days gate
     const now = new Date().toISOString()
     await db('milk_records').insert([
-      { id: randomUUID(), farm_id: farmBId, cow_id: cowB1, recorded_by: farmAAdminId, session: 'morning', litres: 10, recording_date: '2026-03-01', created_at: now, updated_at: now },
-      { id: randomUUID(), farm_id: farmBId, cow_id: cowB1, recorded_by: farmAAdminId, session: 'morning', litres: 10, recording_date: '2026-03-02', created_at: now, updated_at: now },
-      { id: randomUUID(), farm_id: farmBId, cow_id: cowB1, recorded_by: farmAAdminId, session: 'morning', litres: 10, recording_date: '2026-03-03', created_at: now, updated_at: now },
+      { id: randomUUID(), farm_id: farmBId, cow_id: cowB1, recorded_by: farmBAdminId, session: 'morning', litres: 10, recording_date: '2026-03-01', created_at: now, updated_at: now },
+      { id: randomUUID(), farm_id: farmBId, cow_id: cowB1, recorded_by: farmBAdminId, session: 'morning', litres: 10, recording_date: '2026-03-02', created_at: now, updated_at: now },
+      { id: randomUUID(), farm_id: farmBId, cow_id: cowB1, recorded_by: farmBAdminId, session: 'morning', litres: 10, recording_date: '2026-03-03', created_at: now, updated_at: now },
     ])
     const res = await request(app)
       .get('/api/analytics/top-producers?from=2026-01-01&to=2026-12-31')
