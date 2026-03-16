@@ -62,6 +62,7 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
 ## API Conventions
 
 - All routes except `/api/auth/*` require `Authorization: Bearer <token>`
+- **Read-mirrors-write model:** GET routes require the same permission as their corresponding write routes. Workers only see data for features they have permission to use. Sync pull (`/api/sync/pull`) also filters entities by permission — unpermitted entity keys are omitted entirely.
 - `GET /api/cows` returns a **plain array**, not `{ cows: [] }`
 - `GET /api/cows/:id` returns cow with `sire_name`/`dam_name` strings + `breed_type_name`/`breed_type_code` via left-joins
 - Cow date field is `dob`, not `date_of_birth`

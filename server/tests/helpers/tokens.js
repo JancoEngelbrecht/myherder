@@ -53,4 +53,19 @@ function superAdminToken() {
   return `Bearer ${jwt.sign(payload, jwtSecret, { expiresIn: '1h' })}`
 }
 
-module.exports = { adminToken, workerToken, superAdminToken, SUPER_ADMIN_ID }
+// Generate a Bearer token for a worker with specific permissions only
+function workerTokenWith(permissions = []) {
+  const payload = {
+    id: WORKER_ID,
+    farm_id: DEFAULT_FARM_ID,
+    username: 'test_worker',
+    full_name: 'Test Worker',
+    role: 'worker',
+    permissions,
+    language: 'en',
+    token_version: 0,
+  }
+  return `Bearer ${jwt.sign(payload, jwtSecret, { expiresIn: '1h' })}`
+}
+
+module.exports = { adminToken, workerToken, workerTokenWith, superAdminToken, SUPER_ADMIN_ID }

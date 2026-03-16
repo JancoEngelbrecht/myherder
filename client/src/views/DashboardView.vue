@@ -49,7 +49,7 @@
       <template v-else>
 
       <!-- Herd Summary -->
-      <div v-if="!summaryLoading" data-tour="dashboard-stats" class="stats-row">
+      <div v-if="!summaryLoading && hasPermission('can_view_analytics')" data-tour="dashboard-stats" class="stats-row">
         <div class="stat-chip stat-active">
           <span class="stat-count">{{ summary.active ?? '—' }}</span>
           <span class="stat-label">{{ t('dashboard.active') }}</span>

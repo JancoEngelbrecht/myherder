@@ -3,7 +3,7 @@ const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
 const { seedUsers, ADMIN_ID, DEFAULT_FARM_ID } = require('./helpers/setup')
-const { adminToken, workerToken } = require('./helpers/tokens')
+const { adminToken, workerToken, workerTokenWith } = require('./helpers/tokens')
 
 beforeAll(async () => {
   await db.migrate.latest()
@@ -378,5 +378,19 @@ describe('GET /api/breeding-events query validation', () => {
       .get('/api/breeding-events?date_from=bad')
       .set('Authorization', adminToken())
     expect(res.status).toBe(400)
+  })
+})
+
+describe('GET /api/breeding-events permission enforcement', () => {
+  it('returns 403 for worker without can_log_breeding', async () => {
+    const token = workerTokenWith([])
+    const res = await request(app).get('/api/breeding-events').set('Authorization', token)
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 403 for GET /upcoming without can_log_breeding', async () => {
+    const token = workerTokenWith([])
+    const res = await request(app).get('/api/breeding-events/upcoming').set('Authorization', token)
+    expect(res.status).toBe(403)
   })
 })

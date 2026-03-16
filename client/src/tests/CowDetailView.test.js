@@ -250,4 +250,31 @@ describe('CowDetailView', () => {
     // Should not show spinner, should show some error indication
     expect(wrapper.find('.spinner').exists()).toBe(false)
   })
+
+  it('hides treatment section when worker lacks can_log_treatments', async () => {
+    cowsStore.fetchOne = vi.fn().mockResolvedValue(MOCK_COW)
+    authStore.user = { id: 'user-2', role: 'worker', permissions: ['can_log_issues', 'can_log_breeding'] }
+    const wrapper = mount(CowDetailView, { global: { stubs } })
+    await flushPromises()
+    expect(wrapper.text()).not.toContain('cowDetail.treatments')
+    expect(treatmentsStore.fetchByCow).not.toHaveBeenCalled()
+  })
+
+  it('hides health issues section when worker lacks can_log_issues', async () => {
+    cowsStore.fetchOne = vi.fn().mockResolvedValue(MOCK_COW)
+    authStore.user = { id: 'user-2', role: 'worker', permissions: ['can_log_treatments', 'can_log_breeding'] }
+    const wrapper = mount(CowDetailView, { global: { stubs } })
+    await flushPromises()
+    expect(wrapper.text()).not.toContain('healthIssues.title')
+    expect(healthIssuesStore.fetchByCow).not.toHaveBeenCalled()
+  })
+
+  it('hides breeding section when worker lacks can_log_breeding', async () => {
+    cowsStore.fetchOne = vi.fn().mockResolvedValue(MOCK_COW)
+    authStore.user = { id: 'user-2', role: 'worker', permissions: ['can_log_treatments', 'can_log_issues'] }
+    const wrapper = mount(CowDetailView, { global: { stubs } })
+    await flushPromises()
+    expect(wrapper.text()).not.toContain('breeding.reproTitle')
+    expect(breedingEventsStore.fetchForCow).not.toHaveBeenCalled()
+  })
 })

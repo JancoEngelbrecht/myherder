@@ -3,7 +3,7 @@ const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
 const { seedUsers, DEFAULT_FARM_ID } = require('./helpers/setup')
-const { adminToken, workerToken } = require('./helpers/tokens')
+const { adminToken, workerToken, workerTokenWith } = require('./helpers/tokens')
 
 beforeAll(async () => {
   await db.migrate.latest()
@@ -545,5 +545,19 @@ describe('GET /api/treatments pagination (13B.4)', () => {
       .get('/api/treatments?page=1&limit=10&order=sideways')
       .set('Authorization', adminToken())
     expect(res.status).toBe(400)
+  })
+})
+
+describe('GET /api/treatments permission enforcement', () => {
+  it('returns 403 for worker without can_log_treatments', async () => {
+    const token = workerTokenWith([])
+    const res = await request(app).get('/api/treatments').set('Authorization', token)
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 403 for GET /withdrawal without can_log_treatments', async () => {
+    const token = workerTokenWith([])
+    const res = await request(app).get('/api/treatments/withdrawal').set('Authorization', token)
+    expect(res.status).toBe(403)
   })
 })

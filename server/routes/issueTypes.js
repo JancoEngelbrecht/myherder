@@ -32,9 +32,10 @@ router.get('/', async (req, res, next) => {
     const { error: qError } = validateQuery(issueTypeQuerySchema, req.query)
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
+    const showAll = req.query.all === '1' && (req.user.role === 'admin' || req.user.role === 'super_admin')
     const query = db('issue_type_definitions')
       .where('farm_id', req.farmId)
-      .where(req.query.all === '1' ? {} : { is_active: true })
+      .where(showAll ? {} : { is_active: true })
       .orderBy('sort_order')
       .orderBy('name')
 

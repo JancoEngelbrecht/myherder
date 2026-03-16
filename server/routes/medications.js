@@ -33,7 +33,7 @@ const medicationQuerySchema = Joi.object({
 })
 
 // GET /api/medications — active only by default; pass ?all=1 for all
-router.get('/', async (req, res, next) => {
+router.get('/', authorize('can_log_treatments'), async (req, res, next) => {
   try {
     const { error: qError, value: q } = validateQuery(medicationQuerySchema, req.query)
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
@@ -71,7 +71,7 @@ router.get('/', async (req, res, next) => {
 })
 
 // GET /api/medications/:id
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', authorize('can_log_treatments'), async (req, res, next) => {
   try {
     const row = await db('medications').where({ id: req.params.id }).where('farm_id', req.farmId).first()
     if (!row) return res.status(404).json({ error: 'Medication not found' })

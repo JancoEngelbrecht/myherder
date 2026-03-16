@@ -3,7 +3,7 @@ const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
 const { seedUsers, DEFAULT_FARM_ID } = require('./helpers/setup')
-const { adminToken } = require('./helpers/tokens')
+const { adminToken, workerTokenWith } = require('./helpers/tokens')
 
 beforeAll(async () => {
   await db.migrate.latest()
@@ -192,5 +192,13 @@ describe('GET /api/medications query validation', () => {
       .get('/api/medications?bogus=1')
       .set('Authorization', adminToken())
     expect(res.status).toBe(400)
+  })
+})
+
+describe('GET /api/medications permission enforcement', () => {
+  it('returns 403 for worker without can_log_treatments', async () => {
+    const token = workerTokenWith([])
+    const res = await request(app).get('/api/medications').set('Authorization', token)
+    expect(res.status).toBe(403)
   })
 })

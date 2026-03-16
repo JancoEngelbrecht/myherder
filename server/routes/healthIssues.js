@@ -64,7 +64,7 @@ const issueQuerySchema = Joi.object({
 })
 
 // GET /api/health-issues
-router.get('/', async (req, res, next) => {
+router.get('/', authorize('can_log_issues'), async (req, res, next) => {
   try {
     const { error: qError, value: q } = validateQuery(issueQuerySchema, req.query)
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
@@ -100,7 +100,7 @@ router.get('/', async (req, res, next) => {
 })
 
 // GET /api/health-issues/:id
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', authorize('can_log_issues'), async (req, res, next) => {
   try {
     const row = await issueQuery(req.farmId).where('h.id', req.params.id).first()
     if (!row) return res.status(404).json({ error: 'Health issue not found' })
@@ -199,7 +199,7 @@ const commentSchema = Joi.object({
 })
 
 // GET /api/health-issues/:id/comments
-router.get('/:id/comments', async (req, res, next) => {
+router.get('/:id/comments', authorize('can_log_issues'), async (req, res, next) => {
   try {
     const rows = await db('health_issue_comments as c')
       .where('c.farm_id', req.farmId)

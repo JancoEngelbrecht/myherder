@@ -113,8 +113,8 @@ function checkPermission(entityType, user) {
   const mapping = ENTITY_MAP[entityType]
   if (!mapping) return null // unknown entity handled elsewhere
 
-  // Admins bypass all permission checks
-  if (user.role === 'admin') return null
+  // Admins and super-admins bypass all permission checks
+  if (user.role === 'admin' || user.role === 'super_admin') return null
 
   // Role restriction (e.g. admin-only entities)
   if (mapping.requiredRole && user.role !== mapping.requiredRole) {
@@ -286,12 +286,29 @@ async function handleDelete(qb, table, entityType, id, softDelete, user, ownerFi
 
 // ── Pull Data ───────────────────────────────────────────────────
 
-async function pullData(since, full, farmId) {
+// Permission-to-entity mapping for read access filtering.
+// Reference data (cows, breedTypes, issueTypes) is always included.
+// Other entities require the matching permission.
+const ENTITY_READ_PERMISSIONS = {
+  milkRecords: 'can_record_milk',
+  treatments: 'can_log_treatments',
+  medications: 'can_log_treatments',
+  healthIssues: 'can_log_issues',
+  breedingEvents: 'can_log_breeding',
+}
+
+async function pullData(since, full, farmId, user) {
   const deleted = []
 
-  // All authenticated users can read all entity types via sync pull.
-  // Write permission (checkPermission) is enforced only on push.
-  const entries = Object.entries(ENTITY_MAP)
+  // Filter entities by user permissions (admin/super_admin bypass)
+  const isAdmin = user && (user.role === 'admin' || user.role === 'super_admin')
+  const userPerms = (user && user.permissions) || []
+  const entries = Object.entries(ENTITY_MAP).filter(([entityType]) => {
+    if (isAdmin) return true
+    const requiredPerm = ENTITY_READ_PERMISSIONS[entityType]
+    if (!requiredPerm) return true // reference data (cows, breedTypes, issueTypes)
+    return userPerms.includes(requiredPerm)
+  })
 
   // Run all entity queries in parallel
   const entityResults = await Promise.all(entries.map(async ([entityType, { table, softDelete }]) => {

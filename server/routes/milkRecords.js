@@ -99,7 +99,7 @@ const SORT_COLUMN_MAP = {
 // GET /api/milk-records
 // Legacy: ?date&session&cow_id → plain array
 // Enhanced: ?from&to&recorded_by&page&limit&sort&order → { data, total }
-router.get('/', async (req, res, next) => {
+router.get('/', authorize('can_record_milk'), async (req, res, next) => {
   try {
     const { error, value } = validateQuery(querySchema, req.query)
     if (error) return res.status(400).json({ error: joiMsg(error) })
@@ -139,7 +139,7 @@ router.get('/', async (req, res, next) => {
 })
 
 // GET /api/milk-records/recorders — distinct users who have recorded milk on this farm
-router.get('/recorders', async (req, res, next) => {
+router.get('/recorders', authorize('can_record_milk'), async (req, res, next) => {
   try {
     const rows = await db('milk_records as mr')
       .where('mr.farm_id', req.farmId)
@@ -153,7 +153,7 @@ router.get('/recorders', async (req, res, next) => {
 })
 
 // GET /api/milk-records/summary?date=YYYY-MM-DD
-router.get('/summary', async (req, res, next) => {
+router.get('/summary', authorize('can_record_milk'), async (req, res, next) => {
   try {
     const { date } = req.query
     if (!date) return res.status(400).json({ error: 'date query param required' })
@@ -196,7 +196,7 @@ router.get('/summary', async (req, res, next) => {
 })
 
 // GET /api/milk-records/:id
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', authorize('can_record_milk'), async (req, res, next) => {
   try {
     const row = await milkQuery(req.farmId).where('mr.id', req.params.id).first()
     if (!row) return res.status(404).json({ error: 'Milk record not found' })

@@ -3,7 +3,7 @@ const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
 const { WORKER_ID, DEFAULT_FARM_ID, seedUsers, seedFarmUser, tokenForFarm } = require('./helpers/setup')
-const { adminToken, workerToken } = require('./helpers/tokens')
+const { adminToken, workerToken, workerTokenWith } = require('./helpers/tokens')
 
 // Second worker for ownership tests
 let WORKER_B_ID
@@ -713,5 +713,60 @@ describe('POST /api/sync/push — ownership enforcement', () => {
     expect(res.body.results[0].status).toBe('applied')
 
     await db('milk_records').where('id', recordId).del()
+  })
+})
+
+describe('GET /api/sync/pull permission filtering', () => {
+  it('returns only permitted entities for worker with can_record_milk only', async () => {
+    const token = workerTokenWith(['can_record_milk'])
+    const res = await request(app)
+      .get('/api/sync/pull?full=1')
+      .set('Authorization', token)
+
+    expect(res.status).toBe(200)
+    // Reference data always included
+    expect(res.body).toHaveProperty('cows')
+    expect(res.body).toHaveProperty('breedTypes')
+    expect(res.body).toHaveProperty('issueTypes')
+    // Permitted entity included
+    expect(res.body).toHaveProperty('milkRecords')
+    // Unpermitted entities omitted
+    expect(res.body).not.toHaveProperty('treatments')
+    expect(res.body).not.toHaveProperty('medications')
+    expect(res.body).not.toHaveProperty('healthIssues')
+    expect(res.body).not.toHaveProperty('breedingEvents')
+  })
+
+  it('returns all entities for admin', async () => {
+    const res = await request(app)
+      .get('/api/sync/pull?full=1')
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    expect(res.body).toHaveProperty('cows')
+    expect(res.body).toHaveProperty('treatments')
+    expect(res.body).toHaveProperty('medications')
+    expect(res.body).toHaveProperty('healthIssues')
+    expect(res.body).toHaveProperty('breedingEvents')
+    expect(res.body).toHaveProperty('milkRecords')
+    expect(res.body).toHaveProperty('breedTypes')
+    expect(res.body).toHaveProperty('issueTypes')
+  })
+
+  it('returns only reference data for worker with no permissions', async () => {
+    const token = workerTokenWith([])
+    const res = await request(app)
+      .get('/api/sync/pull?full=1')
+      .set('Authorization', token)
+
+    expect(res.status).toBe(200)
+    expect(res.body).toHaveProperty('cows')
+    expect(res.body).toHaveProperty('breedTypes')
+    expect(res.body).toHaveProperty('issueTypes')
+    expect(res.body).not.toHaveProperty('treatments')
+    expect(res.body).not.toHaveProperty('medications')
+    expect(res.body).not.toHaveProperty('healthIssues')
+    expect(res.body).not.toHaveProperty('breedingEvents')
+    expect(res.body).not.toHaveProperty('milkRecords')
   })
 })

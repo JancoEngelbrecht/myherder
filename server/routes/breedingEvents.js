@@ -72,7 +72,7 @@ function parseJsonFields(row) {
 // - heats/calvings/pregChecks/dryOffs: upcoming items within their lookahead window
 // - needsAttention: overdue items from the past 30 days with is_overdue flag
 // - All categories exclude dismissed events and deduplicate to latest event per cow
-router.get('/upcoming', async (req, res, next) => {
+router.get('/upcoming', authorize('can_log_breeding'), async (req, res, next) => {
   try {
     const today = new Date().toISOString().slice(0, 10)
     const yesterday = new Date(Date.now() - MS_PER_DAY).toISOString().slice(0, 10)
@@ -160,7 +160,7 @@ router.get('/upcoming', async (req, res, next) => {
 // - event_type: single value or comma-separated (e.g. "ai_insemination,bull_service")
 // - cow_status: 'active', 'pregnant', or 'dry'
 // - date_from / date_to: ISO date strings to filter event_date range
-router.get('/', async (req, res, next) => {
+router.get('/', authorize('can_log_breeding'), async (req, res, next) => {
   try {
     const { error: qError, value: qValue } = validateQuery(breedingQuerySchema, req.query)
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
@@ -223,7 +223,7 @@ router.get('/', async (req, res, next) => {
 })
 
 // GET /api/breeding-events/:id
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', authorize('can_log_breeding'), async (req, res, next) => {
   try {
     const row = await breedingQuery(req.farmId).where('be.id', req.params.id).first()
     if (!row) return res.status(404).json({ error: 'Breeding event not found' })

@@ -105,7 +105,7 @@ const treatmentQuerySchema = Joi.object({
 // GET /api/treatments — list, optionally filtered by cow
 // Without page/limit: returns plain array (backward compatible)
 // With page/limit: returns { data: [...], total: N }
-router.get('/', async (req, res, next) => {
+router.get('/', authorize('can_log_treatments'), async (req, res, next) => {
   try {
     const { error: qError, value: q } = validateQuery(treatmentQuerySchema, req.query)
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
@@ -154,7 +154,7 @@ router.get('/', async (req, res, next) => {
 })
 
 // GET /api/treatments/withdrawal — cows on active milk or meat withdrawal
-router.get('/withdrawal', async (req, res, next) => {
+router.get('/withdrawal', authorize('can_log_treatments'), async (req, res, next) => {
   try {
     const nowStr = new Date().toISOString()
     const nowMs = Date.now()
@@ -219,7 +219,7 @@ router.get('/withdrawal', async (req, res, next) => {
 })
 
 // GET /api/treatments/:id
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', authorize('can_log_treatments'), async (req, res, next) => {
   try {
     const row = await treatmentQuery(req.farmId).where('t.id', req.params.id).first()
     if (!row) return res.status(404).json({ error: 'Treatment not found' })

@@ -140,8 +140,8 @@
           </div>
         </div>
 
-        <!-- Reproduction (female only, breeding enabled) -->
-        <div v-if="flags.breeding && cow.sex !== 'male'" class="card treatment-card">
+        <!-- Reproduction (female only, breeding enabled, permission required) -->
+        <div v-if="flags.breeding && cow.sex !== 'male' && authStore.hasPermission('can_log_breeding')" class="card treatment-card">
           <div class="treatment-header">
             <h3 class="section-label">{{ t('breeding.reproTitle') }}</h3>
             <RouterLink :to="`/cows/${cow.id}/repro`" class="view-all-link">
@@ -174,7 +174,7 @@
         </div>
 
         <!-- Health Issues (compact) -->
-        <div v-if="flags.healthIssues" class="card treatment-card">
+        <div v-if="flags.healthIssues && authStore.hasPermission('can_log_issues')" class="card treatment-card">
           <div class="treatment-header">
             <h3 class="section-label">{{ t('healthIssues.title') }}</h3>
             <RouterLink :to="`/cows/${cow.id}/issues`" class="view-all-link">
@@ -205,7 +205,7 @@
         </div>
 
         <!-- Treatment History (compact) -->
-        <div v-if="flags.treatments" class="card treatment-card">
+        <div v-if="flags.treatments && authStore.hasPermission('can_log_treatments')" class="card treatment-card">
           <div class="treatment-header">
             <h3 class="section-label">{{ t('cowDetail.treatments') }}</h3>
             <RouterLink :to="`/cows/${cow.id}/treatments`" class="view-all-link">
@@ -237,8 +237,8 @@
           </template>
         </div>
 
-        <!-- Breeding action (female cows, breeding enabled) -->
-        <div v-if="flags.breeding && cow.sex !== 'male'" class="action-row">
+        <!-- Breeding action (female cows, breeding enabled, permission required) -->
+        <div v-if="flags.breeding && cow.sex !== 'male' && authStore.hasPermission('can_log_breeding')" class="action-row">
           <RouterLink :to="`/breed/log?cow_id=${cow.id}`" class="btn-secondary edit-link">
             🐂 {{ t('breeding.logEvent') }}
           </RouterLink>
@@ -365,13 +365,13 @@ async function load() {
   }
   // Load treatments, issues, repro in background (skip if module disabled)
   if (cow.value) {
-    if (featureFlagsStore.flags.treatments) {
+    if (featureFlagsStore.flags.treatments && authStore.hasPermission('can_log_treatments')) {
       treatmentsStore.fetchByCow(cow.value.id)
     }
-    if (featureFlagsStore.flags.healthIssues) {
+    if (featureFlagsStore.flags.healthIssues && authStore.hasPermission('can_log_issues')) {
       healthIssuesStore.fetchByCow(cow.value.id)
     }
-    if (featureFlagsStore.flags.breeding && cow.value.sex !== 'male') {
+    if (featureFlagsStore.flags.breeding && cow.value.sex !== 'male' && authStore.hasPermission('can_log_breeding')) {
       reproLoading.value = true
       breedingEventsStore.fetchForCow(cow.value.id)
         .then((events) => {

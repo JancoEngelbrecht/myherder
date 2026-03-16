@@ -3,7 +3,7 @@ const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
 const { ADMIN_ID, WORKER_ID, DEFAULT_FARM_ID, seedUsers } = require('./helpers/setup')
-const { adminToken } = require('./helpers/tokens')
+const { adminToken, workerTokenWith } = require('./helpers/tokens')
 
 beforeAll(async () => {
   await db.migrate.latest()
@@ -330,5 +330,25 @@ describe('GET /api/milk-records/recorders', () => {
   it('returns 401 without token', async () => {
     const res = await request(app).get('/api/milk-records/recorders')
     expect(res.status).toBe(401)
+  })
+})
+
+describe('GET /api/milk-records permission enforcement', () => {
+  it('returns 403 for worker without can_record_milk', async () => {
+    const token = workerTokenWith([])
+    const res = await request(app).get('/api/milk-records').set('Authorization', token)
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 403 for GET /recorders without can_record_milk', async () => {
+    const token = workerTokenWith([])
+    const res = await request(app).get('/api/milk-records/recorders').set('Authorization', token)
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 403 for GET /summary without can_record_milk', async () => {
+    const token = workerTokenWith([])
+    const res = await request(app).get('/api/milk-records/summary?date=2025-01-01').set('Authorization', token)
+    expect(res.status).toBe(403)
   })
 })

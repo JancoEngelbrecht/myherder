@@ -106,7 +106,7 @@ router.get('/pull', authenticate, tenantScope, async (req, res, next) => {
     const { error, value } = validateQuery(pullQuerySchema, req.query)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    const data = await pullData(value.since, value.full === '1', req.farmId)
+    const data = await pullData(value.since, value.full === '1', req.farmId, req.user)
 
     // Count total records for logging
     const totalRecords = Object.entries(data)
