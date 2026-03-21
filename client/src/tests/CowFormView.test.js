@@ -163,8 +163,8 @@ describe('CowFormView', () => {
     await malBtn.trigger('click')
     await flushPromises()
 
-    // Now we should see is_external and purpose
-    expect(wrapper.html()).toContain('cowForm.isExternal')
+    // Now we should see is_external and purpose (uses animalForm namespace)
+    expect(wrapper.html()).toContain('animalForm.isExternal')
   })
 
 

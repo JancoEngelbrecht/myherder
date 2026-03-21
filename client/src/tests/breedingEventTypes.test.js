@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getEventType, getEventTypesForSpecies, BREEDING_EVENT_TYPES } from '../config/breedingEventTypes.js'
+import { getEventType, getEventTypesForSpecies } from '../config/breedingEventTypes.js'
 
 describe('breedingEventTypes', () => {
   describe('getEventType', () => {

@@ -21,7 +21,7 @@
           class="dropdown-item"
           @mousedown.prevent="select(cow)"
         >
-          <span class="item-icon">{{ cow.sex === 'male' ? '🐂' : '🐄' }}</span>
+          <span class="item-icon">{{ cow.sex === 'male' ? speciesEmoji.male : speciesEmoji.female }}</span>
           <span class="item-tag mono">{{ cow.tag_number }}</span>
           <span class="item-name">{{ cow.name || '—' }}</span>
         </button>
@@ -35,7 +35,7 @@
     </Transition>
 
     <div v-if="selectedCow" class="selected-cow">
-      <span>{{ selectedCow.sex === 'male' ? '🐂' : '🐄' }}</span>
+      <span>{{ selectedCow.sex === 'male' ? speciesEmoji.male : speciesEmoji.female }}</span>
       <span class="mono">{{ selectedCow.tag_number }}</span>
       <span>{{ selectedCow.name }}</span>
       <button type="button" class="clear-btn" @click="clear">✕</button>
@@ -46,9 +46,12 @@
 <script setup>
 import { ref, watch, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useSpeciesTerms } from '../../composables/useSpeciesTerms.js'
 import api from '../../services/api.js'
 import db from '../../db/indexedDB.js'
 import { isOfflineError } from '../../services/syncManager.js'
+
+const { emoji: speciesEmoji } = useSpeciesTerms()
 
 const props = defineProps({
   modelValue: { type: [String, null], default: null }, // cow id

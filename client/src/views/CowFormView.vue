@@ -1,26 +1,36 @@
 <template>
   <div class="page">
     <AppHeader
-      :title="isEdit ? t('cowForm.titleEdit') : t('cowForm.titleAdd')"
+      :title="pageTitle"
       :show-back="true"
       :back-to="isEdit ? `/cows/${route.params.id}` : '/cows'"
     />
 
     <div class="page-content">
-      <div v-if="fromCalving" class="calving-banner">
-        {{ t('cowForm.fromCalvingBanner') }}
+      <!-- Offspring progress banner -->
+      <div v-if="isOffspringMode" class="offspring-banner">
+        <div class="offspring-progress-text">
+          {{ t('animalForm.offspringProgress', { current: offspringIndex, total: offspringTotal }) }}
+        </div>
+        <div class="offspring-progress-bar">
+          <div class="offspring-progress-fill" :style="{ width: `${(offspringIndex / offspringTotal) * 100}%` }" />
+        </div>
+      </div>
+
+      <div v-else-if="fromCalving" class="calving-banner">
+        {{ t('animalForm.fromCalvingBanner') }}
       </div>
 
       <form class="cow-form" @submit.prevent="handleSubmit">
         <!-- Tag Number -->
         <div class="form-group">
-          <label class="form-label">{{ t('cowForm.tagNumber') }} *</label>
+          <label class="form-label">{{ t('animalForm.tagNumber') }} *</label>
           <input
             v-model="form.tag_number"
             type="text"
             class="form-input"
             :class="{ error: errors.tag_number }"
-            :placeholder="t('cowForm.tagPlaceholder')"
+            :placeholder="t('animalForm.tagPlaceholder')"
             required
           />
           <span v-if="errors.tag_number" class="form-error">{{ errors.tag_number }}</span>
@@ -28,21 +38,21 @@
 
         <!-- Name -->
         <div class="form-group">
-          <label class="form-label">{{ t('cowForm.name') }}</label>
+          <label class="form-label">{{ t('animalForm.name') }}</label>
           <input
             v-model="form.name"
             type="text"
             class="form-input"
-            :placeholder="t('cowForm.namePlaceholder')"
+            :placeholder="t('animalForm.namePlaceholder')"
           />
         </div>
 
-        <!-- Breed Type -->
+        <!-- Breed Type — filtered to farm's species -->
         <div class="form-group">
-          <label class="form-label">{{ t('cowForm.breed') }}</label>
+          <label class="form-label">{{ t('animalForm.breed') }}</label>
           <select v-model="form.breed_type_id" class="form-select">
-            <option :value="null">{{ t('cowForm.selectBreed') }}</option>
-            <option v-for="bt in breedTypesStore.activeTypes" :key="bt.id" :value="bt.id">
+            <option :value="null">{{ t('animalForm.selectBreed') }}</option>
+            <option v-for="bt in speciesFilteredBreeds" :key="bt.id" :value="bt.id">
               {{ bt.name }}
             </option>
           </select>
@@ -50,7 +60,7 @@
 
         <!-- DOB -->
         <div class="form-group">
-          <label class="form-label">{{ t('cowForm.dob') }}</label>
+          <label class="form-label">{{ t('animalForm.dob') }}</label>
           <input
             v-model="form.dob"
             type="date"
@@ -60,7 +70,7 @@
 
         <!-- Sex toggle -->
         <div class="form-group">
-          <label class="form-label">{{ t('cowForm.sex') }} *</label>
+          <label class="form-label">{{ t('animalForm.sex') }} *</label>
           <div class="sex-toggle">
             <button
               type="button"
@@ -68,7 +78,7 @@
               :class="{ active: form.sex === 'female' }"
               @click="form.sex = 'female'"
             >
-              🐄 {{ t('cowForm.sexFemale') }}
+              {{ speciesEmoji.female }} {{ t('animalForm.sexFemale') }}
             </button>
             <button
               type="button"
@@ -76,47 +86,47 @@
               :class="{ active: form.sex === 'male' }"
               @click="form.sex = 'male'"
             >
-              🐂 {{ t('cowForm.sexMale') }}
+              {{ speciesEmoji.male }} {{ t('animalForm.sexMale') }}
             </button>
           </div>
           <span v-if="errors.sex" class="form-error">{{ errors.sex }}</span>
         </div>
 
-        <!-- Bull-only fields -->
+        <!-- Male-only fields -->
         <template v-if="form.sex === 'male'">
           <div class="form-group">
             <label class="checkbox-label">
               <input v-model="form.is_external" type="checkbox" />
-              {{ t('cowForm.isExternal') }}
+              {{ t('animalForm.isExternal') }}
             </label>
           </div>
           <div class="form-group">
-            <label class="form-label">{{ t('cowForm.purpose') }}</label>
+            <label class="form-label">{{ t('animalForm.purpose') }}</label>
             <select v-model="form.purpose" class="form-select">
               <option :value="null">—</option>
-              <option value="natural_service">{{ t('cowForm.purposeNatural') }}</option>
-              <option value="ai_semen_donor">{{ t('cowForm.purposeAI') }}</option>
-              <option value="both">{{ t('cowForm.purposeBoth') }}</option>
+              <option value="natural_service">{{ t('animalForm.purposeNatural') }}</option>
+              <option value="ai_semen_donor">{{ t('animalForm.purposeAI') }}</option>
+              <option value="both">{{ t('animalForm.purposeBoth') }}</option>
             </select>
           </div>
         </template>
 
-        <!-- Life phase override -->
+        <!-- Life phase override — species-specific options -->
         <div class="form-group">
-          <label class="form-label">{{ t('cowForm.lifePhaseOverride') }}</label>
+          <label class="form-label">{{ t('animalForm.lifePhaseOverride') }}</label>
           <select v-model="form.life_phase_override" class="form-select">
-            <option :value="null">{{ t('cowForm.lifePhaseAuto') }}</option>
-            <option value="calf">{{ t('lifePhase.calf') }}</option>
-            <option v-if="form.sex === 'female'" value="heifer">{{ t('lifePhase.heifer') }}</option>
-            <option v-if="form.sex === 'female'" value="cow">{{ t('lifePhase.cow') }}</option>
-            <option v-if="form.sex === 'male'" value="young_bull">{{ t('lifePhase.young_bull') }}</option>
-            <option v-if="form.sex === 'male'" value="bull">{{ t('lifePhase.bull') }}</option>
+            <option :value="null">{{ t('animalForm.lifePhaseAuto') }}</option>
+            <option
+              v-for="phase in lifePhaseOptions"
+              :key="phase.code"
+              :value="phase.code"
+            >{{ t(`lifePhase.${phase.code}`) }}</option>
           </select>
         </div>
 
         <!-- Status -->
         <div class="form-group">
-          <label class="form-label">{{ t('cowForm.status') }}</label>
+          <label class="form-label">{{ t('animalForm.status') }}</label>
           <select v-model="form.status" class="form-select">
             <option v-for="s in statuses" :key="s" :value="s">{{ t(`status.${s}`) }}</option>
           </select>
@@ -124,32 +134,32 @@
 
         <!-- Sire (male parent) -->
         <div class="form-group">
-          <label class="form-label">{{ t('cowForm.sire') }}</label>
+          <label class="form-label">{{ t('animalForm.sire') }}</label>
           <CowSearchDropdown
             v-model="form.sire_id"
-            :placeholder="t('cowForm.sirePlaceholder')"
+            :placeholder="t('animalForm.sirePlaceholder')"
             sex-filter="male"
           />
         </div>
 
         <!-- Dam (female parent) -->
         <div class="form-group">
-          <label class="form-label">{{ t('cowForm.dam') }}</label>
+          <label class="form-label">{{ t('animalForm.dam') }}</label>
           <CowSearchDropdown
             v-model="form.dam_id"
-            :placeholder="t('cowForm.damPlaceholder')"
+            :placeholder="t('animalForm.damPlaceholder')"
             sex-filter="female"
           />
         </div>
 
         <!-- Notes -->
         <div class="form-group">
-          <label class="form-label">{{ t('cowForm.notes') }}</label>
+          <label class="form-label">{{ t('animalForm.notes') }}</label>
           <textarea
             v-model="form.notes"
             class="form-input"
             rows="3"
-            :placeholder="t('cowForm.notesPlaceholder')"
+            :placeholder="t('animalForm.notesPlaceholder')"
             style="resize: vertical;"
           />
         </div>
@@ -157,15 +167,41 @@
         <!-- API Error -->
         <div v-if="apiError" class="error-box">{{ apiError }}</div>
 
-        <!-- Actions -->
+        <!-- Actions — offspring mode has Save & Next / Save & Done / Skip -->
         <div class="form-actions">
-          <button type="submit" class="btn-primary" :disabled="saving">
-            <span v-if="saving" class="spinner" style="width:18px;height:18px;border-width:2px" />
-            <span v-else>{{ t('cowForm.save') }}</span>
-          </button>
-          <button type="button" class="btn-secondary" @click="handleCancel">
-            {{ t('cowForm.cancel') }}
-          </button>
+          <template v-if="isOffspringMode">
+            <button
+              v-if="!isLastOffspring"
+              type="submit"
+              class="btn-primary"
+              :disabled="saving"
+              @click="offspringAction = 'next'"
+            >
+              <span v-if="saving" class="spinner" style="width:18px;height:18px;border-width:2px" />
+              <span v-else>{{ t('animalForm.saveAndNext') }}</span>
+            </button>
+            <button
+              type="submit"
+              class="btn-primary"
+              :disabled="saving"
+              @click="offspringAction = 'done'"
+            >
+              <span v-if="saving" class="spinner" style="width:18px;height:18px;border-width:2px" />
+              <span v-else>{{ t('animalForm.saveAndDone') }}</span>
+            </button>
+            <button type="button" class="btn-secondary" @click="handleSkipOffspring">
+              {{ t('animalForm.skipOffspring') }}
+            </button>
+          </template>
+          <template v-else>
+            <button type="submit" class="btn-primary" :disabled="saving">
+              <span v-if="saving" class="spinner" style="width:18px;height:18px;border-width:2px" />
+              <span v-else>{{ t('animalForm.save', { species: singular }) }}</span>
+            </button>
+            <button type="button" class="btn-secondary" @click="handleCancel">
+              {{ t('animalForm.cancel') }}
+            </button>
+          </template>
         </div>
       </form>
     </div>
@@ -178,6 +214,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useCowsStore } from '../stores/cows.js'
 import { useBreedTypesStore } from '../stores/breedTypes.js'
+import { useSpeciesTerms } from '../composables/useSpeciesTerms.js'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import CowSearchDropdown from '../components/molecules/CowSearchDropdown.vue'
 import { extractApiError, resolveError } from '../utils/apiError'
@@ -187,9 +224,23 @@ const route = useRoute()
 const router = useRouter()
 const cowsStore = useCowsStore()
 const breedTypesStore = useBreedTypesStore()
+const { singular, emoji: speciesEmoji, lifePhasesConfig } = useSpeciesTerms()
 
 const isEdit = computed(() => !!route.params.id && route.path.endsWith('/edit'))
 const fromCalving = computed(() => route.query.from_calving === 'true')
+
+// Offspring mode: triggered by birth_event_id query param
+const isOffspringMode = computed(() => !!route.query.birth_event_id)
+const offspringTotal = computed(() => Number(route.query.offspring_total ?? 1))
+const offspringIndex = computed(() => Number(route.query.offspring_index ?? 1))
+const isLastOffspring = computed(() => offspringIndex.value >= offspringTotal.value)
+const offspringAction = ref('done') // 'next' or 'done'
+
+const pageTitle = computed(() => {
+  if (isEdit.value) return t('animalForm.titleEdit', { species: singular.value })
+  if (isOffspringMode.value) return t('animalForm.offspringProgress', { current: offspringIndex.value, total: offspringTotal.value })
+  return t('animalForm.titleAdd', { species: singular.value })
+})
 
 const form = reactive({
   tag_number: '',
@@ -208,15 +259,28 @@ const form = reactive({
 
 const errors = reactive({})
 
+// Species-filtered breed list
+const speciesFilteredBreeds = computed(() => breedTypesStore.activeTypes)
+
+// Life phase options from species config, filtered by current sex
+const lifePhaseOptions = computed(() => {
+  const phases = lifePhasesConfig.value
+  if (!phases) {
+    // Cattle fallback
+    if (form.sex === 'male') return [{ code: 'calf' }, { code: 'young_bull' }, { code: 'bull' }]
+    return [{ code: 'calf' }, { code: 'heifer' }, { code: 'cow' }]
+  }
+  return form.sex === 'male' ? (phases.male ?? []) : (phases.female ?? [])
+})
+
 // Reset life phase override when sex changes if current value is incompatible
-const FEMALE_PHASES = new Set([null, 'calf', 'heifer', 'cow'])
-const MALE_PHASES = new Set([null, 'calf', 'young_bull', 'bull'])
-watch(() => form.sex, (sex) => {
-  const allowed = sex === 'male' ? MALE_PHASES : FEMALE_PHASES
+watch(() => form.sex, () => {
+  const allowed = new Set([null, ...lifePhaseOptions.value.map((p) => p.code)])
   if (!allowed.has(form.life_phase_override)) {
     form.life_phase_override = null
   }
 })
+
 const apiError = ref('')
 const saving = ref(false)
 
@@ -245,8 +309,15 @@ onMounted(async () => {
     } catch {
       apiError.value = t('common.error')
     }
+  } else if (isOffspringMode.value) {
+    // Pre-fill from offspring birth event query params
+    const q = route.query
+    if (q.dob) form.dob = String(q.dob)
+    if (q.dam_id) form.dam_id = String(q.dam_id)
+    if (q.sire_id) form.sire_id = String(q.sire_id)
+    if (q.breed_type_id) form.breed_type_id = q.breed_type_id
   } else if (fromCalving.value) {
-    // Pre-fill from calving event query params
+    // Legacy pre-fill from old calving flow
     const q = route.query
     if (q.tag_number) form.tag_number = String(q.tag_number)
     if (q.sex) form.sex = String(q.sex)
@@ -259,8 +330,8 @@ onMounted(async () => {
 
 function validate() {
   Object.keys(errors).forEach(k => delete errors[k])
-  if (!form.tag_number.trim()) errors.tag_number = t('cowForm.validationTag')
-  if (!form.sex) errors.sex = t('cowForm.validationSex')
+  if (!form.tag_number.trim()) errors.tag_number = t('animalForm.validationTag')
+  if (!form.sex) errors.sex = t('animalForm.validationSex')
   return Object.keys(errors).length === 0
 }
 
@@ -273,10 +344,13 @@ async function handleSubmit() {
   if (!payload.dob) delete payload.dob
   if (!payload.sire_id) delete payload.sire_id
   if (!payload.dam_id) delete payload.dam_id
-  // Clean up sex-specific fields
   if (payload.sex === 'female') {
     payload.is_external = false
     payload.purpose = null
+  }
+  // Link to birth event when in offspring mode
+  if (isOffspringMode.value && route.query.birth_event_id) {
+    payload.birth_event_id = String(route.query.birth_event_id)
   }
 
   try {
@@ -285,13 +359,36 @@ async function handleSubmit() {
       router.replace(`/cows/${route.params.id}`)
     } else {
       const cow = await cowsStore.create(payload)
-      router.replace(`/cows/${cow.id}`)
+
+      if (isOffspringMode.value) {
+        if (offspringAction.value === 'next' && !isLastOffspring.value) {
+          // Advance to next offspring — same form, increment index
+          const q = { ...route.query, offspring_index: String(offspringIndex.value + 1) }
+          form.tag_number = ''
+          form.name = ''
+          form.sex = 'female'
+          form.notes = ''
+          form.life_phase_override = null
+          await router.replace({ path: '/cows/new', query: q })
+        } else {
+          // Save & Done — navigate to dam detail
+          const damId = route.query.dam_id
+          router.replace(damId ? `/cows/${damId}` : '/cows')
+        }
+      } else {
+        router.replace(`/cows/${cow.id}`)
+      }
     }
   } catch (err) {
     apiError.value = resolveError(extractApiError(err), t)
   } finally {
     saving.value = false
   }
+}
+
+function handleSkipOffspring() {
+  const damId = route.query.dam_id
+  router.replace(damId ? `/cows/${damId}` : '/breed')
 }
 
 function handleCancel() {
@@ -312,6 +409,35 @@ function handleCancel() {
   font-size: 0.85rem;
   color: var(--primary-dark);
   margin-bottom: 12px;
+}
+
+.offspring-banner {
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 16px;
+}
+
+.offspring-progress-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.offspring-progress-bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.offspring-progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 4px;
+  transition: width 0.3s ease;
 }
 
 .cow-form {

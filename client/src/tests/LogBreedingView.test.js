@@ -118,22 +118,22 @@ describe('LogBreedingView', () => {
     expect(wrapper.find('.cow-search-dropdown').exists()).toBe(true)
   })
 
-  it('shows all breeding event type buttons', async () => {
+  it('shows cattle breeding event type buttons', async () => {
     const wrapper = createWrapper()
     await flushPromises()
 
     const buttons = wrapper.findAll('.event-type-btn')
-    // 10 event types: heat_observed, ai_insemination, bull_service, ram_service, preg_check_positive, preg_check_negative, calving, lambing, abortion, dry_off
-    expect(buttons).toHaveLength(10)
+    // Cattle species: heat_observed, ai_insemination, bull_service, preg_check_positive, preg_check_negative, calving, abortion, dry_off (ram_service and lambing excluded)
+    expect(buttons).toHaveLength(8)
   })
 
   it('selecting preg_check_positive shows expected calving date input', async () => {
     const wrapper = createWrapper()
     await flushPromises()
 
-    // Click preg_check_positive button (index 4 — after heat_observed, ai_insemination, bull_service, ram_service)
+    // Click preg_check_positive button (index 3 — after heat_observed, ai_insemination, bull_service)
     const buttons = wrapper.findAll('.event-type-btn')
-    await buttons[4].trigger('click')
+    await buttons[3].trigger('click')
     await flushPromises()
 
     // Should show expected calving date input

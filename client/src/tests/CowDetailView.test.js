@@ -138,6 +138,7 @@ describe('CowDetailView', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
     mockRouteParams = { id: 'cow-1' }
+    mockGet.mockResolvedValue({ data: [] })
     setActivePinia(createPinia())
 
     const { useCowsStore } = await import('../stores/cows.js')

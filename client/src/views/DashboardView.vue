@@ -77,8 +77,8 @@
         <h2 class="section-label">{{ t('dashboard.quickActions') }}</h2>
         <div data-tour="dashboard-actions" class="actions-grid">
           <RouterLink to="/cows" class="action-card active-action">
-            <span class="action-icon">🐄</span>
-            <span class="action-label">{{ t('dashboard.viewCows') }}</span>
+            <span class="action-icon">{{ speciesEmoji.female }}</span>
+            <span class="action-label">{{ t('dashboard.viewAnimals', { collectiveNoun }) }}</span>
           </RouterLink>
 
           <RouterLink v-if="flags.analytics && hasPermission('can_view_analytics')" to="/analytics" class="action-card active-action">
@@ -112,7 +112,7 @@
           </RouterLink>
 
           <RouterLink v-if="flags.breeding && hasPermission('can_log_breeding')" to="/breed" class="action-card active-action">
-            <span class="action-icon">🐂</span>
+            <span class="action-icon">{{ speciesEmoji.male }}</span>
             <span class="action-label">{{ t('dashboard.breed') }}</span>
           </RouterLink>
         </div>
@@ -130,6 +130,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth.js'
 import { useFeatureFlagsStore } from '../stores/featureFlags.js'
+import { useSpeciesTerms } from '../composables/useSpeciesTerms.js'
 import api from '../services/api.js'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import TourButton from '../components/atoms/TourButton.vue'
@@ -138,6 +139,7 @@ import { useTour } from '../composables/useTour.js'
 const { t } = useI18n()
 const authStore = useAuthStore()
 const featureFlagsStore = useFeatureFlagsStore()
+const { emoji: speciesEmoji, collectiveNoun } = useSpeciesTerms()
 
 const flags = computed(() => featureFlagsStore.flags)
 const { hasPermission } = authStore

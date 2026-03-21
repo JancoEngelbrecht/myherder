@@ -88,7 +88,7 @@
         <!-- Upcoming calvings -->
         <section v-if="timeFilteredCalvings.length" class="section">
           <div class="alert-group">
-            <h3 class="group-label">🐮 {{ t('breeding.upcoming.calvings') }}</h3>
+            <h3 class="group-label">{{ speciesEmoji.female }} {{ t('breeding.upcoming.calvings') }}</h3>
             <div
               v-for="ev in visibleCalvings"
               :key="ev.id"
@@ -241,6 +241,7 @@ import { useRouter } from 'vue-router'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../components/molecules/ConfirmDialog.vue'
 import { useBreedingEventsStore } from '../stores/breedingEvents'
+import { useSpeciesTerms } from '../composables/useSpeciesTerms'
 import { useToast } from '../composables/useToast'
 import { extractApiError, resolveError } from '../utils/apiError'
 import { isOfflineError } from '../services/syncManager'
@@ -248,6 +249,7 @@ import { isOfflineError } from '../services/syncManager'
 const { t } = useI18n()
 const router = useRouter()
 const breedingStore = useBreedingEventsStore()
+const { emoji: speciesEmoji } = useSpeciesTerms()
 const toast = useToast()
 
 // ── Filter state ─────────────────────────────────────────────────────────────

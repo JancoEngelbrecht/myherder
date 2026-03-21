@@ -20,21 +20,23 @@ import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useFeatureFlagsStore } from '../../stores/featureFlags.js'
 import { useAuthStore } from '../../stores/auth.js'
+import { useSpeciesTerms } from '../../composables/useSpeciesTerms.js'
 
 const { t } = useI18n()
 const route = useRoute()
 const featureFlagsStore = useFeatureFlagsStore()
 const authStore = useAuthStore()
+const { emoji: speciesEmoji } = useSpeciesTerms()
 
-const allTabs = [
+const allTabs = computed(() => [
   { name: 'home',  to: '/',      icon: '🏠', labelKey: 'nav.home' },
-  { name: 'cows',  to: '/cows',  icon: '🐄', labelKey: 'nav.cows' },
+  { name: 'cows',  to: '/cows',  icon: speciesEmoji.value.female, labelKey: 'nav.cows' },
   { name: 'milk',  to: '/milk',  icon: '🥛', labelKey: 'nav.milk',  flag: 'milkRecording', permission: 'can_record_milk' },
-  { name: 'breed', to: '/breed', icon: '🐂', labelKey: 'nav.breed', flag: 'breeding', permission: 'can_log_breeding' },
-]
+  { name: 'breed', to: '/breed', icon: speciesEmoji.value.male, labelKey: 'nav.breed', flag: 'breeding', permission: 'can_log_breeding' },
+])
 
 const visibleTabs = computed(() =>
-  allTabs.filter((tab) => {
+  allTabs.value.filter((tab) => {
     if (tab.flag && !featureFlagsStore.flags[tab.flag]) return false
     if (tab.permission && !authStore.hasPermission(tab.permission)) return false
     return true

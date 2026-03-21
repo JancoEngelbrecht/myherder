@@ -1,7 +1,7 @@
 <template>
   <RouterLink :to="`/cows/${cow.id}`" class="cow-card">
     <div class="cow-avatar" :class="`sex-${cow.sex}`">
-      {{ cow.sex === 'male' ? '🐂' : '🐄' }}
+      {{ cow.sex === 'male' ? speciesEmoji.male : speciesEmoji.female }}
     </div>
 
     <div class="cow-info">
@@ -33,9 +33,11 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { computeLifePhase } from '../../stores/cows.js'
 import { useBreedTypesStore } from '../../stores/breedTypes.js'
+import { useSpeciesTerms } from '../../composables/useSpeciesTerms.js'
 
 const { t } = useI18n()
 const breedTypesStore = useBreedTypesStore()
+const { emoji: speciesEmoji, lifePhasesConfig } = useSpeciesTerms()
 
 const props = defineProps({
   cow: {
@@ -55,7 +57,7 @@ const breedName = computed(() => {
 
 const lifePhase = computed(() => {
   const bt = props.cow.breed_type_id ? breedTypesStore.getById(props.cow.breed_type_id) : null
-  return computeLifePhase(props.cow, bt)
+  return computeLifePhase(props.cow, bt, lifePhasesConfig.value)
 })
 </script>
 

@@ -81,8 +81,8 @@
           </div>
         </template>
 
-        <!-- Bull service sire -->
-        <template v-if="form.event_type === 'bull_service'">
+        <!-- Sire selection — for bull_service or ram_service -->
+        <template v-if="form.event_type === 'bull_service' || form.event_type === 'ram_service'">
           <div class="form-group">
             <label>{{ t('breeding.form.sire') }}</label>
             <CowSearchDropdown
@@ -137,8 +137,22 @@
           </div>
         </template>
 
-        <!-- Calving details -->
-        <template v-if="form.event_type === 'calving'">
+        <!-- Offspring count — shown for birth events (calving/lambing) -->
+        <template v-if="isBirthEvent">
+          <div class="form-group">
+            <label>{{ t('breeding.offspringCount') }}</label>
+            <input
+              v-model.number="form.offspring_count"
+              type="number"
+              class="form-input"
+              min="1"
+              :max="maxOffspring"
+            />
+          </div>
+        </template>
+
+        <!-- Birth details (calving or lambing) -->
+        <template v-if="isBirthEvent">
           <div class="form-group">
             <label>{{ t('breeding.form.calfSex') }}</label>
             <div class="method-row">
@@ -147,13 +161,13 @@
                 class="method-btn"
                 :class="{ active: form.calving_details.calf_sex === 'female' }"
                 @click="form.calving_details.calf_sex = 'female'"
-              >🐄 {{ t('sex.female') }}</button>
+              >{{ speciesEmoji.female }} {{ t('sex.female') }}</button>
               <button
                 type="button"
                 class="method-btn"
                 :class="{ active: form.calving_details.calf_sex === 'male' }"
                 @click="form.calving_details.calf_sex = 'male'"
-              >🐂 {{ t('sex.male') }}</button>
+              >{{ speciesEmoji.male }} {{ t('sex.male') }}</button>
             </div>
           </div>
           <div class="form-group">
@@ -177,6 +191,19 @@
             />
           </div>
         </template>
+
+        <!-- Register offspring prompt (shown after save, only for birth events) -->
+        <div v-if="showOffspringPrompt" class="offspring-prompt card">
+          <p class="offspring-prompt-text">{{ t('breeding.registerOffspringPrompt', { count: lastSavedOffspringCount }) }}</p>
+          <div class="offspring-prompt-actions">
+            <button type="button" class="btn-primary" style="width:auto" @click="goRegisterOffspring">
+              {{ t('breeding.registerOffspringYes') }}
+            </button>
+            <button type="button" class="btn-secondary" style="width:auto" @click="skipOffspring">
+              {{ t('breeding.registerOffspringNo') }}
+            </button>
+          </div>
+        </div>
 
         <!-- Cost -->
         <div class="form-group">
@@ -243,9 +270,10 @@ import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import CowSearchDropdown from '../components/molecules/CowSearchDropdown.vue'
 import { useBreedingEventsStore } from '../stores/breedingEvents'
-import { BREEDING_EVENT_TYPES, getEventType } from '../config/breedingEventTypes'
+import { getEventType, getEventTypesForSpecies } from '../config/breedingEventTypes'
 import { useBreedTypesStore } from '../stores/breedTypes'
 import { useCowsStore } from '../stores/cows'
+import { useSpeciesTerms } from '../composables/useSpeciesTerms'
 import api from '../services/api'
 import { extractApiError, resolveError } from '../utils/apiError'
 
@@ -255,6 +283,12 @@ const router = useRouter()
 const breedingStore = useBreedingEventsStore()
 const breedTypesStore = useBreedTypesStore()
 const cowsStore = useCowsStore()
+const {
+  speciesCode,
+  emoji: speciesEmoji,
+  typicalMultipleBirths,
+  maxOffspring,
+} = useSpeciesTerms()
 
 const PREG_CHECK_METHODS = ['manual', 'ultrasound', 'blood_test']
 
@@ -262,7 +296,7 @@ const editMode = computed(() => !!route.params.id)
 const loadingEvent = ref(false)
 const editCowLabel = ref('')
 
-const displayEventTypes = BREEDING_EVENT_TYPES
+const displayEventTypes = computed(() => getEventTypesForSpecies(speciesCode.value))
 
 const nowLocal = () => {
   const d = new Date()
@@ -281,6 +315,7 @@ const form = ref({
   sire_id: '',
   preg_check_method: null,
   calving_details: { calf_sex: null, calf_tag_number: '', calf_weight: null },
+  offspring_count: 1,
   cost: null,
   notes: '',
   expected_calving: '',
@@ -289,6 +324,11 @@ const form = ref({
 const errors = ref({})
 const saving = ref(false)
 const submitError = ref(null)
+
+const showOffspringPrompt = ref(false)
+const lastSavedOffspringCount = ref(0)
+const lastSavedEventId = ref(null)
+const lastSavedCowId = ref(null)
 
 const backRoute = computed(() => {
   if (route.query.from) return String(route.query.from)
@@ -300,6 +340,10 @@ const isInsemination = computed(() => form.value.event_type === 'ai_insemination
 
 const isPregCheck = computed(() =>
   ['preg_check_positive', 'preg_check_negative'].includes(form.value.event_type),
+)
+
+const isBirthEvent = computed(() =>
+  ['calving', 'lambing'].includes(form.value.event_type),
 )
 
 // Look up breed timings for the selected cow
@@ -315,7 +359,7 @@ function findLatestInsemCalving(cowId) {
   if (!cowId) return null
   return breedingStore.events
     .filter((e) => e.cow_id === cowId &&
-      ['ai_insemination', 'bull_service'].includes(e.event_type) &&
+      ['ai_insemination', 'bull_service', 'ram_service'].includes(e.event_type) &&
       e.expected_calving)
     .sort((a, b) => b.event_date.localeCompare(a.event_date))[0] ?? null
 }
@@ -350,7 +394,7 @@ watch(
 const autoDates = computed(() => {
   const { event_type, event_date } = form.value
   if (!event_date || !event_type) return null
-  if (!['heat_observed', 'ai_insemination', 'bull_service'].includes(event_type)) return null
+  if (!['heat_observed', 'ai_insemination', 'bull_service', 'ram_service'].includes(event_type)) return null
 
   const bt = selectedCowBreed.value
   const heatCycle = bt?.heat_cycle_days ?? 21
@@ -372,7 +416,7 @@ const autoDates = computed(() => {
     expected_dry_off: null,
   }
 
-  if (['ai_insemination', 'bull_service'].includes(event_type)) {
+  if (['ai_insemination', 'bull_service', 'ram_service'].includes(event_type)) {
     const calving = new Date(base)
     calving.setDate(calving.getDate() + gestation)
     const dryOff = new Date(calving)
@@ -388,6 +432,37 @@ const hasAutoDates = computed(() =>
   autoDates.value &&
   (autoDates.value.expected_next_heat || autoDates.value.expected_calving),
 )
+
+// Reset offspring_count when switching to a birth event type
+watch(
+  () => form.value.event_type,
+  (eventType) => {
+    if (['calving', 'lambing'].includes(eventType)) {
+      form.value.offspring_count = typicalMultipleBirths.value
+    }
+  },
+)
+
+function goRegisterOffspring() {
+  showOffspringPrompt.value = false
+  const q = {
+    birth_event_id: lastSavedEventId.value,
+    dam_id: lastSavedCowId.value,
+    offspring_total: String(lastSavedOffspringCount.value),
+    offspring_index: '1',
+    dob: new Date().toISOString().slice(0, 10),
+  }
+  router.replace({ path: '/cows/new', query: q })
+}
+
+function skipOffspring() {
+  showOffspringPrompt.value = false
+  if (lastSavedCowId.value) {
+    router.replace(`/cows/${lastSavedCowId.value}/repro`)
+  } else {
+    router.replace('/breed')
+  }
+}
 
 function validate() {
   const e = {}
@@ -416,9 +491,10 @@ async function submit() {
         notes: form.value.notes || null,
       }
 
-      if (form.value.event_type === 'calving') {
+      if (isBirthEvent.value) {
         const cd = form.value.calving_details
         payload.calving_details = (cd.calf_sex || cd.calf_tag_number || cd.calf_weight) ? { ...cd } : null
+        payload.offspring_count = form.value.offspring_count || 1
       } else {
         payload.calving_details = null
       }
@@ -443,9 +519,10 @@ async function submit() {
         notes: form.value.notes || null,
       }
 
-      if (form.value.event_type === 'calving') {
+      if (isBirthEvent.value) {
         const cd = form.value.calving_details
         payload.calving_details = (cd.calf_sex || cd.calf_tag_number || cd.calf_weight) ? { ...cd } : null
+        payload.offspring_count = form.value.offspring_count || 1
       }
 
       if (form.value.event_type === 'preg_check_positive') {
@@ -455,20 +532,35 @@ async function submit() {
 
       const created = await breedingStore.createEvent(payload)
 
-      // Post-calving: redirect to Add Cow form with pre-filled calf details
-      if (form.value.event_type === 'calving' && form.value.calving_details.calf_sex) {
-        const q = {
-          from_calving: 'true',
-          dam_id: created.cow_id,
-          dob: new Date().toISOString().slice(0, 10),
-          sex: form.value.calving_details.calf_sex,
+      // Post-birth event: show offspring registration prompt if multiple offspring
+      if (isBirthEvent.value) {
+        const count = form.value.offspring_count || 1
+        if (count > 1) {
+          lastSavedOffspringCount.value = count
+          lastSavedEventId.value = created.id
+          lastSavedCowId.value = created.cow_id
+          showOffspringPrompt.value = true
+        } else if (form.value.calving_details.calf_sex) {
+          // Single offspring with sex info — redirect directly to add cow form
+          const q = {
+            birth_event_id: created.id,
+            dam_id: created.cow_id,
+            offspring_total: '1',
+            offspring_index: '1',
+            dob: new Date().toISOString().slice(0, 10),
+            sex: form.value.calving_details.calf_sex,
+          }
+          if (form.value.calving_details.calf_tag_number) {
+            q.tag_number = form.value.calving_details.calf_tag_number
+          }
+          if (created.sire_id) q.sire_id = created.sire_id
+          if (created.breed_type_id) q.breed_type_id = created.breed_type_id
+          router.replace({ path: '/cows/new', query: q })
+        } else if (route.query.cow_id) {
+          router.replace(`/cows/${created.cow_id}/repro`)
+        } else {
+          router.replace('/breed')
         }
-        if (form.value.calving_details.calf_tag_number) {
-          q.tag_number = form.value.calving_details.calf_tag_number
-        }
-        if (created.sire_id) q.sire_id = created.sire_id
-        if (created.breed_type_id) q.breed_type_id = created.breed_type_id
-        router.replace({ path: '/cows/new', query: q })
       } else if (route.query.cow_id) {
         router.replace(`/cows/${created.cow_id}/repro`)
       } else {
@@ -664,6 +756,25 @@ onMounted(async () => {
   font-size: 0.8rem;
   color: var(--danger);
   margin-top: 0.25rem;
+}
+
+.offspring-prompt {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--primary) 5%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.offspring-prompt-text {
+  margin: 0 0 0.75rem;
+  font-size: 0.9375rem;
+  color: var(--text);
+}
+
+.offspring-prompt-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 </style>
