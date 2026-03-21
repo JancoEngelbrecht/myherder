@@ -62,10 +62,9 @@ function getStats() {
 function recordError(method, path, status, message) {
   // Strip query string to avoid leaking tokens/secrets
   const cleanPath = (path || '/unknown').split('?')[0]
-  // Truncate message to avoid storing huge error strings
-  const truncated = typeof message === 'string' && message.length > 200
-    ? message.slice(0, 200) + '…'
-    : (message || 'Internal server error')
+  // Coerce to string and truncate to avoid storing huge error strings
+  const msgStr = String(message || 'Internal server error')
+  const truncated = msgStr.length > 200 ? msgStr.slice(0, 200) + '…' : msgStr
   stats.recentErrors[stats.errorWriteIndex] = {
     timestamp: new Date().toISOString(),
     method,

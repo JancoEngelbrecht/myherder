@@ -1,4 +1,5 @@
 const errorHandler = require('../middleware/errorHandler')
+const { resetStats, getRecentErrors } = require('../helpers/requestStats')
 
 function mockRes() {
   const res = {}
@@ -7,14 +8,19 @@ function mockRes() {
   return res
 }
 
+function mockReq(overrides = {}) {
+  return { method: 'GET', originalUrl: '/api/test', ...overrides }
+}
+
 const noop = () => {}
 
 describe('errorHandler', () => {
+  beforeEach(() => resetStats())
   it('SQLite UNIQUE constraint error returns 409', () => {
     const err = { code: 'SQLITE_CONSTRAINT_UNIQUE', message: 'UNIQUE constraint failed' }
     const res = mockRes()
 
-    errorHandler(err, {}, res, noop)
+    errorHandler(err, mockReq(), res, noop)
 
     expect(res.status).toHaveBeenCalledWith(409)
     expect(res.json).toHaveBeenCalledWith({ error: 'A record with that value already exists' })
@@ -24,7 +30,7 @@ describe('errorHandler', () => {
     const err = { code: 'ER_DUP_ENTRY', message: 'Duplicate entry' }
     const res = mockRes()
 
-    errorHandler(err, {}, res, noop)
+    errorHandler(err, mockReq(), res, noop)
 
     expect(res.status).toHaveBeenCalledWith(409)
   })
@@ -33,7 +39,7 @@ describe('errorHandler', () => {
     const err = { message: 'UNIQUE constraint failed: users.username' }
     const res = mockRes()
 
-    errorHandler(err, {}, res, noop)
+    errorHandler(err, mockReq(), res, noop)
 
     expect(res.status).toHaveBeenCalledWith(409)
   })
@@ -42,7 +48,7 @@ describe('errorHandler', () => {
     const err = { status: 400, message: '"username" is required' }
     const res = mockRes()
 
-    errorHandler(err, {}, res, noop)
+    errorHandler(err, mockReq(), res, noop)
 
     expect(res.status).toHaveBeenCalledWith(400)
     expect(res.json).toHaveBeenCalledWith({ error: 'username is required' })
@@ -54,7 +60,7 @@ describe('errorHandler', () => {
     const err = { message: 'Sensitive internal details' }
     const res = mockRes()
 
-    errorHandler(err, {}, res, noop)
+    errorHandler(err, mockReq(), res, noop)
 
     expect(res.status).toHaveBeenCalledWith(500)
     expect(res.json).toHaveBeenCalledWith({ error: 'Internal server error' })
@@ -67,7 +73,7 @@ describe('errorHandler', () => {
     const err = { message: 'Something broke' }
     const res = mockRes()
 
-    errorHandler(err, {}, res, noop)
+    errorHandler(err, mockReq(), res, noop)
 
     expect(res.status).toHaveBeenCalledWith(500)
     expect(res.json).toHaveBeenCalledWith({ error: 'Something broke' })
@@ -80,7 +86,7 @@ describe('errorHandler', () => {
     const err = { code: 'ER_TRUNCATED_WRONG_VALUE_FOR_FIELD', message: 'Sensitive details' }
     const res = mockRes()
 
-    errorHandler(err, {}, res, noop)
+    errorHandler(err, mockReq(), res, noop)
 
     expect(res.status).toHaveBeenCalledWith(500)
     expect(res.json).toHaveBeenCalledWith({
@@ -95,7 +101,7 @@ describe('errorHandler', () => {
     const err = { code: 'SQLITE_CONSTRAINT', status: 500 }
     const res = mockRes()
 
-    errorHandler(err, {}, res, noop)
+    errorHandler(err, mockReq(), res, noop)
 
     expect(res.status).toHaveBeenCalledWith(500)
     expect(res.json).toHaveBeenCalledWith(
@@ -110,10 +116,43 @@ describe('errorHandler', () => {
     const err = { message: 'Sensitive details' }
     const res = mockRes()
 
-    errorHandler(err, {}, res, noop)
+    errorHandler(err, mockReq(), res, noop)
 
     expect(res.status).toHaveBeenCalledWith(500)
     expect(res.json).toHaveBeenCalledWith({ error: 'Internal server error' })
     process.env.NODE_ENV = prev
+  })
+
+  it('records 5xx errors in the recent errors buffer', () => {
+    const err = { message: 'DB connection lost' }
+    const res = mockRes()
+    const req = mockReq({ method: 'POST', originalUrl: '/api/cows' })
+
+    errorHandler(err, req, res, noop)
+
+    const errors = getRecentErrors()
+    expect(errors).toHaveLength(1)
+    expect(errors[0].method).toBe('POST')
+    expect(errors[0].path).toBe('/api/cows')
+    expect(errors[0].status).toBe(500)
+    expect(errors[0].message).toBe('DB connection lost')
+  })
+
+  it('does not record 4xx errors in the buffer', () => {
+    const err = { status: 400, message: 'Bad request' }
+    const res = mockRes()
+
+    errorHandler(err, mockReq(), res, noop)
+
+    expect(getRecentErrors()).toHaveLength(0)
+  })
+
+  it('does not record 409 constraint errors in the buffer', () => {
+    const err = { code: 'SQLITE_CONSTRAINT_UNIQUE', message: 'UNIQUE constraint failed' }
+    const res = mockRes()
+
+    errorHandler(err, mockReq(), res, noop)
+
+    expect(getRecentErrors()).toHaveLength(0)
   })
 })

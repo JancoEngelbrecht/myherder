@@ -157,7 +157,7 @@
           </div>
           <template v-if="health.recent_errors && health.recent_errors.length">
             <div class="error-list">
-              <div v-for="err in health.recent_errors" :key="err.timestamp + err.path" class="error-item">
+              <div v-for="(err, i) in health.recent_errors" :key="i" class="error-item">
                 <div class="error-top">
                   <span class="mono error-method">{{ err.method }}</span>
                   <span class="mono error-path">{{ err.path }}</span>
