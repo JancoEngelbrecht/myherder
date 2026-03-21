@@ -1,4 +1,6 @@
-module.exports = function errorHandler(err, _req, res, _next) {
+const { recordError } = require('../helpers/requestStats');
+
+module.exports = function errorHandler(err, req, res, _next) {
   console.error(err.stack || err.message || err);
 
   // Database unique constraint violations (SQLite + MySQL)
@@ -16,6 +18,13 @@ module.exports = function errorHandler(err, _req, res, _next) {
     ? (process.env.NODE_ENV === 'production' ? 'Internal server error' : (err.message || 'Internal server error'))
     : err.message;
   const message = typeof raw === 'string' ? raw.replace(/['"]/g, '') : raw;
+
+  // Record 5xx errors for the system health dashboard (use err.message
+  // directly — this data is super-admin-only and in-memory only)
+  if (status >= 500) {
+    const errorMsg = err.message || 'Internal server error'
+    recordError(req.method, req.originalUrl || req.url, status, errorMsg);
+  }
 
   const response = { error: message };
   if (status === 500 && err.code && process.env.NODE_ENV !== 'production') {

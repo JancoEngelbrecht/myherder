@@ -1994,6 +1994,8 @@
     "errorRate": "5xx Koers",
     "unavailable": "Nie beskikbaar op hierdie platform nie",
     "refresh": "Herlaai",
-    "loadError": "Kon nie stelselgesondheid data laai nie."
+    "loadError": "Kon nie stelselgesondheid data laai nie.",
+    "recentErrors": "Onlangse Foute",
+    "noRecentErrors": "Geen onlangse bediener foute nie"
   }
 }

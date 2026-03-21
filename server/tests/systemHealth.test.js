@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken')
 const app = require('../app')
 const db = require('../config/database')
 const { jwtSecret } = require('../config/env')
-const { resetStats } = require('../helpers/requestStats')
+const { resetStats, recordError, getRecentErrors } = require('../helpers/requestStats')
 const { seedUsers, DEFAULT_FARM_ID } = require('./helpers/setup')
 const { adminToken, workerToken, superAdminToken, SUPER_ADMIN_ID } = require('./helpers/tokens')
 const bcrypt = require('bcryptjs')
@@ -168,5 +168,86 @@ describe('GET /api/system/health', () => {
       .set('Authorization', superAdminToken())
     expect(res.status).toBe(200)
     expect(typeof res.body.requests.error_rate_5xx_pct).toBe('number')
+  })
+
+  it('includes recent_errors array in response', async () => {
+    const res = await request(app)
+      .get('/api/system/health')
+      .set('Authorization', superAdminToken())
+    expect(res.status).toBe(200)
+    expect(Array.isArray(res.body.recent_errors)).toBe(true)
+  })
+
+  it('returns recorded 5xx errors in recent_errors', async () => {
+    recordError('GET', '/api/cows', 500, 'Something broke')
+    recordError('POST', '/api/milk-records', 500, 'DB connection lost')
+
+    const res = await request(app)
+      .get('/api/system/health')
+      .set('Authorization', superAdminToken())
+    expect(res.status).toBe(200)
+    expect(res.body.recent_errors.length).toBe(2)
+    // Newest first
+    expect(res.body.recent_errors[0].path).toBe('/api/milk-records')
+    expect(res.body.recent_errors[1].path).toBe('/api/cows')
+  })
+})
+
+describe('recordError / getRecentErrors', () => {
+  it('records error with all fields', () => {
+    recordError('GET', '/api/cows', 500, 'Test error')
+    const errors = getRecentErrors()
+    expect(errors).toHaveLength(1)
+    expect(errors[0]).toHaveProperty('timestamp')
+    expect(errors[0].method).toBe('GET')
+    expect(errors[0].path).toBe('/api/cows')
+    expect(errors[0].status).toBe(500)
+    expect(errors[0].message).toBe('Test error')
+  })
+
+  it('returns newest errors first', () => {
+    recordError('GET', '/api/a', 500, 'First')
+    recordError('GET', '/api/b', 500, 'Second')
+    recordError('GET', '/api/c', 500, 'Third')
+    const errors = getRecentErrors()
+    expect(errors[0].message).toBe('Third')
+    expect(errors[1].message).toBe('Second')
+    expect(errors[2].message).toBe('First')
+  })
+
+  it('returns empty array when no errors recorded', () => {
+    expect(getRecentErrors()).toEqual([])
+  })
+
+  it('strips query params from path', () => {
+    recordError('GET', '/api/cows?token=secret123&page=1', 500, 'Err')
+    const errors = getRecentErrors()
+    expect(errors[0].path).toBe('/api/cows')
+  })
+
+  it('truncates long messages to 200 chars', () => {
+    const longMsg = 'x'.repeat(300)
+    recordError('GET', '/api/test', 500, longMsg)
+    const errors = getRecentErrors()
+    expect(errors[0].message.length).toBeLessThanOrEqual(201) // 200 + ellipsis char
+    expect(errors[0].message).toContain('…')
+  })
+
+  it('wraps at buffer limit (20) and keeps newest', () => {
+    for (let i = 0; i < 25; i++) {
+      recordError('GET', `/api/item${i}`, 500, `Error ${i}`)
+    }
+    const errors = getRecentErrors()
+    expect(errors).toHaveLength(20)
+    // Newest should be item24, oldest should be item5
+    expect(errors[0].path).toBe('/api/item24')
+    expect(errors[19].path).toBe('/api/item5')
+  })
+
+  it('is cleared by resetStats', () => {
+    recordError('GET', '/api/test', 500, 'Error')
+    expect(getRecentErrors()).toHaveLength(1)
+    resetStats()
+    expect(getRecentErrors()).toEqual([])
   })
 })

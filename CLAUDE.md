@@ -156,7 +156,7 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
 - `PATCH /api/announcements/:id` — super-admin only; update
 - `DELETE /api/announcements/:id` — super-admin only; soft deactivate
 - `POST /api/announcements/:id/dismiss` — authenticated; dismiss for current user (idempotent)
-- `GET /api/system/health` — super-admin only; operational metrics snapshot. Returns `{ node_version, uptime_seconds, memory: { rss_mb, heap_used_mb, heap_total_mb }, disk: { total_gb, used_gb, available_gb, used_pct } | null, database: { size_mb, tables: [{ name, rows, size_mb }] } | null, requests: { started_at, total, errors_4xx, errors_5xx, error_rate_5xx_pct, avg_response_ms, p95_response_ms, window_size }, thresholds: { memory_status, disk_status, response_status, error_status } }`. Threshold values: `green` / `yellow` / `red` / `unknown`
+- `GET /api/system/health` — super-admin only; operational metrics snapshot. Returns `{ node_version, uptime_seconds, memory: { rss_mb, heap_used_mb, heap_total_mb }, disk: { total_gb, used_gb, available_gb, used_pct } | null, database: { size_mb, tables: [{ name, rows, size_mb }] } | null, requests: { started_at, total, errors_4xx, errors_5xx, error_rate_5xx_pct, avg_response_ms, p95_response_ms, window_size }, recent_errors: [{ timestamp, method, path, status, message }], thresholds: { memory_status, disk_status, response_status, error_status } }`. Threshold values: `green` / `yellow` / `red` / `unknown`. Recent errors: last 20 5xx errors (in-memory, newest first, resets on restart)
 
 ## i18n
 

@@ -4,7 +4,7 @@ const { execFile } = require('child_process')
 const { promisify } = require('util')
 const db = require('../config/database')
 const { isProduction } = require('../config/env')
-const { getStats } = require('../helpers/requestStats')
+const { getStats, getRecentErrors } = require('../helpers/requestStats')
 const authenticate = require('../middleware/auth')
 const requireSuperAdmin = require('../middleware/requireSuperAdmin')
 
@@ -145,6 +145,7 @@ router.get('/health', async (_req, res, next) => {
       disk,
       database,
       requests,
+      recent_errors: getRecentErrors(),
       thresholds,
     })
   } catch (err) {

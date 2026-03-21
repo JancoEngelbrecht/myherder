@@ -1,5 +1,6 @@
 // In-memory request stats — resets on process restart (ephemeral by design)
 const WINDOW_SIZE = 1000
+const ERROR_BUFFER_SIZE = 20
 
 let stats = createFreshStats()
 
@@ -13,6 +14,10 @@ function createFreshStats() {
     responseTimes: new Array(WINDOW_SIZE),
     writeIndex: 0,
     count: 0, // how many slots are filled (max WINDOW_SIZE)
+    // Recent 5xx errors (circular buffer, newest first on read)
+    recentErrors: new Array(ERROR_BUFFER_SIZE),
+    errorWriteIndex: 0,
+    errorCount: 0,
   }
 }
 
@@ -54,6 +59,35 @@ function getStats() {
   }
 }
 
+function recordError(method, path, status, message) {
+  // Strip query string to avoid leaking tokens/secrets
+  const cleanPath = (path || '/unknown').split('?')[0]
+  // Truncate message to avoid storing huge error strings
+  const truncated = typeof message === 'string' && message.length > 200
+    ? message.slice(0, 200) + '…'
+    : (message || 'Internal server error')
+  stats.recentErrors[stats.errorWriteIndex] = {
+    timestamp: new Date().toISOString(),
+    method,
+    path: cleanPath,
+    status,
+    message: truncated,
+  }
+  stats.errorWriteIndex = (stats.errorWriteIndex + 1) % ERROR_BUFFER_SIZE
+  if (stats.errorCount < ERROR_BUFFER_SIZE) stats.errorCount++
+}
+
+function getRecentErrors() {
+  if (stats.errorCount === 0) return []
+  const filled = []
+  // Read from buffer in reverse insertion order (newest first)
+  for (let i = 0; i < stats.errorCount; i++) {
+    const idx = (stats.errorWriteIndex - 1 - i + ERROR_BUFFER_SIZE) % ERROR_BUFFER_SIZE
+    filled.push(stats.recentErrors[idx])
+  }
+  return filled
+}
+
 /** Express middleware — call app.use(requestStatsMiddleware) */
 function requestStatsMiddleware(req, res, next) {
   const start = process.hrtime.bigint()
@@ -69,4 +103,4 @@ function resetStats() {
   stats = createFreshStats()
 }
 
-module.exports = { recordRequest, getStats, requestStatsMiddleware, resetStats }
+module.exports = { recordRequest, recordError, getStats, getRecentErrors, requestStatsMiddleware, resetStats }

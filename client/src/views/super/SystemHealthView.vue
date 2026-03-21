@@ -150,6 +150,29 @@
           </div>
         </div>
 
+        <!-- Recent Errors -->
+        <div class="card metric-card">
+          <div class="metric-header">
+            <h3 class="section-label">{{ t('systemHealth.recentErrors') }}</h3>
+          </div>
+          <template v-if="health.recent_errors && health.recent_errors.length">
+            <div class="error-list">
+              <div v-for="err in health.recent_errors" :key="err.timestamp + err.path" class="error-item">
+                <div class="error-top">
+                  <span class="mono error-method">{{ err.method }}</span>
+                  <span class="mono error-path">{{ err.path }}</span>
+                  <span class="mono error-status">{{ err.status }}</span>
+                </div>
+                <div class="error-bottom">
+                  <span class="error-message">{{ err.message }}</span>
+                  <span class="mono error-time">{{ formatDate(err.timestamp) }}</span>
+                </div>
+              </div>
+            </div>
+          </template>
+          <p v-else class="unavailable">{{ t('systemHealth.noRecentErrors') }}</p>
+        </div>
+
         <!-- Refresh -->
         <button class="btn-secondary refresh-btn" :disabled="loading" @click="load">
           {{ t('systemHealth.refresh') }}
@@ -389,6 +412,66 @@ onMounted(load)
   color: var(--text-muted);
   font-style: italic;
   margin: 8px 0 0;
+}
+
+.error-list {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.error-item {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  border-left: 3px solid var(--danger);
+}
+
+.error-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+}
+
+.error-method {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.error-path {
+  color: var(--text);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.error-status {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.error-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 0.75rem;
+}
+
+.error-message {
+  color: var(--text-muted);
+  flex: 1;
+  word-break: break-word;
+}
+
+.error-time {
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .refresh-btn {

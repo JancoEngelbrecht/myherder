@@ -1994,6 +1994,8 @@
     "errorRate": "5xx Rate",
     "unavailable": "Not available on this platform",
     "refresh": "Refresh",
-    "loadError": "Could not load system health data."
+    "loadError": "Could not load system health data.",
+    "recentErrors": "Recent Errors",
+    "noRecentErrors": "No recent server errors"
   }
 }
