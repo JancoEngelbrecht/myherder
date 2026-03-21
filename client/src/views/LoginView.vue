@@ -188,6 +188,7 @@ function getErrorMessage(err) {
   if (err.message === 'offline-no-session') return t('sync.cannotLogin')
   const status = err.response?.status
   if (status === 423) return t('login.errorLocked')
+  if (status === 429) return t('login.errorRateLimited')
   if (status === 401 || status === 400) {
     const serverMsg = err.response?.data?.error
     if (serverMsg === 'Invalid farm code') return t('login.invalidFarmCode')

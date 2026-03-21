@@ -19,6 +19,7 @@
     "loginBtn": "Log In",
     "errorInvalid": "Invalid username or password",
     "errorLocked": "Account is locked. Try again later.",
+    "errorRateLimited": "Too many login attempts. Please wait a few minutes.",
     "errorNetwork": "Network error. Please try again.",
     "farmCode": "Farm Code",
     "farmCodePlaceholder": "Enter farm code",

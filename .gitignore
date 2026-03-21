@@ -37,3 +37,6 @@ coverage/
 
 # Temp files
 tmpclaude-*
+
+# Session transcripts
+.sessions/

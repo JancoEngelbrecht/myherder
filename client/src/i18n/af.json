@@ -19,6 +19,7 @@
     "loginBtn": "Aanmeld",
     "errorInvalid": "Ongeldige gebruikersnaam of wagwoord",
     "errorLocked": "Rekening is gesluit. Probeer later weer.",
+    "errorRateLimited": "Te veel aanmeldpogings. Wag asseblief 'n paar minute.",
     "errorNetwork": "Netwerkfout. Probeer asseblief weer.",
     "farmCode": "Plaaskode",
     "farmCodePlaceholder": "Voer plaaskode in",
