@@ -816,7 +816,7 @@
     "adminTools": "Admin Tools",
     "medicationsDesc": "Manage medications and withdrawal periods",
     "issueTypesDesc": "Configure health issue types and categories",
-"breedTypesDesc": "Manage breed types and their timing defaults",
+    "breedTypesDesc": "Manage breed types and their timing defaults",
     "usersDesc": "Manage users, roles, and permissions",
     "auditLogDesc": "View change history for users, cows, and settings",
     "reportsDesc": "Generate PDF and Excel reports for audits and analysis",
@@ -1081,7 +1081,16 @@
     "deleteFarmConfirm": "Delete Permanently",
     "deleteConfirmMessage": "This will PERMANENTLY delete farm \"{name}\" and ALL its data (cows, milk records, treatments, health issues, breeding events, users, etc). This cannot be undone.",
     "typeToConfirm": "Type \"{name}\" to confirm:",
-    "farmDeleted": "Farm permanently deleted"
+    "farmDeleted": "Farm permanently deleted",
+    "speciesLabel": "Species",
+    "speciesHint": "Determines which breed types, issue types, and breeding events are seeded for this farm.",
+    "speciesManagement": "Species Management",
+    "speciesTerminology": "Terminology",
+    "speciesLifePhases": "Life Phases",
+    "speciesEventTypes": "Event Types",
+    "typicalMultipleBirths": "Typical births per event",
+    "maxOffspring": "Max offspring per event",
+    "noSpecies": "No species configured"
   },
   "help": {
     "title": "Help Library",
@@ -2065,7 +2074,10 @@
     "export": "Export All",
     "totalFarms": "Farms",
     "totalUsers": "Users",
-    "totalCows": "Cows"
+    "totalCows": "Cows",
+    "filterBySpecies": "Filter by Species",
+    "allSpecies": "All Species",
+    "noFarmsForSpecies": "No farms match this species filter"
   },
   "announcements": {
     "title": "Announcements",

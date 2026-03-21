@@ -20,6 +20,10 @@
           <span class="action-icon">📤</span>
           <span class="action-label">{{ t('globalDefaults.pushDefaults') }}</span>
         </RouterLink>
+        <RouterLink to="/super/species" class="action-card active-action">
+          <span class="action-icon">🐾</span>
+          <span class="action-label">{{ t('superAdmin.speciesManagement') }}</span>
+        </RouterLink>
       </div>
     </div>
   </div>
@@ -54,7 +58,10 @@ const { t } = useI18n()
   aspect-ratio: 4 / 3;
   text-align: center;
   cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.15s, border-color 0.15s;
+  transition:
+    transform 0.1s,
+    box-shadow 0.15s,
+    border-color 0.15s;
   color: var(--text);
 }
 

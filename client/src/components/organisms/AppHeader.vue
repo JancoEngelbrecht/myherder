@@ -13,12 +13,44 @@
     <div class="header-right">
       <slot name="right">
         <div class="header-actions">
+          <!-- Farm switcher pill — only shown when user has 2+ farms -->
+          <div v-if="showFarmSwitcher" class="farm-switcher" @click.stop="toggleFarmDropdown">
+            <span class="farm-pill">
+              {{ farmPillLabel }}
+              <span class="farm-pill-arrow">{{ farmDropdownOpen ? '▴' : '▾' }}</span>
+            </span>
+            <div v-if="farmDropdownOpen" class="farm-dropdown" @click.stop>
+              <button
+                v-for="farm in authStore.myFarms"
+                :key="farm.id"
+                class="farm-option"
+                :class="{ 'farm-option-active': farm.id === authStore.user?.farm_id }"
+                :disabled="switching"
+                @click="handleSwitchFarm(farm.id)"
+              >
+                <span class="farm-option-emoji">{{
+                  farm.species?.code === 'sheep' ? '🐑' : '🐄'
+                }}</span>
+                <span class="farm-option-name">{{ farm.name }}</span>
+              </button>
+            </div>
+          </div>
+
           <SyncIndicator @click="showSyncPanel = true" />
           <SyncPanel :show="showSyncPanel" @close="showSyncPanel = false" />
-          <button class="lang-toggle" :title="locale === 'en' ? t('common.switchToAfrikaans') : t('common.switchToEnglish')" @click="toggleLang">
+          <button
+            class="lang-toggle"
+            :title="locale === 'en' ? t('common.switchToAfrikaans') : t('common.switchToEnglish')"
+            @click="toggleLang"
+          >
             {{ locale === 'en' ? 'AF' : 'EN' }}
           </button>
-          <RouterLink v-if="showAvatar" to="/profile" class="avatar-circle" :aria-label="t('common.profile')">
+          <RouterLink
+            v-if="showAvatar"
+            to="/profile"
+            class="avatar-circle"
+            :aria-label="t('common.profile')"
+          >
             {{ initials }}
           </RouterLink>
         </div>
@@ -28,16 +60,22 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth.js'
 import { getInitials } from '../../utils/initials.js'
 import SyncIndicator from '../atoms/SyncIndicator.vue'
 import SyncPanel from '../molecules/SyncPanel.vue'
+import { extractApiError, resolveError } from '../../utils/apiError.js'
+import { useToast } from '../../composables/useToast.js'
 
 const showSyncPanel = ref(false)
+const farmDropdownOpen = ref(false)
+const switching = ref(false)
+
 const authStore = useAuthStore()
+const { showToast } = useToast()
 
 const props = defineProps({
   title: { type: String, default: 'MyHerder' },
@@ -50,6 +88,19 @@ const initials = computed(() => getInitials(authStore.user))
 
 const router = useRouter()
 const { t, locale } = useI18n()
+
+// Show switcher only for non-super-admin users with 2+ farms
+const showFarmSwitcher = computed(() => {
+  if (authStore.isSuperAdmin) return false
+  return authStore.myFarms.length > 1
+})
+
+const farmPillLabel = computed(() => {
+  const farm = authStore.myFarms.find((f) => f.id === authStore.user?.farm_id)
+  const speciesCode = farm?.species?.code ?? authStore.user?.species_code ?? 'cattle'
+  const emoji = speciesCode === 'sheep' ? '🐑' : '🐄'
+  return `${emoji} ${farm?.name ?? ''}`
+})
 
 function handleBack() {
   if (window.history.state?.back) {
@@ -66,6 +117,49 @@ function toggleLang() {
   locale.value = next
   localStorage.setItem('locale', next)
 }
+
+function toggleFarmDropdown() {
+  farmDropdownOpen.value = !farmDropdownOpen.value
+}
+
+function closeFarmDropdown() {
+  farmDropdownOpen.value = false
+}
+
+async function handleSwitchFarm(farmId) {
+  if (farmId === authStore.user?.farm_id) {
+    closeFarmDropdown()
+    return
+  }
+  switching.value = true
+  try {
+    await authStore.switchFarm(farmId)
+    closeFarmDropdown()
+    // Navigate to dashboard to reload all farm-scoped data
+    router.push('/')
+  } catch (err) {
+    showToast(resolveError(extractApiError(err), t), 'error')
+  } finally {
+    switching.value = false
+  }
+}
+
+// Close dropdown when clicking outside
+function handleOutsideClick() {
+  if (farmDropdownOpen.value) closeFarmDropdown()
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleOutsideClick)
+  // Load farms if not yet loaded (e.g. restored from localStorage on hydrate)
+  if (!authStore.isSuperAdmin && authStore.myFarms.length === 0 && authStore.isAuthenticated) {
+    authStore.fetchMyFarms().catch(() => {})
+  }
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleOutsideClick)
+})
 </script>
 
 <style scoped>
@@ -163,5 +257,88 @@ function toggleLang() {
   text-decoration: none;
   line-height: 1;
   flex-shrink: 0;
+}
+
+/* Farm switcher */
+.farm-switcher {
+  position: relative;
+}
+
+.farm-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-full, 999px);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: none;
+}
+
+.farm-pill-arrow {
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.farm-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 180px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 300;
+  overflow: hidden;
+}
+
+.farm-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-size: 0.875rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.farm-option:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.farm-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.farm-option-active {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.farm-option-emoji {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.farm-option-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

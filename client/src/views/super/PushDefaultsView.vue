@@ -16,7 +16,32 @@
               class="chip"
               :class="{ active: selectedType === et.value }"
               @click="selectedType = et.value"
-            >{{ et.label }}</button>
+            >
+              {{ et.label }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Species filter (breed-types only — defaults are species-specific) -->
+        <div v-if="selectedType === 'breed-types'" class="form-group">
+          <label>{{ $t('globalDefaults.filterBySpecies') }}</label>
+          <div class="chip-row">
+            <button
+              class="chip"
+              :class="{ active: selectedSpecies === null }"
+              @click="selectedSpecies = null"
+            >
+              {{ $t('globalDefaults.allSpecies') }}
+            </button>
+            <button
+              v-for="sp in availableSpecies"
+              :key="sp.code"
+              class="chip"
+              :class="{ active: selectedSpecies === sp.code }"
+              @click="selectedSpecies = sp.code"
+            >
+              {{ sp.code === 'sheep' ? '🐑' : '🐄' }} {{ sp.name }}
+            </button>
           </div>
         </div>
 
@@ -29,10 +54,16 @@
           </label>
           <div v-if="loadingFarms" class="spinner-wrap"><div class="spinner" /></div>
           <div v-else class="farm-checkboxes">
-            <label v-for="farm in farms" :key="farm.id" class="checkbox-label">
+            <label v-for="farm in filteredFarms" :key="farm.id" class="checkbox-label">
               <input v-model="selectedFarms" type="checkbox" :value="farm.id" />
+              <span class="farm-species-emoji">{{
+                farm.species?.code === 'sheep' ? '🐑' : '🐄'
+              }}</span>
               {{ farm.name }} <span class="mono farm-code">{{ farm.code }}</span>
             </label>
+            <p v-if="!filteredFarms.length" class="no-farms-hint">
+              {{ $t('globalDefaults.noFarmsForSpecies') }}
+            </p>
           </div>
         </div>
 
@@ -49,9 +80,18 @@
 
         <!-- Result -->
         <div v-if="result" class="result-summary">
-          <p><strong>{{ $t('globalDefaults.pushed') }}:</strong> <span class="mono">{{ result.pushed }}</span></p>
-          <p><strong>{{ $t('globalDefaults.skipped') }}:</strong> <span class="mono">{{ result.skipped }}</span></p>
-          <p><strong>{{ $t('globalDefaults.farmsAffected') }}:</strong> <span class="mono">{{ result.farms_affected }}</span></p>
+          <p>
+            <strong>{{ $t('globalDefaults.pushed') }}:</strong>
+            <span class="mono">{{ result.pushed }}</span>
+          </p>
+          <p>
+            <strong>{{ $t('globalDefaults.skipped') }}:</strong>
+            <span class="mono">{{ result.skipped }}</span>
+          </p>
+          <p>
+            <strong>{{ $t('globalDefaults.farmsAffected') }}:</strong>
+            <span class="mono">{{ result.farms_affected }}</span>
+          </p>
         </div>
 
         <p v-if="error" class="form-error">{{ error }}</p>
@@ -60,7 +100,9 @@
 
     <ConfirmDialog
       :show="showConfirm"
-      :message="$t('globalDefaults.pushConfirm', { type: selectedTypeLabel, count: selectedFarms.length })"
+      :message="
+        $t('globalDefaults.pushConfirm', { type: selectedTypeLabel, count: selectedFarms.length })
+      "
       :confirm-label="$t('globalDefaults.pushToFarms')"
       :cancel-label="$t('common.cancel')"
       :loading="pushing"
@@ -71,7 +113,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import AppHeader from '../../components/organisms/AppHeader.vue'
@@ -89,9 +131,13 @@ const entityTypes = computed(() => [
 ])
 
 const selectedType = ref('medications')
-const selectedTypeLabel = computed(() => entityTypes.value.find((e) => e.value === selectedType.value)?.label || '')
+const selectedTypeLabel = computed(
+  () => entityTypes.value.find((e) => e.value === selectedType.value)?.label || ''
+)
+const selectedSpecies = ref(null)
 
 const farms = ref([])
+const availableSpecies = ref([])
 const loadingFarms = ref(true)
 const selectedFarms = ref([])
 const pushing = ref(false)
@@ -99,16 +145,41 @@ const showConfirm = ref(false)
 const result = ref(null)
 const error = ref('')
 
-const allSelected = computed(() => farms.value.length > 0 && selectedFarms.value.length === farms.value.length)
+// When switching entity type away from breed-types, reset species filter
+watch(selectedType, (val) => {
+  if (val !== 'breed-types') selectedSpecies.value = null
+  // Clear selection when type or species filter changes
+  selectedFarms.value = []
+})
+
+watch(selectedSpecies, () => {
+  selectedFarms.value = []
+})
+
+// Farms filtered by selected species (only for breed-types)
+const filteredFarms = computed(() => {
+  if (selectedType.value !== 'breed-types' || selectedSpecies.value === null) {
+    return farms.value
+  }
+  return farms.value.filter((f) => f.species?.code === selectedSpecies.value)
+})
+
+const allSelected = computed(
+  () => filteredFarms.value.length > 0 && selectedFarms.value.length === filteredFarms.value.length
+)
 
 function toggleAll(e) {
-  selectedFarms.value = e.target.checked ? farms.value.map((f) => f.id) : []
+  selectedFarms.value = e.target.checked ? filteredFarms.value.map((f) => f.id) : []
 }
 
 onMounted(async () => {
   try {
-    const { data } = await api.get('/farms?active=1')
-    farms.value = data
+    const [farmsRes, speciesRes] = await Promise.all([
+      api.get('/farms?active=1'),
+      api.get('/species'),
+    ])
+    farms.value = farmsRes.data
+    availableSpecies.value = speciesRes.data
   } catch (err) {
     showToast(resolveError(extractApiError(err), t), 'error')
   } finally {
@@ -141,19 +212,82 @@ async function doPush() {
 </script>
 
 <style scoped>
-.push-content { padding-bottom: 40px; }
-.push-card { padding: 20px; max-width: 600px; margin: 0 auto; }
-.form-title { margin: 0 0 20px; font-size: 1rem; font-weight: 600; }
-.chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
-.chip { padding: 8px 16px; border-radius: var(--radius-full); border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 0.85rem; }
-.chip.active { background: var(--primary); color: white; border-color: var(--primary); }
-.checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px 0; }
-.select-all { font-weight: 600; margin-bottom: 4px; }
-.farm-checkboxes { max-height: 300px; overflow-y: auto; }
-.farm-code { font-size: 0.8rem; color: var(--text-muted); }
-.form-actions { margin-top: 20px; }
-.form-actions .btn-primary { width: auto; padding: 10px 24px; }
-.result-summary { margin-top: 16px; padding: 0 0 0 16px; border-left: 3px solid var(--primary); }
-.result-summary p { margin: 4px 0; }
-.spinner-wrap { display: flex; justify-content: center; padding: 20px; }
+.push-content {
+  padding-bottom: 40px;
+}
+.push-card {
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.form-title {
+  margin: 0 0 20px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.chip-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.chip {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.chip.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 10px 0;
+}
+.select-all {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.farm-checkboxes {
+  max-height: 300px;
+  overflow-y: auto;
+}
+.farm-code {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.farm-species-emoji {
+  font-size: 1rem;
+}
+.no-farms-hint {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin: 8px 0 0;
+}
+.form-actions {
+  margin-top: 20px;
+}
+.form-actions .btn-primary {
+  width: auto;
+  padding: 10px 24px;
+}
+.result-summary {
+  margin-top: 16px;
+  padding: 0 0 0 16px;
+  border-left: 3px solid var(--primary);
+}
+.result-summary p {
+  margin: 4px 0;
+}
+.spinner-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
 </style>

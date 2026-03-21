@@ -14,8 +14,13 @@ export const useAuthStore = defineStore('auth', () => {
   const pending2fa = ref(false)
   const pending2faSetup = ref(false)
 
+  // Farm switcher: list of farms the current user has access to
+  const myFarms = ref([])
+
   const storedFarmName = localStorage.getItem('active_farm_name')
-  const activeFarmName = ref(storedFarmName !== null && storedFarmName !== '' ? storedFarmName : null)
+  const activeFarmName = ref(
+    storedFarmName !== null && storedFarmName !== '' ? storedFarmName : null
+  )
 
   const isAuthenticated = computed(() => !!token.value)
   const isAdmin = computed(() => user.value?.role === 'admin' || user.value?.role === 'super_admin')
@@ -107,9 +112,13 @@ export const useAuthStore = defineStore('auth', () => {
         if (restoredPayload.role !== 'super_admin' || restoredPayload.farm_id) {
           const featureFlagsStore = useFeatureFlagsStore()
           featureFlagsStore.fetchFlags().catch(() => {})
-          import('./species.js').then(({ useSpeciesStore }) => {
-            useSpeciesStore().fetchAll().catch(() => {})
-          }).catch(() => {})
+          import('./species.js')
+            .then(({ useSpeciesStore }) => {
+              useSpeciesStore()
+                .fetchAll()
+                .catch(() => {})
+            })
+            .catch(() => {})
         }
       }
     } catch {
@@ -157,6 +166,8 @@ export const useAuthStore = defineStore('auth', () => {
     const { useCowsStore } = await import('./cows.js')
     const cowsStore = useCowsStore()
     cowsStore.fetchAll().catch(() => {})
+    // Load farm list for farm switcher (non-super-admin only)
+    fetchMyFarms().catch(() => {})
   }
 
   function decodeToken(jwt) {
@@ -256,19 +267,47 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function confirm2fa(code) {
-    const { data } = await api.post('/auth/confirm-2fa', { code }, {
-      headers: { Authorization: `Bearer ${tempToken.value}` },
-    })
+    const { data } = await api.post(
+      '/auth/confirm-2fa',
+      { code },
+      {
+        headers: { Authorization: `Bearer ${tempToken.value}` },
+      }
+    )
     await setSession(data)
     return data
   }
 
   async function verify2fa(code) {
-    const { data } = await api.post('/auth/verify-2fa', { code }, {
-      headers: { Authorization: `Bearer ${tempToken.value}` },
-    })
+    const { data } = await api.post(
+      '/auth/verify-2fa',
+      { code },
+      {
+        headers: { Authorization: `Bearer ${tempToken.value}` },
+      }
+    )
     await setSession(data)
     return data
+  }
+
+  /** Load the list of farms this user has accounts on. */
+  async function fetchMyFarms() {
+    try {
+      const { data } = await api.get('/auth/my-farms')
+      myFarms.value = data
+    } catch {
+      // Non-critical — farm switcher just won't appear
+    }
+  }
+
+  /**
+   * Switch to a different farm the user is assigned to.
+   * Issues a new JWT scoped to the target farm and re-initializes all stores.
+   */
+  async function switchFarm(farmId) {
+    const { data } = await api.post(`/auth/switch-farm/${farmId}`)
+    await setSession(data)
+    localStorage.setItem('last_farm_id', farmId)
   }
 
   async function enterFarm(farmId) {
@@ -316,9 +355,14 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem('auth_token', superToken)
     localStorage.removeItem('farm_id')
     localStorage.removeItem('farm_code')
+    myFarms.value = []
 
     // Close farm-scoped DB and re-init without farm context
-    try { await db.auth.delete('session') } catch { /* may be closed */ }
+    try {
+      await db.auth.delete('session')
+    } catch {
+      /* may be closed */
+    }
     await closeDb()
     await initDb(null)
     await db.auth.put({ key: 'session', token: superToken, user: userData })
@@ -332,6 +376,7 @@ export const useAuthStore = defineStore('auth', () => {
     pending2fa.value = false
     pending2faSetup.value = false
     activeFarmName.value = null
+    myFarms.value = []
     localStorage.removeItem('auth_token')
     localStorage.removeItem('farm_id')
     localStorage.removeItem('farm_code')
@@ -346,12 +391,30 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    token, user, hydrated, isOfflineMode,
+    token,
+    user,
+    hydrated,
+    isOfflineMode,
     tempToken,
     activeFarmName,
-    isAuthenticated, isAdmin, isSuperAdmin, isInFarmContext, canManageCows, hasPermission,
-    hydrate, login, loginPin, logout, setSession,
-    setup2fa, confirm2fa, verify2fa,
-    enterFarm, exitFarm,
+    myFarms,
+    isAuthenticated,
+    isAdmin,
+    isSuperAdmin,
+    isInFarmContext,
+    canManageCows,
+    hasPermission,
+    hydrate,
+    login,
+    loginPin,
+    logout,
+    setSession,
+    setup2fa,
+    confirm2fa,
+    verify2fa,
+    enterFarm,
+    exitFarm,
+    fetchMyFarms,
+    switchFarm,
   }
 })

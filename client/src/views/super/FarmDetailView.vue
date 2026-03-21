@@ -19,7 +19,13 @@
           </div>
 
           <div class="detail-meta">
-            <span>{{ t('superAdmin.created') }}: {{ new Date(farm.created_at).toLocaleDateString() }}</span>
+            <span
+              >{{ t('superAdmin.created') }}:
+              {{ new Date(farm.created_at).toLocaleDateString() }}</span
+            >
+            <span v-if="farm.species" class="detail-species">
+              {{ farm.species.code === 'sheep' ? '🐑' : '🐄' }} {{ farm.species.name }}
+            </span>
           </div>
 
           <div class="detail-actions">
@@ -36,11 +42,7 @@
             >
               {{ t('superAdmin.deactivateFarm') }}
             </button>
-            <button
-              v-else
-              class="btn-secondary btn-sm-pill"
-              @click="reactivate"
-            >
+            <button v-else class="btn-secondary btn-sm-pill" @click="reactivate">
               {{ t('superAdmin.reactivateFarm') }}
             </button>
             <button class="btn-danger btn-sm-pill" @click="showDeleteFarm = true">
@@ -82,7 +84,9 @@
         <!-- Users Section -->
         <div class="card users-card">
           <div class="users-header">
-            <h3 class="section-title">{{ t('superAdmin.users') }} ({{ farm.users?.length || 0 }})</h3>
+            <h3 class="section-title">
+              {{ t('superAdmin.users') }} ({{ farm.users?.length || 0 }})
+            </h3>
             <button class="btn-danger btn-sm-pill" @click="showRevokeAll = true">
               {{ t('superAdmin.revokeAllSessions') }}
             </button>
@@ -120,7 +124,12 @@
           <p class="flags-desc">{{ t('featureFlags.sectionDesc') }}</p>
 
           <div class="flags-list">
-            <label v-for="flag in flagList" :key="`${flag.key}-${flagsKey}`" class="flag-row" :class="{ 'flag-disabled': togglingFlags.has(flag.key) }">
+            <label
+              v-for="flag in flagList"
+              :key="`${flag.key}-${flagsKey}`"
+              class="flag-row"
+              :class="{ 'flag-disabled': togglingFlags.has(flag.key) }"
+            >
               <div class="flag-info">
                 <span class="flag-name">{{ t(`featureFlags.${flag.key}.name`) }}</span>
                 <span class="flag-desc">{{ t(`featureFlags.${flag.key}.desc`) }}</span>
@@ -134,9 +143,8 @@
               />
             </label>
           </div>
-        </div>
-
-      </template><!-- end farm loaded -->
+        </div> </template
+      ><!-- end farm loaded -->
 
       <!-- Deactivate Confirm Dialog -->
       <ConfirmDialog
@@ -173,9 +181,18 @@
 
       <!-- Hard Delete Farm Dialog (typed confirmation) -->
       <Transition name="fade">
-        <div v-if="showDeleteFarm" ref="deleteDialogOverlay" class="dialog-overlay" tabindex="-1" @click.self="cancelDelete" @keydown.escape="cancelDelete">
+        <div
+          v-if="showDeleteFarm"
+          ref="deleteDialogOverlay"
+          class="dialog-overlay"
+          tabindex="-1"
+          @click.self="cancelDelete"
+          @keydown.escape="cancelDelete"
+        >
           <div class="dialog" role="dialog" aria-modal="true">
-            <p class="dialog-text">{{ t('superAdmin.deleteConfirmMessage', { name: farm?.name }) }}</p>
+            <p class="dialog-text">
+              {{ t('superAdmin.deleteConfirmMessage', { name: farm?.name }) }}
+            </p>
             <div class="form-group">
               <label>{{ t('superAdmin.typeToConfirm', { name: farm?.name }) }}</label>
               <input v-model="deleteConfirmInput" class="form-input" :placeholder="farm?.name" />
@@ -409,6 +426,15 @@ async function revokeAllSessions() {
   font-size: 0.8125rem;
   color: var(--text-secondary);
   margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.detail-species {
+  font-weight: 600;
+  color: var(--text);
 }
 
 .detail-actions {
@@ -601,7 +627,7 @@ async function revokeAllSessions() {
 .dialog-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -632,7 +658,11 @@ async function revokeAllSessions() {
 }
 
 .fade-enter-active,
-.fade-leave-active { transition: opacity 0.2s; }
+.fade-leave-active {
+  transition: opacity 0.2s;
+}
 .fade-enter-from,
-.fade-leave-to { opacity: 0; }
+.fade-leave-to {
+  opacity: 0;
+}
 </style>

@@ -816,7 +816,7 @@
     "adminTools": "Admin Hulpmiddels",
     "medicationsDesc": "Bestuur medikasie en onttrekkingstydperke",
     "issueTypesDesc": "Stel gesondheidsprobleem tipes en kategorieë op",
-"breedTypesDesc": "Bestuur rastipes en hul tydsberekenings",
+    "breedTypesDesc": "Bestuur rastipes en hul tydsberekenings",
     "usersDesc": "Bestuur gebruikers, rolle en toestemmings",
     "auditLogDesc": "Sien veranderingsgeskiedenis vir gebruikers, koeie en instellings",
     "reportsDesc": "Genereer PDF- en Excel-verslae vir oudits en ontleding",
@@ -1081,7 +1081,16 @@
     "deleteFarmConfirm": "Verwyder Permanent",
     "deleteConfirmMessage": "Dit sal plaas \"{name}\" en AL sy data (koeie, melkrekords, behandelings, gesondheidskwessies, teelgebeurtenisse, gebruikers, ens.) PERMANENT verwyder. Dit kan nie ongedaan gemaak word nie.",
     "typeToConfirm": "Tik \"{name}\" om te bevestig:",
-    "farmDeleted": "Plaas permanent verwyder"
+    "farmDeleted": "Plaas permanent verwyder",
+    "speciesLabel": "Spesie",
+    "speciesHint": "Bepaal watter ras tipes, probleemtipes en teeltgebeurtenisse vir hierdie plaas gesaai word.",
+    "speciesManagement": "Spesie Bestuur",
+    "speciesTerminology": "Terminologie",
+    "speciesLifePhases": "Lewensfases",
+    "speciesEventTypes": "Gebeurtenistipes",
+    "typicalMultipleBirths": "Tipiese geboortegetal per gebeurtenis",
+    "maxOffspring": "Maksimum nageslag per gebeurtenis",
+    "noSpecies": "Geen spesies opgestel nie"
   },
   "help": {
     "title": "Hulpbiblioteek",
@@ -2065,7 +2074,10 @@
     "export": "Eksporteer Alles",
     "totalFarms": "Plase",
     "totalUsers": "Gebruikers",
-    "totalCows": "Beeste"
+    "totalCows": "Beeste",
+    "filterBySpecies": "Filter op Spesie",
+    "allSpecies": "Alle Spesies",
+    "noFarmsForSpecies": "Geen plase pas hierdie spesie-filter"
   },
   "announcements": {
     "title": "Aankondigings",

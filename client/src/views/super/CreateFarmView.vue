@@ -26,9 +26,20 @@
             required
             maxlength="10"
             :placeholder="t('superAdmin.farmCodePlaceholder')"
-            @input="codeManuallyEdited = true; form.code = form.code.toUpperCase().replace(/[^A-Z0-9]/g, '')"
+            @input="onCodeInput"
           />
           <p class="hint-text">{{ t('superAdmin.farmCodeHint') }}</p>
+        </div>
+
+        <div class="form-group">
+          <label for="cf-species">{{ t('superAdmin.speciesLabel') }} *</label>
+          <select id="cf-species" v-model="form.species_code" class="form-input" required>
+            <option v-if="loadingSpecies" value="" disabled>{{ t('common.loading') }}</option>
+            <option v-for="sp in species" :key="sp.code" :value="sp.code">
+              {{ speciesEmoji(sp.code) }} {{ sp.name }}
+            </option>
+          </select>
+          <p class="hint-text">{{ t('superAdmin.speciesHint') }}</p>
         </div>
 
         <hr class="form-divider" />
@@ -81,7 +92,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import api from '../../services/api.js'
@@ -92,9 +103,13 @@ const { t } = useI18n()
 const router = useRouter()
 const { showToast } = useToast()
 
+const species = ref([])
+const loadingSpecies = ref(true)
+
 const form = ref({
   name: '',
   code: '',
+  species_code: 'cattle',
   admin_username: '',
   admin_password: '',
   admin_full_name: '',
@@ -104,6 +119,15 @@ const saving = ref(false)
 const errorMsg = ref('')
 const codeManuallyEdited = ref(false)
 
+function speciesEmoji(code) {
+  return code === 'sheep' ? '🐑' : '🐄'
+}
+
+function onCodeInput() {
+  codeManuallyEdited.value = true
+  form.value.code = form.value.code.toUpperCase().replace(/[^A-Z0-9]/g, '')
+}
+
 function autoCode() {
   if (codeManuallyEdited.value) return
   form.value.code = form.value.name
@@ -111,6 +135,21 @@ function autoCode() {
     .replace(/[^A-Z0-9]/g, '')
     .slice(0, 10)
 }
+
+onMounted(async () => {
+  try {
+    const { data } = await api.get('/species')
+    species.value = data
+  } catch {
+    // Fall back to hardcoded options if species endpoint fails
+    species.value = [
+      { code: 'cattle', name: 'Cattle' },
+      { code: 'sheep', name: 'Sheep' },
+    ]
+  } finally {
+    loadingSpecies.value = false
+  }
+})
 
 async function submit() {
   if (saving.value) return
