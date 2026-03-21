@@ -28,6 +28,7 @@ Thumbs.db
 
 # Claude Code
 .claude/settings*.json
+.claude/hooks/
 
 # Vite
 client/.vite/

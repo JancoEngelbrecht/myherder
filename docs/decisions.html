@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyHerder — Technology Decisions & Debate Prep</title>
+<style>
+  :root {
+    --primary: #2D6A4F;
+    --primary-bg: #D8F3DC;
+    --info: #2563EB;
+    --warning: #D97706;
+    --danger: #DC2626;
+    --surface: #FFFFFF;
+    --bg: #F8F9FA;
+    --text: #1a1a2e;
+    --muted: #6B7280;
+    --border: #E5E7EB;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex; align-items: center; gap: 8px; height: 56px;
+  }
+
+  .topbar h1 { font-size: 17px; color: var(--primary); margin-right: 16px; }
+
+  .filter-btn {
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .filter-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .filter-btn.active { border-color: var(--primary); background: var(--primary-bg); color: var(--primary); }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  .intro {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+
+  .intro h2 { font-size: 24px; margin-bottom: 8px; }
+  .intro p { font-size: 15px; color: var(--muted); max-width: 600px; margin: 0 auto; }
+
+  /* ── Decision Card ── */
+  .decision {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: box-shadow 0.15s;
+  }
+
+  .decision:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+
+  .decision-header {
+    padding: 18px 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    user-select: none;
+  }
+
+  .decision-header:hover { background: #FAFAFA; }
+
+  .decision-icon {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .decision-header-text { flex: 1; }
+  .decision-header-text h3 { font-size: 16px; margin-bottom: 2px; }
+  .decision-header-text p { font-size: 13px; color: var(--muted); margin: 0; }
+
+  .decision-category {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 12px;
+    flex-shrink: 0;
+  }
+
+  .cat-frontend { background: #DBEAFE; color: #1E40AF; }
+  .cat-backend { background: #D1FAE5; color: #065F46; }
+  .cat-database { background: #F3E8FF; color: #6B21A8; }
+  .cat-auth { background: #FEF2F2; color: #991B1B; }
+  .cat-tooling { background: #FEF3C7; color: #92400E; }
+  .cat-architecture { background: #F0F9FF; color: #0C4A6E; }
+  .cat-offline { background: #FFF7ED; color: #9A3412; }
+
+  .expand-arrow {
+    font-size: 18px;
+    color: var(--muted);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .decision.open .expand-arrow { transform: rotate(180deg); }
+
+  .decision-body {
+    display: none;
+    padding: 0 22px 22px;
+    border-top: 1px solid #F3F4F6;
+  }
+
+  .decision.open .decision-body { display: block; }
+
+  /* Sections inside decision */
+  .d-section {
+    margin-top: 20px;
+  }
+
+  .d-section h4 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .d-section p, .d-section li {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .d-section ul {
+    padding-left: 20px;
+    margin-top: 4px;
+  }
+
+  .d-section li { margin-bottom: 6px; }
+
+  /* Competitor cards */
+  .vs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .vs-card {
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .vs-card strong { display: block; font-size: 14px; margin-bottom: 4px; }
+  .vs-card.chosen { border-color: var(--primary); background: #F0FDF4; }
+  .vs-card.rejected { border-color: var(--border); background: #FAFAFA; }
+
+  .vs-verdict {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+  }
+
+  .verdict-chosen { background: #D1FAE5; color: #065F46; }
+  .verdict-passed { background: #FEE2E2; color: #991B1B; }
+  .verdict-also { background: #FEF3C7; color: #92400E; }
+
+  /* Debate section */
+  .debate-box {
+    margin-top: 12px;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .debate-attack {
+    padding: 14px 16px;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 10px 10px 0 0;
+    font-size: 14px;
+  }
+
+  .debate-attack strong {
+    display: block;
+    color: #991B1B;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  .debate-defend {
+    padding: 14px 16px;
+    background: #F0FDF4;
+    border: 1px solid #BBF7D0;
+    border-radius: 0 0 10px 10px;
+    font-size: 14px;
+  }
+
+  .debate-defend strong {
+    display: block;
+    color: #065F46;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  .concede-box {
+    margin-top: 12px;
+    padding: 14px 16px;
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+
+  .concede-box strong {
+    display: block;
+    color: #92400E;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  /* Confidence meter */
+  .confidence {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .conf-bar {
+    width: 120px;
+    height: 8px;
+    border-radius: 4px;
+    background: #E5E7EB;
+    overflow: hidden;
+  }
+
+  .conf-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s;
+  }
+
+  .conf-high  { background: #22C55E; }
+  .conf-med   { background: #F59E0B; }
+  .conf-low   { background: #EF4444; }
+
+  /* Count badge */
+  .count-badge {
+    font-size: 12px;
+    background: #F3F4F6;
+    padding: 1px 7px;
+    border-radius: 8px;
+    color: var(--muted);
+    margin-left: 4px;
+  }
+
+  @media (max-width: 600px) {
+    .container { padding: 20px 16px; }
+    .topbar { flex-wrap: wrap; height: auto; padding: 12px; gap: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Decision Log</h1>
+  <button class="filter-btn active" onclick="filterDecisions('all')">All <span class="count-badge" id="count-all"></span></button>
+  <button class="filter-btn" onclick="filterDecisions('frontend')">Frontend</button>
+  <button class="filter-btn" onclick="filterDecisions('backend')">Backend</button>
+  <button class="filter-btn" onclick="filterDecisions('database')">Database</button>
+  <button class="filter-btn" onclick="filterDecisions('architecture')">Architecture</button>
+  <button class="filter-btn" onclick="filterDecisions('tooling')">Tooling</button>
+  <button class="filter-btn" onclick="filterDecisions('offline')">Offline</button>
+  <button class="filter-btn" onclick="filterDecisions('auth')">Auth</button>
+</div>
+
+<div class="container">
+
+<div class="intro">
+  <h2>Why We Built It This Way</h2>
+  <p>Every technology decision, what alternatives existed, why we chose what we chose, and how to defend it to a senior developer. Click any card to expand.</p>
+</div>
+
+<div id="decisions-container"></div>
+
+</div>
+
+<script>
+const decisions = [
+  // ═══════════════════════════════
+  //          FRONTEND
+  // ═══════════════════════════════
+  {
+    id: 'vue3',
+    icon: '🖼️',
+    iconBg: '#DBEAFE',
+    title: 'Vue 3 for the frontend framework',
+    summary: 'Chose Vue over React, Angular, and Svelte',
+    category: 'frontend',
+    competitors: [
+      {
+        name: 'Vue 3',
+        verdict: 'chosen',
+        desc: 'Gentle learning curve, excellent docs, great for single devs and small teams. Composition API gives full flexibility. Huge ecosystem.'
+      },
+      {
+        name: 'React',
+        verdict: 'passed',
+        desc: 'Biggest ecosystem and job market. But steeper learning curve, JSX mixes HTML and code, and you need to pick your own solutions for everything (state, routing, etc.).'
+      },
+      {
+        name: 'Angular',
+        verdict: 'passed',
+        desc: 'Full-featured enterprise framework. But massive overkill for our app — steep learning curve, TypeScript required, heavy boilerplate.'
+      },
+      {
+        name: 'Svelte',
+        verdict: 'passed',
+        desc: 'Smallest bundle, simplest syntax. But smaller ecosystem, fewer libraries, and harder to find help when stuck.'
+      },
+    ],
+    why: 'Vue 3 hits the sweet spot for a project like ours: it\'s approachable enough for a small team, has batteries included (official router, state management, i18n), and the Composition API gives us the same power as React hooks. The documentation is considered the best in the industry. For a farm management app where the frontend needs to be maintainable by potentially one developer, Vue\'s "progressive framework" philosophy is ideal — you can start simple and add complexity only where needed.',
+    attacks: [
+      {
+        attack: '"React has a bigger ecosystem and more developers. You\'ll have trouble hiring."',
+        defend: 'True for large companies, but we\'re a small team. Vue\'s ecosystem has everything we need (Router, Pinia, i18n, Vite — all official). And Vue developers tend to be more productive per person because the framework makes more decisions for you, so you need fewer people.'
+      },
+      {
+        attack: '"Vue is losing market share to React."',
+        defend: 'Vue 3 is actually growing — it had 4.4M weekly npm downloads in 2024. It\'s the #2 framework globally and #1 in China, Asia, and much of Europe. Our app doesn\'t need the largest possible talent pool — it needs the right tool for a manageable, offline-first PWA.'
+      }
+    ],
+    concede: 'If we were building for a large company with a big development team, React would be the safer hiring choice. And if we needed a very complex, form-heavy enterprise app, Angular might save time with its built-in form handling.',
+    confidence: 90,
+  },
+
+  {
+    id: 'composition-api',
+    icon: '🧩',
+    iconBg: '#DBEAFE',
+    title: 'Composition API over Options API',
+    summary: 'Vue 3 offers two styles — we chose the newer one',
+    category: 'frontend',
+    competitors: [
+      {
+        name: 'Composition API',
+        verdict: 'chosen',
+        desc: 'Logic is grouped by feature, not by type. Easier to share logic between components. Better TypeScript support. The future of Vue.'
+      },
+      {
+        name: 'Options API',
+        verdict: 'passed',
+        desc: 'The original Vue style. Familiar to Vue 2 developers. More structured (data, methods, computed sections). Simpler for very small components.'
+      },
+    ],
+    why: 'The Composition API lets us group related code together. In the Options API, the code for "loading cows" would be scattered across data(), methods, computed, and mounted sections. With Composition API, it\'s all in one place. It also lets us extract reusable logic into "composables" (like useAnalytics, useToast, useTour). The entire Vue ecosystem is moving this direction — Pinia was designed for it, and Vue\'s own docs now teach Composition API first.',
+    attacks: [
+      {
+        attack: '"Options API is easier for beginners to understand."',
+        defend: 'True for very simple components. But once a component grows past 50 lines, Options API becomes harder because related logic is scattered. Composition API scales better. And since we use <script setup> syntax, our components are actually shorter than Options API equivalents.'
+      },
+    ],
+    concede: 'For a team of Vue 2 veterans, switching to Composition API has a learning cost. The Options API is still fully supported and not deprecated.',
+    confidence: 95,
+  },
+
+  {
+    id: 'pinia',
+    icon: '🍍',
+    iconBg: '#FEF3C7',
+    title: 'Pinia for state management',
+    summary: 'Chose Pinia over Vuex and alternatives',
+    category: 'frontend',
+    competitors: [
+      {
+        name: 'Pinia',
+        verdict: 'chosen',
+        desc: 'The official Vue 3 state manager. Simple API, great TypeScript support, devtools integration. Built by the Vue team.'
+      },
+      {
+        name: 'Vuex',
+        verdict: 'passed',
+        desc: 'The original Vue state manager. Now in "maintenance mode" — the Vue team recommends Pinia instead. More boilerplate (mutations, actions, getters).'
+      },
+      {
+        name: 'No state manager (just composables)',
+        verdict: 'passed',
+        desc: 'Could use shared refs/composables. Simpler but loses devtools, persistence plugins, and established patterns.'
+      },
+    ],
+    why: 'Pinia is Vuex\'s official successor — it\'s what the Vue team recommends. It has less boilerplate (no mutations concept), works perfectly with Composition API, and has great devtools support. Since we have many stores (cows, milk, breeding, health, auth, sync, etc.), a proper state manager keeps things organized. Using Vuex for a new project in 2025 would be like starting a new project with an already-deprecated tool.',
+    attacks: [
+      {
+        attack: '"You could have just used shared composables without a state manager."',
+        defend: 'For 2-3 shared states, sure. But we have 10+ stores, some with complex async operations and offline fallbacks. Pinia gives us devtools inspection (see all store state live), proper hot-module replacement, and a consistent pattern. The overhead is minimal — Pinia is only 1KB gzipped.'
+      },
+    ],
+    concede: 'For a much smaller app with only 1-2 data types, Pinia would be overkill. A simple composable sharing a ref would suffice.',
+    confidence: 95,
+  },
+
+  {
+    id: 'axios',
+    icon: '📡',
+    iconBg: '#FCE7F3',
+    title: 'Axios for HTTP requests',
+    summary: 'Chose Axios over the browser\'s built-in fetch',
+    category: 'frontend',
+    competitors: [
+      {
+        name: 'Axios',
+        verdict: 'chosen',
+        desc: 'Popular HTTP library. Has interceptors (auto-attach token, auto-handle 401), automatic JSON parsing, request cancellation, and works in Node.js too.'
+      },
+      {
+        name: 'fetch (built-in)',
+        verdict: 'passed',
+        desc: 'Built into every browser — no extra dependency. But no interceptors, doesn\'t auto-reject on HTTP errors (404/500 resolve as "ok"), and needs more boilerplate for common tasks.'
+      },
+      {
+        name: 'ky',
+        verdict: 'passed',
+        desc: 'Modern fetch wrapper. Smaller than Axios but less mature, smaller community.'
+      },
+    ],
+    why: 'Interceptors are the killer feature. We have one request interceptor that automatically attaches the JWT token to every outgoing request, and one response interceptor that catches 401 errors (expired token) and redirects to login. Without interceptors, we\'d have to copy-paste this logic into every single API call across every store. Axios also auto-parses JSON and properly rejects on HTTP errors, which fetch does not.',
+    attacks: [
+      {
+        attack: '"Axios is an unnecessary dependency. Fetch is built into the browser and can do everything Axios does."',
+        defend: 'Fetch can do most things, but needs wrapper code for: interceptors, automatic JSON, error rejection, and timeout. By the time you write that wrapper, you\'ve basically rebuilt a worse version of Axios. Our interceptors handle auth tokens and 401 redirects in one place — without Axios, that logic would be duplicated across 10+ stores.'
+      },
+      {
+        attack: '"Axios is 14KB. Every dependency adds to the bundle."',
+        defend: 'True, but 14KB is tiny compared to our total bundle. And the alternative — writing and maintaining our own fetch wrapper — would cost more developer time than the 14KB is worth. The interceptor pattern alone saves hundreds of lines of duplicate code.'
+      },
+    ],
+    concede: 'For a simple app with few API calls and no auth, fetch is the better choice — zero dependencies. If we were aggressively optimizing bundle size, we could replace Axios with a tiny custom fetch wrapper.',
+    confidence: 80,
+  },
+
+  {
+    id: 'vite',
+    icon: '⚡',
+    iconBg: '#FEF3C7',
+    title: 'Vite as the build tool',
+    summary: 'Chose Vite over Webpack and others',
+    category: 'tooling',
+    competitors: [
+      {
+        name: 'Vite',
+        verdict: 'chosen',
+        desc: 'Created by the Vue creator. Instant dev server startup, fast hot reload, modern defaults. The default choice for new Vue projects.'
+      },
+      {
+        name: 'Webpack',
+        verdict: 'passed',
+        desc: 'The old standard. Extremely configurable but slow startup, complex config, and heavy. Still used in legacy projects.'
+      },
+      {
+        name: 'Parcel',
+        verdict: 'passed',
+        desc: 'Zero-config bundler. Simple but less ecosystem support and fewer plugins.'
+      },
+    ],
+    why: 'Vite was created by Evan You (the creator of Vue) and is the default recommendation for Vue projects. It starts the dev server in under 1 second (Webpack takes 10-30 seconds for a project this size). It uses native ES modules during development, so only the code you\'re actually looking at gets processed. For production, it uses Rollup (a mature bundler) to create optimized output. There is no reason to choose Webpack for a new Vue project in 2025.',
+    attacks: [
+      {
+        attack: '"Webpack is more battle-tested and configurable."',
+        defend: 'True historically, but Vite has been stable since 2021 and is now the default for Vue, Svelte, and many React projects. Our project doesn\'t need exotic Webpack features. And Vite uses Rollup under the hood for production — Rollup is as battle-tested as Webpack.'
+      },
+    ],
+    concede: 'If we were migrating an existing Webpack project with complex custom loaders, staying on Webpack might make more sense than migrating.',
+    confidence: 98,
+  },
+
+  {
+    id: 'chartjs',
+    icon: '📊',
+    iconBg: '#DBEAFE',
+    title: 'Chart.js for analytics charts',
+    summary: 'Chose Chart.js over D3, ECharts, and others',
+    category: 'frontend',
+    competitors: [
+      {
+        name: 'Chart.js',
+        verdict: 'chosen',
+        desc: 'Simple, well-documented, good defaults. Covers all our chart types (line, bar, doughnut). Small learning curve.'
+      },
+      {
+        name: 'D3.js',
+        verdict: 'passed',
+        desc: 'The most powerful visualization library. Can build anything. But incredibly steep learning curve — you\'re essentially writing SVG by hand.'
+      },
+      {
+        name: 'ECharts',
+        verdict: 'passed',
+        desc: 'Powerful, especially for complex dashboards. But heavier (700KB+) and more enterprise-oriented.'
+      },
+      {
+        name: 'ApexCharts',
+        verdict: 'also',
+        desc: 'Good alternative to Chart.js. More built-in interactivity. Slightly larger bundle.'
+      },
+    ],
+    why: 'Our analytics show standard chart types: line charts for trends, bar charts for comparisons, doughnut charts for composition. Chart.js handles all of these with minimal configuration and good-looking defaults. D3 would be like using a fighter jet to go grocery shopping — incredibly powerful, but our charts are straightforward. Chart.js is also well-maintained with 60K+ GitHub stars and great Vue integration via vue-chartjs.',
+    attacks: [
+      {
+        attack: '"D3 gives you unlimited customization. What if you need complex visualizations later?"',
+        defend: 'If we ever need a custom herd genetics visualization or interactive calving timeline, we can add D3 for that specific view. But 95% of our charts are simple line/bar/doughnut — using D3 for those would triple our development time for zero user benefit.'
+      },
+    ],
+    concede: 'If the product roadmap included complex, interactive, custom visualizations (like geographic herd maps or flow diagrams), D3 would be worth the investment.',
+    confidence: 88,
+  },
+
+  {
+    id: 'driverjs',
+    icon: '🎯',
+    iconBg: '#DBEAFE',
+    title: 'driver.js for guided tours',
+    summary: 'Chose driver.js over Shepherd.js, Intro.js, and custom implementation',
+    category: 'frontend',
+    competitors: [
+      {
+        name: 'driver.js',
+        verdict: 'chosen',
+        desc: 'Lightweight (5KB), no dependencies, smooth animations, good API. MIT license.'
+      },
+      {
+        name: 'Shepherd.js',
+        verdict: 'passed',
+        desc: 'More features (advance conditions, modal tours). But heavier (40KB+), depends on Popper.js/Floating UI.'
+      },
+      {
+        name: 'Intro.js',
+        verdict: 'passed',
+        desc: 'Popular but uses a restrictive license (AGPL) that would require us to open-source our app.'
+      },
+      {
+        name: 'Custom implementation',
+        verdict: 'passed',
+        desc: 'Full control but weeks of work to build highlighting, positioning, step management, and animations.'
+      },
+    ],
+    why: 'We needed simple step-by-step tours to help farmers learn the app. driver.js is 5KB (tiny), has zero dependencies, provides smooth highlight animations, and has a clean API. The critical factor: Intro.js has an AGPL license (would force our code to be open-source), while driver.js is MIT (do whatever you want). Building custom would have taken weeks for something driver.js gives us in an hour.',
+    attacks: [
+      {
+        attack: '"Shepherd.js has better advanced features like conditional steps."',
+        defend: 'Our tours are simple: highlight an element, show text, next step. We don\'t need conditional branching or modal tours. Shepherd.js would add 35KB of extra code for features we\'d never use.'
+      },
+    ],
+    concede: 'If tours needed complex logic (skip steps based on user state, branch paths, embedded videos), Shepherd.js would be worth the extra weight.',
+    confidence: 90,
+  },
+
+  // ═══════════════════════════════
+  //          BACKEND
+  // ═══════════════════════════════
+  {
+    id: 'express',
+    icon: '🚂',
+    iconBg: '#D1FAE5',
+    title: 'Express.js for the backend server',
+    summary: 'Chose Express over Fastify, Koa, NestJS, and others',
+    category: 'backend',
+    competitors: [
+      {
+        name: 'Express.js',
+        verdict: 'chosen',
+        desc: 'The most widely used Node.js server framework. Huge ecosystem, massive community, tons of middleware. Simple and flexible.'
+      },
+      {
+        name: 'Fastify',
+        verdict: 'passed',
+        desc: '2-3x faster than Express in benchmarks. Built-in schema validation, great plugin system. But smaller ecosystem and less community support.'
+      },
+      {
+        name: 'NestJS',
+        verdict: 'passed',
+        desc: 'Angular-style framework for Node. TypeScript-first, dependency injection, decorators. Very structured but heavy and opinionated.'
+      },
+      {
+        name: 'Koa',
+        verdict: 'passed',
+        desc: 'Made by the Express creators, smaller and more modern. But tiny ecosystem compared to Express.'
+      },
+    ],
+    why: 'Express is the "jQuery of Node.js servers" — it\'s everywhere, everyone knows it, and every problem has been solved before. When you Google any backend Node.js question, the first 10 answers are for Express. This matters enormously for a project where speed of development is more important than raw performance. Our app serves a few hundred farmers, not millions of concurrent users — Express\'s speed is more than enough. And every middleware we need (helmet, cors, JWT, rate limiting) has Express-compatible packages.',
+    attacks: [
+      {
+        attack: '"Fastify is 2x faster. Express is old and slow."',
+        defend: 'Our bottleneck is database queries, not HTTP framework speed. The difference between Express (15K req/s) and Fastify (30K req/s) is irrelevant when each request takes 50-200ms in database time anyway. We\'re serving a farming app to maybe 100 concurrent users, not building Twitter.'
+      },
+      {
+        attack: '"NestJS provides better structure for large applications."',
+        defend: 'NestJS is great for large teams with strict architecture requirements. But it requires TypeScript, dependency injection, decorators — all adding complexity we don\'t need. Our flat route-file structure is simple and predictable: one file per feature, all following the same pattern.'
+      },
+      {
+        attack: '"Express 4 is old. Express 5 was in beta forever."',
+        defend: 'Express 5 shipped in 2024 and we use it. Even Express 4 was stable and well-maintained — "old" doesn\'t mean "bad" for a framework with 64K GitHub stars and billions of downloads.'
+      },
+    ],
+    concede: 'If we were building a high-throughput API serving millions of requests per second, Fastify would be the better choice. If we had a large team that needed strict architectural guidance, NestJS would enforce good patterns.',
+    confidence: 88,
+  },
+
+  {
+    id: 'joi',
+    icon: '✅',
+    iconBg: '#D1FAE5',
+    title: 'Joi for input validation',
+    summary: 'Chose Joi over Zod, Yup, ajv, and manual validation',
+    category: 'backend',
+    competitors: [
+      {
+        name: 'Joi',
+        verdict: 'chosen',
+        desc: 'Mature, expressive validation library from the hapi ecosystem. Excellent error messages, rich API for complex rules.'
+      },
+      {
+        name: 'Zod',
+        verdict: 'passed',
+        desc: 'TypeScript-first, smaller, trendy. Great for TypeScript projects. But we don\'t use TypeScript.'
+      },
+      {
+        name: 'Yup',
+        verdict: 'passed',
+        desc: 'Popular in React/Formik world. Similar to Joi but less powerful for backend validation.'
+      },
+      {
+        name: 'ajv (JSON Schema)',
+        verdict: 'passed',
+        desc: 'Fastest validator. Uses JSON Schema standard. But JSON Schema syntax is verbose and hard to read.'
+      },
+      {
+        name: 'Manual validation',
+        verdict: 'passed',
+        desc: 'Just write if/else checks. Simple for 1-2 fields, nightmare for complex objects.'
+      },
+    ],
+    why: 'Joi reads almost like English: Joi.string().required().min(3).max(50). It produces clear, user-friendly error messages automatically. It handles complex validation rules (conditional fields, custom validators, date ranges) that would take pages of if/else code to write manually. It\'s the most established backend validation library in the Node.js ecosystem. We don\'t use TypeScript, so Zod\'s main advantage (TypeScript inference) doesn\'t apply.',
+    attacks: [
+      {
+        attack: '"Zod is the modern choice. Joi is legacy."',
+        defend: 'Zod is fantastic for TypeScript projects — it infers types from schemas. But we use plain JavaScript. Joi\'s API is equally good for our use case, and it\'s been hardened over 10+ years of production use. "Legacy" isn\'t a defect — it\'s maturity.'
+      },
+      {
+        attack: '"Joi is heavy — 150KB."',
+        defend: 'It runs on the server, not in the browser. Server-side bundle size is irrelevant — we\'re not downloading Joi to anyone\'s phone. What matters is API quality and developer experience, and Joi excels at both.'
+      },
+    ],
+    concede: 'If we migrated to TypeScript, Zod would be the clear winner because it generates TypeScript types from schemas — single source of truth. For a new TypeScript project, always choose Zod.',
+    confidence: 82,
+  },
+
+  {
+    id: 'jwt',
+    icon: '🎫',
+    iconBg: '#FEF2F2',
+    title: 'JWT tokens for authentication',
+    summary: 'Chose JWTs over session cookies and other approaches',
+    category: 'auth',
+    competitors: [
+      {
+        name: 'JWT (JSON Web Tokens)',
+        verdict: 'chosen',
+        desc: 'Stateless tokens containing user identity. No server-side session storage needed. Works great for APIs and mobile apps.'
+      },
+      {
+        name: 'Session Cookies',
+        verdict: 'passed',
+        desc: 'Server stores session data, browser gets a cookie. More traditional, easier to revoke. But requires server-side storage and doesn\'t work well offline.'
+      },
+      {
+        name: 'OAuth 2.0 / Third-party auth',
+        verdict: 'passed',
+        desc: 'Google/Microsoft login. Great for consumer apps. But our farmers don\'t have Google accounts and work in areas with limited internet.'
+      },
+    ],
+    why: 'Three reasons: (1) OFFLINE — JWTs contain everything the app needs to know about the user (role, permissions, farm) right inside the token. When offline, the app can read the token without contacting the server. Session cookies would be useless offline. (2) STATELESS — the server doesn\'t need to store sessions, which simplifies our architecture. (3) MOBILE/API-FRIENDLY — JWTs work naturally with API calls (sent in the Authorization header), which is cleaner than cookies for a single-page app.',
+    attacks: [
+      {
+        attack: '"JWTs can\'t be revoked. If a user is fired, their token still works until it expires."',
+        defend: 'We solved this! Every user has a token_version in the database. Every API request checks the token_version in the JWT against the database. If an admin bumps the version (revokes sessions), the old token is rejected immediately. So we get the offline benefits of JWT with the revocation ability of sessions.'
+      },
+      {
+        attack: '"JWTs are bigger than session cookies. You\'re sending extra data on every request."',
+        defend: 'Our JWT payload is about 500 bytes — negligible compared to any actual response data. And the benefit is huge: the app can show the user\'s name, role, and permissions without a server round-trip.'
+      },
+      {
+        attack: '"Storing JWTs in localStorage is a security risk (XSS can steal them)."',
+        defend: 'True, but httpOnly cookies (the "safe" alternative) don\'t work with our offline architecture — the app needs to read the token to display user info offline. We mitigate XSS with helmet (Content Security Policy), input validation, and Vue\'s built-in template escaping.'
+      },
+    ],
+    concede: 'For a traditional server-rendered app with no offline requirements, session cookies would be simpler and more secure by default. Our token_version check adds a database hit per request that sessions would avoid.',
+    confidence: 85,
+  },
+
+  {
+    id: 'bcrypt',
+    icon: '🔒',
+    iconBg: '#FEF2F2',
+    title: 'bcrypt for password hashing',
+    summary: 'Chose bcryptjs over argon2, scrypt, and others',
+    category: 'auth',
+    competitors: [
+      {
+        name: 'bcryptjs',
+        verdict: 'chosen',
+        desc: 'Pure JavaScript implementation of bcrypt. No native compilation needed. Well-understood, time-tested algorithm.'
+      },
+      {
+        name: 'argon2',
+        verdict: 'also',
+        desc: 'Winner of the 2015 Password Hashing Competition. Theoretically stronger. But requires native compilation (C bindings), which can fail on some hosting environments.'
+      },
+      {
+        name: 'scrypt',
+        verdict: 'passed',
+        desc: 'Good algorithm, built into Node.js crypto module. Less widely used than bcrypt.'
+      },
+    ],
+    why: 'bcryptjs is the pragmatic choice: it\'s pure JavaScript (works everywhere, no compilation issues), the bcrypt algorithm is battle-tested since 1999, and it\'s the most commonly used password hasher in Node.js. Our hosting (cPanel) had issues with native modules — bcryptjs\'s pure JS implementation avoided that entirely. Argon2 is theoretically better but the real-world security difference is negligible for our threat model (farming app, not a bank).',
+    attacks: [
+      {
+        attack: '"Argon2 won the Password Hashing Competition. It\'s objectively better."',
+        defend: 'Argon2 is the best algorithm, yes. But bcrypt is "good enough" — no one has ever cracked a properly salted bcrypt hash with a reasonable cost factor. Our cost factor is 10 (default). The bottleneck for attackers is the same: brute-force is prohibitively slow. The practical security difference between bcrypt and argon2 for our use case is essentially zero.'
+      },
+    ],
+    concede: 'If we had reliable native module compilation (not shared hosting), argon2 would be the ideal choice. For a new project with full control over the server, I\'d choose argon2.',
+    confidence: 75,
+  },
+
+  // ═══════════════════════════════
+  //          DATABASE
+  // ═══════════════════════════════
+  {
+    id: 'knex',
+    icon: '🔧',
+    iconBg: '#F3E8FF',
+    title: 'Knex.js as the database layer',
+    summary: 'Chose Knex (query builder) over Prisma, TypeORM, Sequelize, and raw SQL',
+    category: 'database',
+    competitors: [
+      {
+        name: 'Knex.js',
+        verdict: 'chosen',
+        desc: 'A query builder — you write JavaScript that generates SQL. Supports multiple databases. Includes migration system. You stay close to SQL without writing it raw.'
+      },
+      {
+        name: 'Prisma',
+        verdict: 'passed',
+        desc: 'Modern ORM with auto-generated types. Great developer experience. But requires its own schema language, generates a client, and doesn\'t support SQLite as well for production.'
+      },
+      {
+        name: 'Sequelize / TypeORM',
+        verdict: 'passed',
+        desc: 'Traditional ORMs that map database tables to JavaScript classes. More abstraction but hide what SQL is actually running, which can cause performance problems.'
+      },
+      {
+        name: 'Raw SQL',
+        verdict: 'passed',
+        desc: 'Maximum control and performance. But no migration system, no dialect abstraction, and queries become hard to maintain.'
+      },
+    ],
+    why: 'Knex is the "Goldilocks" choice: more control than an ORM (you see the SQL being generated), less boilerplate than raw SQL, and it abstracts the differences between SQLite and MySQL (so we can develop with SQLite and deploy with MySQL without changing queries). The migration system is excellent — simple, reliable, and well-understood. ORMs like Sequelize hide too much, leading to N+1 query problems and surprising behavior. Prisma is great but requires its own schema language and has a heavier workflow.',
+    attacks: [
+      {
+        attack: '"Prisma has much better developer experience — auto-generated types, visual studio, auto-completion."',
+        defend: 'Prisma is excellent for TypeScript projects. But we use plain JavaScript — Prisma\'s type generation doesn\'t benefit us. Prisma also requires a schema file that duplicates our migration-based schema, and its SQLite support is less mature than Knex\'s. Knex + better-sqlite3 is a proven, battle-tested stack.'
+      },
+      {
+        attack: '"An ORM would save time — no need to write queries manually."',
+        defend: 'ORMs save time on simple CRUD but cost time on anything complex. Our analytics queries use SQL aggregation (SUM, GROUP BY, CASE WHEN) that would be harder to express through an ORM. With Knex, complex queries are straightforward. And we never get surprised by what SQL is actually running.'
+      },
+      {
+        attack: '"You\'re reinventing the wheel — ORMs solve problems you\'ll rediscover."',
+        defend: 'Knex IS the wheel — it handles parameterized queries (SQL injection protection), migrations, connection pooling, and multi-dialect support. We just skip the model/entity layer of ORMs, which is the part that causes the most problems (lazy loading, N+1 queries, identity maps).'
+      },
+    ],
+    concede: 'For a TypeScript project, Prisma\'s type safety and auto-completion are genuinely hard to beat. For rapid prototyping with zero SQL knowledge, an ORM can be faster to start with.',
+    confidence: 90,
+  },
+
+  {
+    id: 'sqlite-mysql',
+    icon: '🗄️',
+    iconBg: '#F3E8FF',
+    title: 'SQLite for dev, MySQL for production',
+    summary: 'Chose a dual-database strategy over using the same DB everywhere',
+    category: 'database',
+    competitors: [
+      {
+        name: 'SQLite (dev) + MySQL (prod)',
+        verdict: 'chosen',
+        desc: 'SQLite is zero-setup (just a file), perfect for development. MySQL is robust and scalable for production. Knex abstracts the differences.'
+      },
+      {
+        name: 'MySQL everywhere',
+        verdict: 'passed',
+        desc: 'Same database in dev and prod means fewer surprises. But requires installing and running MySQL locally during development.'
+      },
+      {
+        name: 'PostgreSQL',
+        verdict: 'passed',
+        desc: 'More powerful than MySQL (JSON support, better SQL compliance). But our hosting (cPanel) only provides MySQL.'
+      },
+      {
+        name: 'MongoDB',
+        verdict: 'passed',
+        desc: 'Document database — flexible schema. But our data is highly relational (cows → milk records → treatments) which is a perfect fit for SQL.'
+      },
+    ],
+    why: 'Practical constraints drove this: (1) SQLite for development means zero setup — clone the repo, run npm install, and you have a working database. No Docker, no MySQL installation, nothing. This is huge for developer experience. (2) Our production hosting (VitalHost cPanel) provides MySQL, not PostgreSQL. (3) Our data is deeply relational — a cow has milk records, treatments, breeding events, health issues, all linked by foreign keys. That\'s exactly what SQL databases are built for. MongoDB would force us to denormalize and lose referential integrity.',
+    attacks: [
+      {
+        attack: '"Using different databases in dev and prod is asking for bugs."',
+        defend: 'Valid concern! We handle it through: (a) Knex abstracts 95% of differences, (b) we have MySQL-specific code guarded by environment checks, (c) our test suite runs on in-memory SQLite and catches most issues, and (d) we have specific handling for known differences (SQLite returns COUNT as string, MySQL returns dates as Date objects). We\'ve documented every dialect gotcha in CLAUDE.md.'
+      },
+      {
+        attack: '"PostgreSQL is better than MySQL in every way."',
+        defend: 'Agreed technically — Postgres has better JSON support, better SQL compliance, and features like CTEs. But our hosting only offers MySQL, and our queries don\'t need Postgres-specific features. Pragmatism over perfection.'
+      },
+      {
+        attack: '"MongoDB would give you more flexibility."',
+        defend: 'Flexibility is MongoDB\'s strength and weakness. Our data has strict relationships: a milk record MUST belong to a cow, a treatment MUST reference a medication. SQL enforces this at the database level. In MongoDB, we\'d have to enforce all of this in application code, which is more error-prone.'
+      },
+    ],
+    concede: 'If we had full control over the server (VPS, Docker), PostgreSQL everywhere would be the ideal choice. The SQLite/MySQL split does occasionally cause subtle bugs that same-database-everywhere would avoid.',
+    confidence: 78,
+  },
+
+  {
+    id: 'uuid',
+    icon: '🆔',
+    iconBg: '#F3E8FF',
+    title: 'UUIDs for record IDs instead of auto-incrementing numbers',
+    summary: 'Every cow, milk record, etc. gets a UUID like "a7b3c8d1-e9f2-..."',
+    category: 'database',
+    competitors: [
+      {
+        name: 'UUID (v4)',
+        verdict: 'chosen',
+        desc: 'Globally unique, can be generated on the client. Essential for offline-first apps where records are created without a server.'
+      },
+      {
+        name: 'Auto-increment integers',
+        verdict: 'passed',
+        desc: 'Simple, sequential (1, 2, 3...), tiny storage. But can only be generated by the database server — impossible for offline record creation.'
+      },
+    ],
+    why: 'This was driven by our OFFLINE requirement. When a farmer creates a cow while offline, the app needs to give that cow an ID immediately — it can\'t wait for the server. Auto-increment IDs (1, 2, 3...) are generated by the database, which isn\'t reachable offline. UUIDs can be generated anywhere, by any device, and are guaranteed to be unique globally. When the phone eventually syncs, the UUID it generated matches what the server stores — no ID collisions.',
+    attacks: [
+      {
+        attack: '"UUIDs are 36 characters. Integer IDs are 4 bytes. You\'re wasting storage and slowing down queries."',
+        defend: 'True, UUIDs use more storage and are slightly slower for index lookups. But our database has thousands of records, not billions. The performance difference is immeasurable at our scale. And the offline-creation capability is non-negotiable — it\'s a core feature of the app.'
+      },
+      {
+        attack: '"UUIDs make URLs ugly and are hard to communicate verbally."',
+        defend: 'Users never see or type UUIDs. They see tag numbers ("COW-042") and names. The UUID is an internal identifier. Tag numbers are the human-facing IDs.'
+      },
+    ],
+    concede: 'For an online-only app with no offline requirement, auto-increment integers are simpler and more efficient. The only reason to use UUIDs is distributed ID generation (multiple devices creating records independently).',
+    confidence: 95,
+  },
+
+  // ═══════════════════════════════
+  //        ARCHITECTURE
+  // ═══════════════════════════════
+  {
+    id: 'no-typescript',
+    icon: '📝',
+    iconBg: '#F0F9FF',
+    title: 'Plain JavaScript instead of TypeScript',
+    summary: 'The most controversial decision — no type system',
+    category: 'architecture',
+    competitors: [
+      {
+        name: 'JavaScript',
+        verdict: 'chosen',
+        desc: 'No build step for backend, simpler tooling, faster development for a solo developer. Lower learning curve.'
+      },
+      {
+        name: 'TypeScript',
+        verdict: 'passed',
+        desc: 'Catches type errors at compile time, better auto-completion, self-documenting code. The industry standard for new projects.'
+      },
+    ],
+    why: 'Honest answer: this was an accessibility decision. The project was built with a developer (you) who is new to programming. TypeScript adds a significant learning overhead — understanding types, generics, interfaces, union types, and fixing type errors before you can even run your code. JavaScript lets you focus on "what does my app do" without fighting the type system. Additionally, Joi validation on the backend catches many of the same errors TypeScript would (wrong data shapes), and Vue\'s template system provides some type checking in components.',
+    attacks: [
+      {
+        attack: '"TypeScript would have caught hundreds of bugs. Every serious project uses it."',
+        defend: 'TypeScript catches type errors, which are ONE category of bugs. Our 1,200+ automated tests catch type errors AND logic errors AND integration errors. A comprehensive test suite is more valuable than types alone. Many successful large projects (Vue 2, Express, Lodash) were written in JavaScript. That said — TypeScript IS the industry direction, and a migration would be worthwhile if the team grows.'
+      },
+      {
+        attack: '"Refactoring without TypeScript is dangerous. You can\'t safely rename anything."',
+        defend: 'Fair point for large codebases with many contributors. For a project with 1-2 developers, the risk is manageable. Our ESLint config catches unused variables and common mistakes. And our test suite runs in seconds — we can refactor and immediately verify nothing broke.'
+      },
+    ],
+    concede: 'This is the decision I\'d most likely reverse. If the team grows beyond 2 developers, migrating to TypeScript should be a priority. Type safety becomes more valuable as more people touch the same code.',
+    confidence: 55,
+  },
+
+  {
+    id: 'monolith',
+    icon: '🏗️',
+    iconBg: '#F0F9FF',
+    title: 'Monolith instead of microservices',
+    summary: 'One server does everything — no separate services',
+    category: 'architecture',
+    competitors: [
+      {
+        name: 'Monolith',
+        verdict: 'chosen',
+        desc: 'One Express server handles all features: auth, cows, milk, breeding, analytics, reports, sync. Simple to deploy, develop, and debug.'
+      },
+      {
+        name: 'Microservices',
+        verdict: 'passed',
+        desc: 'Separate services for each feature (auth service, cow service, analytics service). Independently deployable and scalable. But complex to manage, needs service discovery, distributed tracing.'
+      },
+      {
+        name: 'Serverless (AWS Lambda, etc.)',
+        verdict: 'passed',
+        desc: 'Individual functions deployed to the cloud. Zero server management. But cold starts, vendor lock-in, and complex local development.'
+      },
+    ],
+    why: 'Our app serves hundreds of users, not millions. A monolith means: one deployment, one log file, one database connection, one place to debug. Microservices solve problems we don\'t have (independent scaling, team isolation) and create problems we can\'t afford (distributed debugging, network reliability between services, eventual consistency). The famous rule applies: "Don\'t start with microservices — extract them when you need them." Our route files are already organized by feature (cows.js, milkRecords.js, etc.), so extracting a service later would be straightforward.',
+    attacks: [
+      {
+        attack: '"Microservices are the industry standard. Monoliths don\'t scale."',
+        defend: 'Many billion-dollar companies run monoliths (Shopify, Basecamp, Stack Overflow). Microservices scale TEAM complexity — multiple teams can deploy independently. We\'re a small team. And monoliths scale performance fine — a single Node.js server handles thousands of concurrent connections. The "monoliths don\'t scale" myth refers to organizational scaling, not technical scaling.'
+      },
+      {
+        attack: '"If one part crashes, everything goes down."',
+        defend: 'True, but: (a) we have error handling that prevents one bad route from crashing the server, (b) our hosting auto-restarts on crash, (c) microservices ALSO have cascading failures — if the auth service goes down, everything that depends on it fails too. The failure mode is different, not necessarily better.'
+      },
+    ],
+    concede: 'If we had 5+ developers and needed to deploy different features independently (e.g. analytics team deploys weekly, auth team deploys daily), microservices would improve velocity. For now, it would be pure overhead.',
+    confidence: 95,
+  },
+
+  {
+    id: 'rest-api',
+    icon: '🔗',
+    iconBg: '#F0F9FF',
+    title: 'REST API instead of GraphQL',
+    summary: 'Simple endpoints like GET /api/cows instead of a query language',
+    category: 'architecture',
+    competitors: [
+      {
+        name: 'REST',
+        verdict: 'chosen',
+        desc: 'One URL per resource, standard HTTP methods (GET/POST/PATCH/DELETE). Simple, well-understood, cacheable.'
+      },
+      {
+        name: 'GraphQL',
+        verdict: 'passed',
+        desc: 'Clients specify exactly what data they need. Fewer requests, no over-fetching. But complex server setup, harder caching, steeper learning curve.'
+      },
+      {
+        name: 'tRPC',
+        verdict: 'passed',
+        desc: 'Type-safe RPC for TypeScript. Amazing DX. But requires TypeScript on both client and server.'
+      },
+    ],
+    why: 'Our API has straightforward needs: get cows, save a milk record, fetch analytics. Each endpoint returns exactly what the UI needs. GraphQL solves "over-fetching" (getting too much data) and "under-fetching" (needing multiple requests). We designed our REST endpoints to return exactly the right data, so we don\'t have those problems. GraphQL also complicates offline sync (our sync push/pull model maps cleanly to REST), file downloads (reports), and caching.',
+    attacks: [
+      {
+        attack: '"GraphQL lets the frontend request exactly what it needs. REST returns too much."',
+        defend: 'True for generic APIs serving many different clients. But we have ONE client (our Vue app), and we designed each endpoint to return exactly what that client needs. We don\'t have the over-fetching problem GraphQL solves.'
+      },
+      {
+        attack: '"With GraphQL, you make one request instead of multiple."',
+        defend: 'Our pages typically make 1-3 API calls. The cow detail page loads cow + recent milk + recent breeding — that\'s 3 small requests that run in parallel. GraphQL would batch these into one, but the total data transferred is the same, and the latency difference is negligible.'
+      },
+    ],
+    concede: 'If we had multiple frontends (web app + native iOS app + third-party integrations) all needing different data shapes, GraphQL would shine. Or if our app had deeply nested data relationships that required many sequential REST calls.',
+    confidence: 88,
+  },
+
+  {
+    id: 'atomic-design',
+    icon: '⚛️',
+    iconBg: '#F0F9FF',
+    title: 'Atomic Design for component organization',
+    summary: 'Components split into atoms, molecules, organisms, views',
+    category: 'architecture',
+    competitors: [
+      {
+        name: 'Atomic Design',
+        verdict: 'chosen',
+        desc: 'Components organized by complexity: atoms (tiny) → molecules (combinations) → organisms (sections) → views (pages). Clear hierarchy.'
+      },
+      {
+        name: 'Flat structure',
+        verdict: 'passed',
+        desc: 'All components in one folder. Simple but becomes a mess with 30+ components.'
+      },
+      {
+        name: 'Feature-based folders',
+        verdict: 'also',
+        desc: 'Group by feature: /cows/CowCard.vue, /cows/CowList.vue. Good for large apps but causes duplication of shared components.'
+      },
+    ],
+    why: 'With 30+ components, a flat folder becomes hard to navigate. Atomic design creates a natural hierarchy: if you need a small UI element (button, indicator), look in atoms. If you need something that combines small elements (a dialog, a search bar), look in molecules. If you need a self-contained section (header, navigation), look in organisms. It also enforces reusability — if you find yourself building an organism-sized component, you might extract smaller molecules from it.',
+    attacks: [
+      {
+        attack: '"Atomic design is over-engineering. Just use folders by feature."',
+        defend: 'Feature-based folders work great for large apps with dedicated teams per feature. But we have shared components used across features — CowSearchDropdown is used in milk recording AND breeding AND treatments. Where does it go in feature-based folders? Atomic design puts it in molecules, and everyone knows where to find it.'
+      },
+    ],
+    concede: 'For a very large app with 100+ components and multiple teams, feature-based organization might be better for team autonomy. Atomic design works best for small-to-medium apps with many shared components.',
+    confidence: 82,
+  },
+
+  // ═══════════════════════════════
+  //          OFFLINE
+  // ═══════════════════════════════
+  {
+    id: 'indexeddb',
+    icon: '💾',
+    iconBg: '#FFF7ED',
+    title: 'IndexedDB (via Dexie) for offline storage',
+    summary: 'Chose IndexedDB over localStorage, SQLite-in-browser, and others',
+    category: 'offline',
+    competitors: [
+      {
+        name: 'IndexedDB + Dexie.js',
+        verdict: 'chosen',
+        desc: 'Browser\'s built-in database. Can store large amounts of structured data. Dexie.js provides a clean query API on top. Accessible from Service Workers.'
+      },
+      {
+        name: 'localStorage',
+        verdict: 'passed',
+        desc: 'Simple key-value storage. But limited to 5MB, blocks the main thread, can\'t store structured data efficiently, not available in Service Workers.'
+      },
+      {
+        name: 'SQLite in the browser (sql.js / wa-sqlite)',
+        verdict: 'passed',
+        desc: 'Full SQL database in the browser via WebAssembly. Powerful but large (1MB+ WASM file), complex setup, and experimental.'
+      },
+      {
+        name: 'Cache API only',
+        verdict: 'passed',
+        desc: 'Good for caching HTTP responses. But not designed for structured data or queries — it caches whole responses, not individual records.'
+      },
+    ],
+    why: 'We need to store thousands of records (cows, milk entries, breeding events) and query them (find cows by status, sort by date). IndexedDB is the only browser storage that supports this at scale. localStorage caps at 5MB and can\'t handle structured queries. Dexie.js wraps IndexedDB with a clean API — instead of writing complex IndexedDB transactions manually, we write db.cows.where("status").equals("milking"). Critical feature: IndexedDB is accessible from Service Workers, which is how our background sync works.',
+    attacks: [
+      {
+        attack: '"IndexedDB has a terrible API. It\'s callback-based and complex."',
+        defend: 'The raw IndexedDB API IS terrible — that\'s why we use Dexie.js. Dexie wraps IndexedDB with a Promise-based API that reads like normal JavaScript. We never touch the raw API except in the Service Worker (which can\'t import Dexie).'
+      },
+      {
+        attack: '"Browser storage isn\'t reliable. Users can clear it."',
+        defend: 'True — that\'s why IndexedDB is a CACHE, not the source of truth. The server database is the real source. If IndexedDB gets cleared, the app rebuilds its cache from the server on next sync. The risk is losing un-synced offline changes, which we mitigate by syncing as soon as internet is available.'
+      },
+    ],
+    concede: 'If browser SQLite (via WebAssembly) becomes mature and standardized, it would be a better option — real SQL queries on the client would match our Knex queries on the server.',
+    confidence: 90,
+  },
+
+  {
+    id: 'pwa',
+    icon: '📱',
+    iconBg: '#FFF7ED',
+    title: 'PWA instead of a native mobile app',
+    summary: 'The app runs in the browser, not from the App Store',
+    category: 'offline',
+    competitors: [
+      {
+        name: 'PWA (Progressive Web App)',
+        verdict: 'chosen',
+        desc: 'A website that works like an app. Can be "installed" on the home screen, works offline, sends push notifications. Single codebase for all devices.'
+      },
+      {
+        name: 'React Native / Flutter',
+        verdict: 'passed',
+        desc: 'Cross-platform native apps. Better device access (camera, GPS, sensors). But requires maintaining separate app store listings, builds, and updates.'
+      },
+      {
+        name: 'Native iOS + Android',
+        verdict: 'passed',
+        desc: 'Best performance and device access. But requires two separate codebases, two teams, two app store submissions, and longer development time.'
+      },
+    ],
+    why: 'Our farmers need: works offline, works on any phone, easy updates, no app store approval process. PWA gives all of this with ONE codebase. Updates are instant (refresh the page) — no waiting for App Store review. Any phone with a browser can use it. No download required, no storage space used. The main features we\'d gain from native (camera access for cow photos) can wait — the core functionality (recording milk, logging events) works perfectly as a PWA.',
+    attacks: [
+      {
+        attack: '"PWAs have limited device access compared to native apps."',
+        defend: 'True — we can\'t access Bluetooth, NFC, or advanced camera features. But our app records milk litres and breeding events — we don\'t need those. If we later need cow photo uploads, the camera API IS available in PWAs via the standard getUserMedia API.'
+      },
+      {
+        attack: '"Users expect to find apps in the App Store. A PWA feels less professional."',
+        defend: 'Our users are farm workers who may not have Google Play accounts or App Store IDs. A PWA is more accessible — just open a URL and start using it. We can add "Add to Home Screen" prompts to make it feel like a native app.'
+      },
+      {
+        attack: '"iOS has limited PWA support — no push notifications, storage limits."',
+        defend: 'iOS added push notifications for PWAs in iOS 16.4 (2023). Storage limits are 50MB minimum, which is more than enough for our data. The gap between PWA and native on iOS is closing rapidly.'
+      },
+    ],
+    concede: 'If the product needed advanced device features (Bluetooth for milk meters, GPS tracking for grazing patterns, camera for cow identification), a native app would be necessary. Also, if App Store presence is important for marketing/discoverability.',
+    confidence: 85,
+  },
+
+  {
+    id: 'lww',
+    icon: '⚖️',
+    iconBg: '#FFF7ED',
+    title: 'Last-Write-Wins for conflict resolution',
+    summary: 'When two devices edit the same record offline, the newest change wins',
+    category: 'offline',
+    competitors: [
+      {
+        name: 'Last-Write-Wins (LWW)',
+        verdict: 'chosen',
+        desc: 'Simple: compare timestamps, keep the newer one. Easy to implement, easy to understand.'
+      },
+      {
+        name: 'CRDTs (Conflict-free Replicated Data Types)',
+        verdict: 'passed',
+        desc: 'Mathematically guaranteed conflict resolution. No data loss. But extremely complex to implement and only works for specific data structures.'
+      },
+      {
+        name: 'Manual conflict resolution',
+        verdict: 'passed',
+        desc: 'Show both versions to the user and let them choose. Most accurate but terrible UX for farm workers in the field.'
+      },
+      {
+        name: 'Operational Transform',
+        verdict: 'passed',
+        desc: 'Used by Google Docs for real-time collaboration. Overkill for our use case.'
+      },
+    ],
+    why: 'Our conflict scenario is rare and low-stakes. Conflicts happen when two workers edit the SAME record offline (e.g. both update a cow\'s status). In practice, this almost never happens — workers typically work on different cows or different tasks. When it does happen, the newest change winning is usually the right outcome (the second person\'s update reflects more recent information). CRDTs would be technically superior but would take months to implement for marginal benefit.',
+    attacks: [
+      {
+        attack: '"LWW can lose data! If Worker A edits the name and Worker B edits the status of the same cow offline, one person\'s change is lost."',
+        defend: 'You\'re right — LWW operates at the record level, not the field level. This is a known trade-off. But consider: (1) this scenario is extremely rare in practice — farm workers don\'t often edit the same cow simultaneously offline, (2) the "lost" change is still in the audit log, and (3) implementing field-level merge would triple the sync engine complexity for a scenario that happens maybe once a year.'
+      },
+    ],
+    concede: 'If the app were a real-time collaborative tool (like Google Docs for farming), we\'d need CRDTs or Operational Transform. For our use case — mostly append-only data (milk records, breeding events) with rare edits — LWW is the right trade-off.',
+    confidence: 82,
+  },
+
+  // ═══════════════════════════════
+  //          TOOLING
+  // ═══════════════════════════════
+  {
+    id: 'vitest',
+    icon: '🧪',
+    iconBg: '#FEF3C7',
+    title: 'Vitest for frontend testing, Jest for backend',
+    summary: 'Different test runners for different contexts',
+    category: 'tooling',
+    competitors: [
+      {
+        name: 'Vitest (frontend)',
+        verdict: 'chosen',
+        desc: 'Made for Vite projects. Uses the same config and plugins as Vite. Fast, compatible with Jest syntax.'
+      },
+      {
+        name: 'Jest (backend)',
+        verdict: 'chosen',
+        desc: 'The most popular JS test runner. Mature, well-documented, great for Node.js testing with Supertest.'
+      },
+      {
+        name: 'Jest for everything',
+        verdict: 'passed',
+        desc: 'One tool for both. But Jest doesn\'t understand Vite\'s module resolution, Vue SFCs, or ES modules well without extra config.'
+      },
+    ],
+    why: 'Vitest shares Vite\'s config, so it understands our Vue components, path aliases, and ES modules out of the box. Jest would need separate Babel/transform config for all of this. For the backend (plain Node.js, no Vite), Jest is the standard and works perfectly with Supertest for API testing. Using the right tool for each context saves hours of configuration.',
+    attacks: [
+      {
+        attack: '"Two test runners means two configs, two sets of patterns to learn."',
+        defend: 'Vitest was designed to be Jest-compatible — the syntax is almost identical (describe, it, expect). A developer who knows one can use the other immediately. The configs are minimal. The benefit (zero-config Vue testing) is worth the "cost" of having two package.json test scripts.'
+      },
+    ],
+    concede: 'If we used a bundler other than Vite, or if we were starting fresh today, we might use Vitest for both frontend and backend (it now supports Node.js testing well).',
+    confidence: 85,
+  },
+
+  {
+    id: 'eslint-prettier',
+    icon: '✨',
+    iconBg: '#FEF3C7',
+    title: 'ESLint + Prettier for code quality',
+    summary: 'Automated code checking and formatting',
+    category: 'tooling',
+    competitors: [
+      {
+        name: 'ESLint + Prettier',
+        verdict: 'chosen',
+        desc: 'ESLint catches bugs and bad patterns. Prettier auto-formats code (indentation, quotes, line length). Together they ensure consistent, clean code.'
+      },
+      {
+        name: 'ESLint only (with formatting rules)',
+        verdict: 'passed',
+        desc: 'ESLint can do some formatting. But it\'s slower and less comprehensive than Prettier for formatting.'
+      },
+      {
+        name: 'Biome',
+        verdict: 'also',
+        desc: 'New all-in-one tool (lint + format). Much faster (written in Rust). But less mature ecosystem and fewer plugins.'
+      },
+    ],
+    why: 'ESLint and Prettier solve different problems: ESLint finds potential bugs (unused variables, missing return statements, possible runtime errors), while Prettier handles formatting (consistent indentation, line breaks, semicolons). Together, every developer writes code that looks the same and avoids common mistakes. This is especially important when AI-generated code needs to match human-written code seamlessly.',
+    attacks: [
+      {
+        attack: '"Biome is much faster and does both linting and formatting."',
+        defend: 'Biome is promising but its Vue support and plugin ecosystem are still maturing. ESLint has vue-eslint-parser which understands Vue templates deeply. Speed isn\'t our bottleneck — our lint runs in under 3 seconds.'
+      },
+    ],
+    concede: 'Biome will likely replace this combo in the next few years as it matures. For a new project in 2027, I\'d evaluate Biome first.',
+    confidence: 88,
+  },
+
+  {
+    id: 'pdfkit-exceljs',
+    icon: '📄',
+    iconBg: '#FEF3C7',
+    title: 'PDFKit + ExcelJS for report generation',
+    summary: 'Server-side document generation instead of client-side',
+    category: 'backend',
+    competitors: [
+      {
+        name: 'PDFKit + ExcelJS (server-side)',
+        verdict: 'chosen',
+        desc: 'Generates PDFs and Excel files on the server. No browser dependencies. Works with any client (phone, desktop, API).'
+      },
+      {
+        name: 'Puppeteer (headless browser)',
+        verdict: 'passed',
+        desc: 'Renders HTML to PDF using a real browser. Beautiful PDFs that match web design. But requires 100MB+ Chromium download and much more memory.'
+      },
+      {
+        name: 'Client-side generation (jsPDF)',
+        verdict: 'passed',
+        desc: 'Generate PDFs in the browser. No server needed. But limited styling, requires all data on the client, doesn\'t work offline reliably.'
+      },
+    ],
+    why: 'Our hosting has 2GB RAM — Puppeteer\'s Chromium would use a significant chunk of that. PDFKit generates PDFs directly without a browser, using minimal memory. ExcelJS creates proper .xlsx files with formatting, headers, and formulas. Both run on the server, so the phone just downloads the finished file — no heavy processing on a farmer\'s phone. The trade-off is that PDFKit\'s layout is more manual (no HTML/CSS), but our reports are tabular data that\'s straightforward to lay out.',
+    attacks: [
+      {
+        attack: '"PDFKit PDFs look basic compared to Puppeteer\'s HTML-rendered PDFs."',
+        defend: 'True — Puppeteer can render beautiful, pixel-perfect PDFs. But our reports are data tables, not marketing materials. Clean, readable tables with farm data is what farmers need. And PDFKit generates a 50-page report in milliseconds, while Puppeteer might take 10+ seconds.'
+      },
+    ],
+    concede: 'If report design was a key selling point and we had a powerful server, Puppeteer would produce nicer-looking documents. For a VPS or cloud deployment with more resources, it\'s worth considering.',
+    confidence: 85,
+  },
+
+  {
+    id: 'i18n',
+    icon: '🌍',
+    iconBg: '#DBEAFE',
+    title: 'vue-i18n with JSON files for translations',
+    summary: 'Chose static JSON files over a translation management service',
+    category: 'frontend',
+    competitors: [
+      {
+        name: 'vue-i18n + static JSON',
+        verdict: 'chosen',
+        desc: 'Translation strings in en.json and af.json files. Loaded at build time. Simple, fast, version-controlled.'
+      },
+      {
+        name: 'Translation management service (Crowdin, Lokalise)',
+        verdict: 'passed',
+        desc: 'Web-based translation management. Great for many languages and external translators. But adds cost and complexity for just 2 languages.'
+      },
+      {
+        name: 'Hardcoded strings',
+        verdict: 'passed',
+        desc: 'No translation system at all. Fastest to develop. But impossible to add a second language later without massive refactoring.'
+      },
+    ],
+    why: 'We support exactly two languages (English and Afrikaans) and the developer team handles translations directly. A translation management service would add monthly cost and complexity for a problem we don\'t have. JSON files are version-controlled (we can see what changed), fast to load, and easy to edit. If we ever need more languages, the system is ready — just add a new JSON file.',
+    attacks: [
+      {
+        attack: '"JSON files get out of sync. How do you know en.json and af.json have the same keys?"',
+        defend: 'Good question — we could add a CI check that compares key sets. In practice, every new feature adds keys to both files simultaneously (it\'s part of our development process documented in CLAUDE.md). Missing translations fall back to the key name, which is immediately visible during testing.'
+      },
+    ],
+    concede: 'If we had 5+ languages or needed professional translators (who shouldn\'t be editing JSON files in a code editor), a service like Crowdin would be essential.',
+    confidence: 92,
+  },
+];
+
+
+// ═══════════════════════════════
+//          RENDERING
+// ═══════════════════════════════
+
+function renderDecisions(filter = 'all') {
+  const container = document.getElementById('decisions-container');
+  const filtered = filter === 'all' ? decisions : decisions.filter(d => d.category === filter);
+
+  container.innerHTML = filtered.map(d => {
+    const catClass = `cat-${d.category}`;
+    const catLabel = d.category.charAt(0).toUpperCase() + d.category.slice(1);
+
+    let compHtml = '<div class="vs-grid">';
+    d.competitors.forEach(c => {
+      const cardClass = c.verdict === 'chosen' ? 'chosen' : 'rejected';
+      const verdictClass = c.verdict === 'chosen' ? 'verdict-chosen' : c.verdict === 'also' ? 'verdict-also' : 'verdict-passed';
+      const verdictLabel = c.verdict === 'chosen' ? 'OUR CHOICE' : c.verdict === 'also' ? 'GOOD OPTION' : 'CONSIDERED';
+      compHtml += `<div class="vs-card ${cardClass}">
+        <span class="vs-verdict ${verdictClass}">${verdictLabel}</span>
+        <strong>${c.name}</strong>
+        ${c.desc}
+      </div>`;
+    });
+    compHtml += '</div>';
+
+    let debateHtml = '';
+    d.attacks.forEach(a => {
+      debateHtml += `<div class="debate-box">
+        <div class="debate-attack">
+          <strong>A senior dev might say:</strong>
+          ${a.attack}
+        </div>
+        <div class="debate-defend">
+          <strong>Your response:</strong>
+          ${a.defend}
+        </div>
+      </div>`;
+    });
+
+    const confClass = d.confidence >= 85 ? 'conf-high' : d.confidence >= 70 ? 'conf-med' : 'conf-low';
+    const confLabel = d.confidence >= 85 ? 'High confidence' : d.confidence >= 70 ? 'Moderate confidence' : 'Would reconsider';
+
+    return `<div class="decision" data-category="${d.category}" id="dec-${d.id}">
+      <div class="decision-header" onclick="toggleDecision('${d.id}')">
+        <div class="decision-icon" style="background:${d.iconBg};">${d.icon}</div>
+        <div class="decision-header-text">
+          <h3>${d.title}</h3>
+          <p>${d.summary}</p>
+        </div>
+        <span class="decision-category ${catClass}">${catLabel}</span>
+        <span class="expand-arrow">▼</span>
+      </div>
+      <div class="decision-body">
+
+        <div class="d-section">
+          <h4>📋 The Options We Considered</h4>
+          ${compHtml}
+        </div>
+
+        <div class="d-section">
+          <h4>💡 Why We Made This Choice</h4>
+          <p>${d.why}</p>
+        </div>
+
+        <div class="d-section">
+          <h4>⚔️ Debate Prep — How to Defend This Decision</h4>
+          ${debateHtml}
+        </div>
+
+        <div class="d-section">
+          <h4>🤝 When to Concede</h4>
+          <div class="concede-box">
+            <strong>Be honest — say this if pressed:</strong>
+            ${d.concede}
+          </div>
+        </div>
+
+        <div class="confidence">
+          <span>Decision confidence:</span>
+          <div class="conf-bar"><div class="conf-fill ${confClass}" style="width:${d.confidence}%"></div></div>
+          <span>${d.confidence}% — ${confLabel}</span>
+        </div>
+
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('count-all').textContent = decisions.length;
+}
+
+function toggleDecision(id) {
+  document.getElementById(`dec-${id}`).classList.toggle('open');
+}
+
+function filterDecisions(cat) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderDecisions(cat);
+}
+
+renderDecisions();
+</script>
+
+</body>
+</html>

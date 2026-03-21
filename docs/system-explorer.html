@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyHerder — System Explorer</title>
+<style>
+  :root {
+    --primary: #2D6A4F;
+    --primary-bg: #D8F3DC;
+    --danger: #D62828;
+    --warning: #E07C24;
+    --info: #2563EB;
+    --surface: #FFFFFF;
+    --bg: #F8F9FA;
+    --text: #1a1a2e;
+    --muted: #6B7280;
+    --border: #E5E7EB;
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* ── Top Nav ── */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 56px;
+  }
+
+  .topbar h1 {
+    font-size: 17px;
+    color: var(--primary);
+    margin-right: 24px;
+  }
+
+  .tab {
+    padding: 8px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.15s;
+    margin-bottom: -1px;
+  }
+
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+  /* ── Container ── */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  h2 { font-size: 22px; color: var(--text); margin-bottom: 8px; }
+  .subtitle { font-size: 15px; color: var(--muted); margin-bottom: 28px; }
+
+  /* ── System Map ── */
+  .map-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 20px;
+    min-height: 600px;
+  }
+
+  .map-sidebar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    overflow-y: auto;
+    max-height: 80vh;
+    position: sticky;
+    top: 76px;
+  }
+
+  .map-sidebar h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-top: 16px;
+    margin-bottom: 8px;
+  }
+
+  .map-sidebar h3:first-child { margin-top: 0; }
+
+  .map-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: none;
+    background: none;
+    color: var(--text);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.1s;
+    border-left: 3px solid transparent;
+  }
+
+  .map-item:hover { background: var(--primary-bg); }
+  .map-item.active { background: var(--primary-bg); border-left-color: var(--primary); font-weight: 600; }
+
+  .map-item .item-icon {
+    margin-right: 6px;
+  }
+
+  .map-detail {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+  }
+
+  .map-detail h3 {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+
+  .map-detail .detail-type {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .detail-section {
+    margin-bottom: 24px;
+  }
+
+  .detail-section h4 {
+    font-size: 14px;
+    color: var(--primary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .detail-section p {
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 8px;
+  }
+
+  .detail-section ul {
+    padding-left: 20px;
+    font-size: 14px;
+  }
+
+  .detail-section li {
+    margin-bottom: 4px;
+  }
+
+  .connection-chip {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin: 2px 4px 2px 0;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .connection-chip:hover { transform: scale(1.05); }
+
+  .chip-sends    { background: #DBEAFE; color: #1E40AF; }
+  .chip-receives { background: #D1FAE5; color: #065F46; }
+  .chip-depends  { background: #FEF3C7; color: #92400E; }
+  .chip-stores   { background: #F3E8FF; color: #6B21A8; }
+
+  .file-ref {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+    background: #F3F4F6;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #374151;
+  }
+
+  /* ── Bug Detective ── */
+  .detective-intro {
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .detective-intro p {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 500px;
+    margin: 0 auto 24px;
+  }
+
+  .scenario-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
+    margin-top: 24px;
+  }
+
+  .scenario-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 4px solid var(--border);
+  }
+
+  .scenario-card:hover {
+    border-left-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .scenario-card h4 {
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+
+  .scenario-card p {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .scenario-card .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 8px;
+  }
+
+  .tag-frontend { background: #DBEAFE; color: #1E40AF; }
+  .tag-backend { background: #D1FAE5; color: #065F46; }
+  .tag-database { background: #F3E8FF; color: #6B21A8; }
+  .tag-auth { background: #FEF2F2; color: #991B1B; }
+  .tag-sync { background: #FFF7ED; color: #9A3412; }
+
+  /* Investigation panel */
+  .investigation {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-top: 20px;
+  }
+
+  .investigation.active { display: block; }
+
+  .investigation h3 {
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+
+  .investigation .symptom {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+
+  .inv-step {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #F3F4F6;
+  }
+
+  .inv-step:last-child { border-bottom: none; }
+
+  .step-num {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--primary-bg);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .step-content h4 {
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+
+  .step-content p {
+    font-size: 14px;
+    color: #4B5563;
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .step-content .why {
+    font-size: 13px;
+    color: var(--primary);
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  .step-content .file {
+    display: inline-block;
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    background: #F3F4F6;
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: #6B21A8;
+    margin-top: 4px;
+  }
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+    margin-bottom: 16px;
+    transition: background 0.1s;
+  }
+
+  .back-btn:hover { background: #F9FAFB; }
+
+  /* ── Dependency Chains ── */
+  .chain-intro {
+    text-align: center;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .chain-intro p {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  .chain-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 28px;
+  }
+
+  .chain-btn {
+    padding: 8px 16px;
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    background: var(--surface);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .chain-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .chain-btn.active { border-color: var(--primary); background: var(--primary-bg); color: var(--primary); }
+
+  .chain-result {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+  }
+
+  .chain-result.active { display: block; }
+
+  .chain-result h3 { font-size: 18px; margin-bottom: 16px; }
+
+  .ripple {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 16px 0;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .ripple-node {
+    min-width: 180px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    text-align: center;
+    position: relative;
+  }
+
+  .ripple-node strong { display: block; font-size: 14px; margin-bottom: 4px; }
+
+  .ripple-arrow {
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    color: var(--muted);
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .ripple-source   { background: #FEF2F2; color: #991B1B; border: 2px solid #FCA5A5; }
+  .ripple-direct   { background: #FEF3C7; color: #92400E; border: 2px solid #FCD34D; }
+  .ripple-indirect  { background: #EFF6FF; color: #1E40AF; border: 2px solid #BFDBFE; }
+  .ripple-user      { background: #F3E8FF; color: #6B21A8; border: 2px solid #C4B5FD; }
+
+  .ripple-legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+
+  .ripple-legend span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .legend-dot {
+    width: 12px; height: 12px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .chain-explanation {
+    margin-top: 20px;
+    padding: 16px;
+    background: #F0FDF4;
+    border: 1px solid #BBF7D0;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #14532D;
+  }
+
+  .chain-explanation strong { display: block; margin-bottom: 4px; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .map-grid { grid-template-columns: 1fr; }
+    .map-sidebar { position: static; max-height: none; }
+    .container { padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════ TOP NAV ═══════ -->
+<div class="topbar">
+  <h1>MyHerder Explorer</h1>
+  <button class="tab active" onclick="switchTab('map')">System Map</button>
+  <button class="tab" onclick="switchTab('detective')">Bug Detective</button>
+  <button class="tab" onclick="switchTab('chains')">Dependency Chains</button>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                    SYSTEM MAP TAB                      -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="panel-map" class="panel active">
+  <h2>System Map</h2>
+  <p class="subtitle">Click any part of the system to see what it does, what it connects to, and where it lives.</p>
+
+  <div class="map-grid">
+    <!-- Sidebar -->
+    <div class="map-sidebar">
+      <h3>What Users See</h3>
+      <button class="map-item active" onclick="showMapItem('dashboard')" data-key="dashboard"><span class="item-icon">📊</span> Dashboard</button>
+      <button class="map-item" onclick="showMapItem('cowList')" data-key="cowList"><span class="item-icon">🐄</span> Cow List</button>
+      <button class="map-item" onclick="showMapItem('cowDetail')" data-key="cowDetail"><span class="item-icon">🐄</span> Cow Detail Page</button>
+      <button class="map-item" onclick="showMapItem('milkRecording')" data-key="milkRecording"><span class="item-icon">🥛</span> Milk Recording</button>
+      <button class="map-item" onclick="showMapItem('milkHistory')" data-key="milkHistory"><span class="item-icon">📋</span> Milk History</button>
+      <button class="map-item" onclick="showMapItem('breeding')" data-key="breeding"><span class="item-icon">🐂</span> Breeding Hub</button>
+      <button class="map-item" onclick="showMapItem('health')" data-key="health"><span class="item-icon">🩺</span> Health Issues</button>
+      <button class="map-item" onclick="showMapItem('treatments')" data-key="treatments"><span class="item-icon">💊</span> Treatments</button>
+      <button class="map-item" onclick="showMapItem('analytics')" data-key="analytics"><span class="item-icon">📈</span> Analytics</button>
+      <button class="map-item" onclick="showMapItem('reports')" data-key="reports"><span class="item-icon">📄</span> Reports</button>
+
+      <h3>Behind the Scenes</h3>
+      <button class="map-item" onclick="showMapItem('authStore')" data-key="authStore"><span class="item-icon">🔑</span> Login System</button>
+      <button class="map-item" onclick="showMapItem('syncEngine')" data-key="syncEngine"><span class="item-icon">🔄</span> Sync Engine</button>
+      <button class="map-item" onclick="showMapItem('offlineCache')" data-key="offlineCache"><span class="item-icon">📱</span> Offline Storage</button>
+      <button class="map-item" onclick="showMapItem('permissions')" data-key="permissions"><span class="item-icon">🛡️</span> Permission System</button>
+      <button class="map-item" onclick="showMapItem('farmWalls')" data-key="farmWalls"><span class="item-icon">🏘️</span> Farm Separation</button>
+      <button class="map-item" onclick="showMapItem('featureFlags')" data-key="featureFlags"><span class="item-icon">🎚️</span> Feature Switches</button>
+
+      <h3>Admin Areas</h3>
+      <button class="map-item" onclick="showMapItem('userMgmt')" data-key="userMgmt"><span class="item-icon">👥</span> User Management</button>
+      <button class="map-item" onclick="showMapItem('settings')" data-key="settings"><span class="item-icon">⚙️</span> Farm Settings</button>
+      <button class="map-item" onclick="showMapItem('superAdmin')" data-key="superAdmin"><span class="item-icon">👑</span> Super-Admin Panel</button>
+      <button class="map-item" onclick="showMapItem('auditLog')" data-key="auditLog"><span class="item-icon">📜</span> Audit Log</button>
+    </div>
+
+    <!-- Detail Area -->
+    <div class="map-detail" id="map-detail">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                   BUG DETECTIVE TAB                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="panel-detective" class="panel">
+  <div id="detective-home">
+    <h2>Bug Detective</h2>
+    <p class="subtitle">A farmer reports a problem. Where do you start investigating? Pick a scenario below.</p>
+
+    <div class="scenario-grid" id="scenario-grid">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+
+  <div id="detective-detail" class="investigation">
+    <!-- Filled by JS -->
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                 DEPENDENCY CHAINS TAB                  -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="panel-chains" class="panel">
+  <h2>Dependency Chains</h2>
+  <div class="chain-intro">
+    <p>If something breaks, what else breaks with it? Pick a component to see the ripple effect.</p>
+  </div>
+
+  <div class="chain-picker" id="chain-picker">
+    <!-- Filled by JS -->
+  </div>
+
+  <div id="chain-detail" class="chain-result">
+    <!-- Filled by JS -->
+  </div>
+</div>
+
+</div><!-- /container -->
+
+
+<script>
+// ═══════════════════════════════════════════════════════
+//                      DATA
+// ═══════════════════════════════════════════════════════
+
+const mapData = {
+  dashboard: {
+    title: 'Dashboard',
+    type: 'Page — the home screen after login',
+    purpose: 'The first thing users see. Shows a quick snapshot of the farm: how much milk today, how many cows were milked, active health issues, and upcoming breeding actions. For super-admins without a farm, it shows farm stats and management links instead.',
+    howItWorks: 'When the page opens, it asks the server for today\'s numbers (a single request to the "daily KPIs" endpoint). The server counts up records from today\'s date in the milk_records, health_issues, and breeding_events tables, all filtered to this farm only.',
+    whatCanGoWrong: [
+      'Numbers show as zero — check if there\'s actually data for today\'s date, or if the date/timezone is off',
+      'Page is blank — the user might not have the "can_view_analytics" permission (the dashboard stats require this)',
+      'Slow loading — the KPI query hits multiple tables; if the farm has years of data, it could be slow',
+    ],
+    connections: {
+      'Gets data from': ['Daily KPIs endpoint', 'Analytics system'],
+      'Depends on': ['Login system', 'Permission system', 'Farm separation'],
+      'Links to': ['Cow List', 'Milk Recording', 'Breeding Hub', 'Health Issues'],
+    },
+    files: {
+      'Page': 'client/src/views/DashboardView.vue',
+      'Data source': 'server/routes/analytics/kpi.js',
+    }
+  },
+
+  cowList: {
+    title: 'Cow List',
+    type: 'Page — browse and search all cows',
+    purpose: 'Shows all cows on the farm in a scrollable list. Users can search by tag number or name, filter by status (milking, dry, pregnant, etc.), and tap a cow to see its details.',
+    howItWorks: 'The page asks the Cows Store for data. The store sends a request to the server\'s /api/cows endpoint. The server queries the cows table, filtered by this farm only, and returns a list. The store saves the list in memory (so the page can display it) and also caches it on the phone for offline use.',
+    whatCanGoWrong: [
+      'Missing cows — check if they were soft-deleted (deleted_at is set) or belong to a different farm',
+      'Search not working — search matches on tag_number and name; if the cow only has one of these, try the other',
+      'Showing stale data offline — the phone shows its cached copy; it\'ll update when internet returns',
+      'Empty list for a worker — they need the "can_manage_cows" permission to see cows',
+    ],
+    connections: {
+      'Gets data from': ['Cows Store', 'Server /api/cows endpoint'],
+      'Stores data in': ['Phone storage (IndexedDB)'],
+      'Depends on': ['Login system', 'Farm separation'],
+      'Links to': ['Cow Detail Page', 'Add New Cow form'],
+    },
+    files: {
+      'Page': 'client/src/views/CowListView.vue',
+      'Store': 'client/src/stores/cows.js',
+      'Server route': 'server/routes/cows.js',
+      'Database table': 'cows',
+    }
+  },
+
+  cowDetail: {
+    title: 'Cow Detail Page',
+    type: 'Page — full info about one cow',
+    purpose: 'Shows everything about a single cow: tag number, name, breed, date of birth, status, and sections for milk records, breeding history, health issues, and treatments. Each section is only visible if the user has permission for that feature.',
+    howItWorks: 'The page reads the cow ID from the URL, then asks the server for that specific cow (with breed name and parent names joined in). It also loads milk records, breeding events, and health data for this cow — each from its own endpoint. Sections are hidden if the user lacks the relevant permission.',
+    whatCanGoWrong: [
+      'Page shows "not found" — the cow ID might be wrong, or the cow belongs to another farm, or it was deleted',
+      'Missing sections (no breeding, no milk) — the user might lack permissions, or the feature flag is turned off',
+      'Wrong breed name showing — check the breed_types table; the cow stores a breed_type_id that links to a breed name',
+    ],
+    connections: {
+      'Gets data from': ['Cows Store', 'Milk Records Store', 'Health Issues Store', 'Breeding Events Store', 'Treatments Store'],
+      'Depends on': ['Permission system', 'Feature switches', 'Login system'],
+      'Links to': ['Edit Cow form', 'Log Milk', 'Log Issue', 'Log Treatment', 'Log Breeding', 'Cow Repro History'],
+    },
+    files: {
+      'Page': 'client/src/views/CowDetailView.vue',
+      'Server route': 'server/routes/cows.js (GET /:id)',
+      'Database table': 'cows (joined with breed_types)',
+    }
+  },
+
+  milkRecording: {
+    title: 'Milk Recording',
+    type: 'Page — log daily milk for each cow',
+    purpose: 'The main daily-use page. Workers select a session (AM/PM/Midday), pick a cow, enter litres, and save. Can mark milk as discarded (e.g. due to medication withdrawal). Shows a summary of the day\'s recordings.',
+    howItWorks: 'Each save sends a POST to /api/milk-records. The server validates the data (cow must exist, session must be valid, can\'t record the same cow twice in one session on one date — returns error 409 if duplicate). Also auto-checks if the cow is under medication withdrawal and flags the record. If offline, the record is saved locally and queued for sync.',
+    whatCanGoWrong: [
+      'Duplicate error (409) — someone already recorded this cow for this session today',
+      'Cow not in the list — cow might be male (males don\'t show in milk recording), deleted, or on a different farm',
+      'Withdrawal flag not showing — check the treatments table; the withdrawal_end_milk date calculation might be off',
+      'Records not appearing on other devices — if saved offline, they\'re in the sync queue; check the sync indicator',
+      'Wrong litres showing — check if someone edited the record after initial entry',
+    ],
+    connections: {
+      'Gets data from': ['Cows Store (cow list)', 'Milk Records Store'],
+      'Stores data in': ['milk_records table', 'Phone storage (IndexedDB)', 'Sync queue (if offline)'],
+      'Depends on': ['Permission: can_record_milk', 'Feature switch: milkRecording', 'Withdrawal system (treatments)'],
+      'Checked by': ['Duplicate detection (cow + session + date must be unique)'],
+    },
+    files: {
+      'Page': 'client/src/views/MilkRecordingView.vue',
+      'Entry card': 'client/src/components/organisms/MilkEntryCard.vue',
+      'Store': 'client/src/stores/milkRecords.js',
+      'Server route': 'server/routes/milkRecords.js',
+      'Database table': 'milk_records',
+    }
+  },
+
+  milkHistory: {
+    title: 'Milk History',
+    type: 'Page — view and filter past milk records',
+    purpose: 'Browse all past milk recordings with filters: date range, session, cow, who recorded it. Supports pagination (loads in pages of 20). Can search by tag number or recorder name. Admin can delete records.',
+    howItWorks: 'Sends GET /api/milk-records with page/limit params, which triggers the paginated response format. Server joins cow names and recorder names onto each record. Returns {data: [...], total: N} for pagination.',
+    whatCanGoWrong: [
+      'Records missing — check date range filter; default might not cover the date you\'re looking for',
+      'Wrong cow name — the cow_name is joined from the cows table at query time; if the cow was renamed, old records show new name',
+      'Can\'t delete — only admins can delete milk records',
+    ],
+    connections: {
+      'Gets data from': ['Server /api/milk-records (paginated mode)'],
+      'Depends on': ['Permission: can_record_milk', 'Feature switch: milkRecording'],
+      'Links to': ['Edit record', 'Cow Detail Page'],
+    },
+    files: {
+      'Page': 'client/src/views/MilkHistoryView.vue',
+      'Server route': 'server/routes/milkRecords.js (GET /)',
+      'Database table': 'milk_records (joined with cows, users)',
+    }
+  },
+
+  breeding: {
+    title: 'Breeding Hub',
+    type: 'Page — breeding management centre',
+    purpose: 'The central page for all breeding activity. Shows: upcoming actions that need attention (overdue heats, pregnancy checks due, calvings expected, dry-off reminders), recent breeding events, and quick links to log new events.',
+    howItWorks: 'Loads from /api/breeding-events/upcoming which calculates due dates based on breed-specific timings (different breeds have different gestation periods, heat cycles, etc.). Each "upcoming" item is computed from the last breeding event for that cow — e.g. if a cow was inseminated 280 days ago, she should be calving soon.',
+    whatCanGoWrong: [
+      '"Needs attention" items won\'t go away — the event needs to be logged (e.g. log the calving) or dismissed',
+      'Wrong due dates — check the breed_types table for that breed\'s gestation_days, heat_cycle_days, preg_check_days, dry_off_days',
+      'Cow appears in multiple categories — this is correct; a cow can be due for both a preg check and a heat prediction',
+      'Dismissed items reappearing — dismissals are per-event; a new event for the same cow creates a new undismissed alert',
+    ],
+    connections: {
+      'Gets data from': ['Server /api/breeding-events/upcoming', 'Breeding Events Store'],
+      'Uses timing data from': ['Breed Types table (gestation, heat cycle, preg check, dry-off days per breed)'],
+      'Depends on': ['Permission: can_log_breeding', 'Feature switch: breeding'],
+      'Links to': ['Log Breeding Event', 'Cow Repro History', 'Breeding Events list'],
+    },
+    files: {
+      'Page': 'client/src/views/BreedingHubView.vue',
+      'Notifications page': 'client/src/views/BreedingNotificationsView.vue',
+      'Server route': 'server/routes/breedingEvents.js',
+      'Date calculations': 'server/helpers/breedingCalc.js',
+      'Database tables': 'breeding_events, breed_types, cows',
+    }
+  },
+
+  health: {
+    title: 'Health Issues',
+    type: 'Page — log and track cow health problems',
+    purpose: 'Log health issues for cows (mastitis, lameness, etc.). Each issue has a type, severity, affected teats (for udder issues), and status (open/resolved). Issues can have comments and linked treatments.',
+    howItWorks: 'Issue types come from a customizable table (issue_types) with codes, names, and emojis. When you log an issue, it creates a record in health_issues linked to the cow. The status can be updated (open → monitoring → resolved). Affected teats are stored as a JSON string in the database.',
+    whatCanGoWrong: [
+      'Issue type not in the list — admin needs to add it in Settings → Issue Types',
+      'Teat selector not showing — only appears for issue types that affect teats (like mastitis)',
+      'Can\'t resolve issue — check the user has the can_log_issues permission',
+      'Affected teats showing as garbled text — the JSON parsing might have failed; the data should be a JSON array like ["FL","FR"]',
+    ],
+    connections: {
+      'Gets data from': ['Health Issues Store', 'Issue Types Store', 'Cows Store'],
+      'Links to': ['Treatments (can log treatment from an issue)', 'Cow Detail Page'],
+      'Depends on': ['Permission: can_log_issues', 'Feature switch: healthIssues', 'Issue Types (customizable list)'],
+    },
+    files: {
+      'Log page': 'client/src/views/LogIssueView.vue',
+      'Open issues list': 'client/src/views/OpenIssuesView.vue',
+      'Detail page': 'client/src/views/IssueDetailView.vue',
+      'Store': 'client/src/stores/healthIssues.js',
+      'Server route': 'server/routes/healthIssues.js',
+      'Database table': 'health_issues',
+    }
+  },
+
+  treatments: {
+    title: 'Treatments',
+    type: 'Page — record treatments given to cows',
+    purpose: 'Log when a cow receives medication. Each treatment records: which cow, which medication, dosage, date, cost, whether a vet was involved. The system automatically calculates milk and meat withdrawal end dates based on the medication\'s withdrawal period.',
+    howItWorks: 'Medications come from a customizable list (medications table) with names, withdrawal days for milk and meat. When you log a treatment, the server auto-calculates withdrawal_end_milk and withdrawal_end_meat by adding the medication\'s withdrawal days to the treatment date. Cows currently under withdrawal are flagged in milk recording.',
+    whatCanGoWrong: [
+      'Withdrawal dates wrong — check the medication\'s milk_withdrawal_days and meat_withdrawal_days in the medications table',
+      'Medication not in the list — admin needs to add it in Settings → Medications',
+      'Cow still flagged after withdrawal ended — check if there\'s a newer treatment that extended the withdrawal',
+      'Treatment cost not showing in reports — the cost field might be null or zero',
+    ],
+    connections: {
+      'Gets data from': ['Treatments Store', 'Medications Store', 'Cows Store'],
+      'Feeds into': ['Milk Recording (withdrawal flags)', 'Analytics (treatment costs)', 'Reports'],
+      'Depends on': ['Permission: can_log_treatments', 'Feature switch: treatments', 'Medications list'],
+    },
+    files: {
+      'Log page': 'client/src/views/LogTreatmentView.vue',
+      'Withdrawal list': 'client/src/views/WithdrawalListView.vue',
+      'Store': 'client/src/stores/treatments.js',
+      'Server route': 'server/routes/treatments.js',
+      'Withdrawal logic': 'server/services/withdrawalService.js',
+      'Database tables': 'treatments, medications, treatment_medications',
+    }
+  },
+
+  analytics: {
+    title: 'Analytics',
+    type: 'Page group — charts and insights',
+    purpose: 'Four category pages showing farm performance over time: Production (milk trends, top/bottom producers, wasted milk), Fertility (pregnancy rate, calving intervals, conception rate), Health (cure rate, mastitis rate, issue frequency), and Structure (herd size, age, breed composition, mortality).',
+    howItWorks: 'Each chart calls a specific analytics endpoint. The server runs SQL aggregation queries (totals, averages, counts grouped by month) and returns pre-computed data. The frontend renders it as charts using Chart.js. All endpoints accept "from" and "to" date filters.',
+    whatCanGoWrong: [
+      'Charts empty — check if there\'s enough data in the selected date range',
+      'Numbers don\'t match manual count — analytics use SQL aggregation which may handle edge cases (deleted records, null values) differently than you\'d expect',
+      'Page not accessible — requires can_view_analytics permission AND the analytics feature flag must be on',
+      'Specific chart wrong — each chart has its own server endpoint; the issue is in that specific endpoint\'s query',
+    ],
+    connections: {
+      'Gets data from': ['14+ analytics endpoints on the server'],
+      'Reads from tables': ['milk_records, breeding_events, health_issues, treatments, cows'],
+      'Depends on': ['Permission: can_view_analytics', 'Feature switch: analytics'],
+    },
+    files: {
+      'Landing page': 'client/src/views/AnalyticsView.vue',
+      'Production charts': 'client/src/views/analytics/FinancialView.vue',
+      'Fertility charts': 'client/src/views/analytics/FertilityView.vue',
+      'Health charts': 'client/src/views/analytics/HealthView.vue',
+      'Structure charts': 'client/src/views/analytics/StructureView.vue',
+      'Server endpoints': 'server/routes/analytics/ (folder with 5 files)',
+    }
+  },
+
+  reports: {
+    title: 'Reports',
+    type: 'Page — download PDF and Excel reports',
+    purpose: 'Generate downloadable reports: treatment history, discarded milk, medication usage, milk production, breeding events, herd health. Each can be exported as PDF or Excel with a date range filter.',
+    howItWorks: 'The frontend sends a request with date range and format (pdf/xlsx). The server queries the relevant tables, builds the document using PDFKit (for PDF) or ExcelJS (for Excel), and sends back a downloadable file. Reports are admin-only.',
+    whatCanGoWrong: [
+      'Empty report — the date range might not cover any data',
+      'Download fails — could be a server memory issue if the date range covers huge amounts of data',
+      'Can\'t access — reports are admin-only',
+      'Missing data in report — each report type queries specific tables; check which tables feed that report',
+    ],
+    connections: {
+      'Gets data from': ['Server /api/reports/* endpoints'],
+      'Reads from tables': ['treatments, milk_records, medications, breeding_events, health_issues, cows'],
+      'Depends on': ['Admin role required'],
+    },
+    files: {
+      'Page': 'client/src/views/admin/ReportsView.vue',
+      'Server routes': 'server/routes/reports/ (folder)',
+      'Report builder': 'server/services/reportService.js',
+    }
+  },
+
+  authStore: {
+    title: 'Login System',
+    type: 'Behind the scenes — authentication',
+    purpose: 'Handles everything about logging in and staying logged in. Manages the JWT token (your digital ID badge), stores it in two places for safety, auto-refreshes it before it expires, and handles the two login modes (password for admin, PIN for workers).',
+    howItWorks: 'When you log in, the server verifies your credentials and returns a JWT token containing your identity, role, permissions, and farm. The frontend saves this token in localStorage AND IndexedDB (as backup). Every API request includes this token. When the app starts, it "hydrates" (restores) the session from storage without requiring re-login. If the token is close to expiring (< 1 hour left), it silently refreshes.',
+    whatCanGoWrong: [
+      'Randomly logged out — the token expired and refresh failed (maybe offline), or an admin revoked your session',
+      'Can\'t log in — wrong credentials, account locked (too many failed attempts), account deactivated, or wrong farm code',
+      '2FA not working — the TOTP code is time-sensitive; phone clock must be accurate',
+      'Session lost after closing app — localStorage was cleared, or IndexedDB was corrupted (the app has auto-recovery for this)',
+    ],
+    connections: {
+      'Provides identity to': ['Every other feature (all API calls include the token)'],
+      'Stored in': ['localStorage (quick access)', 'IndexedDB (backup, survives localStorage wipe)'],
+      'Depends on': ['Server /api/auth endpoints', 'JWT secret key on the server'],
+    },
+    files: {
+      'Store': 'client/src/stores/auth.js',
+      'Server route': 'server/routes/auth.js',
+      'Token checker': 'server/middleware/auth.js',
+    }
+  },
+
+  syncEngine: {
+    title: 'Sync Engine',
+    type: 'Behind the scenes — offline data synchronization',
+    purpose: 'Keeps phone data and server data in sync. When you create or edit something offline, it\'s queued and automatically pushed to the server when internet returns. Also periodically pulls fresh data from the server.',
+    howItWorks: 'Three parts work together: (1) When you save something offline, it goes into a "sync queue" in IndexedDB. (2) A Service Worker in the background periodically tries to push queued items to the server via POST /api/sync/push. (3) The app periodically does a "pull" (GET /api/sync/pull) to get any changes made on other devices. Conflicts are resolved by "last write wins" — whichever change has the newer timestamp is kept.',
+    whatCanGoWrong: [
+      'Data created offline not appearing on other devices — it\'s stuck in the sync queue; check the sync indicator for pending count',
+      'Sync failing — the push might be hitting validation errors on the server; items retry up to 5 times then stop',
+      'Duplicate data after sync — rare, but can happen if the same item was created on two devices offline; UUIDs prevent true duplicates but the user might have entered the same cow twice',
+      'Old data showing — the pull might not have run yet, or the "since" timestamp is too recent',
+    ],
+    connections: {
+      'Pushes to': ['Server /api/sync/push'],
+      'Pulls from': ['Server /api/sync/pull'],
+      'Uses': ['IndexedDB sync queue', 'Service Worker (background push)', 'Auth token (for server requests)'],
+      'Manages data for': ['Cows, Milk Records, Health Issues, Treatments, Breeding Events'],
+    },
+    files: {
+      'Frontend manager': 'client/src/services/syncManager.js',
+      'Sync store': 'client/src/stores/sync.js',
+      'Service worker': 'client/src/sw-custom.js',
+      'Server route': 'server/routes/sync.js',
+      'Server logic': 'server/services/syncService.js',
+    }
+  },
+
+  offlineCache: {
+    title: 'Offline Storage (IndexedDB)',
+    type: 'Behind the scenes — local data cache on the phone',
+    purpose: 'Keeps a copy of farm data on the phone so the app works without internet. Each farm gets its own separate database. Also stores the sync queue (outbox) and auth session.',
+    howItWorks: 'Uses Dexie.js (a helper library for IndexedDB). When data loads from the server, it\'s mirrored to IndexedDB. When the server is unreachable, stores read from IndexedDB instead. The database name includes the farm ID (e.g. myherder_db_abc123) so switching farms opens a completely separate local database.',
+    whatCanGoWrong: [
+      'Data gone after clearing browser data — IndexedDB is browser storage; clearing site data wipes it',
+      'Wrong data showing offline — the cache is only as fresh as the last successful server fetch',
+      'Storage full — rare, but IndexedDB has browser-imposed limits; old data might need clearing',
+      'App crashes on startup — IndexedDB corruption; the app has auto-recovery (deletes and recreates the DB)',
+    ],
+    connections: {
+      'Caches data for': ['Cows, Milk Records, Health Issues, Treatments, Breeding Events, Medications, Issue Types, Breed Types'],
+      'Also stores': ['Auth session (backup)', 'Sync queue', 'Feature flags'],
+      'Used by': ['Every Pinia store (as offline fallback)', 'Service Worker (for background sync)'],
+      'Scoped by': ['Farm ID (each farm = separate database)'],
+    },
+    files: {
+      'Setup & schema': 'client/src/db/indexedDB.js',
+    }
+  },
+
+  permissions: {
+    title: 'Permission System',
+    type: 'Behind the scenes — access control',
+    purpose: 'Controls who can see and do what. Three roles (super-admin, admin, worker) with granular permissions for workers. The same permission that allows writing also controls reading — if you can\'t record milk, you can\'t see milk records either.',
+    howItWorks: 'Permissions are stored in the user\'s JWT token as a list. The server checks permissions via "authorize" middleware before each route. The frontend checks via authStore.hasPermission() to show/hide UI elements. Admin role bypasses all checks. Router guards also check permissions before loading pages.',
+    whatCanGoWrong: [
+      'Worker can\'t see a feature — they need the relevant permission assigned by their admin',
+      'Permission was added but not working — the user needs to log out and back in to get a fresh token with the new permissions',
+      'Admin accidentally removed from admin role — another admin or super-admin needs to fix this in User Management',
+    ],
+    connections: {
+      'Checked by': ['Server middleware (authorize.js)', 'Frontend guards (router)', 'Frontend UI (v-if="hasPermission()")'],
+      'Stored in': ['JWT token (carried with every request)', 'users table (source of truth)'],
+      'Affects': ['Every feature page', 'Every API endpoint', 'Navigation bar visibility', 'Dashboard content'],
+    },
+    files: {
+      'Server middleware': 'server/middleware/authorize.js',
+      'Auth store': 'client/src/stores/auth.js (hasPermission method)',
+      'Router guards': 'client/src/router/index.js',
+    }
+  },
+
+  farmWalls: {
+    title: 'Farm Separation (Multi-Tenancy)',
+    type: 'Behind the scenes — data isolation between farms',
+    purpose: 'Ensures Farm A can never see Farm B\'s data. Every piece of data is tagged with a farm_id, and every database query filters by the user\'s farm. This is the most critical security feature.',
+    howItWorks: 'When you log in, your JWT token contains your farm_id. The "tenantScope" middleware reads this and stamps every request with it. Every single database query includes ".where(\'farm_id\', req.farmId)" — this is non-negotiable. Even the phone\'s local storage is separate per farm (different database name). There are 46 automated tests that verify farm isolation.',
+    whatCanGoWrong: [
+      'Data from another farm appearing — this would be a critical bug in the tenantScope middleware or a query missing the farm_id filter (extremely unlikely due to 46 tests)',
+      'Can\'t see any data after switching farms — the new farm\'s local database might be empty; needs a fresh sync',
+      'Super-admin can\'t see farm data — they need to "Enter" the farm first to get a farm-scoped token',
+    ],
+    connections: {
+      'Enforced by': ['tenantScope middleware (server)', 'Farm-scoped IndexedDB (frontend)'],
+      'Applied to': ['Every database query in every route', 'Sync push (validates farm ownership)', 'Sync pull (only returns farm\'s data)'],
+      'Source of truth': ['farm_id in JWT token → extracted by tenantScope → used in all queries'],
+    },
+    files: {
+      'Middleware': 'server/middleware/tenantScope.js',
+      'Tests': 'server/tests/tenantIsolation.test.js (46 tests)',
+      'IndexedDB scoping': 'client/src/db/indexedDB.js (initDb function)',
+    }
+  },
+
+  featureFlags: {
+    title: 'Feature Switches',
+    type: 'Behind the scenes — enable/disable features per farm',
+    purpose: 'Lets admins turn entire features on or off for their farm. If breeding is turned off, the breeding hub disappears from navigation, routes are blocked, and breeding data isn\'t loaded.',
+    howItWorks: 'Feature flags are stored in the feature_flags table (one row per farm per flag). The frontend loads them on login and checks before showing nav items or loading routes. The router guard checks "requiresModule" metadata on routes.',
+    whatCanGoWrong: [
+      'Feature not visible — the flag might be off; admin can check in Settings',
+      'Flag changed but not reflected — might need to refresh the page or re-login to pick up the change',
+    ],
+    connections: {
+      'Controls visibility of': ['Breeding, Milk Recording, Health Issues, Treatments, Analytics'],
+      'Checked by': ['BottomNav (show/hide nav items)', 'Router guards (block routes)', 'Dashboard (show/hide sections)'],
+      'Managed by': ['Admin in Settings page'],
+    },
+    files: {
+      'Store': 'client/src/stores/featureFlags.js',
+      'Server route': 'server/routes/featureFlags.js',
+      'Database table': 'feature_flags',
+    }
+  },
+
+  userMgmt: {
+    title: 'User Management',
+    type: 'Admin page — manage farm users',
+    purpose: 'Admins can create, edit, and deactivate users on their farm. Set roles (admin/worker), assign permissions, set PINs for workers, and choose their language preference.',
+    howItWorks: 'CRUD operations on the users table, scoped to the admin\'s farm. Deactivation is soft (sets is_active: false) — the user still exists but can\'t log in. Can also revoke a user\'s sessions (forces re-login).',
+    whatCanGoWrong: [
+      'Can\'t create user — username might already be taken on this farm',
+      'Deactivated user can still use the app — their cached session on their phone is still valid until it expires or they make an API call (which will be rejected)',
+      'Permission change not taking effect — user needs to log out and back in to get a fresh token',
+    ],
+    connections: {
+      'Manages': ['users table'],
+      'Affects': ['Login system', 'Permission system', 'Session revocation'],
+      'Depends on': ['Admin role required'],
+    },
+    files: {
+      'Page': 'client/src/views/admin/UserManagement.vue',
+      'Server route': 'server/routes/users.js',
+    }
+  },
+
+  settings: {
+    title: 'Farm Settings',
+    type: 'Admin page — configure the farm',
+    purpose: 'Manage farm-level settings: farm name, default language, breed types, issue types, medications, and feature flags. All the customizable lists that other features depend on.',
+    howItWorks: 'Each settings section has its own server endpoint. Changes are saved immediately. Some settings (like breed types) affect calculations (e.g. gestation period used by breeding hub). Some (like issue types) affect what options appear in dropdown menus across the app.',
+    whatCanGoWrong: [
+      'Can\'t delete a breed type — it\'s still referenced by cows; reassign cows to a different breed first',
+      'Can\'t delete an issue type — it\'s referenced by existing health issues',
+      'Changed breed gestation days but breeding dates haven\'t updated — existing events keep their original calculated dates; only new events use the new timings',
+    ],
+    connections: {
+      'Manages': ['breed_types, issue_types, medications, feature_flags, app settings'],
+      'Affects': ['Breeding Hub (breed timings)', 'Health Issues (issue type list)', 'Treatments (medication list)', 'Milk Recording (withdrawal periods)', 'Feature visibility'],
+      'Depends on': ['Admin role required'],
+    },
+    files: {
+      'Settings page': 'client/src/views/admin/SettingsView.vue',
+      'Breed types': 'client/src/views/admin/BreedTypeManagement.vue',
+      'Issue types': 'client/src/views/admin/IssueTypeManagement.vue',
+      'Medication list': 'client/src/views/admin/MedicationManagement.vue',
+      'Server routes': 'server/routes/breedTypes.js, issueTypes.js, medications.js, featureFlags.js, appSettings.js',
+    }
+  },
+
+  superAdmin: {
+    title: 'Super-Admin Panel',
+    type: 'Super-admin pages — manage all farms',
+    purpose: 'The global control centre. Create new farms, view all farms, enter any farm to manage it, set global defaults (breed types, issue types, medications that get pushed to new or existing farms), and post system announcements.',
+    howItWorks: 'Super-admin routes are separate from farm-scoped routes. "Enter farm" issues a 4-hour scoped JWT. "Push defaults" copies global defaults to selected farms (skips duplicates). Announcements are shown in a banner on all users\' dashboards (dismissible per user).',
+    whatCanGoWrong: [
+      'Can\'t enter a farm — the farm might be deactivated',
+      'Pushed defaults not appearing — they might duplicate existing entries; the push skips items with matching codes',
+      'Announcement not showing — it might have expired, or the user dismissed it',
+      '4-hour farm session expired — need to exit and re-enter the farm',
+    ],
+    connections: {
+      'Manages': ['farms table', 'default_breed_types, default_issue_types, default_medications', 'system_announcements'],
+      'Can enter': ['Any farm (gets a temporary farm-scoped token)'],
+      'Depends on': ['Super-admin role required'],
+    },
+    files: {
+      'Farm list': 'client/src/views/super/FarmListView.vue',
+      'Create farm': 'client/src/views/super/CreateFarmView.vue',
+      'Farm detail': 'client/src/views/super/FarmDetailView.vue',
+      'Defaults': 'client/src/views/super/Default*View.vue (3 views)',
+      'Announcements': 'client/src/views/super/AnnouncementsView.vue',
+      'Server routes': 'server/routes/farms.js, globalDefaults.js, announcements.js',
+    }
+  },
+
+  auditLog: {
+    title: 'Audit Log',
+    type: 'Admin page — activity history',
+    purpose: 'A searchable log of important actions: who created what, who edited what, who deleted what. Filterable by entity type, user, action, and date range.',
+    howItWorks: 'Throughout the backend, the auditService.log() function records actions. Each entry stores: who did it, what they did, which entity, the old and new values. The audit log page queries this with pagination and filters.',
+    whatCanGoWrong: [
+      'Action not in the log — the audit logging might not cover that specific action; not every action is logged',
+      'Can\'t see who did something — the log records user_id; if the user was deleted, the name might be missing',
+    ],
+    connections: {
+      'Records actions from': ['Cows, Users, Settings, Breeding, Health Issues, Treatments, Milk Records'],
+      'Depends on': ['Admin role required', 'auditService running on the server'],
+    },
+    files: {
+      'Page': 'client/src/views/admin/AuditLogView.vue',
+      'Server route': 'server/routes/auditLog.js',
+      'Service': 'server/services/auditService.js',
+      'Database table': 'audit_log',
+    }
+  },
+};
+
+
+// ── Bug Detective Scenarios ──
+const scenarios = [
+  {
+    id: 'wrong-milk',
+    title: '"Milk records show the wrong date"',
+    symptom: 'A farmer says yesterday\'s milk was recorded under today\'s date.',
+    tags: ['backend', 'database'],
+    steps: [
+      {
+        title: 'Check: How is the date set?',
+        detail: 'Milk records have a "recording_date" field. When a worker logs milk, the frontend sends today\'s date. But "today" depends on the user\'s phone timezone — if their phone is set to the wrong timezone, the date could be off by a day.',
+        why: 'The most common date bugs are timezone issues — the phone thinks it\'s a different day than the server.',
+        file: 'client/src/views/MilkRecordingView.vue'
+      },
+      {
+        title: 'Check: Is the server also using the right date?',
+        detail: 'The server runs in a specific timezone (configured on the hosting). If the server is in UTC but the farmer is in South Africa (UTC+2), a recording at 11pm local time could show as the next day on the server.',
+        why: 'Server vs client timezone mismatch is the #1 cause of date discrepancies.',
+        file: 'server/routes/milkRecords.js'
+      },
+      {
+        title: 'Check: Was the record edited after creation?',
+        detail: 'Someone with admin access might have edited the record and accidentally changed the date. Check the audit log for edits to that milk record.',
+        why: 'Rule out human error before assuming a code bug.',
+        file: 'server/routes/auditLog.js'
+      },
+      {
+        title: 'Check: Is it a sync timing issue?',
+        detail: 'If the record was created offline, it sits in the sync queue with the date it was originally entered. When it syncs, the server uses the date from the original entry, not the sync time. But if the phone\'s clock was wrong at entry time, the date will be wrong.',
+        why: 'Offline-created records carry the date from when they were written, not when they were synced.',
+        file: 'client/src/services/syncManager.js'
+      }
+    ]
+  },
+  {
+    id: 'missing-cow',
+    title: '"A cow disappeared from the list"',
+    symptom: 'A farmer says they can\'t find a cow that was there yesterday.',
+    tags: ['backend', 'database'],
+    steps: [
+      {
+        title: 'Check: Was the cow deleted?',
+        detail: 'Cows use "soft delete" — they\'re not actually removed from the database. Instead, a "deleted_at" timestamp is set. The cow list filters out rows where deleted_at is not empty. An admin might have deleted it accidentally.',
+        why: 'Soft delete is the most likely cause of "disappearing" records.',
+        file: 'server/routes/cows.js'
+      },
+      {
+        title: 'Check: Is the farmer on the right farm?',
+        detail: 'If the farmer accidentally logged into a different farm (wrong farm code), they\'d see a completely different cow list. Each farm\'s data is entirely separate.',
+        why: 'Multi-tenancy means the same user could see different data depending on which farm they\'re logged into.',
+        file: 'server/middleware/tenantScope.js'
+      },
+      {
+        title: 'Check: Is a filter active?',
+        detail: 'The cow list has filters (status, sex, search). If a filter is active, it might be hiding the cow. For example, if "milking" filter is on, a cow that was recently changed to "dry" status would vanish from the filtered view.',
+        why: 'Users sometimes forget they have a filter active.',
+        file: 'client/src/views/CowListView.vue'
+      },
+      {
+        title: 'Check: Is it an offline cache issue?',
+        detail: 'If the app is offline, it shows cached data. If the cow was just added on another device, it won\'t appear until the app syncs. Check the sync indicator.',
+        why: 'Offline cache can be stale.',
+        file: 'client/src/stores/cows.js'
+      },
+      {
+        title: 'Check the audit log',
+        detail: 'If the cow was deleted, the audit log will show who deleted it and when. Navigate to Settings → Audit Log and filter by entity type "cows".',
+        why: 'The audit log is your investigation trail — it records who did what.',
+        file: 'server/services/auditService.js'
+      }
+    ]
+  },
+  {
+    id: 'cant-login',
+    title: '"I can\'t log in"',
+    symptom: 'A worker enters their PIN but gets an error.',
+    tags: ['auth'],
+    steps: [
+      {
+        title: 'Check: Is the farm code correct?',
+        detail: 'Worker PIN login requires a farm code. If the code is wrong (case-insensitive, but must match), the login will fail with "farm not found". Farm codes are 3-10 character uppercase codes.',
+        why: 'Farm code is required for PIN login and is the most commonly mistyped field.',
+        file: 'server/routes/auth.js'
+      },
+      {
+        title: 'Check: Is the account locked?',
+        detail: 'After too many failed login attempts, the account gets temporarily locked. The lockout lasts 15 minutes. During lockout, even correct credentials are rejected.',
+        why: 'Lockout prevents brute-force attacks but can affect legitimate users who mistype their PIN.',
+        file: 'server/routes/auth.js'
+      },
+      {
+        title: 'Check: Is the account active?',
+        detail: 'If an admin deactivated the user (in User Management), they can\'t log in. The user\'s is_active flag would be false.',
+        why: 'Deactivated accounts are a common cause of login failures.',
+        file: 'server/routes/users.js'
+      },
+      {
+        title: 'Check: Is the farm active?',
+        detail: 'If the super-admin deactivated the entire farm, no one on that farm can log in. The farm\'s is_active flag would be false.',
+        why: 'A deactivated farm blocks all logins for all its users.',
+        file: 'server/routes/farms.js'
+      },
+      {
+        title: 'Check: Is the PIN correct and 4 digits?',
+        detail: 'PINs must be exactly 4 digits. The system compares the entered PIN with the stored one. PINs are stored as plain text (not hashed like passwords), so you can check the users table directly.',
+        why: 'Workers sometimes forget their PIN. Admin can reset it in User Management.',
+        file: 'server/routes/auth.js'
+      }
+    ]
+  },
+  {
+    id: 'no-permission',
+    title: '"I can see cows but can\'t see milk recording"',
+    symptom: 'A worker has partial access — some features work, others are missing.',
+    tags: ['auth', 'frontend'],
+    steps: [
+      {
+        title: 'Check: What permissions does this worker have?',
+        detail: 'Each worker has a specific set of permissions. If they can see cows but not milk recording, they probably have "can_manage_cows" but not "can_record_milk". Check in User Management.',
+        why: 'Permissions are per-feature. Having one doesn\'t give you others.',
+        file: 'server/routes/users.js'
+      },
+      {
+        title: 'Check: Is the feature flag on?',
+        detail: 'Even with the right permission, if the "milkRecording" feature flag is turned off for the farm, no one can see it. Check Settings → Feature Flags.',
+        why: 'Feature flags override permissions — a flag off means the feature is invisible to everyone.',
+        file: 'server/routes/featureFlags.js'
+      },
+      {
+        title: 'Check: Was the permission recently added?',
+        detail: 'If the admin just added the permission, the worker needs to log out and back in. Permissions are baked into the JWT token at login time — changes don\'t take effect until a new token is issued.',
+        why: 'The JWT token is a snapshot of permissions at login time. It doesn\'t auto-update.',
+        file: 'client/src/stores/auth.js'
+      }
+    ]
+  },
+  {
+    id: 'sync-stuck',
+    title: '"Data I entered on my phone isn\'t on the computer"',
+    symptom: 'Records created on one device don\'t appear on another.',
+    tags: ['sync'],
+    steps: [
+      {
+        title: 'Check: Is the phone online?',
+        detail: 'Look at the sync indicator in the app. If it shows offline or a pending count, the data is queued but hasn\'t been pushed to the server yet.',
+        why: 'The most common cause: the phone is offline and changes are waiting in the outbox.',
+        file: 'client/src/components/atoms/SyncIndicator.vue'
+      },
+      {
+        title: 'Check: Is the sync queue stuck?',
+        detail: 'If the sync indicator shows pending items but the phone IS online, the sync might be failing. Each item retries up to 5 times. If the server is rejecting the data (validation error, duplicate, etc.), the item stays in the queue and eventually stops retrying.',
+        why: 'A single bad item in the sync queue can block other items behind it.',
+        file: 'client/src/services/syncManager.js'
+      },
+      {
+        title: 'Check: Did the other device pull recently?',
+        detail: 'Even if the phone pushed its data to the server, the computer needs to pull (refresh) to see it. This happens automatically but might not have run yet. Try refreshing the page on the computer.',
+        why: 'Sync is not instant — there\'s a delay between push and pull on different devices.',
+        file: 'client/src/stores/sync.js'
+      },
+      {
+        title: 'Check: Are both devices on the same farm?',
+        detail: 'If the phone is logged into Farm A and the computer into Farm B, they\'re looking at completely different datasets. Data from Farm A won\'t appear on Farm B.',
+        why: 'Farm separation applies to synced data too — the sync endpoint filters by farm_id.',
+        file: 'server/routes/sync.js'
+      }
+    ]
+  },
+  {
+    id: 'wrong-breeding-date',
+    title: '"The breeding hub shows wrong expected dates"',
+    symptom: 'Calving or heat prediction dates seem off.',
+    tags: ['backend', 'database'],
+    steps: [
+      {
+        title: 'Check: What breed is the cow?',
+        detail: 'Expected dates are calculated using breed-specific timings. Each breed type has: gestation_days, heat_cycle_days, preg_check_days, dry_off_days. If the cow\'s breed has wrong values, all calculated dates will be wrong.',
+        why: 'Different breeds have different biological timings. Jersey ≠ Holstein. The breed_types table drives all these calculations.',
+        file: 'server/helpers/breedingCalc.js'
+      },
+      {
+        title: 'Check: What was the last breeding event?',
+        detail: 'Expected dates are calculated FROM the last event. If the last insemination date was entered wrong, every calculated date after it will be wrong. Check the breeding events for this cow.',
+        why: 'Garbage in → garbage out. If the source event has a wrong date, all predictions are off.',
+        file: 'server/routes/breedingEvents.js'
+      },
+      {
+        title: 'Check: Was an expected date manually overridden?',
+        detail: 'When logging a pregnancy check, the farmer can manually enter an expected calving date (overriding the calculated one). If they entered the wrong date, it\'ll show that wrong date.',
+        why: 'Manual overrides take priority over auto-calculated dates.',
+        file: 'client/src/views/LogBreedingView.vue'
+      },
+      {
+        title: 'Check: The breed timings in settings',
+        detail: 'Go to Settings → Breed Types and verify the gestation_days for that breed. For example, Holstein is typically 280 days. If someone set it to 28 days, all calving predictions would be wildly wrong.',
+        why: 'Admin-configurable values are a common source of "wrong" calculations — the math is right but the inputs are wrong.',
+        file: 'server/routes/breedTypes.js'
+      }
+    ]
+  },
+  {
+    id: 'withdrawal-wrong',
+    title: '"Cow is flagged for withdrawal but shouldn\'t be"',
+    symptom: 'A cow shows a withdrawal warning during milk recording, but the treatment ended ages ago.',
+    tags: ['backend', 'database'],
+    steps: [
+      {
+        title: 'Check: When was the last treatment?',
+        detail: 'Withdrawal end dates are calculated as: treatment_date + medication\'s withdrawal days. Look up the cow\'s latest treatment and check if the withdrawal_end_milk date is actually still in the future.',
+        why: 'The withdrawal calculation is straightforward math. If it\'s wrong, the inputs are wrong.',
+        file: 'server/services/withdrawalService.js'
+      },
+      {
+        title: 'Check: Is there a newer treatment?',
+        detail: 'A cow might have received a second treatment that extended the withdrawal period. The system checks ALL treatments, not just the one you\'re thinking of.',
+        why: 'Multiple treatments can stack withdrawal periods.',
+        file: 'server/routes/treatments.js'
+      },
+      {
+        title: 'Check: Are the medication\'s withdrawal days correct?',
+        detail: 'In Settings → Medications, check the milk_withdrawal_days value for the medication that was used. If someone accidentally set it to 365 days instead of 3 days, the cow would be flagged for a year.',
+        why: 'Like breed timings, medication settings are admin-configurable and a common source of "wrong" calculations.',
+        file: 'server/routes/medications.js'
+      }
+    ]
+  },
+  {
+    id: 'analytics-empty',
+    title: '"Analytics charts are all empty"',
+    symptom: 'A farmer opens analytics and sees blank charts with no data.',
+    tags: ['frontend', 'backend'],
+    steps: [
+      {
+        title: 'Check: Is there enough data?',
+        detail: 'Analytics require actual records to work with. If the farm just started using the app and has no milk records, breeding events, etc., the charts will be empty. Some analytics need minimum data (e.g. "top producers" needs at least 3 recording days).',
+        why: 'Empty charts usually mean empty tables, not broken code.',
+        file: 'server/routes/analytics/'
+      },
+      {
+        title: 'Check: What date range is selected?',
+        detail: 'Most analytics accept "from" and "to" date filters. If the range doesn\'t cover any data, charts will be empty. The default is usually last 12 months.',
+        why: 'Wrong date range is the second most common cause of empty analytics.',
+        file: 'client/src/composables/useAnalytics.js'
+      },
+      {
+        title: 'Check: Does the user have permission?',
+        detail: 'Analytics require the "can_view_analytics" permission. If a worker doesn\'t have it, they\'ll be redirected away from the analytics page. But if they somehow reach it, the API will also reject the request.',
+        why: 'Double-gated: router blocks the page AND the API rejects unauthorized requests.',
+        file: 'server/routes/analytics/index.js'
+      },
+      {
+        title: 'Check: Is the analytics feature flag on?',
+        detail: 'If the "analytics" feature flag is off for the farm, the entire analytics section is disabled.',
+        why: 'Feature flags can silently disable entire sections.',
+        file: 'server/routes/featureFlags.js'
+      }
+    ]
+  },
+  {
+    id: 'farm-data-leak',
+    title: '"I can see another farm\'s data"',
+    symptom: 'Critical security issue — data from one farm visible to another.',
+    tags: ['auth', 'database'],
+    steps: [
+      {
+        title: 'VERIFY: Is the user actually on the wrong farm?',
+        detail: 'First, confirm the user is truly seeing another farm\'s data. Check: which farm are they logged into? (ProfileView shows the farm name.) Is it possible the data actually belongs to their farm?',
+        why: 'Before panicking, verify it\'s actually a cross-farm data leak and not a misunderstanding.',
+        file: 'client/src/views/ProfileView.vue'
+      },
+      {
+        title: 'Check: Is a super-admin in farm context?',
+        detail: 'If a super-admin "entered" a farm, they see that farm\'s data. If they forgot to exit, they might think they\'re seeing another farm\'s data when they\'re actually in that farm\'s context.',
+        why: 'Super-admin farm-enter creates a scoped session that shows the entered farm\'s data intentionally.',
+        file: 'server/routes/farms.js'
+      },
+      {
+        title: 'Check: tenantScope middleware',
+        detail: 'This is the gatekeeper. Every request must pass through it. It reads farm_id from the JWT token and stamps it on the request. If this middleware is missing from a route, that route would return unfiltered data. This is the most critical place to check.',
+        why: 'If tenantScope is bypassed or missing, ALL data from ALL farms would be returned. This is the #1 security check.',
+        file: 'server/middleware/tenantScope.js'
+      },
+      {
+        title: 'Check: Does the query include farm_id filter?',
+        detail: 'Even with tenantScope running, each database query must include ".where(\'farm_id\', req.farmId)". If a developer forgot this on a specific query, that query would return cross-farm data.',
+        why: 'The middleware sets req.farmId, but each query must USE it. A missing filter = a data leak.',
+        file: 'server/tests/tenantIsolation.test.js'
+      }
+    ]
+  },
+  {
+    id: 'duplicate-milk',
+    title: '"Same cow has two milk records for one session"',
+    symptom: 'A cow appears twice in the day\'s recording for the same AM/PM session.',
+    tags: ['database', 'sync'],
+    steps: [
+      {
+        title: 'Check: Was it entered on two devices offline?',
+        detail: 'If two workers both recorded the same cow offline, both records sit in separate sync queues with different UUIDs. When they both sync, the server sees them as two different records (different IDs) for the same cow/session/date.',
+        why: 'Offline sync creates records with client-generated UUIDs. Two devices = two different IDs = the duplicate check doesn\'t catch it (it checks by cow_id + session + date, but the second one arrives after the first is already saved).',
+        file: 'server/routes/milkRecords.js'
+      },
+      {
+        title: 'Check: The unique constraint',
+        detail: 'The server has a duplicate check: cow_id + session + recording_date must be unique. If a second POST comes in with the same combo, it returns 409 (conflict). But sync push uses a different code path (syncService.js) which might handle duplicates differently.',
+        why: 'The duplicate check on the normal API endpoint vs the sync push endpoint might behave differently.',
+        file: 'server/services/syncService.js'
+      },
+      {
+        title: 'Resolution: Admin deletes the duplicate',
+        detail: 'An admin can delete one of the duplicate records from the Milk History page.',
+        why: 'Manual cleanup is the simplest fix. Then investigate whether the sync path needs a better duplicate check.',
+        file: 'client/src/views/MilkHistoryView.vue'
+      }
+    ]
+  },
+];
+
+
+// ── Dependency Chains ──
+const chains = {
+  auth: {
+    title: 'Login System Goes Down',
+    description: 'What if the JWT secret changes or the auth middleware breaks?',
+    ripples: [
+      { label: 'Login System', detail: 'Can\'t issue or verify tokens', type: 'source' },
+      { label: 'Every API Call', detail: 'All requests rejected with 401', type: 'direct' },
+      { label: 'All Stores', detail: 'All data fetches fail', type: 'direct' },
+      { label: 'Every Page', detail: 'Shows errors or redirects to login', type: 'indirect' },
+      { label: 'Users', detail: 'App is completely unusable (except cached offline data)', type: 'user' },
+    ],
+    explanation: 'The login system is the foundation — everything depends on it. If auth breaks, nothing works because every API call requires a valid token. The ONLY thing that still works is cached offline data already on the phone.'
+  },
+  database: {
+    title: 'Database Goes Down',
+    description: 'What if the MySQL server stops or the database file is corrupted?',
+    ripples: [
+      { label: 'Database', detail: 'Can\'t read or write any data', type: 'source' },
+      { label: 'All Server Routes', detail: 'Every query fails with a DB error', type: 'direct' },
+      { label: 'Auth Middleware', detail: 'Can\'t verify token_version (DB check)', type: 'direct' },
+      { label: 'Login', detail: 'Can\'t log in (user lookup fails)', type: 'indirect' },
+      { label: 'Users', detail: 'App falls back to offline cache if available. New logins impossible.', type: 'user' },
+    ],
+    explanation: 'The database is the source of truth for everything. When it\'s down, even logging in fails because the auth middleware checks token_version in the database. Users already logged in with cached data can still browse offline, but can\'t save anything new to the server.'
+  },
+  tenantScope: {
+    title: 'Farm Separation Breaks',
+    description: 'What if the tenantScope middleware stops working?',
+    ripples: [
+      { label: 'Tenant Scope', detail: 'req.farmId is missing or wrong', type: 'source' },
+      { label: 'All Queries', detail: 'Farm filter not applied to queries', type: 'direct' },
+      { label: 'Data Isolation', detail: 'Users see data from ALL farms', type: 'direct' },
+      { label: 'Sync Engine', detail: 'Could push/pull cross-farm data', type: 'indirect' },
+      { label: 'Users', detail: 'Critical security breach — farm data exposed to other farms', type: 'user' },
+    ],
+    explanation: 'This is the most critical single point of failure from a SECURITY perspective. If farm separation breaks, every farmer could see every other farmer\'s cows, milk records, and private data. This is why we have 46 automated tests specifically for tenant isolation.'
+  },
+  indexeddb: {
+    title: 'Phone Storage (IndexedDB) Breaks',
+    description: 'What if the browser\'s local database is corrupted?',
+    ripples: [
+      { label: 'IndexedDB', detail: 'Can\'t read or write local data', type: 'source' },
+      { label: 'Offline Mode', detail: 'No cached data to fall back on', type: 'direct' },
+      { label: 'Sync Queue', detail: 'Pending changes might be lost', type: 'direct' },
+      { label: 'Auth Session', detail: 'Backup token storage lost', type: 'indirect' },
+      { label: 'Users', detail: 'App still works ONLINE (server is fine). Offline is broken until cache rebuilds.', type: 'user' },
+    ],
+    explanation: 'IndexedDB breaking is NOT catastrophic — the app has auto-recovery that deletes and recreates the database. Online functionality keeps working because it goes directly to the server. The user loses their offline cache, but it rebuilds automatically on next successful fetch. The biggest risk is losing unsynced changes in the sync queue.'
+  },
+  milkRecords: {
+    title: 'Milk Recording Endpoint Breaks',
+    description: 'What if /api/milk-records stops working?',
+    ripples: [
+      { label: 'Milk Records API', detail: 'Can\'t save or fetch milk data', type: 'source' },
+      { label: 'Milk Recording Page', detail: 'Saving fails (but offline queue catches it)', type: 'direct' },
+      { label: 'Milk History Page', detail: 'Can\'t load records', type: 'direct' },
+      { label: 'Analytics', detail: 'Production charts show wrong/stale data', type: 'indirect' },
+      { label: 'Reports', detail: 'Milk production report might error', type: 'indirect' },
+      { label: 'Users', detail: 'Can still record milk offline (queued). Other features unaffected.', type: 'user' },
+    ],
+    explanation: 'Feature-specific breakage is contained. If milk recording breaks, breeding and health still work fine. Users can even keep recording milk offline — it just queues up. The damage is limited to milk-related views and reports.'
+  },
+  breedTypes: {
+    title: 'Breed Types Table Breaks',
+    description: 'What if breed type data is corrupted or has wrong values?',
+    ripples: [
+      { label: 'Breed Types', detail: 'Wrong gestation/heat cycle values', type: 'source' },
+      { label: 'Breeding Calculations', detail: 'All expected dates are wrong', type: 'direct' },
+      { label: 'Breeding Hub', detail: '"Needs attention" items show wrong dates', type: 'direct' },
+      { label: 'Cow Forms', detail: 'Breed dropdown might be empty/wrong', type: 'indirect' },
+      { label: 'Users', detail: 'Breeding predictions are unreliable. Everything else works fine.', type: 'user' },
+    ],
+    explanation: 'Breed types feed into breeding calculations. Wrong gestation days = wrong calving predictions = wrong dry-off dates = wrong "needs attention" alerts. But it only affects breeding. Milk recording, health, treatments are totally unaffected.'
+  },
+  serviceWorker: {
+    title: 'Service Worker Breaks',
+    description: 'What if the background sync helper stops working?',
+    ripples: [
+      { label: 'Service Worker', detail: 'Background sync and app caching fail', type: 'source' },
+      { label: 'Background Sync', detail: 'Offline changes don\'t auto-push when internet returns', type: 'direct' },
+      { label: 'App Caching', detail: 'App might not load without internet', type: 'direct' },
+      { label: 'Sync Queue', detail: 'Items pile up until manual sync or page refresh triggers push', type: 'indirect' },
+      { label: 'Users', detail: 'App works fine ONLINE. Offline mode degraded — manual refresh needed to sync.', type: 'user' },
+    ],
+    explanation: 'The service worker is a convenience layer. Without it, the app still works online. Offline changes still get saved locally — they just won\'t auto-push in the background. A manual page refresh or the polling sync (which runs in the main app) will eventually push them.'
+  },
+};
+
+
+// ═══════════════════════════════════════════════════════
+//                    RENDERING
+// ═══════════════════════════════════════════════════════
+
+// Tab switching
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+  document.getElementById(`panel-${tab}`).classList.add('active');
+}
+
+// ── System Map ──
+function showMapItem(key) {
+  const item = mapData[key];
+  if (!item) return;
+
+  document.querySelectorAll('.map-item').forEach(m => m.classList.remove('active'));
+  document.querySelector(`[data-key="${key}"]`)?.classList.add('active');
+
+  let html = `<h3>${item.title}</h3><p class="detail-type">${item.type}</p>`;
+
+  html += `<div class="detail-section"><h4>What It Does</h4><p>${item.purpose}</p></div>`;
+  html += `<div class="detail-section"><h4>How It Works</h4><p>${item.howItWorks}</p></div>`;
+
+  if (item.whatCanGoWrong) {
+    html += `<div class="detail-section"><h4>What Can Go Wrong</h4><ul>`;
+    item.whatCanGoWrong.forEach(w => html += `<li>${w}</li>`);
+    html += `</ul></div>`;
+  }
+
+  if (item.connections) {
+    html += `<div class="detail-section"><h4>Connections</h4>`;
+    for (const [label, items] of Object.entries(item.connections)) {
+      const chipClass = label.includes('Gets') || label.includes('Pulls') ? 'chip-receives'
+        : label.includes('Stores') || label.includes('store') ? 'chip-stores'
+        : label.includes('Depends') || label.includes('Checked') || label.includes('Enforced') || label.includes('Scoped') ? 'chip-depends'
+        : 'chip-sends';
+      html += `<p style="margin-bottom:6px;"><strong style="font-size:13px;">${label}:</strong><br>`;
+      items.forEach(i => html += `<span class="connection-chip ${chipClass}">${i}</span>`);
+      html += `</p>`;
+    }
+    html += `</div>`;
+  }
+
+  if (item.files) {
+    html += `<div class="detail-section"><h4>Where to Find It</h4>`;
+    for (const [label, path] of Object.entries(item.files)) {
+      html += `<p style="margin-bottom:4px;"><strong style="font-size:13px;">${label}:</strong> <span class="file-ref">${path}</span></p>`;
+    }
+    html += `</div>`;
+  }
+
+  document.getElementById('map-detail').innerHTML = html;
+}
+
+// Init map
+showMapItem('dashboard');
+
+// ── Bug Detective ──
+function renderScenarios() {
+  const grid = document.getElementById('scenario-grid');
+  grid.innerHTML = scenarios.map(s => {
+    const tagHtml = s.tags.map(t => `<span class="tag tag-${t}">${t}</span>`).join(' ');
+    return `<div class="scenario-card" onclick="showScenario('${s.id}')">
+      <h4>${s.title}</h4>
+      <p>${s.symptom}</p>
+      ${tagHtml}
+    </div>`;
+  }).join('');
+}
+
+function showScenario(id) {
+  const s = scenarios.find(x => x.id === id);
+  if (!s) return;
+
+  document.getElementById('detective-home').style.display = 'none';
+  const detail = document.getElementById('detective-detail');
+  detail.classList.add('active');
+
+  let html = `<button class="back-btn" onclick="backToScenarios()">← Back to scenarios</button>`;
+  html += `<h3>${s.title}</h3>`;
+  html += `<p class="symptom">${s.symptom}</p>`;
+
+  s.steps.forEach((step, i) => {
+    html += `<div class="inv-step">
+      <div class="step-num">${i + 1}</div>
+      <div class="step-content">
+        <h4>${step.title}</h4>
+        <p>${step.detail}</p>
+        <p class="why">Why check this: ${step.why}</p>
+        <span class="file">📁 ${step.file}</span>
+      </div>
+    </div>`;
+  });
+
+  detail.innerHTML = html;
+}
+
+function backToScenarios() {
+  document.getElementById('detective-home').style.display = 'block';
+  document.getElementById('detective-detail').classList.remove('active');
+}
+
+renderScenarios();
+
+// ── Dependency Chains ──
+function renderChainPicker() {
+  const picker = document.getElementById('chain-picker');
+  picker.innerHTML = Object.entries(chains).map(([key, chain]) =>
+    `<button class="chain-btn" data-chain="${key}" onclick="showChain('${key}')">${chain.title.replace(' Goes Down','').replace(' Breaks','')}</button>`
+  ).join('');
+}
+
+function showChain(key) {
+  const chain = chains[key];
+  if (!chain) return;
+
+  document.querySelectorAll('.chain-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-chain="${key}"]`)?.classList.add('active');
+
+  const detail = document.getElementById('chain-detail');
+  detail.classList.add('active');
+
+  let html = `<h3>${chain.title}</h3><p style="color:#6B7280;margin-bottom:16px;">${chain.description}</p>`;
+
+  html += `<div class="ripple">`;
+  chain.ripples.forEach((r, i) => {
+    if (i > 0) html += `<div class="ripple-arrow">→</div>`;
+    html += `<div class="ripple-node ripple-${r.type}"><strong>${r.label}</strong>${r.detail}</div>`;
+  });
+  html += `</div>`;
+
+  html += `<div class="ripple-legend">
+    <span><div class="legend-dot" style="background:#FCA5A5;"></div> Source of the break</span>
+    <span><div class="legend-dot" style="background:#FCD34D;"></div> Directly affected</span>
+    <span><div class="legend-dot" style="background:#BFDBFE;"></div> Indirectly affected</span>
+    <span><div class="legend-dot" style="background:#C4B5FD;"></div> Impact on users</span>
+  </div>`;
+
+  html += `<div class="chain-explanation"><strong>In plain terms:</strong> ${chain.explanation}</div>`;
+
+  detail.innerHTML = html;
+}
+
+renderChainPicker();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyHerder — How Your App Works</title>
+<style>
+  :root {
+    --primary: #2D6A4F;
+    --primary-light: #40916C;
+    --primary-bg: #D8F3DC;
+    --danger: #D62828;
+    --warning: #E07C24;
+    --info: #2563EB;
+    --surface: #FFFFFF;
+    --bg: #F8F9FA;
+    --text: #1a1a2e;
+    --text-muted: #6B7280;
+    --border: #E5E7EB;
+    --code-bg: #1E1E2E;
+    --code-text: #CDD6F4;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* ── Navigation ── */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 260px;
+    height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 24px 0;
+    z-index: 100;
+  }
+
+  .sidebar h2 { padding: 0 20px; font-size: 18px; color: var(--primary); margin-bottom: 4px; }
+  .sidebar .subtitle { padding: 0 20px; font-size: 12px; color: var(--text-muted); margin-bottom: 20px; }
+
+  .nav-section { padding: 8px 0; }
+  .nav-section h3 {
+    padding: 6px 20px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+  }
+
+  .nav-link {
+    display: block;
+    padding: 5px 20px 5px 28px;
+    font-size: 13px;
+    color: var(--text);
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .nav-link:hover {
+    background: var(--primary-bg);
+    border-left-color: var(--primary);
+    color: var(--primary);
+  }
+
+  /* ── Main Content ── */
+  .main {
+    margin-left: 260px;
+    padding: 40px 60px 80px;
+    max-width: 960px;
+  }
+
+  h1 { font-size: 30px; color: var(--primary); margin-bottom: 8px; }
+  .hero-sub { font-size: 16px; color: var(--text-muted); margin-bottom: 40px; }
+
+  h2 {
+    font-size: 22px;
+    color: var(--text);
+    margin-top: 56px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--primary-bg);
+  }
+
+  h3 { font-size: 17px; color: var(--text); margin-top: 28px; margin-bottom: 8px; }
+
+  p, li { font-size: 15px; line-height: 1.8; }
+  p { margin-bottom: 14px; }
+  ul, ol { padding-left: 24px; margin-bottom: 16px; }
+  li { margin-bottom: 6px; }
+
+  /* ── Diagram Boxes ── */
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin: 16px 0 20px;
+    overflow-x: auto;
+  }
+
+  .flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .flow-box {
+    border-radius: 10px;
+    padding: 14px 20px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 140px;
+  }
+
+  .flow-box small {
+    display: block;
+    font-weight: 400;
+    font-size: 12px;
+    opacity: 0.85;
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  .box-browser   { background: #DBEAFE; color: #1E40AF; border: 2px solid #93C5FD; }
+  .box-frontend  { background: #FEF3C7; color: #92400E; border: 2px solid #FCD34D; }
+  .box-network   { background: #FCE7F3; color: #9D174D; border: 2px solid #F9A8D4; }
+  .box-guard     { background: #E0E7FF; color: #3730A3; border: 2px solid #A5B4FC; }
+  .box-server    { background: #D1FAE5; color: #065F46; border: 2px solid #6EE7B7; }
+  .box-database  { background: #F3E8FF; color: #6B21A8; border: 2px solid #C4B5FD; }
+  .box-cache     { background: #FFF7ED; color: #9A3412; border: 2px solid #FDBA74; }
+  .box-security  { background: #FEF2F2; color: #991B1B; border: 2px solid #FCA5A5; }
+  .box-sync      { background: #F0FDF4; color: #166534; border: 2px solid #86EFAC; }
+
+  .arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    color: var(--text-muted);
+    font-size: 18px;
+  }
+
+  .arrow-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    background: var(--bg);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 6px;
+  }
+
+  /* ── Callout boxes ── */
+  .analogy {
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin: 16px 0;
+    font-size: 14px;
+    line-height: 1.7;
+    background: #F0FDF4;
+    border: 1px solid #BBF7D0;
+    color: #14532D;
+  }
+
+  .analogy strong { display: block; margin-bottom: 4px; font-size: 15px; }
+
+  .key-point {
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin: 16px 0;
+    font-size: 14px;
+    line-height: 1.7;
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    color: #1E40AF;
+  }
+
+  .key-point strong { display: block; margin-bottom: 4px; }
+
+  .warning-box {
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin: 16px 0;
+    font-size: 14px;
+    line-height: 1.7;
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    color: #92400E;
+  }
+
+  .warning-box strong { display: block; margin-bottom: 4px; }
+
+  /* ── Info cards ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+    margin: 16px 0;
+  }
+
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    border-left: 4px solid var(--primary);
+  }
+
+  .info-card h4 { font-size: 14px; margin-bottom: 6px; color: var(--primary); }
+  .info-card p { font-size: 13px; margin: 0; color: var(--text-muted); line-height: 1.6; }
+  .info-card.blue { border-left-color: var(--info); }
+  .info-card.blue h4 { color: var(--info); }
+  .info-card.orange { border-left-color: var(--warning); }
+  .info-card.orange h4 { color: var(--warning); }
+  .info-card.red { border-left-color: var(--danger); }
+  .info-card.red h4 { color: var(--danger); }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 20px;
+    font-size: 14px;
+  }
+
+  th {
+    background: var(--primary-bg);
+    color: var(--primary);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+  }
+
+  td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.6;
+  }
+
+  tr:hover td { background: #F9FAFB; }
+
+  /* ── Layer strip ── */
+  .layer-strip {
+    display: flex;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 20px 0;
+    height: 52px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .layer-strip > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    text-align: center;
+    padding: 0 4px;
+  }
+
+  /* ── File tree ── */
+  .file-tree {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 12px 0 16px;
+    line-height: 2;
+  }
+
+  .file-tree .folder { color: var(--info); font-weight: 600; }
+  .file-tree .desc { color: var(--text-muted); font-size: 13px; }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 24px 20px; }
+  }
+
+  [id] { scroll-margin-top: 20px; }
+
+  /* ── Tool/package badge ── */
+  .tool-badge {
+    display: inline-block;
+    background: #F3F4F6;
+    border: 1px solid #E5E7EB;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════ SIDEBAR ═══════ -->
+<nav class="sidebar">
+  <h2>MyHerder</h2>
+  <p class="subtitle">How Your App Works</p>
+
+  <div class="nav-section">
+    <h3>Start Here</h3>
+    <a class="nav-link" href="#what-is-it">What is MyHerder?</a>
+    <a class="nav-link" href="#restaurant-analogy">The Restaurant Analogy</a>
+    <a class="nav-link" href="#tools-explained">Tools We Use (Explained)</a>
+  </div>
+
+  <div class="nav-section">
+    <h3>The Two Halves</h3>
+    <a class="nav-link" href="#frontend">The Frontend (what users see)</a>
+    <a class="nav-link" href="#backend">The Backend (the engine)</a>
+    <a class="nav-link" href="#database">The Database (filing cabinet)</a>
+  </div>
+
+  <div class="nav-section">
+    <h3>How Things Work</h3>
+    <a class="nav-link" href="#what-happens">What happens when you tap</a>
+    <a class="nav-link" href="#pages">How pages are built</a>
+    <a class="nav-link" href="#shared-data">How data is shared</a>
+  </div>
+
+  <div class="nav-section">
+    <h3>Security & Access</h3>
+    <a class="nav-link" href="#logging-in">Logging in</a>
+    <a class="nav-link" href="#id-badge">The ID badge (JWT)</a>
+    <a class="nav-link" href="#bouncers">Bouncers (middleware)</a>
+    <a class="nav-link" href="#permissions">Who can do what</a>
+  </div>
+
+  <div class="nav-section">
+    <h3>Multi-Farm</h3>
+    <a class="nav-link" href="#farm-walls">Farm walls (multi-tenancy)</a>
+    <a class="nav-link" href="#super-admin">The master key</a>
+  </div>
+
+  <div class="nav-section">
+    <h3>Offline & Sync</h3>
+    <a class="nav-link" href="#offline">Working without internet</a>
+    <a class="nav-link" href="#sync-queue">The outbox</a>
+  </div>
+
+  <div class="nav-section">
+    <h3>Where's the Code?</h3>
+    <a class="nav-link" href="#folder-map">Folder map</a>
+    <a class="nav-link" href="#feature-map">Feature → File map</a>
+    <a class="nav-link" href="#feature-flags">On/Off switches</a>
+  </div>
+</nav>
+
+<!-- ═══════ MAIN CONTENT ═══════ -->
+<div class="main">
+
+<h1>How MyHerder Works</h1>
+<p class="hero-sub">A plain-language guide to your app — no programming experience required.</p>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="what-is-it">What is MyHerder?</h2>
+
+<p>MyHerder is a <strong>web app for managing a dairy farm</strong>. Farmers use it on their phones and computers to:</p>
+
+<ul>
+  <li>Keep track of their <strong>cows</strong> (names, tags, status, breed)</li>
+  <li>Record <strong>milk production</strong> for each cow, each milking session</li>
+  <li>Log <strong>health issues</strong> (e.g. mastitis, lameness) and track treatments</li>
+  <li>Manage <strong>breeding events</strong> (insemination, pregnancy checks, calving)</li>
+  <li>View <strong>analytics</strong> — charts and reports about herd performance</li>
+  <li>Download <strong>PDF/Excel reports</strong> for record-keeping</li>
+  <li><strong>Work offline</strong> — data saves on the phone and syncs when internet returns</li>
+  <li>Support <strong>multiple farms</strong> — each farm's data is completely separate</li>
+</ul>
+
+<p>It supports <strong>two languages</strong>: English and Afrikaans.</p>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="restaurant-analogy">The Restaurant Analogy</h2>
+
+<p>Imagine MyHerder is a <strong>restaurant</strong>. This analogy will help everything else make sense:</p>
+
+<div class="diagram">
+  <div class="flow">
+    <div class="flow-row" style="gap: 20px;">
+      <div class="flow-box box-browser" style="flex:1;">
+        <strong>The Dining Room</strong>
+        <small>What customers see — the menu, tables, plates. This is the <strong>frontend</strong> (the app on your phone).</small>
+      </div>
+      <div class="flow-box box-server" style="flex:1;">
+        <strong>The Kitchen</strong>
+        <small>Where food is prepared. Customers never see it. This is the <strong>backend</strong> (the server).</small>
+      </div>
+      <div class="flow-box box-database" style="flex:1;">
+        <strong>The Pantry / Fridge</strong>
+        <small>Where all ingredients are stored. This is the <strong>database</strong>.</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<table>
+  <thead><tr><th>Restaurant</th><th>MyHerder</th></tr></thead>
+  <tbody>
+    <tr><td>Customer reads menu, places order</td><td>User opens a page, taps a button</td></tr>
+    <tr><td>Waiter carries the order to the kitchen</td><td>The app sends a request over the internet to the server</td></tr>
+    <tr><td>Kitchen checks the order is valid</td><td>Server checks: are you logged in? Do you have permission?</td></tr>
+    <tr><td>Chef gets ingredients from the fridge</td><td>Server reads/writes data from the database</td></tr>
+    <tr><td>Kitchen sends finished plate to dining room</td><td>Server sends data back to the app</td></tr>
+    <tr><td>Customer sees their food</td><td>App displays the data on screen</td></tr>
+    <tr><td>Bouncer at the door checks your reservation</td><td><strong>Middleware</strong> checks your login token before letting requests through</td></tr>
+    <tr><td>Each table's order is separate</td><td>Each <strong>farm's data</strong> is completely separate (multi-tenancy)</td></tr>
+    <tr><td>Taking a food photo (in case the waiter loses the order)</td><td>Saving a copy on your phone (<strong>offline cache</strong>) in case internet drops</td></tr>
+  </tbody>
+</table>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="tools-explained">Tools We Use (Explained)</h2>
+
+<p>Building a web app requires many tools working together. Here's what each one does, in plain terms:</p>
+
+<h3>Frontend Tools (what runs in the user's browser/phone)</h3>
+
+<table>
+  <thead><tr><th>Tool</th><th>What it is</th><th>Restaurant analogy</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><span class="tool-badge">Vue 3</span></td>
+      <td>The system that builds and updates what users see on screen. When data changes (e.g. a new cow is added), Vue automatically updates the display — you don't have to manually refresh.</td>
+      <td>The dining room layout system — when a new dish arrives, it automatically updates the table without you having to re-set everything.</td>
+    </tr>
+    <tr>
+      <td><span class="tool-badge">Pinia</span></td>
+      <td>A shared storage space that different pages can all read from and write to. Without it, each page would have its own separate copy of the data and they'd get out of sync.</td>
+      <td>The kitchen's order board — all waiters read from the same board, so everyone knows what's happening.</td>
+    </tr>
+    <tr>
+      <td><span class="tool-badge">Vue Router</span></td>
+      <td>Decides which page to show based on the URL. When you tap "Cows" it shows the cow list. When you tap a cow, it shows that cow's detail page. Also acts as a gatekeeper — it blocks pages you're not allowed to see.</td>
+      <td>The host who seats you — checks your reservation (permissions) and leads you to the right table (page).</td>
+    </tr>
+    <tr>
+      <td><span class="tool-badge">Axios</span></td>
+      <td>The messenger that sends requests from your phone to the server and brings back the response. It automatically attaches your login token to every request.</td>
+      <td>The waiter who carries orders to the kitchen and brings food back.</td>
+    </tr>
+    <tr>
+      <td><span class="tool-badge">vue-i18n</span></td>
+      <td>Handles translation. All text in the app (button labels, messages, etc.) comes from translation files so the app can switch between English and Afrikaans.</td>
+      <td>A menu printed in two languages — the content is the same, just translated.</td>
+    </tr>
+    <tr>
+      <td><span class="tool-badge">Dexie.js</span></td>
+      <td>Makes it easy to save data inside the browser's built-in storage (called IndexedDB). This is how the app works offline — it keeps a copy of your cows, milk records, etc. on your phone.</td>
+      <td>A notebook the waiter carries — if the kitchen is unreachable (no internet), they write orders in the notebook and deliver them later.</td>
+    </tr>
+    <tr>
+      <td><span class="tool-badge">Vite</span></td>
+      <td>The build tool. During development, it runs a local preview server so you can see changes instantly. For production, it bundles all the code into optimized files.</td>
+      <td>The kitchen prep station — gets everything ready to serve efficiently.</td>
+    </tr>
+    <tr>
+      <td><span class="tool-badge">Service Worker</span></td>
+      <td>A helper that runs in the background of your browser, even when the app is closed. It caches the app itself (so it loads without internet) and pushes saved data to the server when internet returns.</td>
+      <td>A delivery driver who picks up your notebook orders and drives them to the kitchen when the road reopens.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Backend Tools (what runs on the server computer)</h3>
+
+<table>
+  <thead><tr><th>Tool</th><th>What it is</th><th>Restaurant analogy</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><span class="tool-badge">Node.js</span></td>
+      <td>Lets you run JavaScript on a server (normally JavaScript only runs in browsers). It's the engine that powers our backend.</td>
+      <td>The gas line and electricity that powers the kitchen — without it, nothing works.</td>
+    </tr>
+    <tr>
+      <td><span class="tool-badge">Express.js</span></td>
+      <td>A framework for building the server's API (the list of things the server can do). It handles incoming requests, runs security checks, and sends responses.</td>
+      <td>The kitchen management system — receives orders, routes them to the right chef, sends plates out.</td>
+    </tr>
+    <tr>
+      <td><span class="tool-badge">Knex.js</span></td>
+      <td>A tool for talking to the database. Instead of writing raw database commands, you write simpler instructions that Knex translates. It also handles creating and updating database tables (migrations).</td>
+      <td>The inventory management system — a clean way to find, add, remove, and count items in the pantry.</td>
+    </tr>
+    <tr>
+      <td><span class="tool-badge">Joi</span></td>
+      <td>Checks that incoming data is valid before processing it. E.g. "tag_number must be text, not empty" or "litres must be a positive number". Rejects bad data with a clear error message.</td>
+      <td>The quality checker who inspects orders — "Sorry, you can't order a negative number of steaks."</td>
+    </tr>
+    <tr>
+      <td><span class="tool-badge">JWT</span></td>
+      <td><strong>JSON Web Token</strong> — a secure digital ID badge. When you log in, the server creates one with your name, role, and farm. Your phone sends it with every request so the server knows who you are without asking for your password again.</td>
+      <td>A wristband you get at the door. Staff glance at it to know who you are and what you're allowed to order.</td>
+    </tr>
+    <tr>
+      <td><span class="tool-badge">bcrypt</span></td>
+      <td>Scrambles passwords before storing them. Even if someone stole the database, they couldn't read the actual passwords.</td>
+      <td>A shredder for passwords — the restaurant never stores your credit card number in plain text.</td>
+    </tr>
+    <tr>
+      <td><span class="tool-badge">SQLite</span></td>
+      <td>A simple database stored as a single file on your computer. Used for development and testing — fast and easy, no setup needed.</td>
+      <td>A small personal filing cabinet on your desk.</td>
+    </tr>
+    <tr>
+      <td><span class="tool-badge">MySQL</span></td>
+      <td>A more powerful database used in production (the live app). Handles many users at once and stores data reliably.</td>
+      <td>A professional warehouse with barcode scanners and forklifts.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Testing & Quality Tools</h3>
+
+<table>
+  <thead><tr><th>Tool</th><th>What it is</th></tr></thead>
+  <tbody>
+    <tr><td><span class="tool-badge">Vitest</span></td><td>Runs automated tests for the frontend. We have 645+ tests that check things like "does the cow list show up?" and "does the milk form validate correctly?"</td></tr>
+    <tr><td><span class="tool-badge">Jest</span></td><td>Runs automated tests for the backend. We have 575+ tests that check things like "does creating a cow work?" and "are permissions enforced?"</td></tr>
+    <tr><td><span class="tool-badge">ESLint</span></td><td>Scans code for common mistakes and style issues, like a spell-checker for code.</td></tr>
+    <tr><td><span class="tool-badge">Knip</span></td><td>Finds dead code — files or functions that exist but are never actually used anywhere.</td></tr>
+  </tbody>
+</table>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="frontend">The Frontend — What Users See</h2>
+
+<p>The <strong>frontend</strong> is everything that runs on the user's phone or computer. It's the app itself — the buttons, lists, forms, and charts.</p>
+
+<div class="analogy">
+  <strong>Think of it as the dining room of the restaurant.</strong>
+  The customer (user) interacts with the menu, plates, and decor. They never see the kitchen. The frontend is built entirely with Vue 3.
+</div>
+
+<h3>How a page is built</h3>
+
+<p>Every page you see is a <strong>View</strong> — a file that describes what should appear on screen. For example:</p>
+
+<ul>
+  <li><strong>CowListView</strong> — the page showing all your cows in a scrollable list</li>
+  <li><strong>CowDetailView</strong> — the page showing one cow's full details</li>
+  <li><strong>MilkRecordingView</strong> — the page where you log milk for each cow</li>
+  <li><strong>DashboardView</strong> — the home page with summary stats</li>
+</ul>
+
+<p>Each view is made of smaller reusable pieces called <strong>components</strong>, organized by size:</p>
+
+<div class="diagram">
+  <div class="flow-row" style="gap: 16px; flex-wrap: wrap; justify-content: center;">
+    <div class="flow-box box-browser" style="flex:1; min-width:180px;">
+      <strong>Atoms</strong>
+      <small>Tiny single-purpose pieces.<br>Example: SyncIndicator (the online/offline dot)</small>
+    </div>
+    <div class="flow-box box-frontend" style="flex:1; min-width:180px;">
+      <strong>Molecules</strong>
+      <small>Small combos of atoms.<br>Example: ConfirmDialog ("Are you sure?" popup), SearchInput</small>
+    </div>
+    <div class="flow-box box-server" style="flex:1; min-width:180px;">
+      <strong>Organisms</strong>
+      <small>Bigger self-contained sections.<br>Example: AppHeader (the top bar), BottomNav, CowCard</small>
+    </div>
+    <div class="flow-box box-network" style="flex:1; min-width:180px;">
+      <strong>Views</strong>
+      <small>Full pages — made from organisms, molecules, and atoms.<br>30+ views in the app.</small>
+    </div>
+  </div>
+</div>
+
+<div class="analogy">
+  <strong>Restaurant analogy:</strong> An atom is a single napkin. A molecule is a place setting (napkin + fork + knife). An organism is a fully set table. A view is the entire dining room layout.
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="backend">The Backend — The Engine</h2>
+
+<p>The <strong>backend</strong> is a program running on a server computer (in our case, a web hosting service called cPanel). Users never see it directly. It:</p>
+
+<ul>
+  <li><strong>Receives requests</strong> from the app ("give me all cows", "save this milk record")</li>
+  <li><strong>Checks security</strong> — are you logged in? Do you have permission?</li>
+  <li><strong>Validates data</strong> — is the milk amount a real number? Is the tag not empty?</li>
+  <li><strong>Reads/writes the database</strong> — fetches or stores the actual data</li>
+  <li><strong>Sends responses</strong> — returns the requested data (or an error message)</li>
+</ul>
+
+<div class="analogy">
+  <strong>Think of it as the kitchen.</strong>
+  Orders come in, they're validated, ingredients are fetched from the pantry, food is prepared, and plates go back out. The customer never sees any of this.
+</div>
+
+<h3>The API — The menu of what the server can do</h3>
+
+<p>The backend offers a list of "endpoints" — specific URLs that do specific things. Think of them as items on a menu. Here are some examples:</p>
+
+<table>
+  <thead><tr><th>What you want</th><th>The "order" (endpoint)</th><th>What comes back</th></tr></thead>
+  <tbody>
+    <tr><td>See all cows</td><td><code>GET /api/cows</code></td><td>A list of all cows on your farm</td></tr>
+    <tr><td>Add a new cow</td><td><code>POST /api/cows</code></td><td>The newly created cow</td></tr>
+    <tr><td>Record milk</td><td><code>POST /api/milk-records</code></td><td>The saved milk record</td></tr>
+    <tr><td>Get dashboard stats</td><td><code>GET /api/analytics/daily-kpis</code></td><td>Today's litres, cows milked, etc.</td></tr>
+    <tr><td>Log in</td><td><code>POST /api/auth/login</code></td><td>Your ID badge (JWT token)</td></tr>
+  </tbody>
+</table>
+
+<p><strong>GET</strong> means "give me data". <strong>POST</strong> means "save new data". <strong>PATCH</strong> means "update existing data". <strong>DELETE</strong> means "remove data".</p>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="database">The Database — The Filing Cabinet</h2>
+
+<p>The <strong>database</strong> is where all data lives permanently. It's organized in <strong>tables</strong> — like spreadsheets, each with rows and columns.</p>
+
+<table>
+  <thead><tr><th>Table</th><th>What it stores</th><th>Example columns</th></tr></thead>
+  <tbody>
+    <tr><td><strong>cows</strong></td><td>Every cow on every farm</td><td>id, tag_number, name, status, sex, dob, farm_id</td></tr>
+    <tr><td><strong>milk_records</strong></td><td>Every milk recording</td><td>id, cow_id, litres, session (AM/PM), recording_date, farm_id</td></tr>
+    <tr><td><strong>health_issues</strong></td><td>Logged health problems</td><td>id, cow_id, issue_type, severity, status, farm_id</td></tr>
+    <tr><td><strong>treatments</strong></td><td>Treatments given</td><td>id, cow_id, medication_id, dosage, treatment_date, farm_id</td></tr>
+    <tr><td><strong>breeding_events</strong></td><td>Breeding activities</td><td>id, cow_id, event_type, event_date, expected_calving, farm_id</td></tr>
+    <tr><td><strong>users</strong></td><td>People who can log in</td><td>id, username, role, permissions, farm_id</td></tr>
+    <tr><td><strong>farms</strong></td><td>Each farm in the system</td><td>id, name, code, is_active</td></tr>
+  </tbody>
+</table>
+
+<div class="key-point">
+  <strong>Notice: every table has farm_id.</strong>
+  This is how the app keeps farm data separate. When Farm A asks for cows, the server only returns cows where farm_id matches Farm A. Farm B's cows are invisible. More on this in the Multi-Farm section.
+</div>
+
+<h3>Migrations — Building the filing cabinet</h3>
+
+<p>When the app needs a new table or a new column, we write a <strong>migration</strong> — a small instruction file that says "create this table" or "add this column". We have 34 of these, numbered 001 to 034. They run in order, building the database structure step by step.</p>
+
+<div class="analogy">
+  <strong>Analogy:</strong> Migrations are like assembly instructions for a filing cabinet. Step 1: build the main frame (cows table). Step 15: add the breeding drawer. Step 30: add the farms label system. You run them in order, and at the end, your filing cabinet is fully built.
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="what-happens">What Happens When You Tap a Button</h2>
+
+<p>Let's follow the journey of <strong>opening the Cow List page</strong> from tap to display:</p>
+
+<div class="diagram">
+  <div class="flow">
+
+    <div class="flow-box box-browser" style="width:85%;">
+      <strong>Step 1: You tap "Cows" in the bottom menu</strong>
+      <small>The Router sees you want the /cows page. It checks: are you logged in? Do you have permission? If yes, it loads CowListView.</small>
+    </div>
+    <div class="arrow">▼</div>
+
+    <div class="flow-box box-frontend" style="width:85%;">
+      <strong>Step 2: The page asks the Store for cow data</strong>
+      <small>CowListView says "I need cows!" and calls the Cows Store's fetchAll() function. The Store is the middleman between the page and the server.</small>
+    </div>
+    <div class="arrow">▼</div>
+
+    <div class="flow-box box-network" style="width:75%;">
+      <strong>Step 3: The Store sends a request to the server</strong>
+      <small>Via Axios (the waiter). Axios automatically attaches your ID badge (JWT token) to the request so the server knows who you are.</small>
+    </div>
+    <div class="arrow">▼ <span class="arrow-label">internet / network</span></div>
+
+    <div style="width: 95%; border: 2px dashed #6EE7B7; border-radius: 12px; padding: 20px; background: #F8FFF8;">
+      <div style="text-align:center; font-size:13px; color:#6B7280; margin-bottom:12px; font-weight:600;">THE SERVER (the kitchen)</div>
+
+      <div class="flow-box box-security" style="width:100%;">
+        <strong>Step 4: Security checks (the bouncers)</strong>
+        <small>
+          Bouncer 1 — <strong>Auth:</strong> "Is this ID badge (token) real and not expired?" ✓<br>
+          Bouncer 2 — <strong>Tenant Scope:</strong> "Which farm does this person belong to?" Sets farm_id.<br>
+          Bouncer 3 — <strong>Authorize:</strong> "Does this person have permission to view cows?" ✓
+        </small>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="flow-box box-server" style="width:100%;">
+        <strong>Step 5: The route handler processes the request</strong>
+        <small>Opens the cows.js file, finds the "GET all cows" function. Validates any filters. Builds a database query.</small>
+      </div>
+      <div class="arrow">▼</div>
+
+      <div class="flow-box box-database" style="width:90%;">
+        <strong>Step 6: Database query</strong>
+        <small>"Give me all cows WHERE farm_id = [this person's farm] AND not deleted". The database returns the list.</small>
+      </div>
+    </div>
+
+    <div class="arrow">▼ <span class="arrow-label">data sent back over internet</span></div>
+
+    <div class="flow-box box-frontend" style="width:85%;">
+      <strong>Step 7: The Store receives the data</strong>
+      <small>It saves the cow list in memory (so the page can display it) AND saves a copy to the phone's local storage (IndexedDB) — in case you go offline later.</small>
+    </div>
+    <div class="arrow">▼</div>
+
+    <div class="flow-box box-browser" style="width:85%;">
+      <strong>Step 8: The page updates automatically</strong>
+      <small>Vue detects that the cow data changed and re-draws the list on screen. You see your cows!</small>
+    </div>
+
+  </div>
+</div>
+
+<div class="key-point">
+  <strong>This same flow happens for everything.</strong> Milk recording, breeding events, health issues — the only difference is which endpoint (menu item) is called and which table is queried. Once you understand this flow, you understand 90% of the app.
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="shared-data">How Data is Shared Between Pages (Stores)</h2>
+
+<p>The app has many pages that need the same data. For example, the Cow List, Cow Detail, and Milk Recording pages all need cow information. If each page fetched its own copy, they'd get out of sync.</p>
+
+<p>The solution: <strong>Stores</strong> (powered by Pinia). A store is like a shared whiteboard that any page can read from and write to.</p>
+
+<div class="diagram">
+  <div class="flow">
+    <div class="flow-row" style="gap: 16px;">
+      <div class="flow-box box-browser" style="flex:1;">Cow List page<small>reads from store</small></div>
+      <div class="flow-box box-browser" style="flex:1;">Cow Detail page<small>reads from store</small></div>
+      <div class="flow-box box-browser" style="flex:1;">Milk Recording page<small>reads from store</small></div>
+    </div>
+    <div class="arrow">▲ all read from / write to ▼</div>
+    <div class="flow-box box-frontend" style="width:70%;">
+      <strong>Cows Store (shared whiteboard)</strong>
+      <small>Holds the cow list. Any page can ask for data or save changes here. The store talks to the server and the local cache.</small>
+    </div>
+    <div class="arrow">▼</div>
+    <div class="flow-row" style="gap:16px;">
+      <div class="flow-box box-network" style="flex:1;">Server API<small>source of truth</small></div>
+      <div class="flow-box box-cache" style="flex:1;">Phone storage (IndexedDB)<small>offline backup</small></div>
+    </div>
+  </div>
+</div>
+
+<p>We have one store for each type of data:</p>
+
+<table>
+  <thead><tr><th>Store</th><th>What it manages</th></tr></thead>
+  <tbody>
+    <tr><td>Cows Store</td><td>The list of cows — fetch, create, edit, delete</td></tr>
+    <tr><td>Milk Records Store</td><td>Milk recordings — log new entries, view history</td></tr>
+    <tr><td>Health Issues Store</td><td>Health problems logged for cows</td></tr>
+    <tr><td>Treatments Store</td><td>Treatments and medications given</td></tr>
+    <tr><td>Breeding Events Store</td><td>Inseminations, pregnancy checks, calvings</td></tr>
+    <tr><td>Auth Store</td><td>Who's logged in, their role, their token</td></tr>
+    <tr><td>Sync Store</td><td>The offline sync queue status</td></tr>
+    <tr><td>Feature Flags Store</td><td>Which features are on/off for this farm</td></tr>
+  </tbody>
+</table>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="logging-in">Logging In</h2>
+
+<p>There are two ways to log in, depending on your role:</p>
+
+<div class="card-grid">
+  <div class="info-card">
+    <h4>Admin Login (Password)</h4>
+    <p>Type your username and password. Optionally enter a farm code if managing multiple farms. Your session lasts 24 hours. Can optionally use 2FA (a code from an authenticator app).</p>
+  </div>
+  <div class="info-card blue">
+    <h4>Worker Login (PIN)</h4>
+    <p>Type your username, 4-digit PIN, and your farm code (required). Simpler login for farm workers. Your session lasts 7 days so you don't have to log in every day.</p>
+  </div>
+</div>
+
+<h3 id="id-badge">The ID Badge (JWT Token)</h3>
+
+<p>When you log in successfully, the server creates a digital <strong>ID badge</strong> for you. In technical terms, it's called a JWT (JSON Web Token). Here's what's on it:</p>
+
+<div class="diagram">
+  <div class="flow-box box-security" style="width:70%; margin:0 auto; text-align:left; padding:20px;">
+    <strong style="font-size:16px;">Your Digital ID Badge</strong>
+    <small style="display:block; margin-top:12px; font-size:13px; line-height:2;">
+      <strong>Who you are:</strong> id, username, full_name<br>
+      <strong>Your role:</strong> admin, worker, or super_admin<br>
+      <strong>Your permissions:</strong> can_record_milk, can_log_breeding, etc.<br>
+      <strong>Your farm:</strong> farm_id (which farm you belong to)<br>
+      <strong>Your language:</strong> en or af<br>
+      <strong>Expiry time:</strong> when this badge expires<br>
+      <strong>Version number:</strong> so the admin can revoke your access if needed
+    </small>
+  </div>
+</div>
+
+<p>This badge is saved on your phone in two places (for safety). Every time the app talks to the server, the badge is sent along so the server knows who's asking. It's like showing your wristband to every staff member.</p>
+
+<p><strong>Auto-refresh:</strong> When your badge is about to expire (less than 1 hour left), the app quietly asks the server for a fresh one — so you don't get randomly logged out.</p>
+
+<p><strong>Revocation:</strong> If an admin revokes your access, they bump a version number in the database. The next time your app contacts the server, it compares version numbers, sees they don't match, and forces you to log out.</p>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="bouncers">Bouncers (Middleware)</h2>
+
+<p>Before any request reaches the actual code that does the work, it passes through a series of <strong>bouncers</strong> (technically called "middleware"). Each one checks something:</p>
+
+<div class="diagram">
+  <div class="flow" style="flex-direction: row; flex-wrap: wrap; gap: 8px; justify-content: center;">
+    <div class="flow-box box-guard" style="min-width:auto; padding:12px 16px;">
+      <strong>Helmet</strong>
+      <small>Adds security headers<br>(locks the doors)</small>
+    </div>
+    <div style="color:#9CA3AF; display:flex; align-items:center;">→</div>
+    <div class="flow-box box-guard" style="min-width:auto; padding:12px 16px;">
+      <strong>CORS</strong>
+      <small>Checks where the<br>request came from</small>
+    </div>
+    <div style="color:#9CA3AF; display:flex; align-items:center;">→</div>
+    <div class="flow-box box-security" style="min-width:auto; padding:12px 16px;">
+      <strong>Auth</strong>
+      <small>Checks your<br>ID badge (JWT)</small>
+    </div>
+    <div style="color:#9CA3AF; display:flex; align-items:center;">→</div>
+    <div class="flow-box box-security" style="min-width:auto; padding:12px 16px;">
+      <strong>Tenant Scope</strong>
+      <small>Identifies<br>your farm</small>
+    </div>
+    <div style="color:#9CA3AF; display:flex; align-items:center;">→</div>
+    <div class="flow-box box-security" style="min-width:auto; padding:12px 16px;">
+      <strong>Authorize</strong>
+      <small>Checks your<br>permission level</small>
+    </div>
+    <div style="color:#9CA3AF; display:flex; align-items:center;">→</div>
+    <div class="flow-box box-server" style="min-width:auto; padding:12px 16px;">
+      <strong>Route Handler</strong>
+      <small>Does the<br>actual work</small>
+    </div>
+  </div>
+</div>
+
+<p>If any bouncer says "no", the request is rejected immediately. The route handler (the actual work) only runs if all bouncers approve.</p>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="permissions">Who Can Do What</h2>
+
+<p>There are <strong>three roles</strong>:</p>
+
+<table>
+  <thead><tr><th>Role</th><th>Who</th><th>What they can do</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Super Admin</strong></td>
+      <td>The app owner (you)</td>
+      <td>Everything. Can manage all farms, create new farms, set global defaults, post announcements. Can "enter" any farm to manage it.</td>
+    </tr>
+    <tr>
+      <td><strong>Admin</strong></td>
+      <td>A farm manager</td>
+      <td>Everything within their own farm. Can manage users, settings, see reports. Automatically has all permissions.</td>
+    </tr>
+    <tr>
+      <td><strong>Worker</strong></td>
+      <td>A farm employee</td>
+      <td>Only what they've been given permission to do. A milker might only have "can record milk". A vet might have "can log issues" and "can log treatments".</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Worker Permissions</h3>
+
+<table>
+  <thead><tr><th>Permission</th><th>What it allows</th></tr></thead>
+  <tbody>
+    <tr><td><strong>can_manage_cows</strong></td><td>Add, edit, and delete cows</td></tr>
+    <tr><td><strong>can_record_milk</strong></td><td>Record milk, view milk history</td></tr>
+    <tr><td><strong>can_log_issues</strong></td><td>Log health problems</td></tr>
+    <tr><td><strong>can_log_treatments</strong></td><td>Record treatments given</td></tr>
+    <tr><td><strong>can_log_breeding</strong></td><td>Log breeding events</td></tr>
+    <tr><td><strong>can_view_analytics</strong></td><td>See charts and analytics</td></tr>
+  </tbody>
+</table>
+
+<div class="key-point">
+  <strong>"Read mirrors write"</strong> — if you don't have permission to record milk, you can't even <em>see</em> milk records. The same permission gates both reading and writing. This keeps the app simple for workers — they only see features relevant to their job.
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="farm-walls">Multi-Farm — Invisible Walls Between Farms</h2>
+
+<p>MyHerder supports multiple farms. Each farm's data is <strong>completely separate</strong> — Farm A can never see Farm B's cows, milk records, or users. This is called <strong>multi-tenancy</strong>.</p>
+
+<div class="analogy">
+  <strong>Analogy: an apartment building.</strong>
+  Each apartment (farm) has its own locked door. Tenants can only access their own apartment. The building manager (super-admin) has a master key that works on all doors.
+</div>
+
+<h3>How the walls work</h3>
+
+<div class="diagram">
+  <div class="flow">
+    <div class="flow-box box-security" style="width:70%;">
+      <strong>1. Your ID badge says which farm you belong to</strong>
+      <small>When you log in, the JWT token includes your farm_id</small>
+    </div>
+    <div class="arrow">▼</div>
+    <div class="flow-box box-guard" style="width:70%;">
+      <strong>2. Every request is tagged with your farm</strong>
+      <small>The Tenant Scope bouncer reads your farm_id and stamps it on the request</small>
+    </div>
+    <div class="arrow">▼</div>
+    <div class="flow-box box-database" style="width:70%;">
+      <strong>3. Every database query filters by farm</strong>
+      <small>"Give me cows WHERE farm_id = this person's farm" — other farms' cows are simply invisible</small>
+    </div>
+  </div>
+</div>
+
+<p>This applies to <strong>everything</strong> — cows, milk records, breeding events, health issues, users, settings. No exceptions.</p>
+
+<p>Even the <strong>phone's local storage</strong> is separated: each farm gets its own database named <code>myherder_db_[farmId]</code>. If a user switches farms, a completely different local database opens.</p>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="super-admin">The Master Key (Super-Admin)</h2>
+
+<p>As the super-admin, you can see across all farms. But you can also "enter" a specific farm to manage it as if you were its admin.</p>
+
+<div class="diagram">
+  <div class="flow">
+    <div class="flow-box box-security" style="width:60%;">
+      <strong>Logged in as Super-Admin</strong>
+      <small>No farm context — you see the global dashboard: farm list, defaults, announcements</small>
+    </div>
+    <div class="arrow">▼ <span class="arrow-label">click "Enter Farm" on a specific farm</span></div>
+    <div class="flow-box box-guard" style="width:60%;">
+      <strong>Server issues a temporary badge</strong>
+      <small>A special 4-hour ID badge with that farm's ID on it. Your original badge is saved for later.</small>
+    </div>
+    <div class="arrow">▼</div>
+    <div class="flow-box box-server" style="width:60%;">
+      <strong>You're now "inside" the farm</strong>
+      <small>You see the same interface as a farm admin. All data is scoped to this farm. Phone opens this farm's local storage.</small>
+    </div>
+    <div class="arrow">▼ <span class="arrow-label">click "Exit Farm" in your profile</span></div>
+    <div class="flow-box box-security" style="width:60%;">
+      <strong>Original badge restored</strong>
+      <small>Back to the global super-admin view.</small>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="offline">Working Without Internet</h2>
+
+<p>Farm workers are often in areas with bad internet. MyHerder handles this:</p>
+
+<div class="card-grid">
+  <div class="info-card">
+    <h4>The app loads without internet</h4>
+    <p>A Service Worker (background helper) caches the entire app on your phone. So even offline, you can open it and navigate around.</p>
+  </div>
+  <div class="info-card blue">
+    <h4>Data is cached on your phone</h4>
+    <p>Every time data loads from the server, a copy is saved locally (in IndexedDB via Dexie). If the server is unreachable, the app shows the last cached version.</p>
+  </div>
+  <div class="info-card orange">
+    <h4>Changes are queued</h4>
+    <p>If you create a cow or log milk while offline, it's saved locally and added to a "sync queue" — a list of changes waiting to be sent to the server.</p>
+  </div>
+</div>
+
+<h3 id="sync-queue">The Outbox (Sync Queue)</h3>
+
+<div class="analogy">
+  <strong>Analogy: writing letters when the postman can't come.</strong>
+  You write your letters (create data) and put them in the outbox (sync queue). When the postman arrives (internet returns), he picks up all the letters and delivers them. If a letter conflicts with something at the destination (someone else changed the same thing), the most recent change wins.
+</div>
+
+<div class="diagram">
+  <div class="flow">
+    <div style="text-align:center; font-weight:600; color:#92400E; margin-bottom:8px;">When offline:</div>
+    <div class="flow-row" style="gap:12px;">
+      <div class="flow-box box-browser" style="flex:1; min-width:150px;">
+        <strong>1. User acts</strong>
+        <small>Records 5 litres of milk for cow #42</small>
+      </div>
+      <div class="flow-box box-cache" style="flex:1; min-width:150px;">
+        <strong>2. Saved locally</strong>
+        <small>Stored in phone's IndexedDB. User sees it immediately.</small>
+      </div>
+      <div class="flow-box box-cache" style="flex:1; min-width:150px;">
+        <strong>3. Added to outbox</strong>
+        <small>sync queue: "create milk record, 5L, cow #42"</small>
+      </div>
+    </div>
+
+    <div class="arrow" style="height:24px;">▼ <span class="arrow-label">internet comes back</span></div>
+
+    <div style="text-align:center; font-weight:600; color:#065F46; margin-bottom:8px;">When back online:</div>
+    <div class="flow-row" style="gap:12px;">
+      <div class="flow-box box-sync" style="flex:1; min-width:150px;">
+        <strong>4. Background push</strong>
+        <small>Service worker sends all queued changes to server</small>
+      </div>
+      <div class="flow-box box-server" style="flex:1; min-width:150px;">
+        <strong>5. Server processes</strong>
+        <small>Saves each change. If conflict, latest timestamp wins.</small>
+      </div>
+      <div class="flow-box box-cache" style="flex:1; min-width:150px;">
+        <strong>6. Queue cleared</strong>
+        <small>Local data replaced with server's version. Outbox emptied.</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="folder-map">Where's the Code? (Folder Map)</h2>
+
+<p>If you ever want to find a specific piece of code, here's where to look:</p>
+
+<div class="file-tree">
+<span class="folder">myherder/</span><br>
+├── <span class="folder">server/</span> <span class="desc">— The kitchen (backend)</span><br>
+│ &nbsp;&nbsp; ├── index.js <span class="desc">— Starts the server</span><br>
+│ &nbsp;&nbsp; ├── app.js <span class="desc">— Sets up security, connects all the routes</span><br>
+│ &nbsp;&nbsp; ├── <span class="folder">config/</span> <span class="desc">— Database connection, environment settings</span><br>
+│ &nbsp;&nbsp; ├── <span class="folder">middleware/</span> <span class="desc">— The bouncers (auth, permissions, error handling)</span><br>
+│ &nbsp;&nbsp; ├── <span class="folder">routes/</span> <span class="desc">— One file per feature (cows.js, milkRecords.js, auth.js...)</span><br>
+│ &nbsp;&nbsp; ├── <span class="folder">services/</span> <span class="desc">— Business logic helpers (sync, withdrawal, reports)</span><br>
+│ &nbsp;&nbsp; ├── <span class="folder">migrations/</span> <span class="desc">— Database table creation instructions (001–034)</span><br>
+│ &nbsp;&nbsp; └── <span class="folder">tests/</span> <span class="desc">— 575+ automated checks that the backend works correctly</span><br>
+├── <span class="folder">client/</span> <span class="desc">— The dining room (frontend)</span><br>
+│ &nbsp;&nbsp; └── <span class="folder">src/</span><br>
+│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── main.js <span class="desc">— Starts the frontend app</span><br>
+│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── App.vue <span class="desc">— The main wrapper (navigation bar, sync indicator)</span><br>
+│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── style.css <span class="desc">— All the colors, fonts, and button styles</span><br>
+│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── <span class="folder">views/</span> <span class="desc">— Full pages (CowListView, DashboardView, etc.)</span><br>
+│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── <span class="folder">components/</span> <span class="desc">— Reusable pieces (atoms → molecules → organisms)</span><br>
+│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── <span class="folder">stores/</span> <span class="desc">— Shared data whiteboards (one per data type)</span><br>
+│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── <span class="folder">services/</span> <span class="desc">— The waiter (api.js) and sync manager</span><br>
+│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── <span class="folder">db/</span> <span class="desc">— Phone storage setup (IndexedDB/Dexie)</span><br>
+│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ├── <span class="folder">i18n/</span> <span class="desc">— Translation files (en.json, af.json)</span><br>
+│ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; └── <span class="folder">tests/</span> <span class="desc">— 645+ automated checks that the frontend works correctly</span><br>
+├── knexfile.js <span class="desc">— Database connection settings</span><br>
+└── CLAUDE.md <span class="desc">— Instructions for the AI assistant</span>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="feature-map">Feature → File Map</h2>
+
+<p>For each feature, here are the three files you'd look at:</p>
+
+<table>
+  <thead><tr><th>Feature</th><th>Server route<br><small>(handles requests)</small></th><th>Store<br><small>(manages data)</small></th><th>Main view(s)<br><small>(what users see)</small></th></tr></thead>
+  <tbody>
+    <tr><td>Cow Management</td><td>server/routes/cows.js</td><td>client/src/stores/cows.js</td><td>CowListView, CowDetailView, CowFormView</td></tr>
+    <tr><td>Milk Recording</td><td>server/routes/milkRecords.js</td><td>client/src/stores/milkRecords.js</td><td>MilkRecordingView, MilkHistoryView</td></tr>
+    <tr><td>Health Issues</td><td>server/routes/healthIssues.js</td><td>client/src/stores/healthIssues.js</td><td>OpenIssuesView, LogIssueView, IssueDetailView</td></tr>
+    <tr><td>Treatments</td><td>server/routes/treatments.js</td><td>client/src/stores/treatments.js</td><td>LogTreatmentView, TreatmentDetailView</td></tr>
+    <tr><td>Breeding</td><td>server/routes/breedingEvents.js</td><td>client/src/stores/breedingEvents.js</td><td>BreedingHubView, LogBreedingView</td></tr>
+    <tr><td>Analytics</td><td>server/routes/analytics/</td><td>—</td><td>AnalyticsView, FinancialView, etc.</td></tr>
+    <tr><td>Reports</td><td>server/routes/reports/</td><td>—</td><td>ReportsView</td></tr>
+    <tr><td>User Management</td><td>server/routes/users.js</td><td>—</td><td>UserManagement</td></tr>
+    <tr><td>Settings</td><td>server/routes/appSettings.js</td><td>—</td><td>SettingsView</td></tr>
+    <tr><td>Farm Management</td><td>server/routes/farms.js</td><td>—</td><td>FarmListView, CreateFarmView</td></tr>
+    <tr><td>Login / Auth</td><td>server/routes/auth.js</td><td>client/src/stores/auth.js</td><td>LoginView</td></tr>
+    <tr><td>Offline Sync</td><td>server/routes/sync.js</td><td>client/src/stores/sync.js</td><td>SyncPanel</td></tr>
+  </tbody>
+</table>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 id="feature-flags">On/Off Switches (Feature Flags)</h2>
+
+<p>Admins can turn entire features on or off per farm. This is useful when a farm doesn't need breeding tracking, for example.</p>
+
+<table>
+  <thead><tr><th>Switch</th><th>What it hides/shows</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Breeding</strong></td><td>The entire breeding hub, all breeding-related pages and navigation</td></tr>
+    <tr><td><strong>Milk Recording</strong></td><td>Milk recording and history pages</td></tr>
+    <tr><td><strong>Health Issues</strong></td><td>Health issue logging and open issues list</td></tr>
+    <tr><td><strong>Treatments</strong></td><td>Treatment logging and medication tracking</td></tr>
+    <tr><td><strong>Analytics</strong></td><td>All charts and analytics pages</td></tr>
+  </tbody>
+</table>
+
+<p>When a feature is switched off, the navigation item disappears, the routes are blocked, and the data isn't loaded. It's as if the feature doesn't exist for that farm.</p>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 style="margin-top:64px;">Quick Summary</h2>
+
+<div class="diagram" style="background: #FAFAFA;">
+  <div class="flow">
+    <div class="flow-box box-browser" style="width:80%;">
+      <strong>User taps a button on their phone</strong>
+      <small>The <strong>frontend</strong> (Vue) handles the UI</small>
+    </div>
+    <div class="arrow">▼ <span class="arrow-label">request sent via Axios</span></div>
+    <div class="flow-box box-security" style="width:70%;">
+      <strong>Bouncers check your ID badge</strong>
+      <small><strong>Middleware</strong> verifies login, farm, and permissions</small>
+    </div>
+    <div class="arrow">▼</div>
+    <div class="flow-box box-server" style="width:70%;">
+      <strong>Server processes the request</strong>
+      <small><strong>Express</strong> validates data (Joi) and queries the database (Knex)</small>
+    </div>
+    <div class="arrow">▼</div>
+    <div class="flow-box box-database" style="width:60%;">
+      <strong>Database reads/writes data</strong>
+      <small>Only data from your farm (multi-tenancy)</small>
+    </div>
+    <div class="arrow">▼ <span class="arrow-label">data sent back</span></div>
+    <div class="flow-box box-frontend" style="width:70%;">
+      <strong>Store updates + caches locally</strong>
+      <small><strong>Pinia</strong> store updates, copy saved to <strong>IndexedDB</strong> (offline backup)</small>
+    </div>
+    <div class="arrow">▼</div>
+    <div class="flow-box box-browser" style="width:80%;">
+      <strong>Screen updates automatically</strong>
+      <small><strong>Vue reactivity</strong> — when data changes, the display updates instantly</small>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<div style="margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--border); text-align: center; color: var(--text-muted); font-size: 13px;">
+  Written for Janco · MyHerder Architecture Guide · March 2026
+</div>
+
+</div><!-- /main -->
+
+</body>
+</html>
