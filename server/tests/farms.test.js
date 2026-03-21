@@ -27,6 +27,7 @@ beforeEach(async () => {
   await db('milk_records').del()
   await db('cows').del()
   await db('users').del()
+  await db('farm_species').del()
   await db('farms').del()
   await db.raw('PRAGMA foreign_keys = ON')
 
@@ -196,15 +197,20 @@ describe('POST /api/farms', () => {
     expect(res.body.admin_user.username).toBe('newfarmadmin')
     expect(res.body.admin_user.role).toBe('admin')
 
-    // Verify seed data was created
+    // Verify seed data was created (cattle breed types only; issue types + meds are all species)
     const breedTypes = await db('breed_types').where('farm_id', res.body.farm.id)
-    expect(breedTypes.length).toBe(5)
+    expect(breedTypes.length).toBe(5) // cattle only (filtered by species)
 
     const issueTypes = await db('issue_type_definitions').where('farm_id', res.body.farm.id)
-    expect(issueTypes.length).toBe(9)
+    expect(issueTypes.length).toBe(14) // 9 base + 5 sheep-specific from migration 035
 
     const meds = await db('medications').where('farm_id', res.body.farm.id)
-    expect(meds.length).toBe(5)
+    expect(meds.length).toBe(8) // 5 base + 3 sheep-specific from migration 035
+
+    // Verify farm_species row created (defaults to cattle)
+    const farmSpecies = await db('farm_species').where('farm_id', res.body.farm.id)
+    expect(farmSpecies.length).toBe(1)
+    expect(farmSpecies[0].species_id).toBe('00000000-0000-4000-a000-000000000001')
 
     const flags = await db('feature_flags').where('farm_id', res.body.farm.id)
     expect(flags.length).toBe(5)
@@ -309,6 +315,7 @@ describe('DELETE /api/farms/:id — hard delete', () => {
     await db('breeding_events').insert({ id: randomUUID(), farm_id: targetFarmId, cow_id: cowId, event_type: 'heat_observed', event_date: '2026-01-01', recorded_by: targetUserId })
     await db('feature_flags').insert({ farm_id: targetFarmId, key: 'breeding', enabled: true, updated_at: now })
     await db('app_settings').insert({ farm_id: targetFarmId, key: 'farm_name', value: 'Delete Me Farm', updated_at: now })
+    await db('farm_species').insert({ farm_id: targetFarmId, species_id: '00000000-0000-4000-a000-000000000001' })
     await db('audit_log').insert({ id: randomUUID(), farm_id: targetFarmId, user_id: targetUserId, action: 'create', entity_type: 'cow', entity_id: cowId, created_at: now })
     await db('sync_log').insert({ id: randomUUID(), farm_id: targetFarmId, user_id: targetUserId, device_id: 'test-device', action: 'push', records_count: 1, status: 'success', synced_at: now })
   })
@@ -334,6 +341,7 @@ describe('DELETE /api/farms/:id — hard delete', () => {
     expect(await db('issue_type_definitions').where('farm_id', targetFarmId).first()).toBeUndefined()
     expect(await db('feature_flags').where('farm_id', targetFarmId).first()).toBeUndefined()
     expect(await db('app_settings').where('farm_id', targetFarmId).first()).toBeUndefined()
+    expect(await db('farm_species').where('farm_id', targetFarmId).first()).toBeUndefined()
     expect(await db('audit_log').where('farm_id', targetFarmId).first()).toBeUndefined()
     expect(await db('sync_log').where('farm_id', targetFarmId).first()).toBeUndefined()
   })

@@ -456,6 +456,7 @@ router.delete('/:id', async (req, res, next) => {
         await trx('issue_type_definitions').where('farm_id', farm.id).del()
         await trx('feature_flags').where('farm_id', farm.id).del()
         await trx('app_settings').where('farm_id', farm.id).del()
+        await trx('farm_species').where('farm_id', farm.id).del()
         // Silently preserves super_admin users — guaranteed zero by guard above
         await trx('users').where('farm_id', farm.id).whereNot('role', 'super_admin').del()
         await trx('farms').where('id', farm.id).del()

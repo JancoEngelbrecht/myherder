@@ -1,6 +1,9 @@
 const { randomUUID: uuidv4 } = require('crypto')
 
 // ── Hardcoded fallback defaults (used when global tables are empty) ──
+// These are cattle-only defaults. Sheep defaults live in global default_* tables
+// (seeded by migration 035). Fallbacks have no species_id — they are only used
+// when the global tables are empty (fresh DB with no migration 033+ data).
 
 const FALLBACK_BREED_TYPES = [
   { code: 'holstein', name: 'Holstein', heat_cycle_days: 21, gestation_days: 280, preg_check_days: 35, voluntary_waiting_days: 50, dry_off_days: 60, calf_max_months: 6, heifer_min_months: 15, young_bull_min_months: 15, sort_order: 0 },
@@ -32,6 +35,9 @@ const FALLBACK_MEDICATIONS = [
 
 const DEFAULT_FLAGS = ['breeding', 'milk_recording', 'health_issues', 'treatments', 'analytics']
 
+// Flags to disable for non-dairy species
+const NON_DAIRY_DISABLED_FLAGS = ['milk_recording']
+
 /**
  * Seed default reference data for a newly created farm.
  * Reads from global default_* tables; falls back to hardcoded arrays if empty.
@@ -40,12 +46,32 @@ const DEFAULT_FLAGS = ['breeding', 'milk_recording', 'health_issues', 'treatment
  * @param {string} farmId - The farm UUID
  * @param {string} farmName - The farm name (for app_settings)
  * @param {object} trx - Knex transaction object
+ * @param {object} [options] - Optional species config
+ * @param {string} [options.speciesId] - Species UUID to filter defaults by. If omitted, seeds all defaults (backward compat).
  */
-async function seedFarmDefaults(farmId, farmName, trx) {
+async function seedFarmDefaults(farmId, farmName, trx, options = {}) {
   const now = trx.fn.now()
+  let { speciesId } = options
+
+  // Default to cattle species if no speciesId provided (backward compat).
+  // The species table may not exist yet (pre-migration-035), so guard the lookup.
+  let speciesRow = null
+  if (!speciesId) {
+    try {
+      speciesRow = await trx('species').where('code', 'cattle').first()
+      if (speciesRow) speciesId = speciesRow.id
+    } catch (err) {
+      // Only suppress "table doesn't exist" errors (pre-migration-035 DB)
+      const msg = (err.message || '').toLowerCase()
+      const isTableMissing = msg.includes('no such table') || msg.includes("doesn't exist") || err.code === 'ER_NO_SUCH_TABLE'
+      if (!isTableMissing) throw err
+    }
+  }
 
   // 1. Breed types — read from global defaults, fallback to hardcoded
-  let breedDefaults = await trx('default_breed_types').where('is_active', true).orderBy('sort_order')
+  let breedQuery = trx('default_breed_types').where('is_active', true).orderBy('sort_order')
+  if (speciesId) breedQuery = breedQuery.where('species_id', speciesId)
+  let breedDefaults = await breedQuery
   if (breedDefaults.length === 0) breedDefaults = FALLBACK_BREED_TYPES
 
   await trx('breed_types').insert(
@@ -54,6 +80,7 @@ async function seedFarmDefaults(farmId, farmName, trx) {
       farm_id: farmId,
       code: d.code,
       name: d.name,
+      species_id: d.species_id || speciesId || null,
       heat_cycle_days: d.heat_cycle_days,
       gestation_days: d.gestation_days,
       preg_check_days: d.preg_check_days,
@@ -70,6 +97,9 @@ async function seedFarmDefaults(farmId, farmName, trx) {
   )
 
   // 2. Issue types — read from global defaults, fallback to hardcoded
+  // Issue types and medications are not species-scoped in the DB yet,
+  // so we seed all of them regardless of species. Farm admins can
+  // deactivate irrelevant ones (e.g. Mastitis for sheep farms).
   let issueDefaults = await trx('default_issue_types').where('is_active', true).orderBy('sort_order')
   if (issueDefaults.length === 0) issueDefaults = FALLBACK_ISSUE_TYPES
 
@@ -111,9 +141,28 @@ async function seedFarmDefaults(farmId, farmName, trx) {
     }))
   )
 
-  // 4. Feature flags (all enabled)
+  // 4. Feature flags
+  // Determine if this is a dairy species (has dry_off in its event types)
+  let isDairy = true
+  if (speciesId) {
+    // Reuse speciesRow if already fetched, otherwise look up once
+    const species = speciesRow && speciesRow.id === speciesId
+      ? speciesRow
+      : await trx('species').where('id', speciesId).first()
+    if (species && species.config) {
+      try {
+        const config = JSON.parse(species.config)
+        isDairy = (config.event_types || []).includes('dry_off')
+      } catch { /* fallback to dairy */ }
+    }
+  }
+
   await trx('feature_flags').insert(
-    DEFAULT_FLAGS.map((key) => ({ farm_id: farmId, key, enabled: true }))
+    DEFAULT_FLAGS.map((key) => ({
+      farm_id: farmId,
+      key,
+      enabled: isDairy ? true : !NON_DAIRY_DISABLED_FLAGS.includes(key),
+    }))
   )
 
   // 5. App settings
@@ -121,6 +170,15 @@ async function seedFarmDefaults(farmId, farmName, trx) {
     { farm_id: farmId, key: 'farm_name', value: farmName },
     { farm_id: farmId, key: 'default_language', value: 'en' },
   ])
+
+  // 6. Farm-species association (if speciesId provided)
+  if (speciesId) {
+    // Use INSERT OR IGNORE pattern to avoid duplicate if already inserted
+    const existing = await trx('farm_species').where({ farm_id: farmId, species_id: speciesId }).first()
+    if (!existing) {
+      await trx('farm_species').insert({ farm_id: farmId, species_id: speciesId })
+    }
+  }
 }
 
 module.exports = { seedFarmDefaults }
