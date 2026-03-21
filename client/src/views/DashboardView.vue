@@ -41,6 +41,10 @@
               <span class="action-icon">📢</span>
               <span class="action-label">{{ t('announcements.title') }}</span>
             </RouterLink>
+            <RouterLink to="/super/system-health" class="action-card active-action">
+              <span class="action-icon">🩺</span>
+              <span class="action-label">{{ t('systemHealth.title') }}</span>
+            </RouterLink>
           </div>
         </section>
       </template>

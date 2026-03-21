@@ -304,6 +304,12 @@ const routes = [
     meta: { requiresAuth: true, requiresSuperAdmin: true },
   },
   {
+    path: '/super/system-health',
+    name: 'system-health',
+    component: () => import('../views/super/SystemHealthView.vue'),
+    meta: { requiresAuth: true, requiresSuperAdmin: true },
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/',
   },

@@ -156,10 +156,11 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
 - `PATCH /api/announcements/:id` — super-admin only; update
 - `DELETE /api/announcements/:id` — super-admin only; soft deactivate
 - `POST /api/announcements/:id/dismiss` — authenticated; dismiss for current user (idempotent)
+- `GET /api/system/health` — super-admin only; operational metrics snapshot. Returns `{ node_version, uptime_seconds, memory: { rss_mb, heap_used_mb, heap_total_mb }, disk: { total_gb, used_gb, available_gb, used_pct } | null, database: { size_mb, tables: [{ name, rows, size_mb }] } | null, requests: { started_at, total, errors_4xx, errors_5xx, error_rate_5xx_pct, avg_response_ms, p95_response_ms, window_size }, thresholds: { memory_status, disk_status, response_status, error_status } }`. Threshold values: `green` / `yellow` / `red` / `unknown`
 
 ## i18n
 
-Two locales: `en.json` and `af.json` in `client/src/i18n/`. Locale persisted to `localStorage('locale')`. All user-facing strings must have entries in both files. Keys are namespaced: `nav`, `login`, `dashboard`, `cows`, `cowForm`, `cowDetail`, `status`, `sex`, `analytics`, `common`, `sync`, `placeholder`, `featureFlags`, `users`, `settings`, `audit`, `profile`, `superAdmin`.
+Two locales: `en.json` and `af.json` in `client/src/i18n/`. Locale persisted to `localStorage('locale')`. All user-facing strings must have entries in both files. Keys are namespaced: `nav`, `login`, `dashboard`, `cows`, `cowForm`, `cowDetail`, `status`, `sex`, `analytics`, `common`, `sync`, `placeholder`, `featureFlags`, `users`, `settings`, `audit`, `profile`, `superAdmin`, `systemHealth`.
 
 ## Frontend Component Architecture (Atomic Design)
 

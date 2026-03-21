@@ -1974,5 +1974,26 @@
     "active": "Aktief",
     "expired": "Verval",
     "scheduled": "Geskeduleer"
+  },
+  "systemHealth": {
+    "title": "Stelselgesondheid",
+    "serverInfo": "Bediener Inligting",
+    "uptime": "Aktiewe Tyd",
+    "statsSince": "Statistieke Sedert",
+    "memory": "Geheue",
+    "heapUsed": "Heap Gebruik",
+    "disk": "Skyf",
+    "database": "Databasis",
+    "totalSize": "Totale Grootte",
+    "rows": "rye",
+    "requests": "Versoeke",
+    "totalRequests": "Totaal",
+    "avgResponse": "Gem. Respons",
+    "p95Response": "P95 Respons",
+    "errors": "Foute",
+    "errorRate": "5xx Koers",
+    "unavailable": "Nie beskikbaar op hierdie platform nie",
+    "refresh": "Herlaai",
+    "loadError": "Kon nie stelselgesondheid data laai nie."
   }
 }

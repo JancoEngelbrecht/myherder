@@ -1974,5 +1974,26 @@
     "active": "Active",
     "expired": "Expired",
     "scheduled": "Scheduled"
+  },
+  "systemHealth": {
+    "title": "System Health",
+    "serverInfo": "Server Info",
+    "uptime": "Uptime",
+    "statsSince": "Stats Since",
+    "memory": "Memory",
+    "heapUsed": "Heap Used",
+    "disk": "Disk",
+    "database": "Database",
+    "totalSize": "Total Size",
+    "rows": "rows",
+    "requests": "Requests",
+    "totalRequests": "Total",
+    "avgResponse": "Avg Response",
+    "p95Response": "P95 Response",
+    "errors": "Errors",
+    "errorRate": "5xx Rate",
+    "unavailable": "Not available on this platform",
+    "refresh": "Refresh",
+    "loadError": "Could not load system health data."
   }
 }

@@ -4,6 +4,7 @@ const helmet = require('helmet')
 const path = require('path')
 const { nodeEnv, isProduction, corsOrigins } = require('./config/env')
 const errorHandler = require('./middleware/errorHandler')
+const { requestStatsMiddleware } = require('./helpers/requestStats')
 
 const app = express()
 
@@ -14,6 +15,7 @@ app.use(helmet())
 // corsOrigins is always a non-null array — never pass undefined to cors()
 app.use(cors({ origin: corsOrigins, credentials: true }))
 app.use(express.json({ limit: '1mb' }))
+app.use(requestStatsMiddleware)
 
 // Request logging — suppress in tests to keep output clean
 if (nodeEnv !== 'test') {
@@ -44,6 +46,7 @@ app.use('/api/audit-log', require('./routes/auditLog'))
 app.use('/api/farms', require('./routes/farms'))
 app.use('/api/global-defaults', require('./routes/globalDefaults'))
 app.use('/api/announcements', require('./routes/announcements'))
+app.use('/api/system', require('./routes/systemHealth'))
 
 // Serve Vue SPA in production (no-op in test/development since client/dist may not exist)
 const clientDist = path.join(__dirname, '../client/dist')
