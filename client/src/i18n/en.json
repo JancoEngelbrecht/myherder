@@ -86,7 +86,10 @@
     "heifer": "Heifer",
     "cow": "Cow",
     "young_bull": "Young Bull",
-    "bull": "Bull"
+    "bull": "Bull",
+    "lamb": "Lamb",
+    "ewe": "Ewe",
+    "ram": "Ram"
   },
   "cowForm": {
     "titleAdd": "Add Cow",
@@ -688,9 +691,11 @@
       "heat_observed": "Heat Observed",
       "ai_insemination": "AI Insemination",
       "bull_service": "Bull Service",
+      "ram_service": "Ram Service",
       "preg_check_positive": "Preg Check +",
       "preg_check_negative": "Preg Check -",
       "calving": "Calving",
+      "lambing": "Lambing",
       "abortion": "Abortion",
       "dry_off": "Dry Off"
     }

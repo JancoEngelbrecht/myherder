@@ -351,6 +351,63 @@ describe('computeLifePhase', () => {
     const breedType = { calf_max_months: 10 }
     expect(computeLifePhase({ sex: 'female', dob }, breedType)).toBe('calf')
   })
+
+  // ── Species-aware (3rd parameter) ──
+
+  const SHEEP_PHASES = {
+    female: [{ code: 'lamb', maxMonths: 6 }, { code: 'ewe', minMonths: 6 }],
+    male: [{ code: 'lamb', maxMonths: 6 }, { code: 'ram', minMonths: 6 }],
+  }
+
+  const CATTLE_PHASES = {
+    female: [{ code: 'calf', maxMonths: 6 }, { code: 'heifer', minMonths: 6 }, { code: 'cow', minMonths: 15 }],
+    male: [{ code: 'calf', maxMonths: 6 }, { code: 'young_bull', minMonths: 6 }, { code: 'bull', minMonths: 15 }],
+  }
+
+  it('returns sheep lamb for young female with species config', () => {
+    const dob = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString() // ~2 months
+    expect(computeLifePhase({ sex: 'female', dob }, null, SHEEP_PHASES)).toBe('lamb')
+  })
+
+  it('returns sheep ewe for mature female with species config', () => {
+    const dob = new Date(Date.now() - 300 * 24 * 60 * 60 * 1000).toISOString() // ~10 months
+    expect(computeLifePhase({ sex: 'female', dob }, null, SHEEP_PHASES)).toBe('ewe')
+  })
+
+  it('returns sheep lamb for young male with species config', () => {
+    const dob = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
+    expect(computeLifePhase({ sex: 'male', dob }, null, SHEEP_PHASES)).toBe('lamb')
+  })
+
+  it('returns sheep ram for mature male with species config', () => {
+    const dob = new Date(Date.now() - 300 * 24 * 60 * 60 * 1000).toISOString()
+    expect(computeLifePhase({ sex: 'male', dob }, null, SHEEP_PHASES)).toBe('ram')
+  })
+
+  it('returns last phase (adult) when no dob with species config', () => {
+    expect(computeLifePhase({ sex: 'female' }, null, SHEEP_PHASES)).toBe('ewe')
+    expect(computeLifePhase({ sex: 'male' }, null, SHEEP_PHASES)).toBe('ram')
+  })
+
+  it('respects breed override in species path', () => {
+    const dob = new Date(Date.now() - 240 * 24 * 60 * 60 * 1000).toISOString() // ~8 months
+    const breedType = { calf_max_months: 10 }
+    expect(computeLifePhase({ sex: 'female', dob }, breedType, SHEEP_PHASES)).toBe('lamb')
+  })
+
+  it('returns cattle heifer with species config for 10-month female', () => {
+    const dob = new Date(Date.now() - 300 * 24 * 60 * 60 * 1000).toISOString()
+    expect(computeLifePhase({ sex: 'female', dob }, null, CATTLE_PHASES)).toBe('heifer')
+  })
+
+  it('returns cattle cow with species config for 20-month female', () => {
+    const dob = new Date(Date.now() - 600 * 24 * 60 * 60 * 1000).toISOString()
+    expect(computeLifePhase({ sex: 'female', dob }, null, CATTLE_PHASES)).toBe('cow')
+  })
+
+  it('override still applies to species-aware path', () => {
+    expect(computeLifePhase({ sex: 'female', dob: '2020-01-01', life_phase_override: 'lamb' }, null, SHEEP_PHASES)).toBe('lamb')
+  })
 })
 
 describe('computeIsReadyToBreed', () => {

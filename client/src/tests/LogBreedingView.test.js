@@ -55,6 +55,7 @@ vi.mock('../db/indexedDB.js', () => ({
       }),
     },
     featureFlags: { toArray: vi.fn().mockResolvedValue([]), put: vi.fn(), bulkPut: vi.fn() },
+    species: { toArray: vi.fn().mockResolvedValue([]), put: vi.fn(), bulkPut: vi.fn() },
     syncQueue: { toArray: vi.fn().mockResolvedValue([]) },
   },
 }))
@@ -122,17 +123,17 @@ describe('LogBreedingView', () => {
     await flushPromises()
 
     const buttons = wrapper.findAll('.event-type-btn')
-    // 8 event types: heat_observed, ai_insemination, bull_service, preg_check_positive, preg_check_negative, calving, abortion, dry_off
-    expect(buttons).toHaveLength(8)
+    // 10 event types: heat_observed, ai_insemination, bull_service, ram_service, preg_check_positive, preg_check_negative, calving, lambing, abortion, dry_off
+    expect(buttons).toHaveLength(10)
   })
 
   it('selecting preg_check_positive shows expected calving date input', async () => {
     const wrapper = createWrapper()
     await flushPromises()
 
-    // Click preg_check_positive button (index 3)
+    // Click preg_check_positive button (index 4 — after heat_observed, ai_insemination, bull_service, ram_service)
     const buttons = wrapper.findAll('.event-type-btn')
-    await buttons[3].trigger('click')
+    await buttons[4].trigger('click')
     await flushPromises()
 
     // Should show expected calving date input

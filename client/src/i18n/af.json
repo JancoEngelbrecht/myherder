@@ -86,7 +86,10 @@
     "heifer": "Vers",
     "cow": "Koei",
     "young_bull": "Jong Bul",
-    "bull": "Bul"
+    "bull": "Bul",
+    "lamb": "Lam",
+    "ewe": "Ooi",
+    "ram": "Ram"
   },
   "cowForm": {
     "titleAdd": "Voeg Koei by",
@@ -688,9 +691,11 @@
       "heat_observed": "Hits Waargeneem",
       "ai_insemination": "KI Inseminasie",
       "bull_service": "Buldiens",
+      "ram_service": "Ramdiens",
       "preg_check_positive": "Dragtigheidstoets +",
       "preg_check_negative": "Dragtigheidstoets -",
       "calving": "Kalwing",
+      "lambing": "Lamtyd",
       "abortion": "Aborsie",
       "dry_off": "Droogmaak"
     }

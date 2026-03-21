@@ -77,6 +77,7 @@ export const useAuthStore = defineStore('auth', () => {
               language: payload.language,
               farm_id: payload.farm_id || null,
               token_version: payload.token_version ?? 0,
+              species_code: payload.species_code || undefined,
             }
             restored = true
             restoredPayload = payload
@@ -102,10 +103,13 @@ export const useAuthStore = defineStore('auth', () => {
             refreshToken().catch(() => {})
           }
         }
-        // Restore feature flags (super-admin without farm context skips)
+        // Restore feature flags + species (super-admin without farm context skips)
         if (restoredPayload.role !== 'super_admin' || restoredPayload.farm_id) {
           const featureFlagsStore = useFeatureFlagsStore()
           featureFlagsStore.fetchFlags().catch(() => {})
+          import('./species.js').then(({ useSpeciesStore }) => {
+            useSpeciesStore().fetchAll().catch(() => {})
+          }).catch(() => {})
         }
       }
     } catch {
@@ -145,6 +149,9 @@ export const useAuthStore = defineStore('auth', () => {
     if (data.user?.role === 'super_admin' && !data.user?.farm_id) return
     const featureFlagsStore = useFeatureFlagsStore()
     featureFlagsStore.fetchFlags().catch(() => {})
+    const { useSpeciesStore } = await import('./species.js')
+    const speciesStore = useSpeciesStore()
+    speciesStore.fetchAll().catch(() => {})
     initialSync().catch(() => {})
     // Eagerly fetch cows after login
     const { useCowsStore } = await import('./cows.js')

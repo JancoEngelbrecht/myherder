@@ -511,6 +511,13 @@ router.post('/:id/enter', async (req, res, next) => {
       try { permissions = JSON.parse(permissions) } catch { permissions = [] }
     }
 
+    // Look up the farm's species
+    const fs = await db('farm_species')
+      .join('species', 'species.id', 'farm_species.species_id')
+      .where('farm_species.farm_id', farm.id)
+      .select('species.code as species_code')
+      .first()
+
     const payload = {
       id: user.id,
       farm_id: farm.id,
@@ -522,6 +529,7 @@ router.post('/:id/enter', async (req, res, next) => {
       token_version: user.token_version ?? 0,
       login_type: 'password',
     }
+    if (fs) payload.species_code = fs.species_code
 
     const token = jwt.sign(payload, jwtSecret, { expiresIn: '4h' })
 

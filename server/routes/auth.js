@@ -71,7 +71,7 @@ function buildUserResponse(user) {
   if (typeof permissions === 'string') {
     try { permissions = JSON.parse(permissions); } catch { permissions = []; }
   }
-  return {
+  const resp = {
     id: user.id,
     farm_id: user.farm_id,
     username: user.username,
@@ -81,6 +81,25 @@ function buildUserResponse(user) {
     language: user.language,
     token_version: user.token_version ?? 0,
   };
+  // Include species_code when available (joined from farm_species + species)
+  if (user.species_code) resp.species_code = user.species_code;
+  return resp;
+}
+
+/** Enrich a user row with species_code from farm_species join. */
+async function enrichWithSpecies(user) {
+  if (!user?.farm_id) return user;
+  try {
+    const fs = await db('farm_species')
+      .join('species', 'species.id', 'farm_species.species_id')
+      .where('farm_species.farm_id', user.farm_id)
+      .select('species.code as species_code')
+      .first();
+    if (fs) user.species_code = fs.species_code;
+  } catch {
+    // Non-critical — login proceeds without species enrichment
+  }
+  return user;
 }
 
 function isLockedOut(user) {
@@ -217,6 +236,7 @@ router.post('/login', loginLimiter, async (req, res, next) => {
       return res.json({ requires_2fa: true, temp_token: tempToken });
     }
 
+    await enrichWithSpecies(user);
     const userPayload = buildUserResponse(user);
     const token = issueFullToken(userPayload, 'password');
     res.json({ token, user: userPayload });
@@ -259,6 +279,7 @@ router.post('/login-pin', loginLimiter, async (req, res, next) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    await enrichWithSpecies(user);
     const userPayload = buildUserResponse(user);
     const token = issueFullToken(userPayload, 'pin');
     res.json({ token, user: userPayload });
@@ -331,6 +352,7 @@ router.post('/confirm-2fa', twoFactorLimiter, async (req, res, next) => {
     await db('users').where({ id: user.id }).update({ totp_enabled: true });
 
     const freshUser = await db('users').where({ id: user.id }).first();
+    await enrichWithSpecies(freshUser);
     const userPayload = buildUserResponse(freshUser);
     const token = issueFullToken(userPayload, 'password');
 
@@ -370,6 +392,7 @@ router.post('/verify-2fa', twoFactorLimiter, async (req, res, next) => {
       if (user.failed_attempts > 0) {
         await db('users').where({ id: user.id }).update({ failed_attempts: 0, locked_until: null });
       }
+      await enrichWithSpecies(user);
       const userPayload = buildUserResponse(user);
       const token = issueFullToken(userPayload, 'password');
       return res.json({ token, user: userPayload });
@@ -406,6 +429,7 @@ router.post('/verify-2fa', twoFactorLimiter, async (req, res, next) => {
       locked_until: null,
     });
 
+    await enrichWithSpecies(user);
     const userPayload = buildUserResponse(user);
     const token = issueFullToken(userPayload, 'password');
     res.json({ token, user: userPayload });
@@ -473,6 +497,7 @@ router.post('/switch-farm/:farmId', authenticate, async (req, res, next) => {
       return res.status(404).json({ error: 'Farm not found or inactive' });
     }
 
+    await enrichWithSpecies(targetUser);
     const userPayload = buildUserResponse(targetUser);
     const loginType = req.user.login_type || 'password';
     const token = issueFullToken(userPayload, loginType);
@@ -516,6 +541,7 @@ router.post('/refresh', refreshLimiter, async (req, res, next) => {
       return res.status(423).json({ error: 'Account temporarily locked' });
     }
 
+    await enrichWithSpecies(user);
     const userPayload = buildUserResponse(user);
     const loginType = decoded.login_type || (decoded.role === 'admin' ? 'password' : 'pin');
     const token = issueFullToken(userPayload, loginType);

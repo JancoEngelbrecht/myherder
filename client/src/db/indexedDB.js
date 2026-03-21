@@ -15,6 +15,7 @@ const CURRENT_SCHEMA = {
   syncQueue: '++autoId, id, entityType, action, createdAt, attempts, [entityType+id]',
   syncMeta: 'key',
   featureFlags: 'key',
+  species: 'id, code, is_active',
 }
 
 // ── DB Instance ────────────────────────────────────────────────
@@ -32,6 +33,8 @@ function createDb(dbName) {
   instance.version(9).stores(CURRENT_SCHEMA)
   // v10: compound index [entityType+id] on syncQueue
   instance.version(10).stores(CURRENT_SCHEMA)
+  // v11: added species table
+  instance.version(11).stores(CURRENT_SCHEMA)
   return instance
 }
 
