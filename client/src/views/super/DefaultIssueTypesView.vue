@@ -65,6 +65,10 @@
             <div class="defaults-actions">
               <button class="btn-secondary btn-sm" @click="openEdit(it)">{{ $t('common.edit') }}</button>
               <button v-if="it.is_active" class="btn-danger btn-sm" @click="confirmDeactivate(it)">{{ $t('common.deactivate') }}</button>
+              <template v-else>
+                <button class="btn-primary btn-sm" :disabled="activating === it.id" @click="doActivate(it)">{{ $t('common.activate') }}</button>
+                <button class="btn-danger btn-sm" @click="confirmDelete(it)">{{ $t('common.delete') }}</button>
+              </template>
             </div>
           </div>
         </div>
@@ -81,6 +85,16 @@
       :loading="deactivating"
       @confirm="doDeactivate"
       @cancel="deactivateTarget = null"
+    />
+
+    <ConfirmDialog
+      :show="!!deleteTarget"
+      :message="deleteTarget ? $t('globalDefaults.deleteConfirm', { name: deleteTarget.name }) : ''"
+      :confirm-label="$t('common.delete')"
+      :cancel-label="$t('common.cancel')"
+      :loading="deleting"
+      @confirm="doDelete"
+      @cancel="deleteTarget = null"
     />
   </div>
 </template>
@@ -105,6 +119,9 @@ const saving = ref(false)
 const formError = ref('')
 const deactivateTarget = ref(null)
 const deactivating = ref(false)
+const activating = ref(null)
+const deleteTarget = ref(null)
+const deleting = ref(false)
 
 const emptyForm = () => ({ name: '', emoji: '', requires_teat_selection: false, sort_order: 0 })
 const form = ref(emptyForm())
@@ -163,6 +180,18 @@ async function save() {
 
 function confirmDeactivate(it) { deactivateTarget.value = it }
 
+async function doActivate(it) {
+  activating.value = it.id
+  try {
+    await api.patch(`/global-defaults/issue-types/${it.id}`, { is_active: true })
+    await load()
+  } catch (err) {
+    showToast(resolveError(extractApiError(err), t), 'error')
+  } finally {
+    activating.value = null
+  }
+}
+
 async function doDeactivate() {
   deactivating.value = true
   try {
@@ -173,6 +202,21 @@ async function doDeactivate() {
     showToast(resolveError(extractApiError(err), t), 'error')
   } finally {
     deactivating.value = false
+  }
+}
+
+function confirmDelete(it) { deleteTarget.value = it }
+
+async function doDelete() {
+  deleting.value = true
+  try {
+    await api.delete(`/global-defaults/issue-types/${deleteTarget.value.id}?hard=1`)
+    deleteTarget.value = null
+    await load()
+  } catch (err) {
+    showToast(resolveError(extractApiError(err), t), 'error')
+  } finally {
+    deleting.value = false
   }
 }
 </script>

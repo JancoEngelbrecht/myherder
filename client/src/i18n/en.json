@@ -1944,6 +1944,7 @@
     "farmsAffected": "Farms Affected",
     "noItems": "No items yet. Add one using the + button.",
     "deactivateConfirm": "Deactivate \"{name}\"? It will no longer be used when seeding new farms.",
+    "deleteConfirm": "Permanently delete \"{name}\"? This cannot be undone.",
     "sortOrder": "Sort Order",
     "export": "Export All",
     "totalFarms": "Farms",

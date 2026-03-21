@@ -233,11 +233,16 @@ for (const [slug, config] of Object.entries(ENTITIES)) {
     }
   })
 
-  // DELETE /api/global-defaults/:type/:id — soft deactivate
+  // DELETE /api/global-defaults/:type/:id — soft deactivate (default) or hard delete (?hard=1)
   router.delete(`/${slug}/:id`, async (req, res, next) => {
     try {
       const existing = await db(table).where('id', req.params.id).first()
       if (!existing) return res.status(404).json({ error: `${label} not found` })
+
+      if (req.query.hard === '1') {
+        await db(table).where('id', existing.id).del()
+        return res.json({ deleted: true })
+      }
 
       await db(table).where('id', existing.id).update({ is_active: false, updated_at: new Date().toISOString() })
       const updated = await db(table).where('id', existing.id).first()
@@ -248,6 +253,7 @@ for (const [slug, config] of Object.entries(ENTITIES)) {
   })
 
   // POST /api/global-defaults/:type/push — push to farms
+  // For breed-types: filters defaults by species and only pushes to matching farms.
   router.post(`/${slug}/push`, async (req, res, next) => {
     try {
       const { error, value } = validateBody(pushSchema, req.body)
@@ -266,6 +272,16 @@ for (const [slug, config] of Object.entries(ENTITIES)) {
       }
       const farms = await farmQuery.select('id')
 
+      // For breed-types, build farm→species map to only push matching breeds
+      let farmSpeciesMap = null
+      if (slug === 'breed-types') {
+        const fsRows = await db('farm_species')
+          .whereIn('farm_id', farms.map((f) => f.id))
+          .select('farm_id', 'species_id')
+        farmSpeciesMap = {}
+        for (const row of fsRows) farmSpeciesMap[row.farm_id] = row.species_id
+      }
+
       let pushed = 0
       let skipped = 0
       const farmsAffected = new Set()
@@ -281,17 +297,25 @@ for (const [slug, config] of Object.entries(ENTITIES)) {
 
       for (const farm of farms) {
         const existingSet = existingByFarm[farm.id] || new Set()
+        const farmSpeciesId = farmSpeciesMap ? farmSpeciesMap[farm.id] : null
 
         const toInsert = []
         for (const d of defaults) {
+          // Species filter: skip breed defaults that don't match the farm's species
+          if (farmSpeciesMap && d.species_id && farmSpeciesId && d.species_id !== farmSpeciesId) {
+            skipped++
+            continue
+          }
           if (existingSet.has(d[matchField])) {
             skipped++
             continue
           }
+          const seedData = seedFields(d)
+          if (slug === 'breed-types' && d.species_id) seedData.species_id = d.species_id
           toInsert.push({
             id: uuidv4(),
             farm_id: farm.id,
-            ...seedFields(d),
+            ...seedData,
             is_active: true,
             created_at: now,
             updated_at: now,

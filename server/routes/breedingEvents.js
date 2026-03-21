@@ -9,7 +9,7 @@ const { calcDates, getBreedTimings } = require('../helpers/breedingCalc')
 const { joiMsg, MS_PER_DAY, validateBody, validateQuery } = require('../helpers/constants')
 const { logAudit } = require('../services/auditService')
 const {
-  STATUS_TRANSITIONS, VALID_EVENT_TYPES,
+  STATUS_TRANSITIONS, VALID_EVENT_TYPES, BIRTH_EVENT_TYPES,
   createSchema, updateSchema, breedingQuerySchema,
 } = require('../helpers/breedingSchemas')
 
@@ -227,7 +227,20 @@ router.get('/:id', authorize('can_log_breeding'), async (req, res, next) => {
   try {
     const row = await breedingQuery(req.farmId).where('be.id', req.params.id).first()
     if (!row) return res.status(404).json({ error: 'Breeding event not found' })
-    res.json(parseJsonFields(row))
+
+    const parsed = parseJsonFields(row)
+
+    // For birth events, include count of registered offspring
+    if (BIRTH_EVENT_TYPES.includes(row.event_type)) {
+      const countResult = await db('cows')
+        .where({ birth_event_id: row.id, farm_id: req.farmId })
+        .whereNull('deleted_at')
+        .count('* as count')
+        .first()
+      parsed.registered_offspring = Number(countResult?.count ?? 0)
+    }
+
+    res.json(parsed)
   } catch (err) {
     next(err)
   }
@@ -263,7 +276,7 @@ router.post('/', authorize('can_log_breeding'), async (req, res, next) => {
       const latestInsem = await db('breeding_events')
         .where('farm_id', req.farmId)
         .where({ cow_id: value.cow_id })
-        .whereIn('event_type', ['ai_insemination', 'bull_service'])
+        .whereIn('event_type', ['ai_insemination', 'bull_service', 'ram_service'])
         .whereNotNull('expected_calving')
         .orderBy('event_date', 'desc')
         .first()
@@ -287,6 +300,7 @@ router.post('/', authorize('can_log_breeding'), async (req, res, next) => {
       heat_signs: value.heat_signs ? JSON.stringify(value.heat_signs) : null,
       preg_check_method: value.preg_check_method || null,
       calving_details: value.calving_details ? JSON.stringify(value.calving_details) : null,
+      offspring_count: value.offspring_count ?? 1,
       cost: value.cost ?? null,
       notes: value.notes || null,
       ...autoDates,
@@ -368,6 +382,7 @@ router.patch('/:id', requireAdmin, async (req, res, next) => {
     if ('notes' in value) updates.notes = value.notes || null
     if ('expected_calving' in value) updates.expected_calving = value.expected_calving || null
     if ('expected_dry_off' in value) updates.expected_dry_off = value.expected_dry_off || null
+    if ('offspring_count' in value) updates.offspring_count = value.offspring_count
 
     await db('breeding_events').where({ id: req.params.id }).where('farm_id', req.farmId).update(updates)
 

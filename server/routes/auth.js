@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 const { TOTP, Secret } = require('otpauth');
 const db = require('../config/database');
+const authenticate = require('../middleware/auth');
 const { joiMsg, validateBody } = require('../helpers/constants');
 const {
   jwtSecret,
@@ -408,6 +409,75 @@ router.post('/verify-2fa', twoFactorLimiter, async (req, res, next) => {
     const userPayload = buildUserResponse(user);
     const token = issueFullToken(userPayload, 'password');
     res.json({ token, user: userPayload });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── GET /api/auth/my-farms — list farms the current user is assigned to ──
+
+router.get('/my-farms', authenticate, async (req, res, next) => {
+  try {
+    // Find all active user records matching this username across farms
+    const users = await db('users')
+      .where('username', req.user.username)
+      .where('is_active', true)
+      .whereNull('deleted_at')
+      .whereNot('role', 'super_admin')
+      .select('farm_id');
+
+    if (users.length === 0) return res.json([]);
+
+    const farmIds = users.map((u) => u.farm_id).filter(Boolean);
+
+    const farms = await db('farms')
+      .whereIn('farms.id', farmIds)
+      .where('farms.is_active', true)
+      .leftJoin('farm_species as fs', 'farms.id', 'fs.farm_id')
+      .leftJoin('species as sp', 'fs.species_id', 'sp.id')
+      .select(
+        'farms.id', 'farms.name', 'farms.code',
+        'sp.id as species_id', 'sp.code as species_code', 'sp.name as species_name'
+      )
+      .orderBy('farms.name');
+
+    res.json(farms.map((f) => ({
+      id: f.id,
+      name: f.name,
+      code: f.code,
+      species: f.species_id ? { id: f.species_id, code: f.species_code, name: f.species_name } : null,
+    })));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── POST /api/auth/switch-farm/:farmId — switch to another assigned farm ──
+
+router.post('/switch-farm/:farmId', authenticate, async (req, res, next) => {
+  try {
+    const targetFarmId = req.params.farmId;
+
+    // Verify user has an account on the target farm (same username)
+    const targetUser = await db('users')
+      .where({ farm_id: targetFarmId, username: req.user.username, is_active: true })
+      .whereNull('deleted_at')
+      .first();
+
+    if (!targetUser) {
+      return res.status(403).json({ error: 'You are not assigned to this farm' });
+    }
+
+    const farm = await db('farms').where({ id: targetFarmId, is_active: true }).first();
+    if (!farm) {
+      return res.status(404).json({ error: 'Farm not found or inactive' });
+    }
+
+    const userPayload = buildUserResponse(targetUser);
+    const loginType = req.user.login_type || 'password';
+    const token = issueFullToken(userPayload, loginType);
+
+    res.json({ token, user: userPayload, farm: { id: farm.id, name: farm.name, code: farm.code } });
   } catch (err) {
     next(err);
   }

@@ -16,6 +16,7 @@ const ENTITY_MAP = {
     allowedFields: [
       'tag_number', 'name', 'sex', 'dob', 'status', 'breed_type_id',
       'sire_id', 'dam_id', 'breed', 'life_phase_override',
+      'species_id', 'birth_event_id',
       'notes', 'created_by', 'created_at', 'updated_at',
     ],
   },
@@ -77,7 +78,7 @@ const ENTITY_MAP = {
     allowedFields: [
       'cow_id', 'event_type', 'event_date', 'notes', 'sire_id', 'semen_id',
       'inseminator', 'heat_signs', 'preg_check_method', 'calving_details',
-      'cost', 'expected_next_heat', 'expected_preg_check',
+      'offspring_count', 'cost', 'expected_next_heat', 'expected_preg_check',
       'expected_calving', 'expected_dry_off',
       'dismissed_at', 'dismissed_by', 'dismiss_reason',
       'recorded_by', 'created_at', 'updated_at',
@@ -89,7 +90,7 @@ const ENTITY_MAP = {
     requiredRole: 'admin',
     requiredPermission: null,
     allowedFields: [
-      'name', 'code', 'gestation_days', 'heat_cycle_days', 'preg_check_days',
+      'name', 'code', 'species_id', 'gestation_days', 'heat_cycle_days', 'preg_check_days',
       'dry_off_days', 'voluntary_waiting_days', 'calf_max_months',
       'heifer_min_months', 'young_bull_min_months',
       'is_active', 'sort_order', 'created_at', 'updated_at',
@@ -348,7 +349,25 @@ async function pullData(since, full, farmId, user) {
     deleted.push(...entityDeleted)
   }
 
-  return { ...result, deleted, syncedAt: new Date().toISOString() }
+  // Include species data (small static table, always included)
+  let species = []
+  try {
+    species = await db('species').where('is_active', true).orderBy('sort_order')
+    species = species.map((row) => {
+      if (row.config && typeof row.config === 'string') {
+        try { row.config = JSON.parse(row.config) } catch { row.config = {} }
+      }
+      return row
+    })
+  } catch { /* species table may not exist yet */ }
+
+  // Include farm's species assignment
+  let farmSpecies = null
+  try {
+    farmSpecies = await db('farm_species').where('farm_id', farmId).first()
+  } catch { /* farm_species table may not exist yet */ }
+
+  return { ...result, species, farmSpecies, deleted, syncedAt: new Date().toISOString() }
 }
 
 // ── Sync Log ────────────────────────────────────────────────────

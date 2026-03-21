@@ -27,6 +27,7 @@ const createSchema = Joi.object({
   admin_username: Joi.string().max(50).required(),
   admin_password: Joi.string().min(6).max(128).required(),
   admin_full_name: Joi.string().max(100).required(),
+  species_code: Joi.string().max(50).default('cattle'),
 })
 
 const updateSchema = Joi.object({
@@ -61,8 +62,13 @@ router.get('/', async (req, res, next) => {
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
     let query = db('farms')
+      .leftJoin('farm_species as fs', 'farms.id', 'fs.farm_id')
+      .leftJoin('species as sp', 'fs.species_id', 'sp.id')
       .select(
         'farms.*',
+        'sp.id as species_id',
+        'sp.code as species_code',
+        'sp.name as species_name',
         db.raw('(SELECT COUNT(*) FROM users WHERE users.farm_id = farms.id AND users.is_active = 1 AND users.deleted_at IS NULL) as user_count'),
         db.raw('(SELECT COUNT(*) FROM cows WHERE cows.farm_id = farms.id AND cows.deleted_at IS NULL) as cow_count')
       )
@@ -72,7 +78,15 @@ router.get('/', async (req, res, next) => {
     else if (qValue.active === '0') query = query.where('farms.is_active', false)
 
     const farms = await query
-    res.json(farms.map((f) => ({ ...f, user_count: Number(f.user_count), cow_count: Number(f.cow_count) })))
+    res.json(farms.map((f) => {
+      const { species_id, species_code, species_name, ...rest } = f
+      return {
+        ...rest,
+        species: species_id ? { id: species_id, code: species_code, name: species_name } : null,
+        user_count: Number(f.user_count),
+        cow_count: Number(f.cow_count),
+      }
+    }))
   } catch (err) {
     next(err)
   }
@@ -235,16 +249,21 @@ router.get('/:id', async (req, res, next) => {
     const farm = await db('farms').where('id', req.params.id).first()
     if (!farm) return res.status(404).json({ error: 'Farm not found' })
 
-    const [users, featureFlags] = await Promise.all([
+    const [users, featureFlags, farmSpecies] = await Promise.all([
       db('users')
         .where({ farm_id: farm.id })
         .whereNull('deleted_at')
         .select('id', 'username', 'full_name', 'role', 'is_active', 'created_at')
         .orderBy('full_name'),
       getFarmFlags(farm.id),
+      db('farm_species')
+        .where('farm_species.farm_id', farm.id)
+        .join('species', 'farm_species.species_id', 'species.id')
+        .select('species.id', 'species.code', 'species.name')
+        .first(),
     ])
 
-    res.json({ ...farm, users: users.map(sanitizeUser), feature_flags: featureFlags })
+    res.json({ ...farm, species: farmSpecies || null, users: users.map(sanitizeUser), feature_flags: featureFlags })
   } catch (err) {
     next(err)
   }
@@ -311,6 +330,10 @@ router.post('/', async (req, res, next) => {
     const existing = await db('farms').where('code', value.code).first()
     if (existing) return res.status(409).json({ error: 'Farm code already exists' })
 
+    // Look up species by code
+    const species = await db('species').where('code', value.species_code).where('is_active', true).first()
+    if (!species) return res.status(400).json({ error: `Unknown species: ${value.species_code}` })
+
     const farmId = uuidv4()
     const adminId = uuidv4()
     const now = db.fn.now()
@@ -348,8 +371,8 @@ router.post('/', async (req, res, next) => {
         updated_at: now,
       })
 
-      // Seed default reference data
-      await seedFarmDefaults(farmId, value.name, trx)
+      // Seed default reference data (species-aware)
+      await seedFarmDefaults(farmId, value.name, trx, { speciesId: species.id })
     })
 
     const farm = await db('farms').where('id', farmId).first()

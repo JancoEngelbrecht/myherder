@@ -15,7 +15,8 @@ function calcDates(eventType, eventDate, breedTimings = {}) {
     return d.toISOString().slice(0, 10)
   }
 
-  if (['heat_observed', 'ai_insemination', 'bull_service'].includes(eventType)) {
+  // ram_service treated same as bull_service, lambing same as calving
+  if (['heat_observed', 'ai_insemination', 'bull_service', 'ram_service'].includes(eventType)) {
     const result = {
       expected_next_heat: addDays(heatCycleDays),
       expected_preg_check: addDays(pregCheckDays),
@@ -23,13 +24,14 @@ function calcDates(eventType, eventDate, breedTimings = {}) {
       expected_dry_off: null,
     }
 
-    if (['ai_insemination', 'bull_service'].includes(eventType)) {
+    if (['ai_insemination', 'bull_service', 'ram_service'].includes(eventType)) {
       const calvingDate = new Date(base)
       calvingDate.setDate(calvingDate.getDate() + gestationDays)
       const dryOffDate = new Date(calvingDate)
       dryOffDate.setDate(dryOffDate.getDate() - dryOffDays)
       result.expected_calving = calvingDate.toISOString().slice(0, 10)
-      result.expected_dry_off = dryOffDate.toISOString().slice(0, 10)
+      // Only set dry-off if the species has a dry period (cattle yes, meat sheep no)
+      result.expected_dry_off = dryOffDays > 0 ? dryOffDate.toISOString().slice(0, 10) : null
     }
 
     return result

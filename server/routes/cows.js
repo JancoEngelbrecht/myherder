@@ -28,7 +28,8 @@ const cowSchema = Joi.object({
   dam_id: Joi.string().uuid().allow(null),
   is_external: Joi.boolean().default(false),
   purpose: Joi.string().valid('natural_service', 'ai_semen_donor', 'both').allow(null, ''),
-  life_phase_override: Joi.string().valid('calf', 'heifer', 'cow', 'young_bull', 'bull').allow(null, ''),
+  life_phase_override: Joi.string().valid('calf', 'heifer', 'cow', 'young_bull', 'bull', 'lamb', 'ewe', 'ram').allow(null, ''),
+  birth_event_id: Joi.string().uuid().allow(null, ''),
   notes: Joi.string().max(2000).allow('', null)
 });
 
@@ -39,7 +40,9 @@ const cowQuerySchema = Joi.object({
   status: Joi.string().valid(...COW_STATUSES),
   sex: Joi.string().valid('female', 'male'),
   breed_type_id: Joi.string().max(36),
-  life_phase: Joi.string().valid('calf', 'heifer', 'cow', 'young_bull', 'bull'),
+  life_phase: Joi.string().valid('calf', 'heifer', 'cow', 'young_bull', 'bull', 'lamb', 'ewe', 'ram'),
+  species_id: Joi.string().uuid(),
+  birth_event_id: Joi.string().uuid(),
   pregnant: Joi.string().valid('0', '1', 'true', 'false'),
   dim_min: Joi.number().integer().min(0),
   dim_max: Joi.number().integer().min(0),
@@ -91,7 +94,7 @@ function lifePhaseSql() {
 const LAST_CALVING_SQL = `(
     SELECT MAX(be.event_date)
     FROM breeding_events be
-    WHERE be.cow_id = c.id AND be.event_type = 'calving' AND be.farm_id = c.farm_id
+    WHERE be.cow_id = c.id AND be.event_type IN ('calving', 'lambing') AND be.farm_id = c.farm_id
   )`;
 
 // GET /api/cows
@@ -122,6 +125,8 @@ router.get('/', async (req, res, next) => {
 
     if (q.status) query.where('c.status', q.status);
     if (q.sex) query.where('c.sex', q.sex);
+    if (q.species_id) query.where('c.species_id', q.species_id);
+    if (q.birth_event_id) query.where('c.birth_event_id', q.birth_event_id);
 
     // Breed filter: match by code to handle cross-farm breed_type_id mismatches
     // (cows may reference breed types seeded under a different farm_id)
@@ -238,12 +243,14 @@ router.get('/:id', async (req, res, next) => {
       .leftJoin('cows as sire', 'c.sire_id', 'sire.id')
       .leftJoin('cows as dam', 'c.dam_id', 'dam.id')
       .leftJoin('breed_types as bt', 'c.breed_type_id', 'bt.id')
+      .leftJoin('species as sp', 'c.species_id', 'sp.id')
       .select(
         'c.*',
         db.raw('COALESCE(sire.name, sire.tag_number) as sire_name'),
         db.raw('COALESCE(dam.name, dam.tag_number) as dam_name'),
         'bt.name as breed_type_name',
-        'bt.code as breed_type_code'
+        'bt.code as breed_type_code',
+        'sp.code as species_code'
       )
       .first();
 
@@ -262,6 +269,17 @@ router.post('/', authorize('can_manage_cows'), async (req, res, next) => {
   try {
     const { error, value } = validateBody(cowSchema, req.body);
     if (error) return res.status(400).json({ error: joiMsg(error) });
+
+    // Auto-set species_id from breed_type if not already set
+    if (!value.species_id && value.breed_type_id) {
+      const bt = await db('breed_types').where('id', value.breed_type_id).where('farm_id', req.farmId).select('species_id').first();
+      if (bt && bt.species_id) value.species_id = bt.species_id;
+    }
+    // Fallback: use farm's species
+    if (!value.species_id) {
+      const fs = await db('farm_species').where('farm_id', req.farmId).first();
+      if (fs) value.species_id = fs.species_id;
+    }
 
     const now = new Date().toISOString();
     const cow = { id: uuidv4(), ...value, farm_id: req.user.farm_id, created_by: req.user.id, created_at: now, updated_at: now };
@@ -285,6 +303,12 @@ router.put('/:id', authorize('can_manage_cows'), async (req, res, next) => {
 
     const { error, value } = validateBody(cowUpdateSchema, req.body);
     if (error) return res.status(400).json({ error: joiMsg(error) });
+
+    // Sync species_id when breed_type_id changes
+    if (value.breed_type_id && value.breed_type_id !== oldCow.breed_type_id) {
+      const bt = await db('breed_types').where('id', value.breed_type_id).where('farm_id', req.farmId).select('species_id').first();
+      if (bt && bt.species_id) value.species_id = bt.species_id;
+    }
 
     const now = new Date().toISOString();
     const updates = { ...value, updated_at: now };

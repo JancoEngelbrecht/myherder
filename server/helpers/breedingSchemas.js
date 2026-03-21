@@ -7,25 +7,36 @@ const PREG_CHECK_METHODS = ['manual', 'ultrasound', 'blood_test']
 const STATUS_TRANSITIONS = {
   preg_check_positive: 'pregnant',
   calving: 'active',
+  lambing: 'active',
   preg_check_negative: 'active',
   abortion: 'active',
   dry_off: 'dry',
 }
 
 // Fixed workflow event types — not configurable
+// Includes both cattle-specific (bull_service, calving, dry_off) and
+// sheep-specific (ram_service, lambing) types for universal livestock support.
 const VALID_EVENT_TYPES = [
-  'heat_observed', 'ai_insemination', 'bull_service',
+  'heat_observed', 'ai_insemination', 'bull_service', 'ram_service',
   'preg_check_positive', 'preg_check_negative',
-  'calving', 'abortion', 'dry_off',
+  'calving', 'lambing', 'abortion', 'dry_off',
 ]
+
+// Birth event types that produce offspring
+const BIRTH_EVENT_TYPES = ['calving', 'lambing']
+
+// Service/insemination event types (natural mating)
+const SERVICE_EVENT_TYPES = ['bull_service', 'ram_service']
 
 const EVENT_TYPE_LABELS = {
   heat_observed: 'Heat Observed',
   ai_insemination: 'AI Insemination',
   bull_service: 'Bull Service',
+  ram_service: 'Ram Service',
   preg_check_positive: 'Preg Check (+)',
   preg_check_negative: 'Preg Check (–)',
   calving: 'Calving',
+  lambing: 'Lambing',
   abortion: 'Abortion',
   dry_off: 'Dry Off',
 }
@@ -45,6 +56,7 @@ const createSchema = Joi.object({
     calf_weight: Joi.number().min(0).max(999).allow(null),
     complications: Joi.string().max(2000).allow(null, ''),
   }).allow(null).default(null),
+  offspring_count: Joi.number().integer().min(0).max(10).default(1),
   cost: Joi.number().precision(2).min(0).allow(null).default(null),
   notes: Joi.string().max(2000).allow(null, '').default(null),
   expected_calving: Joi.string().isoDate().allow(null, '').default(null),
@@ -64,6 +76,7 @@ const updateSchema = Joi.object({
     calf_weight: Joi.number().min(0).max(999).allow(null),
     complications: Joi.string().max(2000).allow(null, ''),
   }).allow(null).optional(),
+  offspring_count: Joi.number().integer().min(0).max(10).optional(),
   cost: Joi.number().precision(2).min(0).allow(null).optional(),
   notes: Joi.string().max(2000).allow(null, '').optional(),
   expected_calving: Joi.string().isoDate().allow(null, '').optional(),
@@ -83,6 +96,8 @@ const breedingQuerySchema = Joi.object({
 module.exports = {
   STATUS_TRANSITIONS,
   VALID_EVENT_TYPES,
+  BIRTH_EVENT_TYPES,
+  SERVICE_EVENT_TYPES,
   EVENT_TYPE_LABELS,
   createSchema,
   updateSchema,

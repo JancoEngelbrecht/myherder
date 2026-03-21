@@ -23,12 +23,14 @@ const schema = Joi.object({
   calf_max_months: Joi.number().integer().min(1).max(24).default(6),
   heifer_min_months: Joi.number().integer().min(6).max(48).default(15),
   young_bull_min_months: Joi.number().integer().min(6).max(48).default(15),
+  species_id: Joi.string().uuid().allow(null),
   is_active: Joi.boolean().truthy(1).falsy(0).default(true),
   sort_order: Joi.number().integer().min(0).default(0),
 })
 
 const breedTypeQuerySchema = Joi.object({
   all: Joi.string().valid('0', '1'),
+  species_id: Joi.string().uuid(),
 })
 
 // ── Routes ───────────────────────────────────────────────────────────────────
@@ -45,6 +47,8 @@ router.get('/', async (req, res, next) => {
       .where(showAll ? {} : { is_active: true })
       .orderBy('sort_order')
       .orderBy('name')
+
+    if (req.query.species_id) query.where('species_id', req.query.species_id)
 
     const rows = await query
     res.json(rows)
@@ -65,6 +69,12 @@ router.post('/', requireAdmin, async (req, res, next) => {
     const existing = await db('breed_types').where({ code }).where('farm_id', req.farmId).first()
     if (existing) {
       return res.status(409).json({ error: `Breed type with code "${code}" already exists` })
+    }
+
+    // Auto-set species_id from farm's species if not provided
+    if (!value.species_id) {
+      const farmSpecies = await db('farm_species').where('farm_id', req.farmId).first()
+      if (farmSpecies) value.species_id = farmSpecies.species_id
     }
 
     const id = uuidv4()

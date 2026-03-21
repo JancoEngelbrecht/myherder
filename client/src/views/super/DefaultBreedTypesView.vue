@@ -86,6 +86,10 @@
             <div class="defaults-actions">
               <button class="btn-secondary btn-sm" @click="openEdit(bt)">{{ $t('common.edit') }}</button>
               <button v-if="bt.is_active" class="btn-danger btn-sm" @click="confirmDeactivate(bt)">{{ $t('common.deactivate') }}</button>
+              <template v-else>
+                <button class="btn-primary btn-sm" :disabled="activating === bt.id" @click="doActivate(bt)">{{ $t('common.activate') }}</button>
+                <button class="btn-danger btn-sm" @click="confirmDelete(bt)">{{ $t('common.delete') }}</button>
+              </template>
             </div>
           </div>
         </div>
@@ -102,6 +106,16 @@
       :loading="deactivating"
       @confirm="doDeactivate"
       @cancel="deactivateTarget = null"
+    />
+
+    <ConfirmDialog
+      :show="!!deleteTarget"
+      :message="deleteTarget ? $t('globalDefaults.deleteConfirm', { name: deleteTarget.name }) : ''"
+      :confirm-label="$t('common.delete')"
+      :cancel-label="$t('common.cancel')"
+      :loading="deleting"
+      @confirm="doDelete"
+      @cancel="deleteTarget = null"
     />
   </div>
 </template>
@@ -126,6 +140,9 @@ const saving = ref(false)
 const formError = ref('')
 const deactivateTarget = ref(null)
 const deactivating = ref(false)
+const activating = ref(null)
+const deleteTarget = ref(null)
+const deleting = ref(false)
 
 const emptyForm = () => ({
   name: '', gestation_days: 283, heat_cycle_days: 21, preg_check_days: 35,
@@ -190,6 +207,18 @@ async function save() {
 
 function confirmDeactivate(bt) { deactivateTarget.value = bt }
 
+async function doActivate(bt) {
+  activating.value = bt.id
+  try {
+    await api.patch(`/global-defaults/breed-types/${bt.id}`, { is_active: true })
+    await load()
+  } catch (err) {
+    showToast(resolveError(extractApiError(err), t), 'error')
+  } finally {
+    activating.value = null
+  }
+}
+
 async function doDeactivate() {
   deactivating.value = true
   try {
@@ -200,6 +229,21 @@ async function doDeactivate() {
     showToast(resolveError(extractApiError(err), t), 'error')
   } finally {
     deactivating.value = false
+  }
+}
+
+function confirmDelete(bt) { deleteTarget.value = bt }
+
+async function doDelete() {
+  deleting.value = true
+  try {
+    await api.delete(`/global-defaults/breed-types/${deleteTarget.value.id}?hard=1`)
+    deleteTarget.value = null
+    await load()
+  } catch (err) {
+    showToast(resolveError(extractApiError(err), t), 'error')
+  } finally {
+    deleting.value = false
   }
 }
 </script>

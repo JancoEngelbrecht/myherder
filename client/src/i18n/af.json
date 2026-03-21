@@ -1944,6 +1944,7 @@
     "farmsAffected": "Plase Geraak",
     "noItems": "Nog geen items nie. Voeg een by met die + knoppie.",
     "deactivateConfirm": "Deaktiveer \"{name}\"? Dit sal nie meer gebruik word wanneer nuwe plase gesaai word nie.",
+    "deleteConfirm": "Verwyder \"{name}\" permanent? Dit kan nie ongedaan gemaak word nie.",
     "sortOrder": "Sorteervolgorde",
     "export": "Eksporteer Alles",
     "totalFarms": "Plase",

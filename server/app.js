@@ -47,6 +47,7 @@ app.use('/api/farms', require('./routes/farms'))
 app.use('/api/global-defaults', require('./routes/globalDefaults'))
 app.use('/api/announcements', require('./routes/announcements'))
 app.use('/api/system', require('./routes/systemHealth'))
+app.use('/api/species', require('./routes/species'))
 
 // Serve Vue SPA in production (no-op in test/development since client/dist may not exist)
 const clientDist = path.join(__dirname, '../client/dist')
