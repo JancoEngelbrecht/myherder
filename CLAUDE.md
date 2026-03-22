@@ -150,6 +150,14 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
 - `POST /api/global-defaults/:type/push` — super-admin only; push defaults to farms. Body: `{ farm_ids: 'all' | [...] }`. Returns `{ pushed, skipped, farms_affected }`
 - `GET /api/farms/export` — super-admin only; cross-farm JSON dump (sensitive fields stripped)
 - `GET /api/farms/stats` — super-admin only; aggregate counts `{ total_farms, active_farms, total_users, active_users, total_cows, active_cows }`
+- `GET /api/auth/my-farms` — authenticated (farm-scoped JWT); returns farms the user can switch to, **filtered by farm group membership** — only returns farms in the same group as current farm. Returns `[{ id, name, code }]`
+- `POST /api/auth/switch-farm/:farmId` — authenticated (farm-scoped JWT); issues new scoped JWT for target farm. **Verifies farm group membership** (target must be in same group as current farm) + creates audit log entry. Returns `{ token }`
+- `GET /api/farm-groups` — super-admin only; list all farm groups with member farms. Returns `[{ id, name, created_at, updated_at, farms: [{ id, name, code, is_active }] }]`
+- `POST /api/farm-groups` — super-admin only; create group. Body: `{ name, farm_ids: [...] }` (min 2 farms). Returns group with farms. 409 if any farm already in a group
+- `PATCH /api/farm-groups/:id` — super-admin only; update name. Body: `{ name }`
+- `DELETE /api/farm-groups/:id` — super-admin only; delete group (unlinks all farms)
+- `POST /api/farm-groups/:id/farms` — super-admin only; add farms to group. Body: `{ farm_ids: [...] }`. 409 if farm already in a group
+- `DELETE /api/farm-groups/:id/farms/:farmId` — super-admin only; remove farm from group. Auto-deletes group if < 2 farms remain
 - `GET /api/announcements/active` — public (no auth); active non-expired announcements
 - `GET /api/announcements` — super-admin only; all announcements
 - `POST /api/announcements` — super-admin only; create. Body: `{ type: info|warning|maintenance, title, message?, starts_at?, expires_at? }`

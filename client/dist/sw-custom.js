@@ -77,9 +77,7 @@ async function pushPendingChanges() {
 
     for (const result of results) {
       if (result.status === 'applied' || result.status === 'conflict') {
-        const entry = pending.find(
-          (e) => e.id === result.id && e.entityType === result.entityType,
-        )
+        const entry = pending.find((e) => e.id === result.id && e.entityType === result.entityType)
         if (entry) removeStore.delete(entry.autoId)
       }
     }
