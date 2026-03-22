@@ -49,36 +49,70 @@ vi.mock('../services/syncManager.js', () => {
 vi.mock('../db/indexedDB.js', () => ({
   default: {
     cows: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      orderBy: vi.fn().mockReturnValue({ reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      orderBy: vi
+        .fn()
+        .mockReturnValue({
+          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     treatments: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     healthIssues: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     breedingEvents: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
-      orderBy: vi.fn().mockReturnValue({ reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
+      orderBy: vi
+        .fn()
+        .mockReturnValue({
+          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     issueTypes: {
-      bulkPut: vi.fn(), put: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
     },
     breedTypes: {
-      bulkPut: vi.fn(), put: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
     },
     medications: {
-      bulkPut: vi.fn(), put: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
     },
     featureFlags: {
@@ -133,7 +167,14 @@ const MOCK_BREED_TYPE = {
 }
 
 describe('CowDetailView', () => {
-  let cowsStore, authStore, breedTypesStore, treatmentsStore, healthIssuesStore, featureFlagsStore, breedingEventsStore, issueTypesStore
+  let cowsStore,
+    authStore,
+    breedTypesStore,
+    treatmentsStore,
+    healthIssuesStore,
+    featureFlagsStore,
+    breedingEventsStore,
+    issueTypesStore
 
   beforeEach(async () => {
     vi.clearAllMocks()
@@ -232,7 +273,7 @@ describe('CowDetailView', () => {
     const wrapper = mount(CowDetailView, { global: { stubs } })
     await flushPromises()
     // No edit button rendered
-    const editLink = wrapper.findAll('a').filter(a => a.text().toLowerCase().includes('edit'))
+    const editLink = wrapper.findAll('a').filter((a) => a.text().toLowerCase().includes('edit'))
     expect(editLink.length).toBe(0)
   })
 
@@ -254,7 +295,11 @@ describe('CowDetailView', () => {
 
   it('hides treatment section when worker lacks can_log_treatments', async () => {
     cowsStore.fetchOne = vi.fn().mockResolvedValue(MOCK_COW)
-    authStore.user = { id: 'user-2', role: 'worker', permissions: ['can_log_issues', 'can_log_breeding'] }
+    authStore.user = {
+      id: 'user-2',
+      role: 'worker',
+      permissions: ['can_log_issues', 'can_log_breeding'],
+    }
     const wrapper = mount(CowDetailView, { global: { stubs } })
     await flushPromises()
     expect(wrapper.text()).not.toContain('cowDetail.treatments')
@@ -263,7 +308,11 @@ describe('CowDetailView', () => {
 
   it('hides health issues section when worker lacks can_log_issues', async () => {
     cowsStore.fetchOne = vi.fn().mockResolvedValue(MOCK_COW)
-    authStore.user = { id: 'user-2', role: 'worker', permissions: ['can_log_treatments', 'can_log_breeding'] }
+    authStore.user = {
+      id: 'user-2',
+      role: 'worker',
+      permissions: ['can_log_treatments', 'can_log_breeding'],
+    }
     const wrapper = mount(CowDetailView, { global: { stubs } })
     await flushPromises()
     expect(wrapper.text()).not.toContain('healthIssues.title')
@@ -272,7 +321,11 @@ describe('CowDetailView', () => {
 
   it('hides breeding section when worker lacks can_log_breeding', async () => {
     cowsStore.fetchOne = vi.fn().mockResolvedValue(MOCK_COW)
-    authStore.user = { id: 'user-2', role: 'worker', permissions: ['can_log_treatments', 'can_log_issues'] }
+    authStore.user = {
+      id: 'user-2',
+      role: 'worker',
+      permissions: ['can_log_treatments', 'can_log_issues'],
+    }
     const wrapper = mount(CowDetailView, { global: { stubs } })
     await flushPromises()
     expect(wrapper.text()).not.toContain('breeding.reproTitle')

@@ -3,7 +3,17 @@ exports.up = function (knex) {
     t.string('id', 36).primary()
     t.string('cow_id', 36).notNullable().references('id').inTable('cows')
     t.string('reported_by', 36).notNullable().references('id').inTable('users')
-    t.enum('issue_type', ['lameness', 'mastitis', 'respiratory', 'digestive', 'fever', 'bad_milk', 'eye', 'calving', 'other']).notNullable()
+    t.enum('issue_type', [
+      'lameness',
+      'mastitis',
+      'respiratory',
+      'digestive',
+      'fever',
+      'bad_milk',
+      'eye',
+      'calving',
+      'other',
+    ]).notNullable()
     t.enum('severity', ['low', 'medium', 'high']).notNullable().defaultTo('medium')
     t.json('affected_teats').nullable()
     t.text('description')

@@ -100,5 +100,16 @@ export const useIssueTypesStore = defineStore('issueTypes', () => {
     }
   }
 
-  return { issueTypes, total, loading, activeTypes, hasData, getByCode, fetchAll, create, update, remove }
+  return {
+    issueTypes,
+    total,
+    loading,
+    activeTypes,
+    hasData,
+    getByCode,
+    fetchAll,
+    create,
+    update,
+    remove,
+  }
 })

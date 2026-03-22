@@ -1,10 +1,6 @@
 <template>
   <div class="page">
-    <AppHeader
-      :title="cow ? cow.tag_number : ''"
-      :show-back="true"
-      :back-to="`/cows/${cowId}`"
-    />
+    <AppHeader :title="cow ? cow.tag_number : ''" :show-back="true" :back-to="`/cows/${cowId}`" />
 
     <div class="page-content">
       <div v-if="loading" class="center-spinner">
@@ -13,7 +9,9 @@
 
       <div v-else-if="error" class="error-state">
         <p>{{ error }}</p>
-        <button class="btn-secondary" style="width:auto;margin-top:8px" @click="load">{{ t('common.retry') }}</button>
+        <button class="btn-secondary" style="width: auto; margin-top: 8px" @click="load">
+          {{ t('common.retry') }}
+        </button>
       </div>
 
       <template v-else>
@@ -44,7 +42,9 @@
             <div class="tx-top">
               <span class="tx-date mono">{{ formatDate(tx.treatment_date) }}</span>
               <div class="tx-top-right">
-                <span v-if="tx.administered_by_name" class="tx-detail">{{ tx.administered_by_name }}</span>
+                <span v-if="tx.administered_by_name" class="tx-detail">{{
+                  tx.administered_by_name
+                }}</span>
                 <span class="tx-chevron">›</span>
               </div>
             </div>
@@ -63,10 +63,17 @@
               </div>
             </template>
             <div
-              v-if="cow?.sex !== 'male' && lifePhase !== 'heifer' && lifePhase !== 'calf' && tx.withdrawal_end_milk && new Date(tx.withdrawal_end_milk) > new Date()"
+              v-if="
+                cow?.sex !== 'male' &&
+                lifePhase !== 'heifer' &&
+                lifePhase !== 'calf' &&
+                tx.withdrawal_end_milk &&
+                new Date(tx.withdrawal_end_milk) > new Date()
+              "
               class="tx-withdrawal"
             >
-              🥛 {{ t('cowDetail.milkClear') }}: <span class="mono">{{ formatDateTime(tx.withdrawal_end_milk) }}</span>
+              🥛 {{ t('cowDetail.milkClear') }}:
+              <span class="mono">{{ formatDateTime(tx.withdrawal_end_milk) }}</span>
             </div>
           </RouterLink>
         </div>
@@ -110,7 +117,7 @@ const onWithdrawal = computed(() => {
   if (lifePhase.value === 'heifer' || lifePhase.value === 'calf') return false
   const now = new Date()
   return cowTreatments.value.some(
-    (tx) => tx.withdrawal_end_milk && new Date(tx.withdrawal_end_milk) > now,
+    (tx) => tx.withdrawal_end_milk && new Date(tx.withdrawal_end_milk) > now
   )
 })
 

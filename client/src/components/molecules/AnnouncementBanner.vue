@@ -1,11 +1,18 @@
 <template>
   <div v-if="visible.length" class="announcement-stack">
-    <div v-for="ann in visible" :key="ann.id" class="announcement-banner" :class="`banner-${ann.type}`">
+    <div
+      v-for="ann in visible"
+      :key="ann.id"
+      class="announcement-banner"
+      :class="`banner-${ann.type}`"
+    >
       <div class="announcement-content">
         <strong>{{ ann.title }}</strong>
         <span v-if="ann.message"> — {{ ann.message }}</span>
       </div>
-      <button class="dismiss-btn" :title="$t('announcements.dismiss')" @click="dismiss(ann.id)">✕</button>
+      <button class="dismiss-btn" :title="$t('announcements.dismiss')" @click="dismiss(ann.id)">
+        ✕
+      </button>
     </div>
   </div>
 </template>
@@ -21,21 +28,23 @@ const dismissed = ref(new Set())
 
 const storageKey = computed(() => `dismissed_announcements_${authStore.user?.id || 'anon'}`)
 
-const visible = computed(() =>
-  announcements.value.filter((a) => !dismissed.value.has(a.id))
-)
+const visible = computed(() => announcements.value.filter((a) => !dismissed.value.has(a.id)))
 
 onMounted(async () => {
   // Load dismissed IDs from localStorage (user-scoped)
   try {
     const stored = localStorage.getItem(storageKey.value)
     if (stored) dismissed.value = new Set(JSON.parse(stored))
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 
   try {
     const { data } = await api.get('/announcements/active')
     announcements.value = data
-  } catch { /* silent — announcements are non-critical */ }
+  } catch {
+    /* silent — announcements are non-critical */
+  }
 })
 
 function dismiss(id) {

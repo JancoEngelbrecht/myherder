@@ -28,9 +28,7 @@ describe('GET /api/settings', () => {
   })
 
   it('returns settings as key-value object with auth', async () => {
-    const res = await request(app)
-      .get('/api/settings')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/settings').set('Authorization', adminToken())
     expect(typeof res.body.farm_name).toBe('string')
     expect(typeof res.body.default_language).toBe('string')
   })
@@ -40,9 +38,7 @@ describe('GET /api/settings', () => {
 
 describe('PATCH /api/settings', () => {
   it('returns 401 without a token', async () => {
-    const res = await request(app)
-      .patch('/api/settings')
-      .send({ farm_name: 'Test Farm' })
+    const res = await request(app).patch('/api/settings').send({ farm_name: 'Test Farm' })
     expect(res.status).toBe(401)
   })
 

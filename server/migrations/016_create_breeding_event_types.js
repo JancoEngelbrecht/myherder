@@ -32,7 +32,7 @@ exports.up = async function (knex) {
       sort_order: d.sort_order,
       created_at: now,
       updated_at: now,
-    })),
+    }))
   )
 }
 

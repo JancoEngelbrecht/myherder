@@ -10,10 +10,15 @@
       <!-- Offspring progress banner -->
       <div v-if="isOffspringMode" class="offspring-banner">
         <div class="offspring-progress-text">
-          {{ t('animalForm.offspringProgress', { current: offspringIndex, total: offspringTotal }) }}
+          {{
+            t('animalForm.offspringProgress', { current: offspringIndex, total: offspringTotal })
+          }}
         </div>
         <div class="offspring-progress-bar">
-          <div class="offspring-progress-fill" :style="{ width: `${(offspringIndex / offspringTotal) * 100}%` }" />
+          <div
+            class="offspring-progress-fill"
+            :style="{ width: `${(offspringIndex / offspringTotal) * 100}%` }"
+          />
         </div>
       </div>
 
@@ -61,11 +66,7 @@
         <!-- DOB -->
         <div class="form-group">
           <label class="form-label">{{ t('animalForm.dob') }}</label>
-          <input
-            v-model="form.dob"
-            type="date"
-            class="form-input"
-          />
+          <input v-model="form.dob" type="date" class="form-input" />
         </div>
 
         <!-- Sex toggle -->
@@ -116,11 +117,9 @@
           <label class="form-label">{{ t('animalForm.lifePhaseOverride') }}</label>
           <select v-model="form.life_phase_override" class="form-select">
             <option :value="null">{{ t('animalForm.lifePhaseAuto') }}</option>
-            <option
-              v-for="phase in lifePhaseOptions"
-              :key="phase.code"
-              :value="phase.code"
-            >{{ t(`lifePhase.${phase.code}`) }}</option>
+            <option v-for="phase in lifePhaseOptions" :key="phase.code" :value="phase.code">
+              {{ t(`lifePhase.${phase.code}`) }}
+            </option>
           </select>
         </div>
 
@@ -160,7 +159,7 @@
             class="form-input"
             rows="3"
             :placeholder="t('animalForm.notesPlaceholder')"
-            style="resize: vertical;"
+            style="resize: vertical"
           />
         </div>
 
@@ -177,7 +176,11 @@
               :disabled="saving"
               @click="offspringAction = 'next'"
             >
-              <span v-if="saving" class="spinner" style="width:18px;height:18px;border-width:2px" />
+              <span
+                v-if="saving"
+                class="spinner"
+                style="width: 18px; height: 18px; border-width: 2px"
+              />
               <span v-else>{{ t('animalForm.saveAndNext') }}</span>
             </button>
             <button
@@ -186,7 +189,11 @@
               :disabled="saving"
               @click="offspringAction = 'done'"
             >
-              <span v-if="saving" class="spinner" style="width:18px;height:18px;border-width:2px" />
+              <span
+                v-if="saving"
+                class="spinner"
+                style="width: 18px; height: 18px; border-width: 2px"
+              />
               <span v-else>{{ t('animalForm.saveAndDone') }}</span>
             </button>
             <button type="button" class="btn-secondary" @click="handleSkipOffspring">
@@ -195,7 +202,11 @@
           </template>
           <template v-else>
             <button type="submit" class="btn-primary" :disabled="saving">
-              <span v-if="saving" class="spinner" style="width:18px;height:18px;border-width:2px" />
+              <span
+                v-if="saving"
+                class="spinner"
+                style="width: 18px; height: 18px; border-width: 2px"
+              />
               <span v-else>{{ t('animalForm.save', { species: singular }) }}</span>
             </button>
             <button type="button" class="btn-secondary" @click="handleCancel">
@@ -238,7 +249,11 @@ const offspringAction = ref('done') // 'next' or 'done'
 
 const pageTitle = computed(() => {
   if (isEdit.value) return t('animalForm.titleEdit', { species: singular.value })
-  if (isOffspringMode.value) return t('animalForm.offspringProgress', { current: offspringIndex.value, total: offspringTotal.value })
+  if (isOffspringMode.value)
+    return t('animalForm.offspringProgress', {
+      current: offspringIndex.value,
+      total: offspringTotal.value,
+    })
   return t('animalForm.titleAdd', { species: singular.value })
 })
 
@@ -274,12 +289,15 @@ const lifePhaseOptions = computed(() => {
 })
 
 // Reset life phase override when sex changes if current value is incompatible
-watch(() => form.sex, () => {
-  const allowed = new Set([null, ...lifePhaseOptions.value.map((p) => p.code)])
-  if (!allowed.has(form.life_phase_override)) {
-    form.life_phase_override = null
+watch(
+  () => form.sex,
+  () => {
+    const allowed = new Set([null, ...lifePhaseOptions.value.map((p) => p.code)])
+    if (!allowed.has(form.life_phase_override)) {
+      form.life_phase_override = null
+    }
   }
-})
+)
 
 const apiError = ref('')
 const saving = ref(false)
@@ -329,7 +347,7 @@ onMounted(async () => {
 })
 
 function validate() {
-  Object.keys(errors).forEach(k => delete errors[k])
+  Object.keys(errors).forEach((k) => delete errors[k])
   if (!form.tag_number.trim()) errors.tag_number = t('animalForm.validationTag')
   if (!form.sex) errors.sex = t('animalForm.validationSex')
   return Object.keys(errors).length === 0
@@ -460,7 +478,10 @@ function handleCancel() {
   font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
   color: var(--text-secondary);
   font-family: var(--font-body);
 }

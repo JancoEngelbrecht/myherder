@@ -3,6 +3,7 @@
 ## Overview
 
 Two issues discovered during testing:
+
 1. **PIN length mismatch** — User management allows 4-6 digit PINs but login only accepts exactly 4
 2. **Permissions not enforced** — Worker permissions are stored but never checked (backend or frontend)
 
@@ -28,18 +29,22 @@ After completing each phase, run the following checklist before moving to the ne
 ### Changes
 
 **Backend — `server/routes/users.js`:**
+
 - Change Joi `createSchema.pin` from `/^\d{4,6}$/` to `/^\d{4}$/`
 - Change Joi `updateSchema.pin` from `/^\d{4,6}$/` to `/^\d{4}$/`
 
 **Frontend — `client/src/views/admin/UserManagement.vue`:**
+
 - Change PIN input `pattern` from `\d{4,6}` to `\d{4}`
 - Change `maxlength` from `6` to `4`
 
 **i18n:**
+
 - `en.json` users.pinPlaceholder: `"4–6 digit PIN"` → `"4-digit PIN"`
 - `af.json` users.pinPlaceholder: `"4–6 syfer PIN"` → `"4-syfer PIN"`
 
 **Tests:**
+
 - Existing `server/tests/users.test.js` — verify PIN validation tests still pass (they test create/update flows)
 - Add 1 test: creating a user with a 5-digit PIN returns 400
 
@@ -55,43 +60,50 @@ After completing each phase, run the following checklist before moving to the ne
 
 ### Permission → Route mapping
 
-| Permission | Route file | Methods to gate |
-|---|---|---|
-| `can_record_milk` | `milkRecords.js` | POST, PUT, DELETE |
-| `can_log_issues` | `healthIssues.js` | POST, PATCH (status) |
-| `can_log_treatments` | `treatments.js` | POST, DELETE |
-| `can_log_breeding` | `breedingEvents.js` | POST |
-| `can_view_analytics` | `analytics.js` | All GET routes (router.use level) |
+| Permission           | Route file          | Methods to gate                   |
+| -------------------- | ------------------- | --------------------------------- |
+| `can_record_milk`    | `milkRecords.js`    | POST, PUT, DELETE                 |
+| `can_log_issues`     | `healthIssues.js`   | POST, PATCH (status)              |
+| `can_log_treatments` | `treatments.js`     | POST, DELETE                      |
+| `can_log_breeding`   | `breedingEvents.js` | POST                              |
+| `can_view_analytics` | `analytics.js`      | All GET routes (router.use level) |
 
 ### Changes per file
 
 **`server/routes/milkRecords.js`:**
+
 - Add `const authorize = require('../middleware/authorize')`
 - Add `authorize('can_record_milk')` to POST `/`, PUT `/:id`, DELETE `/:id`
 
 **`server/routes/healthIssues.js`:**
+
 - Already imports authorize
 - Add `authorize('can_log_issues')` to POST `/`, PATCH `/:id/status`, POST `/:id/comments`
 
 **`server/routes/treatments.js`:**
+
 - Add `const authorize = require('../middleware/authorize')`
 - Add `authorize('can_log_treatments')` to POST `/`, DELETE `/:id`
 
 **`server/routes/breedingEvents.js`:**
+
 - Add `const authorize = require('../middleware/authorize')`
 - Add `authorize('can_log_breeding')` to POST `/`, PATCH `/dismiss-batch`, PATCH `/:id/dismiss`
 
 **`server/routes/analytics.js`:**
+
 - Add `const authorize = require('../middleware/authorize')`
 - Add `router.use(authorize('can_view_analytics'))` at top level (all analytics routes gated)
 
 ### Existing admin-only gates (no change needed)
+
 - `healthIssues.js` DELETE — already `authorize('admin')` ✓
 - `breedingEvents.js` PATCH `/:id`, DELETE `/:id` — already admin-gated by pattern ✓
 
 ### Tests — `server/tests/permissions.test.js` (new file)
 
 Test the key permission gates (each tests 403 without permission, 200/201 with permission):
+
 1. `can_record_milk` — POST `/api/milk-records` 403 vs 201
 2. `can_log_issues` — POST `/api/health-issues` 403 vs 201
 3. `can_log_treatments` — POST `/api/treatments` 403 vs 201
@@ -110,6 +122,7 @@ Test the key permission gates (each tests 403 without permission, 200/201 with p
 ### Auth store additions
 
 Add a `hasPermission(perm)` method to the auth store:
+
 ```js
 function hasPermission(perm) {
   if (user.value?.role === 'admin') return true
@@ -121,17 +134,18 @@ Refactor: replace existing `canManageCows` computed with `hasPermission('can_man
 
 ### Router meta additions
 
-| Route(s) | `requiresPermission` value |
-|---|---|
-| `/milk`, `/milk/history` | `can_record_milk` |
-| `/log/issue`, `/health-issues`, `/issues/:id`, `/cows/:id/issues` | `can_log_issues` |
-| `/log/treatment`, `/treatments/:id`, `/withdrawal`, `/cows/:id/treatments` | `can_log_treatments` |
-| `/breed`, `/breed/*` (except `/breed/edit/:id` which is admin-only) | `can_log_breeding` |
-| `/analytics`, `/analytics/*` | `can_view_analytics` |
+| Route(s)                                                                   | `requiresPermission` value |
+| -------------------------------------------------------------------------- | -------------------------- |
+| `/milk`, `/milk/history`                                                   | `can_record_milk`          |
+| `/log/issue`, `/health-issues`, `/issues/:id`, `/cows/:id/issues`          | `can_log_issues`           |
+| `/log/treatment`, `/treatments/:id`, `/withdrawal`, `/cows/:id/treatments` | `can_log_treatments`       |
+| `/breed`, `/breed/*` (except `/breed/edit/:id` which is admin-only)        | `can_log_breeding`         |
+| `/analytics`, `/analytics/*`                                               | `can_view_analytics`       |
 
 ### Router guard update
 
 In `beforeEach`, after the `requiresAdmin` check, add:
+
 ```js
 if (to.meta.requiresPermission && !authStore.hasPermission(to.meta.requiresPermission)) {
   return { name: 'dashboard' }
@@ -157,10 +171,10 @@ Remove the separate `requiresManage` check — replace with `requiresPermission:
 
 Add permission checking alongside feature flag filtering:
 
-| Tab | Feature flag | Permission |
-|---|---|---|
-| Milk | `milkRecording` | `can_record_milk` |
-| Breed | `breeding` | `can_log_breeding` |
+| Tab   | Feature flag    | Permission         |
+| ----- | --------------- | ------------------ |
+| Milk  | `milkRecording` | `can_record_milk`  |
+| Breed | `breeding`      | `can_log_breeding` |
 
 Update `visibleTabs` computed to also check `authStore.hasPermission(tab.permission)` when a tab has a `permission` property. Tabs without a `permission` property (Home, Cows) are always visible.
 
@@ -168,15 +182,15 @@ Update `visibleTabs` computed to also check `authStore.hasPermission(tab.permiss
 
 Add permission gates to action cards alongside feature flag checks:
 
-| Card | Feature flag | Permission |
-|---|---|---|
-| Analytics | `analytics` | `can_view_analytics` |
-| Log Treatment | `treatments` | `can_log_treatments` |
-| Log Issue | `healthIssues` | `can_log_issues` |
-| Open Issues | `healthIssues` | `can_log_issues` |
-| Withdrawal | `treatments` | `can_log_treatments` |
-| Record Milk | `milkRecording` | `can_record_milk` |
-| Breeding | `breeding` | `can_log_breeding` |
+| Card          | Feature flag    | Permission           |
+| ------------- | --------------- | -------------------- |
+| Analytics     | `analytics`     | `can_view_analytics` |
+| Log Treatment | `treatments`    | `can_log_treatments` |
+| Log Issue     | `healthIssues`  | `can_log_issues`     |
+| Open Issues   | `healthIssues`  | `can_log_issues`     |
+| Withdrawal    | `treatments`    | `can_log_treatments` |
+| Record Milk   | `milkRecording` | `can_record_milk`    |
+| Breeding      | `breeding`      | `can_log_breeding`   |
 
 Pattern: `v-if="flags.treatments && hasPermission('can_log_treatments')"` — both feature flag AND permission must be true.
 
@@ -207,6 +221,7 @@ Pattern: `v-if="flags.treatments && hasPermission('can_log_treatments')"` — bo
 5. Verify test count hasn't decreased (no tests accidentally deleted)
 
 ### Test count targets
+
 - Backend: existing 180+ tests + ~12 new permission tests = ~192+
 - Client: existing 372 tests + ~8 new permission tests = ~380+
 
@@ -219,10 +234,12 @@ Pattern: `v-if="flags.treatments && hasPermission('can_log_treatments')"` — bo
 **Goal:** Ensure all user-facing strings are translated and project docs are current.
 
 ### i18n
+
 - Add `common.noPermission` key: "You don't have permission for this action" / "Jy het nie toestemming vir hierdie aksie nie"
 - Scan all touched files for any hardcoded English strings — move to i18n
 
 ### Docs
+
 - Update CLAUDE.md:
   - Add note about permission enforcement pattern (which routes use which permissions)
   - Document `hasPermission()` in auth store
@@ -230,6 +247,7 @@ Pattern: `v-if="flags.treatments && hasPermission('can_log_treatments')"` — bo
 - Update MEMORY.md with phase 11 completion status
 
 ### Final cleanup
+
 - Run `npm run lint` — fix any new warnings
 - Run dead code scan on touched files (unused imports, unreachable branches)
 - Remove any TODO/FIXME comments added during implementation
@@ -241,22 +259,22 @@ Pattern: `v-if="flags.treatments && hasPermission('can_log_treatments')"` — bo
 
 ## File Summary
 
-| File | Phase | Change |
-|---|---|---|
-| `server/routes/users.js` | 11.1 | PIN regex to `\d{4}` |
-| `client/src/views/admin/UserManagement.vue` | 11.1 | PIN maxlength + pattern |
-| `client/src/i18n/en.json` | 11.1, 11.6 | PIN placeholder, noPermission |
-| `client/src/i18n/af.json` | 11.1, 11.6 | PIN placeholder, noPermission |
-| `server/routes/milkRecords.js` | 11.2 | authorize middleware |
-| `server/routes/healthIssues.js` | 11.2 | authorize on POST/PATCH |
-| `server/routes/treatments.js` | 11.2 | authorize middleware |
-| `server/routes/breedingEvents.js` | 11.2 | authorize middleware |
-| `server/routes/analytics.js` | 11.2 | authorize router.use |
-| `server/tests/permissions.test.js` | 11.2 | new — permission gate tests |
-| `server/tests/users.test.js` | 11.1 | add 5-digit PIN rejection test |
-| `client/src/stores/auth.js` | 11.3 | hasPermission method, refactor canManageCows |
-| `client/src/router/index.js` | 11.3 | requiresPermission meta + guard, remove requiresManage |
-| `client/src/components/organisms/BottomNav.vue` | 11.4 | permission filtering |
-| `client/src/views/DashboardView.vue` | 11.4 | permission filtering |
-| `client/src/tests/BottomNav.test.js` | 11.4 | permission visibility tests |
-| `client/src/tests/auth.store.test.js` | 11.3 | hasPermission tests |
+| File                                            | Phase      | Change                                                 |
+| ----------------------------------------------- | ---------- | ------------------------------------------------------ |
+| `server/routes/users.js`                        | 11.1       | PIN regex to `\d{4}`                                   |
+| `client/src/views/admin/UserManagement.vue`     | 11.1       | PIN maxlength + pattern                                |
+| `client/src/i18n/en.json`                       | 11.1, 11.6 | PIN placeholder, noPermission                          |
+| `client/src/i18n/af.json`                       | 11.1, 11.6 | PIN placeholder, noPermission                          |
+| `server/routes/milkRecords.js`                  | 11.2       | authorize middleware                                   |
+| `server/routes/healthIssues.js`                 | 11.2       | authorize on POST/PATCH                                |
+| `server/routes/treatments.js`                   | 11.2       | authorize middleware                                   |
+| `server/routes/breedingEvents.js`               | 11.2       | authorize middleware                                   |
+| `server/routes/analytics.js`                    | 11.2       | authorize router.use                                   |
+| `server/tests/permissions.test.js`              | 11.2       | new — permission gate tests                            |
+| `server/tests/users.test.js`                    | 11.1       | add 5-digit PIN rejection test                         |
+| `client/src/stores/auth.js`                     | 11.3       | hasPermission method, refactor canManageCows           |
+| `client/src/router/index.js`                    | 11.3       | requiresPermission meta + guard, remove requiresManage |
+| `client/src/components/organisms/BottomNav.vue` | 11.4       | permission filtering                                   |
+| `client/src/views/DashboardView.vue`            | 11.4       | permission filtering                                   |
+| `client/src/tests/BottomNav.test.js`            | 11.4       | permission visibility tests                            |
+| `client/src/tests/auth.store.test.js`           | 11.3       | hasPermission tests                                    |

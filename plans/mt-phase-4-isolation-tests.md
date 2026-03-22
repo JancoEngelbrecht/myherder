@@ -1,9 +1,11 @@
 # MT Phase 4: Cross-Tenant Isolation Tests
 
 ## Goal
+
 Write comprehensive tests that verify no data leaks between farms. This phase is intentionally placed BEFORE session management and super-admin UI to catch scoping bugs early.
 
 ## Prerequisites
+
 - Phases 1-3 complete (DB, all routes scoped, auth updated)
 - Read `server/tests/` for existing test patterns (especially `server/tests/helpers.js` if it exists)
 
@@ -139,10 +141,10 @@ describe('Tenant Isolation')
 it('Farm B cannot GET Farm A cow by ID', async () => {
   const res = await request(app)
     .get(`/api/cows/${farmACowId}`)
-    .set('Authorization', `Bearer ${farmBToken}`);
+    .set('Authorization', `Bearer ${farmBToken}`)
 
-  expect(res.status).toBe(404);  // NOT 403 -- don't reveal existence
-});
+  expect(res.status).toBe(404) // NOT 403 -- don't reveal existence
+})
 ```
 
 **Important**: Cross-tenant access should return 404, not 403. The resource doesn't exist in the requesting farm's scope.
@@ -150,6 +152,7 @@ it('Farm B cannot GET Farm A cow by ID', async () => {
 ## Step 4.3 -- Verify edge cases
 
 Add tests for:
+
 - **Empty farm**: Farm C with no data -- all endpoints return empty lists, not errors
 - **Farm with deactivated users**: Deactivated user's JWT (from before deactivation) returns 401
 - **Concurrent identical data**: Both farms have cow tag "COW001", health issue for same cow name -- no crossover

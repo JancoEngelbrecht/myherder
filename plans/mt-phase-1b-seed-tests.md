@@ -15,7 +15,7 @@ Update the seed file and all 26 backend test suites to include `farm_id` on ever
 Both the seed file and test helpers must use the same deterministic farm ID:
 
 ```js
-const DEFAULT_FARM_ID = '00000000-0000-4000-a000-000000000099';
+const DEFAULT_FARM_ID = '00000000-0000-4000-a000-000000000099'
 ```
 
 This matches the ID created by migration 030 in Phase 1A.
@@ -35,7 +35,7 @@ Update `server/seeds/001_initial_data.js` (do NOT delete and rewrite from scratc
      code: 'DEFAULT',
      slug: 'default',
      is_active: true,
-   });
+   })
    ```
 3. Add `farm_id: DEFAULT_FARM_ID` to every `.insert()` call across all 13 tenant-scoped tables
 4. This is a mechanical find-and-replace -- preserve all existing seed data exactly
@@ -67,7 +67,7 @@ Every insert into these tables needs `farm_id: DEFAULT_FARM_ID`:
 Update `server/tests/helpers/setup.js`:
 
 ```js
-const DEFAULT_FARM_ID = '00000000-0000-4000-a000-000000000099';
+const DEFAULT_FARM_ID = '00000000-0000-4000-a000-000000000099'
 // Must match the ID used in migration 030
 ```
 
@@ -83,7 +83,10 @@ The `seedUsers()` function in `setup.js` is called by `beforeAll` in all 26 test
 ```js
 async function seedUsers(db) {
   // Ensure default farm exists (idempotent for test re-runs)
-  await db.raw(`INSERT OR IGNORE INTO farms (id, name, code, slug, is_active) VALUES (?, 'Test Farm', 'TEST', 'test', 1)`, [DEFAULT_FARM_ID]);
+  await db.raw(
+    `INSERT OR IGNORE INTO farms (id, name, code, slug, is_active) VALUES (?, 'Test Farm', 'TEST', 'test', 1)`,
+    [DEFAULT_FARM_ID]
+  )
 
   await db('users').insert([
     {
@@ -98,7 +101,7 @@ async function seedUsers(db) {
       username: 'test_worker',
       // ... rest unchanged
     },
-  ]);
+  ])
 }
 ```
 
@@ -107,16 +110,16 @@ async function seedUsers(db) {
 Update `server/tests/helpers/tokens.js` to include `farm_id: DEFAULT_FARM_ID` in the token payload for both `adminToken()` and `workerToken()`:
 
 ```js
-const { DEFAULT_FARM_ID } = require('./setup');
+const { DEFAULT_FARM_ID } = require('./setup')
 
 function adminToken() {
   const payload = {
     id: ADMIN_ID,
-    farm_id: DEFAULT_FARM_ID,  // NEW
+    farm_id: DEFAULT_FARM_ID, // NEW
     username: 'test_admin',
     // ... rest unchanged
-  };
-  return `Bearer ${jwt.sign(payload, jwtSecret, { expiresIn: '1h' })}`;
+  }
+  return `Bearer ${jwt.sign(payload, jwtSecret, { expiresIn: '1h' })}`
 }
 ```
 
@@ -137,34 +140,34 @@ Every test that does `db('cows').insert(...)`, `db('milk_records').insert(...)`,
 
 All 26 backend test suites in `server/tests/` (from MEMORY.md):
 
-| File | Tables inserted |
-|------|----------------|
-| `cows.test.js` | cows, breed_types |
-| `milkRecords.test.js` | cows, milk_records |
-| `healthIssues.test.js` | cows, health_issues, health_issue_comments, issue_type_definitions |
-| `treatments.test.js` | cows, medications, treatments, health_issues |
-| `breedingEvents.test.js` | cows, breeding_events, breed_types |
-| `medications.test.js` | medications |
-| `issueTypes.test.js` | issue_type_definitions, health_issues |
-| `breedTypes.test.js` | breed_types, cows |
-| `users.test.js` | users |
-| `auth.test.js` | users |
-| `permissions.test.js` | cows, milk_records, health_issues, treatments, breeding_events, medications |
-| `sync.test.js` | cows, milk_records, health_issues |
-| `featureFlags.test.js` | feature_flags |
-| `appSettings.test.js` | app_settings |
-| `auditLog.test.js` | audit_log, cows |
-| `export.test.js` | cows, medications, treatments |
-| `reports.test.js` | cows, medications, treatments, milk_records, health_issues, breeding_events, issue_type_definitions |
-| `middleware.test.js` | (uses tokens only -- no direct inserts) |
-| `errorHandler.test.js` | (no inserts) |
-| `auditService.test.js` | audit_log |
-| `withdrawalService.test.js` | cows, medications, treatments |
-| `analytics/kpi.test.js` | cows, milk_records, health_issues, breeding_events |
-| `analytics/financial.test.js` | cows, milk_records, treatments, medications |
-| `analytics/fertility.test.js` | cows, breeding_events, breed_types |
-| `analytics/health.test.js` | cows, health_issues, treatments, medications, issue_type_definitions |
-| `analytics/structure.test.js` | cows, breed_types |
+| File                          | Tables inserted                                                                                     |
+| ----------------------------- | --------------------------------------------------------------------------------------------------- |
+| `cows.test.js`                | cows, breed_types                                                                                   |
+| `milkRecords.test.js`         | cows, milk_records                                                                                  |
+| `healthIssues.test.js`        | cows, health_issues, health_issue_comments, issue_type_definitions                                  |
+| `treatments.test.js`          | cows, medications, treatments, health_issues                                                        |
+| `breedingEvents.test.js`      | cows, breeding_events, breed_types                                                                  |
+| `medications.test.js`         | medications                                                                                         |
+| `issueTypes.test.js`          | issue_type_definitions, health_issues                                                               |
+| `breedTypes.test.js`          | breed_types, cows                                                                                   |
+| `users.test.js`               | users                                                                                               |
+| `auth.test.js`                | users                                                                                               |
+| `permissions.test.js`         | cows, milk_records, health_issues, treatments, breeding_events, medications                         |
+| `sync.test.js`                | cows, milk_records, health_issues                                                                   |
+| `featureFlags.test.js`        | feature_flags                                                                                       |
+| `appSettings.test.js`         | app_settings                                                                                        |
+| `auditLog.test.js`            | audit_log, cows                                                                                     |
+| `export.test.js`              | cows, medications, treatments                                                                       |
+| `reports.test.js`             | cows, medications, treatments, milk_records, health_issues, breeding_events, issue_type_definitions |
+| `middleware.test.js`          | (uses tokens only -- no direct inserts)                                                             |
+| `errorHandler.test.js`        | (no inserts)                                                                                        |
+| `auditService.test.js`        | audit_log                                                                                           |
+| `withdrawalService.test.js`   | cows, medications, treatments                                                                       |
+| `analytics/kpi.test.js`       | cows, milk_records, health_issues, breeding_events                                                  |
+| `analytics/financial.test.js` | cows, milk_records, treatments, medications                                                         |
+| `analytics/fertility.test.js` | cows, breeding_events, breed_types                                                                  |
+| `analytics/health.test.js`    | cows, health_issues, treatments, medications, issue_type_definitions                                |
+| `analytics/structure.test.js` | cows, breed_types                                                                                   |
 
 ### Tip
 
@@ -174,11 +177,11 @@ After updating `seedUsers` (Step 1.2b), run `npm test` -- every failing test wil
 
 ## Gap Analysis (Phase 1B specific)
 
-| # | Gap | Impact | Mitigation |
-|---|-----|--------|------------|
-| 1 | **Seed file assumes no `farm_id`** | All inserts fail with NOT NULL violation after migration 030. | Add `farm_id: DEFAULT_FARM_ID` to every insert (Step 1.1). |
-| 2 | **Backend tests assume no `farm_id`** | All 26 test suites fail in `beforeAll` (`seedUsers` inserts without `farm_id`), cascading to all 451 tests. | Update `setup.js`, `tokens.js`, and all factory inserts (Steps 1.2-1.3). |
-| 3 | **Token payload missing `farm_id`** | Tests will pass now but fail when Phase 2 middleware checks `req.user.farm_id`. Fixing now avoids a second pass. | Include `farm_id` in test tokens (Step 1.2c). |
+| #   | Gap                                   | Impact                                                                                                           | Mitigation                                                               |
+| --- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| 1   | **Seed file assumes no `farm_id`**    | All inserts fail with NOT NULL violation after migration 030.                                                    | Add `farm_id: DEFAULT_FARM_ID` to every insert (Step 1.1).               |
+| 2   | **Backend tests assume no `farm_id`** | All 26 test suites fail in `beforeAll` (`seedUsers` inserts without `farm_id`), cascading to all 451 tests.      | Update `setup.js`, `tokens.js`, and all factory inserts (Steps 1.2-1.3). |
+| 3   | **Token payload missing `farm_id`**   | Tests will pass now but fail when Phase 2 middleware checks `req.user.farm_id`. Fixing now avoids a second pass. | Include `farm_id` in test tokens (Step 1.2c).                            |
 
 ---
 

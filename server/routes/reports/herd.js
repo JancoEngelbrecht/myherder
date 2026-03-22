@@ -36,7 +36,12 @@ async function getMedicationUsageData(from, to, farmId) {
   for (const [treatmentId, meds] of Object.entries(medsMap)) {
     const costShare = (costMap[treatmentId] || 0) / meds.length
     for (const med of meds) {
-      const entry = grouped[med.name] ??= { name: med.name, active_ingredient: med.active_ingredient || '—', count: 0, totalCost: 0 }
+      const entry = (grouped[med.name] ??= {
+        name: med.name,
+        active_ingredient: med.active_ingredient || '—',
+        count: 0,
+        totalCost: 0,
+      })
       entry.count++
       entry.totalCost += costShare
     }
@@ -97,9 +102,15 @@ async function getBreedingData(from, to, farmId) {
     .where('be.event_date', '>=', from)
     .where('be.event_date', '<=', `${to} 23:59:59`)
     .select(
-      'be.event_date', 'be.event_type', 'be.semen_id', 'be.inseminator',
-      'be.cost', 'be.preg_check_method', 'be.notes',
-      'c.tag_number', 'c.name as cow_name',
+      'be.event_date',
+      'be.event_type',
+      'be.semen_id',
+      'be.inseminator',
+      'be.cost',
+      'be.preg_check_method',
+      'be.notes',
+      'c.tag_number',
+      'c.name as cow_name'
     )
     .orderBy('be.event_date', 'asc')
 
@@ -120,7 +131,9 @@ async function getBreedingData(from, to, farmId) {
     }
   })
 
-  const breakdown = Object.entries(typeCounts).map(([k, v]) => `${EVENT_TYPE_LABELS[k] || k}: ${v}`).join(', ')
+  const breakdown = Object.entries(typeCounts)
+    .map(([k, v]) => `${EVENT_TYPE_LABELS[k] || k}: ${v}`)
+    .join(', ')
 
   return {
     rows,
@@ -162,10 +175,15 @@ async function getHerdHealthData(from, to, farmId) {
     .where('hi.observed_at', '>=', from)
     .where('hi.observed_at', '<=', `${to} 23:59:59`)
     .select(
-      'hi.id', 'hi.observed_at', 'hi.issue_types', 'hi.severity',
-      'hi.status', 'hi.resolved_at',
-      'c.tag_number', 'c.name as cow_name',
-      'u.full_name as reported_by_name',
+      'hi.id',
+      'hi.observed_at',
+      'hi.issue_types',
+      'hi.severity',
+      'hi.status',
+      'hi.resolved_at',
+      'c.tag_number',
+      'c.name as cow_name',
+      'u.full_name as reported_by_name'
     )
     .orderBy('hi.observed_at', 'asc')
 

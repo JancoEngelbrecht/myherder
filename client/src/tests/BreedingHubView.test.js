@@ -34,9 +34,42 @@ vi.mock('../services/syncManager.js', () => {
 
 vi.mock('../db/indexedDB.js', () => ({
   default: {
-    breedingEvents: { bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(), where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }), toArray: vi.fn().mockResolvedValue([]), orderBy: vi.fn().mockReturnValue({ reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }) },
-    cows: { bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), toArray: vi.fn().mockResolvedValue([]), orderBy: vi.fn().mockReturnValue({ reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }) },
-    syncQueue: { where: vi.fn().mockReturnValue({ aboveOrEqual: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }), bulkDelete: vi.fn() },
+    breedingEvents: {
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
+      toArray: vi.fn().mockResolvedValue([]),
+      orderBy: vi
+        .fn()
+        .mockReturnValue({
+          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
+    },
+    cows: {
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      toArray: vi.fn().mockResolvedValue([]),
+      orderBy: vi
+        .fn()
+        .mockReturnValue({
+          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
+    },
+    syncQueue: {
+      where: vi
+        .fn()
+        .mockReturnValue({
+          aboveOrEqual: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
+      bulkDelete: vi.fn(),
+    },
   },
 }))
 
@@ -92,8 +125,8 @@ describe('BreedingHubView', () => {
     await flushPromises()
 
     const nums = wrapper.findAll('.stat-num')
-    expect(nums[0].text()).toBe('2')  // pregnant
-    expect(nums[1].text()).toBe('1')  // open (female, non-pregnant, non-sold, non-dead — male excluded)
+    expect(nums[0].text()).toBe('2') // pregnant
+    expect(nums[1].text()).toBe('1') // open (female, non-pregnant, non-sold, non-dead — male excluded)
   })
 
   it('renders notifications card with count badge', async () => {

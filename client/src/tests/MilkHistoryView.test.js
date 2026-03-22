@@ -51,7 +51,10 @@ import { createPinia, setActivePinia } from 'pinia'
 
 const stubs = {
   AppHeader: { template: '<div class="app-header"><slot /></div>' },
-  CowSearchDropdown: { template: '<div class="cow-search-dropdown" />', props: ['modelValue', 'placeholder', 'sexFilter'] },
+  CowSearchDropdown: {
+    template: '<div class="cow-search-dropdown" />',
+    props: ['modelValue', 'placeholder', 'sexFilter'],
+  },
 }
 
 function makeRecord(id, overrides = {}) {
@@ -115,10 +118,7 @@ describe('MilkHistoryView', () => {
   })
 
   it('shows summary bar when records exist', async () => {
-    const records = [
-      makeRecord('1', { litres: 10.5 }),
-      makeRecord('2', { litres: 8.0 }),
-    ]
+    const records = [makeRecord('1', { litres: 10.5 }), makeRecord('2', { litres: 8.0 })]
     mockApiResponse(records, 2)
 
     const wrapper = createWrapper()

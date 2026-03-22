@@ -12,12 +12,12 @@ The BreedingEventsView (`/breed/events`) currently has event-type filter chips a
 
 ## Filters to Add
 
-| Group | Filter | UI | Query Param |
-|-------|--------|----|-------------|
-| **Cow** | Cow search | `CowSearchDropdown` molecule | `cow_id` (already supported) |
-| **Cow** | Cow status | Chips: All / Active / Pregnant / Dry | `cow_status` (new) |
-| **Date** | Event date range | Two date inputs (from–to) | `date_from`, `date_to` (new) |
-| **Event** | Outcome (preg check) | Chips: All / Positive / Negative | Already handled by event_type filter chips |
+| Group     | Filter               | UI                                   | Query Param                                |
+| --------- | -------------------- | ------------------------------------ | ------------------------------------------ |
+| **Cow**   | Cow search           | `CowSearchDropdown` molecule         | `cow_id` (already supported)               |
+| **Cow**   | Cow status           | Chips: All / Active / Pregnant / Dry | `cow_status` (new)                         |
+| **Date**  | Event date range     | Two date inputs (from–to)            | `date_from`, `date_to` (new)               |
+| **Event** | Outcome (preg check) | Chips: All / Positive / Negative     | Already handled by event_type filter chips |
 
 > Note: The event-type chips already cover outcome filtering (preg_check_positive vs preg_check_negative are separate types). No extra filter needed.
 
@@ -32,6 +32,7 @@ The BreedingEventsView (`/breed/events`) currently has event-type filter chips a
 In the paginated branch (non-cow_id path) of `GET /`:
 
 1. Parse new query params:
+
    ```js
    const { cow_id, event_type, cow_status, date_from, date_to } = req.query
    ```
@@ -60,10 +61,11 @@ In the paginated branch (non-cow_id path) of `GET /`:
 **File:** `client/src/views/BreedingEventsView.vue`
 
 Add refs:
+
 ```js
 const showAdvanced = ref(false)
-const cowFilter = ref(null)       // cow_id from CowSearchDropdown
-const cowStatusFilter = ref('')   // '' | 'active' | 'pregnant' | 'dry'
+const cowFilter = ref(null) // cow_id from CowSearchDropdown
+const cowStatusFilter = ref('') // '' | 'active' | 'pregnant' | 'dry'
 const dateFrom = ref('')
 const dateTo = ref('')
 ```
@@ -88,10 +90,34 @@ After the existing filter chips, before the loading state:
     <span class="filter-group-title">{{ t('breeding.filterGroupCow') }}</span>
     <CowSearchDropdown v-model="cowFilter" @update:model-value="onAdvancedChange" />
     <div class="filter-chips filter-chips-wrap">
-      <button class="chip" :class="{ active: cowStatusFilter === '' }" @click="setCowStatusFilter('')">{{ t('cows.filterAll') }}</button>
-      <button class="chip" :class="{ active: cowStatusFilter === 'active' }" @click="setCowStatusFilter('active')">{{ t('status.active') }}</button>
-      <button class="chip" :class="{ active: cowStatusFilter === 'pregnant' }" @click="setCowStatusFilter('pregnant')">{{ t('status.pregnant') }}</button>
-      <button class="chip" :class="{ active: cowStatusFilter === 'dry' }" @click="setCowStatusFilter('dry')">{{ t('breeding.filterDry') }}</button>
+      <button
+        class="chip"
+        :class="{ active: cowStatusFilter === '' }"
+        @click="setCowStatusFilter('')"
+      >
+        {{ t('cows.filterAll') }}
+      </button>
+      <button
+        class="chip"
+        :class="{ active: cowStatusFilter === 'active' }"
+        @click="setCowStatusFilter('active')"
+      >
+        {{ t('status.active') }}
+      </button>
+      <button
+        class="chip"
+        :class="{ active: cowStatusFilter === 'pregnant' }"
+        @click="setCowStatusFilter('pregnant')"
+      >
+        {{ t('status.pregnant') }}
+      </button>
+      <button
+        class="chip"
+        :class="{ active: cowStatusFilter === 'dry' }"
+        @click="setCowStatusFilter('dry')"
+      >
+        {{ t('breeding.filterDry') }}
+      </button>
     </div>
   </div>
 
@@ -103,9 +129,19 @@ After the existing filter chips, before the loading state:
     <div class="filter-range-row">
       <span class="filter-label">{{ t('breeding.filterEventDate') }}</span>
       <div class="filter-range-inputs">
-        <input v-model="dateFrom" type="date" class="form-input filter-date-input" @change="onAdvancedChange" />
+        <input
+          v-model="dateFrom"
+          type="date"
+          class="form-input filter-date-input"
+          @change="onAdvancedChange"
+        />
         <span class="filter-sep">–</span>
-        <input v-model="dateTo" type="date" class="form-input filter-date-input" @change="onAdvancedChange" />
+        <input
+          v-model="dateTo"
+          type="date"
+          class="form-input filter-date-input"
+          @change="onAdvancedChange"
+        />
       </div>
     </div>
   </div>
@@ -115,6 +151,7 @@ After the existing filter chips, before the loading state:
 ### Step 2.3 — Wire up fetchEvents to include new params
 
 Update `fetchEvents()`:
+
 ```js
 function fetchEvents() {
   const params = { page: page.value, limit: limit.value }
@@ -128,6 +165,7 @@ function fetchEvents() {
 ```
 
 Add helper functions:
+
 ```js
 function setCowStatusFilter(val) {
   cowStatusFilter.value = val
@@ -144,6 +182,7 @@ function onAdvancedChange() {
 ### Step 2.4 — Copy scoped CSS from CowListView
 
 Copy these class definitions into the `<style scoped>` block (they're view-scoped, so must be duplicated):
+
 - `.advanced-toggle`, `.toggle-arrow`, `.toggle-arrow.open`
 - `.filter-badge`
 - `.advanced-filters`
@@ -162,6 +201,7 @@ Copy these class definitions into the `<style scoped>` block (they're view-scope
 **Files:** `client/src/i18n/en.json`, `client/src/i18n/af.json`
 
 Keys to add under `breeding`:
+
 ```
 breeding.advancedFilters     — "Advanced Filters" / "Gevorderde Filters"
 breeding.filterGroupCow      — "Cow" / "Koei"
@@ -174,10 +214,10 @@ breeding.filterDry           — "Dry" / "Droog"
 
 ## Summary
 
-| Phase | Files Modified | Scope |
-|-------|---------------|-------|
-| 1 | `server/routes/breedingEvents.js` | Add cow_status, date_from, date_to query params |
-| 2 | `client/src/views/BreedingEventsView.vue` | Advanced filter UI + wiring |
-| 3 | `client/src/i18n/en.json`, `af.json` | New i18n keys |
+| Phase | Files Modified                            | Scope                                           |
+| ----- | ----------------------------------------- | ----------------------------------------------- |
+| 1     | `server/routes/breedingEvents.js`         | Add cow_status, date_from, date_to query params |
+| 2     | `client/src/views/BreedingEventsView.vue` | Advanced filter UI + wiring                     |
+| 3     | `client/src/i18n/en.json`, `af.json`      | New i18n keys                                   |
 
 No new files, no migrations, no store changes — the breedingEvents store's `fetchAll` already passes arbitrary params through to the API.

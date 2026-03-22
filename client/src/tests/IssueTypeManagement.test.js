@@ -19,11 +19,19 @@ vi.mock('../services/api.js', () => ({
 vi.mock('../services/syncManager.js', () => {
   const { ref } = require('vue')
   return {
-    isOnline: ref(true), pendingCount: ref(0), isSyncing: ref(false),
-    lastSyncTime: ref(null), failedItems: ref([]), sync: vi.fn(),
-    initialSync: vi.fn(), getPending: vi.fn().mockResolvedValue([]),
-    init: vi.fn(), destroyListeners: vi.fn(),
-    isOfflineError: vi.fn().mockReturnValue(false), enqueue: vi.fn(), dequeueByEntityId: vi.fn(),
+    isOnline: ref(true),
+    pendingCount: ref(0),
+    isSyncing: ref(false),
+    lastSyncTime: ref(null),
+    failedItems: ref([]),
+    sync: vi.fn(),
+    initialSync: vi.fn(),
+    getPending: vi.fn().mockResolvedValue([]),
+    init: vi.fn(),
+    destroyListeners: vi.fn(),
+    isOfflineError: vi.fn().mockReturnValue(false),
+    enqueue: vi.fn(),
+    dequeueByEntityId: vi.fn(),
   }
 })
 
@@ -127,7 +135,9 @@ describe('IssueTypeManagement', () => {
   it('opens edit form when edit button clicked', async () => {
     const wrapper = await mountWithData()
 
-    const editBtns = wrapper.findAll('.btn-secondary.btn-sm').filter((b) => b.text().includes('common.edit'))
+    const editBtns = wrapper
+      .findAll('.btn-secondary.btn-sm')
+      .filter((b) => b.text().includes('common.edit'))
     await editBtns[0].trigger('click')
 
     expect(wrapper.find('.form-card').exists()).toBe(true)

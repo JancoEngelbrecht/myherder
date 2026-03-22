@@ -15,9 +15,7 @@ afterAll(() => db.destroy())
 
 describe('GET /api/feature-flags', () => {
   it('returns all flags as camelCase object', async () => {
-    const res = await request(app)
-      .get('/api/feature-flags')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/feature-flags').set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
     expect(res.body).toHaveProperty('breeding')
@@ -42,9 +40,7 @@ describe('GET /api/feature-flags', () => {
 describe('PATCH /api/feature-flags', () => {
   it('toggles a single flag (admin)', async () => {
     // Get current value
-    const before = await request(app)
-      .get('/api/feature-flags')
-      .set('Authorization', adminToken())
+    const before = await request(app).get('/api/feature-flags').set('Authorization', adminToken())
     const originalValue = before.body.breeding
 
     const res = await request(app)

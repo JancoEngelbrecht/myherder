@@ -1,4 +1,4 @@
-require('dotenv').config(process.env.NODE_ENV === 'test' ? { quiet: true } : undefined);
+require('dotenv').config(process.env.NODE_ENV === 'test' ? { quiet: true } : undefined)
 
 module.exports = {
   test: {
@@ -17,14 +17,14 @@ module.exports = {
   development: {
     client: 'better-sqlite3',
     connection: {
-      filename: process.env.DB_PATH || './dev.sqlite3'
+      filename: process.env.DB_PATH || './dev.sqlite3',
     },
     useNullAsDefault: true,
     migrations: {
-      directory: './server/migrations'
+      directory: './server/migrations',
     },
     seeds: {
-      directory: './server/seeds'
+      directory: './server/seeds',
     },
     pool: {
       afterCreate: (conn, cb) => {
@@ -42,14 +42,14 @@ module.exports = {
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      charset: 'utf8mb4'
+      charset: 'utf8mb4',
     },
     pool: { min: 0, max: 5 },
     migrations: {
-      directory: './server/migrations'
+      directory: './server/migrations',
     },
     seeds: {
-      directory: './server/seeds/production'
-    }
-  }
-};
+      directory: './server/seeds/production',
+    },
+  },
+}

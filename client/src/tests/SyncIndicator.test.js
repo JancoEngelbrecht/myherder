@@ -20,7 +20,11 @@ vi.mock('../services/syncManager.js', () => {
 vi.mock('../db/indexedDB.js', () => ({
   default: {
     syncQueue: {
-      where: vi.fn().mockReturnValue({ aboveOrEqual: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          aboveOrEqual: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
       bulkDelete: vi.fn(),
     },
   },

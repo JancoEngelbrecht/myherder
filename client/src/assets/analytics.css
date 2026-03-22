@@ -222,8 +222,12 @@
 
 /* ── Stat value color variants ─────────────────────────── */
 
-.stat-value.warn { color: var(--warning); }
-.stat-value.danger { color: var(--danger); }
+.stat-value.warn {
+  color: var(--warning);
+}
+.stat-value.danger {
+  color: var(--danger);
+}
 
 /* ── Incidence sub-panel ──────────────────────────────── */
 

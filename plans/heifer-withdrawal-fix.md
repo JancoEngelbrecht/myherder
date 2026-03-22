@@ -1,12 +1,15 @@
 # Fix: Exclude Heifers from Milk Withdrawal
 
 ## Problem
+
 Heifers (young females that have never calved) appear on the milk withdrawal page after receiving treatments with milk withdrawal periods. This is incorrect — heifers are not being milked, so milk withdrawal is irrelevant for them. Meat withdrawal should still apply.
 
 ## Audit Finding: `status` is NOT `heifer`
+
 The initial implementation compared `c.status !== 'heifer'` — but `status` is an enum of `['active', 'dry', 'pregnant', 'sick', 'sold', 'dead']`. "Heifer" is a **computed life phase** derived from `dob`, `sex`, `life_phase_override`, and breed-specific age thresholds. The original fix was a no-op.
 
 **Source of truth:**
+
 - Backend: `LIFE_PHASE_SQL` in `server/routes/cows.js:71-81` (SQLite-only, uses `julianday`)
 - Frontend: `computeLifePhase(cow, breedType)` in `client/src/stores/cows.js`
 
@@ -25,6 +28,7 @@ This avoids dialect-specific SQL and reuses existing logic.
 ## Phase 1: Shared life phase helper
 
 ### 1A. Extract `computeLifePhase` to a shared server helper
+
 Create `server/helpers/lifePhase.js` with the same logic as the client-side `computeLifePhase()` in `client/src/stores/cows.js:13-33`:
 
 ```js
@@ -52,6 +56,7 @@ function computeLifePhase(cow, breedType = null) {
 ## Phase 2: Backend fixes
 
 ### 2A. GET /api/treatments/withdrawal — exclude heifers + calves + sold/dead
+
 **File:** `server/routes/treatments.js`
 
 - Add **inline** (not in `treatmentQuery`) `LEFT JOIN breed_types as bt ON c.breed_type_id = bt.id` to the withdrawal route query only
@@ -65,6 +70,7 @@ function computeLifePhase(cow, breedType = null) {
 **Why inline, not in `treatmentQuery`:** `treatmentQuery` is used by GET /treatments, GET /treatments/:id, and POST create — adding a breed_types join + extra columns there would bloat all those responses unnecessarily.
 
 ### 2B. POST /api/treatments — skip milk withdrawal for heifers/calves
+
 **File:** `server/routes/treatments.js`
 
 - Import `computeLifePhase` from the new helper
@@ -74,6 +80,7 @@ function computeLifePhase(cow, breedType = null) {
 - Use `if (!skipMilkWithdrawal && withdrawalEndMilk ...)` for the milk withdrawal condition
 
 ### 2C. GET /api/analytics/withdrawal-days — exclude heifers/calves
+
 **File:** `server/routes/analytics/health.js`
 
 - Join `cows as c ON c.id = treatments.cow_id` and `LEFT JOIN breed_types as bt ON c.breed_type_id = bt.id`
@@ -84,6 +91,7 @@ function computeLifePhase(cow, breedType = null) {
 **Note on legacy data:** Existing heifer treatment records with `withdrawal_end_milk` set will be correctly filtered out by the JS computation. They will age out naturally as the withdrawal period expires.
 
 ### 2D. GET /api/reports/withdrawal-compliance — exclude heifers/calves
+
 **File:** `server/routes/reports/treatment.js` (function `getWithdrawalData`)
 
 - This endpoint already joins cows (`c.sex = 'female'` filter) but does not exclude heifers
@@ -96,6 +104,7 @@ function computeLifePhase(cow, breedType = null) {
 ## Phase 3: Frontend fixes
 
 ### 3A. WithdrawalListView.vue — filter on `life_phase` from API response
+
 **File:** `client/src/views/WithdrawalListView.vue`
 
 - Replace `c.status !== 'heifer'` with `c.life_phase !== 'heifer' && c.life_phase !== 'calf'`
@@ -103,6 +112,7 @@ function computeLifePhase(cow, breedType = null) {
 - Fallback: if `life_phase` is undefined (offline path), still show the record (backend is the primary filter)
 
 ### 3B. CowDetailView.vue — withdrawal badge excludes heifers
+
 **File:** `client/src/views/CowDetailView.vue`
 
 - `computeLifePhase` and `breedTypesStore` are **already imported** (lines 275, 298)
@@ -111,6 +121,7 @@ function computeLifePhase(cow, breedType = null) {
 - Same guard in `cowWithdrawalEnd` computed (line 340)
 
 ### 3C. CowTreatmentHistoryView.vue — withdrawal badge excludes heifers
+
 **File:** `client/src/views/CowTreatmentHistoryView.vue`
 
 - This view has its own `onWithdrawal` and `cowWithdrawalEnd` computeds that only check `sex === 'male'`
@@ -119,6 +130,7 @@ function computeLifePhase(cow, breedType = null) {
 - Add the same `heifer`/`calf` guard to both computeds
 
 ### 3D. Offline fallback — treatments store `fetchWithdrawal`
+
 **File:** `client/src/stores/treatments.js`
 
 - The offline branch of `fetchWithdrawal()` populates `withdrawalCows` from IndexedDB
@@ -131,6 +143,7 @@ function computeLifePhase(cow, breedType = null) {
 ## Phase 4: Tests
 
 ### 4A. Backend tests (`server/tests/treatments.test.js`)
+
 1. `GET /withdrawal` — heifer (by age) with milk withdrawal medication is excluded from milk results
 2. `GET /withdrawal` — heifer with meat withdrawal medication IS included
 3. `GET /withdrawal` — sold/dead cow excluded entirely
@@ -138,6 +151,7 @@ function computeLifePhase(cow, breedType = null) {
 5. `POST /treatments` — treatment for adult cow still stores `withdrawal_end_milk` correctly
 
 ### 4B. Frontend tests (`client/src/tests/WithdrawalListView.test.js`)
+
 1. Heifer record (with `life_phase: 'heifer'`) filtered out of milk tab
 2. Heifer record still shows in meat tab
 3. Calf record filtered out of milk tab
@@ -145,12 +159,14 @@ function computeLifePhase(cow, breedType = null) {
 ---
 
 ## Already Safe (no changes needed)
+
 - **`MilkRecordingView.vue`** — uses `computeLifePhase(c) === 'cow'` as the `isMilkable` gate; heifers and calves already excluded from milk recording entirely
 - **`TreatmentDetailView.vue`** — shows `withdrawal_end_milk` from DB for individual treatments. After Phase 2B, new heifer treatments will have `withdrawal_end_milk: null`. Existing legacy records will display until they expire naturally. No frontend guard needed (low impact, self-correcting).
 
 ---
 
 ## Edge Cases
+
 1. **Heifer with only meat withdrawal** — appears in meat tab only (Phase 2A filter is milk-specific)
 2. **Heifer with both milk + meat meds** — meat tab only, no milk tab
 3. **Cow transitions heifer → cow** — new treatments after aging past threshold correctly compute `life_phase: 'cow'` and get milk withdrawal
@@ -163,15 +179,16 @@ function computeLifePhase(cow, breedType = null) {
 10. **Offline mode** — Phase 3D ensures life phase is computed from cached cow data in IndexedDB
 
 ## Files Modified
-| File | Change |
-|------|--------|
-| `server/helpers/lifePhase.js` | **NEW** — shared `computeLifePhase()` |
-| `server/routes/treatments.js` | Fix GET /withdrawal (inline join) + POST creation |
-| `server/routes/analytics/health.js` | Fix withdrawal-days analytics |
-| `server/routes/reports/treatment.js` | Fix withdrawal-compliance report |
-| `client/src/views/WithdrawalListView.vue` | Filter on `life_phase` field |
-| `client/src/views/CowDetailView.vue` | Withdrawal badge excludes heifers |
-| `client/src/views/CowTreatmentHistoryView.vue` | Withdrawal badge excludes heifers |
-| `client/src/stores/treatments.js` | Offline fallback computes `life_phase` |
-| `server/tests/treatments.test.js` | New heifer withdrawal tests |
-| `client/src/tests/WithdrawalListView.test.js` | New heifer filter tests |
+
+| File                                           | Change                                            |
+| ---------------------------------------------- | ------------------------------------------------- |
+| `server/helpers/lifePhase.js`                  | **NEW** — shared `computeLifePhase()`             |
+| `server/routes/treatments.js`                  | Fix GET /withdrawal (inline join) + POST creation |
+| `server/routes/analytics/health.js`            | Fix withdrawal-days analytics                     |
+| `server/routes/reports/treatment.js`           | Fix withdrawal-compliance report                  |
+| `client/src/views/WithdrawalListView.vue`      | Filter on `life_phase` field                      |
+| `client/src/views/CowDetailView.vue`           | Withdrawal badge excludes heifers                 |
+| `client/src/views/CowTreatmentHistoryView.vue` | Withdrawal badge excludes heifers                 |
+| `client/src/stores/treatments.js`              | Offline fallback computes `life_phase`            |
+| `server/tests/treatments.test.js`              | New heifer withdrawal tests                       |
+| `client/src/tests/WithdrawalListView.test.js`  | New heifer filter tests                           |

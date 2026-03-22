@@ -54,14 +54,18 @@ export function useTour(tourId, stepsOrFn, options = {}) {
     let driverFn
     try {
       driverFn = await driverLoaded
-    } catch { return }
+    } catch {
+      return
+    }
     if (!isMounted) return // Component may have unmounted during import
 
     // Resolve steps lazily so t() picks up the current locale
     let steps
     try {
       steps = typeof stepsOrFn === 'function' ? stepsOrFn() : stepsOrFn
-    } catch { return } // Bail if environment torn down (e.g. test cleanup)
+    } catch {
+      return
+    } // Bail if environment torn down (e.g. test cleanup)
 
     // Filter out steps whose target element doesn't exist in the DOM
     const activeSteps = steps.filter((step) => {

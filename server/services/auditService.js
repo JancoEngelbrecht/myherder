@@ -12,7 +12,15 @@ const db = require('../config/database')
  * @param {object|null} [opts.oldValues] - previous state (for update/delete)
  * @param {object|null} [opts.newValues] - new state (for create/update)
  */
-async function logAudit({ farmId, userId, action, entityType, entityId, oldValues = null, newValues = null }) {
+async function logAudit({
+  farmId,
+  userId,
+  action,
+  entityType,
+  entityId,
+  oldValues = null,
+  newValues = null,
+}) {
   try {
     await db('audit_log').insert({
       id: uuidv4(),

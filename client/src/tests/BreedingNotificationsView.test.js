@@ -31,9 +31,42 @@ vi.mock('../services/syncManager.js', () => {
 
 vi.mock('../db/indexedDB.js', () => ({
   default: {
-    breedingEvents: { bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(), where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }), toArray: vi.fn().mockResolvedValue([]), orderBy: vi.fn().mockReturnValue({ reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }) },
-    cows: { bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), toArray: vi.fn().mockResolvedValue([]), orderBy: vi.fn().mockReturnValue({ reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }) },
-    syncQueue: { where: vi.fn().mockReturnValue({ aboveOrEqual: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }), bulkDelete: vi.fn() },
+    breedingEvents: {
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
+      toArray: vi.fn().mockResolvedValue([]),
+      orderBy: vi
+        .fn()
+        .mockReturnValue({
+          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
+    },
+    cows: {
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      toArray: vi.fn().mockResolvedValue([]),
+      orderBy: vi
+        .fn()
+        .mockReturnValue({
+          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
+    },
+    syncQueue: {
+      where: vi
+        .fn()
+        .mockReturnValue({
+          aboveOrEqual: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
+      bulkDelete: vi.fn(),
+    },
   },
 }))
 
@@ -136,7 +169,9 @@ describe('BreedingNotificationsView', () => {
     expect(wrapper.find('.attention-section').exists()).toBe(false)
     expect(wrapper.find('.alert-group').exists()).toBe(false)
     // Should have items
-    expect(wrapper.findAll('.alert-row-inner').length + wrapper.findAll('.attention-row').length).toBeGreaterThan(0)
+    expect(
+      wrapper.findAll('.alert-row-inner').length + wrapper.findAll('.attention-row').length
+    ).toBeGreaterThan(0)
   })
 
   it('shows overdue items first in category filter', async () => {
@@ -203,7 +238,10 @@ describe('BreedingNotificationsView', () => {
 
   it('show more toggle works for heats', async () => {
     const manyHeats = Array.from({ length: 8 }, (_, i) => ({
-      id: `h${i}`, cow_id: `c${i}`, tag_number: `C${i}`, expected_next_heat: tomorrow,
+      id: `h${i}`,
+      cow_id: `c${i}`,
+      tag_number: `C${i}`,
+      expected_next_heat: tomorrow,
     }))
     seedUpcoming(store, { heats: manyHeats })
     const wrapper = createWrapper()

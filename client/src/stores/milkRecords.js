@@ -59,7 +59,8 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
     } catch (err) {
       // Offline fallback — use compound filter on indexed fields
       const local = await db.milkRecords
-        .where('session').equals(session)
+        .where('session')
+        .equals(session)
         .and((r) => r.recording_date === date)
         .toArray()
       for (const row of local) {
@@ -84,7 +85,15 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
 
   // ── Auto-save ────────────────────────────────────────────────────────────────
 
-  function autoSave(cowId, litres, session, date, discarded = false, discardReason = null, sessionTime = null) {
+  function autoSave(
+    cowId,
+    litres,
+    session,
+    date,
+    discarded = false,
+    discardReason = null,
+    sessionTime = null
+  ) {
     syncStatus[cowId] = 'saving'
 
     // Capture the existing record ID NOW while the context is still correct.
@@ -95,14 +104,34 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
     // Optimistically update the local record so the input reflects the user's
     // typing immediately instead of waiting for the debounce + API round-trip.
     if (records[cowId]) {
-      records[cowId] = { ...records[cowId], litres, milk_discarded: discarded, discard_reason: discardReason }
+      records[cowId] = {
+        ...records[cowId],
+        litres,
+        milk_discarded: discarded,
+        discard_reason: discardReason,
+      }
     } else {
-      records[cowId] = { cow_id: cowId, litres, session, recording_date: date, milk_discarded: discarded, discard_reason: discardReason }
+      records[cowId] = {
+        cow_id: cowId,
+        litres,
+        session,
+        recording_date: date,
+        milk_discarded: discarded,
+        discard_reason: discardReason,
+      }
     }
 
     // Keep pendingData up-to-date with the latest values so flushPending can
     // fire an immediate write if the user navigates away before the debounce fires.
-    pendingData[cowId] = { litres, session, date, discarded, discardReason, sessionTime, existingId }
+    pendingData[cowId] = {
+      litres,
+      session,
+      date,
+      discarded,
+      discardReason,
+      sessionTime,
+      existingId,
+    }
 
     if (debounceTimers[cowId]) {
       clearTimeout(debounceTimers[cowId])
@@ -130,13 +159,31 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
       }
       delete pendingData[cowId]
       promises.push(
-        _persist(cowId, d.litres, d.session, d.date, d.discarded, d.discardReason, d.sessionTime, d.existingId),
+        _persist(
+          cowId,
+          d.litres,
+          d.session,
+          d.date,
+          d.discarded,
+          d.discardReason,
+          d.sessionTime,
+          d.existingId
+        )
       )
     }
     await Promise.all(promises)
   }
 
-  async function _persist(cowId, litres, session, date, discarded, discardReason, sessionTime, existingId = null) {
+  async function _persist(
+    cowId,
+    litres,
+    session,
+    date,
+    discarded,
+    discardReason,
+    sessionTime,
+    existingId = null
+  ) {
     const effectiveTime = sessionTime || new Date().toTimeString().slice(0, 5)
     const now = new Date().toISOString()
     const payload = {

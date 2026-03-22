@@ -41,15 +41,32 @@ vi.mock('../services/syncManager.js', () => {
 vi.mock('../db/indexedDB.js', () => ({
   default: {
     breedingEvents: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
-      orderBy: vi.fn().mockReturnValue({ reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
+      orderBy: vi
+        .fn()
+        .mockReturnValue({
+          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     cows: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      orderBy: vi.fn().mockReturnValue({ reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      orderBy: vi
+        .fn()
+        .mockReturnValue({
+          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     auth: { get: vi.fn().mockResolvedValue(null), put: vi.fn(), delete: vi.fn() },
     syncQueue: {
@@ -62,18 +79,41 @@ vi.mock('../db/indexedDB.js', () => ({
 }))
 
 const MOCK_EVENTS = [
-  { id: 'e1', cow_id: 'c1', event_type: 'ai_insemination', event_date: '2024-01-10', tag_number: '001', cow_name: 'Bessie' },
-  { id: 'e2', cow_id: 'c2', event_type: 'calving', event_date: '2024-01-12', tag_number: '002', cow_name: 'Daisy' },
+  {
+    id: 'e1',
+    cow_id: 'c1',
+    event_type: 'ai_insemination',
+    event_date: '2024-01-10',
+    tag_number: '001',
+    cow_name: 'Bessie',
+  },
+  {
+    id: 'e2',
+    cow_id: 'c2',
+    event_type: 'calving',
+    event_date: '2024-01-12',
+    tag_number: '002',
+    cow_name: 'Daisy',
+  },
 ]
 
 const stubs = {
   SyncIndicator: true,
   SyncPanel: true,
   RouterLink: { template: '<a v-bind="$attrs"><slot /></a>' },
-  BreedingEventCard: { template: '<div class="breeding-event-card"><slot /></div>', props: ['event', 'showCow', 'showDelete', 'compact'] },
+  BreedingEventCard: {
+    template: '<div class="breeding-event-card"><slot /></div>',
+    props: ['event', 'showCow', 'showDelete', 'compact'],
+  },
   ConfirmDialog: true,
-  CowSearchDropdown: { template: '<div class="cow-search" />', props: ['modelValue', 'placeholder'] },
-  PaginationBar: { template: '<div class="pagination" />', props: ['total', 'page', 'limit', 'pageSizeOptions'] },
+  CowSearchDropdown: {
+    template: '<div class="cow-search" />',
+    props: ['modelValue', 'placeholder'],
+  },
+  PaginationBar: {
+    template: '<div class="pagination" />',
+    props: ['total', 'page', 'limit', 'pageSizeOptions'],
+  },
 }
 
 describe('BreedingEventsView', () => {

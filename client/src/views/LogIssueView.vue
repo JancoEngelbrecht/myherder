@@ -84,7 +84,12 @@
 
         <p v-if="submitError" class="form-error">{{ submitError }}</p>
 
-        <button data-tour="issue-save" type="submit" class="btn-primary btn-full" :disabled="submitting">
+        <button
+          data-tour="issue-save"
+          type="submit"
+          class="btn-primary btn-full"
+          :disabled="submitting"
+        >
           {{ submitting ? $t('common.saving') : $t('healthIssues.logIssue') }}
         </button>
       </form>
@@ -119,35 +124,35 @@ const { startTour } = useTour('health-issues', () => [
     popover: {
       title: t('tour.healthIssues.cowSelect.title'),
       description: t('tour.healthIssues.cowSelect.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="issue-type"]',
     popover: {
       title: t('tour.healthIssues.issueType.title'),
       description: t('tour.healthIssues.issueType.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="issue-severity"]',
     popover: {
       title: t('tour.healthIssues.severity.title'),
       description: t('tour.healthIssues.severity.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="issue-teats"]',
     popover: {
       title: t('tour.healthIssues.teats.title'),
       description: t('tour.healthIssues.teats.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="issue-save"]',
     popover: {
       title: t('tour.healthIssues.save.title'),
       description: t('tour.healthIssues.save.desc'),
-    }
+    },
   },
 ])
 
@@ -156,11 +161,7 @@ const backRoute = prefillCowId ? `/cows/${prefillCowId}` : '/'
 
 const issueTypes = computed(() => issueTypesStore.activeTypes)
 
-const severities = [
-  { value: 'low' },
-  { value: 'medium' },
-  { value: 'high' },
-]
+const severities = [{ value: 'low' }, { value: 'medium' }, { value: 'high' }]
 
 function localNow() {
   const d = new Date()
@@ -181,10 +182,16 @@ const errors = ref({})
 const submitting = ref(false)
 const submitError = ref('')
 
-watch(form, () => { submitError.value = '' }, { deep: true })
+watch(
+  form,
+  () => {
+    submitError.value = ''
+  },
+  { deep: true }
+)
 
 const showTeatSelector = computed(() =>
-  form.value.issue_types.some((code) => issueTypesStore.getByCode(code)?.requires_teat_selection),
+  form.value.issue_types.some((code) => issueTypesStore.getByCode(code)?.requires_teat_selection)
 )
 
 function toggleIssueType(value) {
@@ -197,12 +204,20 @@ function toggleIssueType(value) {
 }
 
 // Clear teats when no selected type requires teat selection
-watch(() => form.value.issue_types, (types) => {
-  const needsTeats = types.some((code) => issueTypesStore.getByCode(code)?.requires_teat_selection)
-  if (!needsTeats) form.value.affected_teats = []
-}, { deep: true })
+watch(
+  () => form.value.issue_types,
+  (types) => {
+    const needsTeats = types.some(
+      (code) => issueTypesStore.getByCode(code)?.requires_teat_selection
+    )
+    if (!needsTeats) form.value.affected_teats = []
+  },
+  { deep: true }
+)
 
-onMounted(() => { if (!issueTypesStore.hasData) issueTypesStore.fetchAll() })
+onMounted(() => {
+  if (!issueTypesStore.hasData) issueTypesStore.fetchAll()
+})
 
 async function submit() {
   errors.value = {}
@@ -273,7 +288,9 @@ async function submit() {
   border-radius: var(--radius);
   background: var(--surface);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
   min-height: 80px;
 }
 
@@ -318,7 +335,9 @@ async function submit() {
   font-weight: 700;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
 
 .severity-btn.sev-low.selected {

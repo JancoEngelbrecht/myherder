@@ -30,15 +30,16 @@
         </div>
 
         <button type="submit" class="btn-primary" :disabled="loading || !code.trim()">
-          <span v-if="loading" class="spinner" style="width:18px;height:18px;border-width:2px" />
+          <span
+            v-if="loading"
+            class="spinner"
+            style="width: 18px; height: 18px; border-width: 2px"
+          />
           <span v-else>{{ t('twoFactor.verify') }}</span>
         </button>
       </form>
 
-      <button
-        class="toggle-link"
-        @click="toggleMode"
-      >
+      <button class="toggle-link" @click="toggleMode">
         {{ useRecovery ? t('twoFactor.useAuthenticator') : t('twoFactor.useRecoveryCode') }}
       </button>
     </div>
@@ -96,7 +97,12 @@ async function handleVerify() {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(160deg, var(--primary-dark) 0%, var(--primary) 45%, var(--primary-light) 100%);
+  background: linear-gradient(
+    160deg,
+    var(--primary-dark) 0%,
+    var(--primary) 45%,
+    var(--primary-light) 100%
+  );
 }
 
 .twofa-hero {
@@ -122,7 +128,7 @@ async function handleVerify() {
 
 .twofa-subtitle {
   font-size: 0.9375rem;
-  color: rgba(255,255,255,0.75);
+  color: rgba(255, 255, 255, 0.75);
   margin-top: 4px;
 }
 
@@ -130,7 +136,7 @@ async function handleVerify() {
   background: var(--bg);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   padding: 24px 20px 32px;
-  box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
 }
 
 .twofa-form {

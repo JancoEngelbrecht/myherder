@@ -17,9 +17,13 @@
       <div class="cow-name">{{ cow.name || '—' }}</div>
       <div class="cow-meta">
         {{ breedName }}
-        <template v-if="cow.sex === 'male' && (cow.is_external || cow.purpose === 'ai_semen_donor')">
+        <template
+          v-if="cow.sex === 'male' && (cow.is_external || cow.purpose === 'ai_semen_donor')"
+        >
           <span v-if="cow.is_external" class="bull-tag external">{{ t('cowCard.external') }}</span>
-          <span v-if="cow.purpose === 'ai_semen_donor'" class="bull-tag ai">{{ t('cowCard.aiSemen') }}</span>
+          <span v-if="cow.purpose === 'ai_semen_donor'" class="bull-tag ai">{{
+            t('cowCard.aiSemen')
+          }}</span>
         </template>
       </div>
     </div>
@@ -73,7 +77,9 @@ const lifePhase = computed(() => {
   box-shadow: var(--shadow-card);
   text-decoration: none;
   color: var(--text);
-  transition: transform 0.1s, box-shadow 0.1s;
+  transition:
+    transform 0.1s,
+    box-shadow 0.1s;
   cursor: pointer;
 }
 

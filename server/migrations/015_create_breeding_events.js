@@ -15,9 +15,9 @@ exports.up = function (knex) {
     t.string('sire_id', 36).nullable().references('id').inTable('cows')
     t.string('semen_id', 100).nullable()
     t.string('inseminator', 100).nullable()
-    t.text('heat_signs').nullable()           // JSON string
+    t.text('heat_signs').nullable() // JSON string
     t.enum('preg_check_method', ['manual', 'ultrasound', 'blood_test']).nullable()
-    t.text('calving_details').nullable()      // JSON string
+    t.text('calving_details').nullable() // JSON string
     t.decimal('cost', 10, 2).nullable()
     t.date('expected_next_heat').nullable()
     t.date('expected_preg_check').nullable()

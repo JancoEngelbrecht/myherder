@@ -9,17 +9,24 @@
       </div>
 
       <div v-if="!offline" class="filter-chips">
-        <button v-for="opt in TIME_RANGE_OPTIONS" :key="opt.value"
-          class="chip" :class="{ active: selectedRange === opt.value }"
+        <button
+          v-for="opt in TIME_RANGE_OPTIONS"
+          :key="opt.value"
+          class="chip"
+          :class="{ active: selectedRange === opt.value }"
           :aria-pressed="selectedRange === opt.value"
           @click="selectedRange = opt.value"
-        >{{ t(opt.labelKey) }}</button>
+        >
+          {{ t(opt.labelKey) }}
+        </button>
       </div>
 
       <template v-if="!offline">
         <!-- Stat Chips -->
         <section class="analytics-card">
-          <div v-if="summaryLoading || ageLoading || turnoverLoading" class="center-spinner"><div class="spinner" /></div>
+          <div v-if="summaryLoading || ageLoading || turnoverLoading" class="center-spinner">
+            <div class="spinner" />
+          </div>
           <div v-else class="stat-chips" @click="toggleChip">
             <div class="stat-chip">
               <span class="stat-value mono">{{ herdSummary.total }}</span>
@@ -39,13 +46,17 @@
             </div>
             <div class="stat-chip">
               <span class="stat-value mono" :class="replacementRateClass">
-                {{ herdSummary.replacement_rate != null ? herdSummary.replacement_rate + '%' : '—' }}
+                {{
+                  herdSummary.replacement_rate != null ? herdSummary.replacement_rate + '%' : '—'
+                }}
               </span>
               <span class="stat-label">{{ t('analytics.structure.replacementRate') }}</span>
             </div>
             <div class="stat-chip">
               <span class="stat-value mono">{{ avgAge != null ? avgAge : '—' }}</span>
-              <span class="stat-label">{{ t('analytics.structure.avgAge') }} ({{ t('analytics.structure.years') }})</span>
+              <span class="stat-label"
+                >{{ t('analytics.structure.avgAge') }} ({{ t('analytics.structure.years') }})</span
+              >
             </div>
             <div class="stat-chip">
               <span class="stat-value mono" :class="turnoverRateClass">
@@ -101,8 +112,8 @@
           <div v-if="turnoverLoading" class="center-spinner"><div class="spinner" /></div>
           <template v-else-if="turnoverData && turnoverData.months.length > 0">
             <p class="chart-subtitle mono">
-              {{ t('analytics.structure.totalAdditions') }}: {{ turnoverData.total_additions }}
-              · {{ t('analytics.structure.totalRemovals') }}: {{ turnoverData.total_removals }}
+              {{ t('analytics.structure.totalAdditions') }}: {{ turnoverData.total_additions }} ·
+              {{ t('analytics.structure.totalRemovals') }}: {{ turnoverData.total_removals }}
             </p>
             <div class="chart-wrap">
               <Bar :data="turnoverChart" :options="barChartOptions" />
@@ -151,9 +162,13 @@ import '../../assets/analytics.css'
 import api from '../../services/api.js'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import {
-  useAnalytics, chartColors, formatMonth,
-  lineChartOptions, barChartOptions,
-  useTimeRange, TIME_RANGE_OPTIONS,
+  useAnalytics,
+  chartColors,
+  formatMonth,
+  lineChartOptions,
+  barChartOptions,
+  useTimeRange,
+  TIME_RANGE_OPTIONS,
 } from '../../composables/useAnalytics.js'
 
 const { offline, handleError, t } = useAnalytics()
@@ -167,7 +182,16 @@ function toggleChip(e) {
 // ── State ─────────────────────────────────────────────
 
 const summaryLoading = ref(true)
-const herdSummary = ref({ total: 0, by_status: [], milking_count: 0, dry_count: 0, heifer_count: 0, males: 0, females: 0, replacement_rate: 0 })
+const herdSummary = ref({
+  total: 0,
+  by_status: [],
+  milking_count: 0,
+  dry_count: 0,
+  heifer_count: 0,
+  males: 0,
+  females: 0,
+  replacement_rate: 0,
+})
 
 const ageLoading = ref(true)
 const ageData = ref(null)
@@ -219,8 +243,14 @@ const statusColors = {
 }
 
 const doughnutColors = [
-  chartColors.primary, chartColors.info, chartColors.purple,
-  chartColors.warning, chartColors.danger, '#F59E0B', '#EC4899', '#14B8A6',
+  chartColors.primary,
+  chartColors.info,
+  chartColors.purple,
+  chartColors.warning,
+  chartColors.danger,
+  '#F59E0B',
+  '#EC4899',
+  '#14B8A6',
 ]
 
 const doughnutOptions = {
@@ -256,25 +286,27 @@ const mortalityOptions = computed(() => ({
 // ── Chart data ────────────────────────────────────────
 
 const statusChart = computed(() => ({
-  labels: herdSummary.value.by_status.map(s => s.status),
-  datasets: [{
-    data: herdSummary.value.by_status.map(s => s.count),
-    backgroundColor: herdSummary.value.by_status.map(s => statusColors[s.status] || '#9CA3AF'),
-  }],
+  labels: herdSummary.value.by_status.map((s) => s.status),
+  datasets: [
+    {
+      data: herdSummary.value.by_status.map((s) => s.count),
+      backgroundColor: herdSummary.value.by_status.map((s) => statusColors[s.status] || '#9CA3AF'),
+    },
+  ],
 }))
 
 const ageChart = computed(() => ({
-  labels: (ageData.value?.brackets || []).map(b => b.label),
+  labels: (ageData.value?.brackets || []).map((b) => b.label),
   datasets: [
     {
       label: t('analytics.structure.males'),
-      data: (ageData.value?.brackets || []).map(b => b.males),
+      data: (ageData.value?.brackets || []).map((b) => b.males),
       backgroundColor: chartColors.info,
       borderRadius: 4,
     },
     {
       label: t('analytics.structure.females'),
-      data: (ageData.value?.brackets || []).map(b => b.females),
+      data: (ageData.value?.brackets || []).map((b) => b.females),
       backgroundColor: chartColors.primary,
       borderRadius: 4,
     },
@@ -282,25 +314,27 @@ const ageChart = computed(() => ({
 }))
 
 const breedChart = computed(() => ({
-  labels: (breedData.value?.breeds || []).map(b => b.name),
-  datasets: [{
-    data: (breedData.value?.breeds || []).map(b => b.count),
-    backgroundColor: doughnutColors.slice(0, (breedData.value?.breeds || []).length),
-  }],
+  labels: (breedData.value?.breeds || []).map((b) => b.name),
+  datasets: [
+    {
+      data: (breedData.value?.breeds || []).map((b) => b.count),
+      backgroundColor: doughnutColors.slice(0, (breedData.value?.breeds || []).length),
+    },
+  ],
 }))
 
 const turnoverChart = computed(() => ({
-  labels: (turnoverData.value?.months || []).map(m => formatMonth(m.month)),
+  labels: (turnoverData.value?.months || []).map((m) => formatMonth(m.month)),
   datasets: [
     {
       label: t('analytics.structure.additions'),
-      data: (turnoverData.value?.months || []).map(m => m.additions),
+      data: (turnoverData.value?.months || []).map((m) => m.additions),
       backgroundColor: chartColors.primary,
       borderRadius: 4,
     },
     {
       label: t('analytics.structure.removals'),
-      data: (turnoverData.value?.months || []).map(m => m.removals),
+      data: (turnoverData.value?.months || []).map((m) => m.removals),
       backgroundColor: chartColors.danger,
       borderRadius: 4,
     },
@@ -308,17 +342,17 @@ const turnoverChart = computed(() => ({
 }))
 
 const mortalityChart = computed(() => ({
-  labels: (mortalityData.value?.months || []).map(m => formatMonth(m.month)),
+  labels: (mortalityData.value?.months || []).map((m) => formatMonth(m.month)),
   datasets: [
     {
       label: t('analytics.structure.sold'),
-      data: (mortalityData.value?.months || []).map(m => m.sold),
+      data: (mortalityData.value?.months || []).map((m) => m.sold),
       backgroundColor: chartColors.warning,
       borderRadius: 4,
     },
     {
       label: t('analytics.structure.dead'),
-      data: (mortalityData.value?.months || []).map(m => m.dead),
+      data: (mortalityData.value?.months || []).map((m) => m.dead),
       backgroundColor: chartColors.danger,
       borderRadius: 4,
     },
@@ -326,15 +360,17 @@ const mortalityChart = computed(() => ({
 }))
 
 const trendChart = computed(() => ({
-  labels: (trendData.value?.months || []).map(m => formatMonth(m.month)),
-  datasets: [{
-    label: t('analytics.structure.herdSizeTrend'),
-    data: (trendData.value?.months || []).map(m => m.total),
-    borderColor: chartColors.primary,
-    backgroundColor: chartColors.primaryLight,
-    fill: true,
-    tension: 0.3,
-  }],
+  labels: (trendData.value?.months || []).map((m) => formatMonth(m.month)),
+  datasets: [
+    {
+      label: t('analytics.structure.herdSizeTrend'),
+      data: (trendData.value?.months || []).map((m) => m.total),
+      borderColor: chartColors.primary,
+      backgroundColor: chartColors.primaryLight,
+      fill: true,
+      tension: 0.3,
+    },
+  ],
 }))
 
 // ── Fetch data ────────────────────────────────────────
@@ -351,31 +387,52 @@ function loadData() {
   mortalityLoading.value = true
   trendLoading.value = true
 
-  api.get(`/analytics/herd-turnover${params}`)
-    .then(r => { turnoverData.value = r.data })
+  api
+    .get(`/analytics/herd-turnover${params}`)
+    .then((r) => {
+      turnoverData.value = r.data
+    })
     .catch(handleError)
-    .finally(() => { turnoverLoading.value = false })
+    .finally(() => {
+      turnoverLoading.value = false
+    })
 
-  api.get(`/analytics/mortality-rate${params}`)
-    .then(r => { mortalityData.value = r.data })
+  api
+    .get(`/analytics/mortality-rate${params}`)
+    .then((r) => {
+      mortalityData.value = r.data
+    })
     .catch(handleError)
-    .finally(() => { mortalityLoading.value = false })
+    .finally(() => {
+      mortalityLoading.value = false
+    })
 
-  api.get(`/analytics/herd-size-trend${params}`)
-    .then(r => { trendData.value = r.data })
+  api
+    .get(`/analytics/herd-size-trend${params}`)
+    .then((r) => {
+      trendData.value = r.data
+    })
     .catch(handleError)
-    .finally(() => { trendLoading.value = false })
+    .finally(() => {
+      trendLoading.value = false
+    })
 }
 
 onMounted(() => {
   // Snapshot endpoints — fetch once, not affected by time range
-  api.get('/analytics/herd-summary')
-    .then(r => { herdSummary.value = r.data })
+  api
+    .get('/analytics/herd-summary')
+    .then((r) => {
+      herdSummary.value = r.data
+    })
     .catch(handleError)
-    .finally(() => { summaryLoading.value = false })
+    .finally(() => {
+      summaryLoading.value = false
+    })
 
-  api.get('/analytics/age-distribution')
-    .then(r => {
+  api
+    .get('/analytics/age-distribution')
+    .then((r) => {
       ageData.value = r.data
       const midpoints = { '0-1yr': 0.5, '1-2yr': 1.5, '2-5yr': 3.5, '5-8yr': 6.5, '8+yr': 10 }
       let totalAge = 0
@@ -389,12 +446,19 @@ onMounted(() => {
       avgAge.value = known > 0 ? Math.round((totalAge / known) * 10) / 10 : null
     })
     .catch(handleError)
-    .finally(() => { ageLoading.value = false })
+    .finally(() => {
+      ageLoading.value = false
+    })
 
-  api.get('/analytics/breed-composition')
-    .then(r => { breedData.value = r.data })
+  api
+    .get('/analytics/breed-composition')
+    .then((r) => {
+      breedData.value = r.data
+    })
     .catch(handleError)
-    .finally(() => { breedLoading.value = false })
+    .finally(() => {
+      breedLoading.value = false
+    })
 
   // Time-sensitive endpoints — initial load
   loadData()

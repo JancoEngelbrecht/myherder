@@ -1,6 +1,7 @@
 # Tech Debt Phase 3 — Test Hardening + Minor Security
 
 ## Goal
+
 Add high-value tests for untested business logic, remove zero-value tests, and add TOTP replay protection. No file splitting in this phase (deferred — high blast radius, lower urgency).
 
 **Note:** No frontend source changes — `client/dist` rebuild NOT required.
@@ -47,12 +48,14 @@ Add high-value tests for untested business logic, remove zero-value tests, and a
 **File:** `server/tests/sync.test.js` — add tests to existing file.
 
 **Test cases:**
+
 1. Worker A creates a milk record → Worker B tries to update it via sync push → status: 'error', error: 'Cannot modify records owned by another user'
 2. Worker A creates a milk record → Worker B tries to delete it via sync push → status: 'error', same message
 3. Admin can update any worker's record → status: 'applied' (admin bypass)
 4. Worker A can update their OWN record → status: 'applied'
 
 **Implementation notes:**
+
 - The sync test setup already creates admin and worker tokens
 - Need a second worker user for cross-ownership tests
 - Entity type `milkRecords` has `ownerField: 'recorded_by'` in the ENTITY_CONFIG
@@ -70,6 +73,7 @@ Add high-value tests for untested business logic, remove zero-value tests, and a
 **File:** `server/tests/withdrawalService.test.js` — add 1 test case.
 
 **Test case:**
+
 ```js
 it('combines hours and days for both milk and meat', () => {
   const { withdrawalEndMilk, withdrawalEndMeat } = calcWithdrawalDates(BASE, 12, 2, 6, 3)
@@ -105,9 +109,10 @@ it('combines hours and days for both milk and meat', () => {
 **Fix:** In-memory LRU cache of recently used TOTP codes per user. After successful verification, store `(userId, code)` with a 90-second TTL. Reject if the same `(userId, code)` pair is found.
 
 **Implementation:**
+
 - Add a `Map` at module level in `server/routes/auth.js`:
   ```js
-  const usedTotpCodes = new Map()  // key: `${userId}:${code}`, value: expiry timestamp
+  const usedTotpCodes = new Map() // key: `${userId}:${code}`, value: expiry timestamp
   ```
 - After successful `totp.validate()` in both `verify-2fa` and `confirm-2fa`:
   ```js
@@ -116,19 +121,23 @@ it('combines hours and days for both milk and meat', () => {
   if (usedTotpCodes.has(cacheKey) && usedTotpCodes.get(cacheKey) > now) {
     return res.status(401).json({ error: 'Code already used' })
   }
-  usedTotpCodes.set(cacheKey, now + 90000)  // 90s TTL
+  usedTotpCodes.set(cacheKey, now + 90000) // 90s TTL
   ```
 - Add periodic cleanup to avoid memory leak (run every 5 min, delete expired entries):
   ```js
-  setInterval(() => {
-    const now = Date.now()
-    for (const [key, expiry] of usedTotpCodes) {
-      if (expiry <= now) usedTotpCodes.delete(key)
-    }
-  }, 5 * 60 * 1000).unref()
+  setInterval(
+    () => {
+      const now = Date.now()
+      for (const [key, expiry] of usedTotpCodes) {
+        if (expiry <= now) usedTotpCodes.delete(key)
+      }
+    },
+    5 * 60 * 1000
+  ).unref()
   ```
 
 **Verification:**
+
 - `npx jest server/tests/auth.test.js` passes
 - Add a test: call `verify-2fa` twice with the same valid code → first succeeds, second returns 401
 

@@ -5,7 +5,9 @@
     <div class="page-content med-content">
       <!-- Add / Edit Form -->
       <div v-if="showForm" class="card form-card">
-        <h3 class="form-title">{{ editing ? $t('medications.editTitle') : $t('medications.addTitle') }}</h3>
+        <h3 class="form-title">
+          {{ editing ? $t('medications.editTitle') : $t('medications.addTitle') }}
+        </h3>
         <form @submit.prevent="save">
           <div class="form-group">
             <label for="med-name">{{ $t('medications.name') }} *</label>
@@ -119,7 +121,9 @@
           <p v-if="formError" class="form-error">{{ formError }}</p>
 
           <div class="form-actions">
-            <button type="button" class="btn-secondary" @click="cancelForm">{{ $t('common.cancel') }}</button>
+            <button type="button" class="btn-secondary" @click="cancelForm">
+              {{ $t('common.cancel') }}
+            </button>
             <button type="submit" class="btn-primary" :disabled="saving">
               {{ saving ? $t('common.saving') : $t('common.save') }}
             </button>
@@ -155,7 +159,9 @@
           <div class="med-header">
             <div>
               <span class="med-name">{{ med.name }}</span>
-              <span v-if="med.active_ingredient" class="med-ingredient">{{ med.active_ingredient }}</span>
+              <span v-if="med.active_ingredient" class="med-ingredient">{{
+                med.active_ingredient
+              }}</span>
             </div>
             <span class="badge" :class="med.is_active ? 'badge-active' : 'badge-inactive'">
               {{ med.is_active ? $t('common.active') : $t('common.inactive') }}
@@ -163,30 +169,58 @@
           </div>
 
           <div data-tour="med-withdrawal" class="withdrawal-info">
-            <span v-if="med.withdrawal_milk_hours > 0 || med.withdrawal_milk_days > 0" class="withdrawal-pill milk">
-              🥛 <template v-if="med.withdrawal_milk_days > 0">{{ med.withdrawal_milk_days }}d </template><template v-if="med.withdrawal_milk_hours > 0">{{ med.withdrawal_milk_hours }}h </template>{{ $t('medications.milkWithdrawal') }}
+            <span
+              v-if="med.withdrawal_milk_hours > 0 || med.withdrawal_milk_days > 0"
+              class="withdrawal-pill milk"
+            >
+              🥛
+              <template v-if="med.withdrawal_milk_days > 0"
+                >{{ med.withdrawal_milk_days }}d </template
+              ><template v-if="med.withdrawal_milk_hours > 0"
+                >{{ med.withdrawal_milk_hours }}h </template
+              >{{ $t('medications.milkWithdrawal') }}
             </span>
-            <span v-if="med.withdrawal_meat_hours > 0 || med.withdrawal_meat_days > 0" class="withdrawal-pill meat">
-              🥩 <template v-if="med.withdrawal_meat_days > 0">{{ med.withdrawal_meat_days }}d </template><template v-if="med.withdrawal_meat_hours > 0">{{ med.withdrawal_meat_hours }}h </template>{{ $t('medications.meatWithdrawal') }}
+            <span
+              v-if="med.withdrawal_meat_hours > 0 || med.withdrawal_meat_days > 0"
+              class="withdrawal-pill meat"
+            >
+              🥩
+              <template v-if="med.withdrawal_meat_days > 0"
+                >{{ med.withdrawal_meat_days }}d </template
+              ><template v-if="med.withdrawal_meat_hours > 0"
+                >{{ med.withdrawal_meat_hours }}h </template
+              >{{ $t('medications.meatWithdrawal') }}
             </span>
-            <span v-if="med.withdrawal_milk_hours === 0 && med.withdrawal_milk_days === 0 && med.withdrawal_meat_hours === 0 && med.withdrawal_meat_days === 0" class="withdrawal-pill none">
+            <span
+              v-if="
+                med.withdrawal_milk_hours === 0 &&
+                med.withdrawal_milk_days === 0 &&
+                med.withdrawal_meat_hours === 0 &&
+                med.withdrawal_meat_days === 0
+              "
+              class="withdrawal-pill none"
+            >
               {{ $t('medications.noWithdrawal') }}
             </span>
           </div>
 
           <div v-if="med.default_dosage" class="med-dosage">
             {{ $t('medications.defaultDosage') }}:
-            <span class="mono">{{ parseFloat(med.default_dosage) }}{{ med.unit ? ` ${med.unit}` : '' }}</span>
+            <span class="mono"
+              >{{ parseFloat(med.default_dosage) }}{{ med.unit ? ` ${med.unit}` : '' }}</span
+            >
           </div>
 
           <div class="med-actions">
-            <button class="btn-secondary btn-sm" @click="openEdit(med)">{{ $t('common.edit') }}</button>
-            <button
-              v-if="med.is_active"
-              class="btn-danger btn-sm"
-              @click="confirmDeactivate(med)"
-            >{{ $t('medications.deactivate') }}</button>
-            <button class="btn-danger btn-sm" @click="confirmDelete(med)">{{ $t('common.delete') }}</button>
+            <button class="btn-secondary btn-sm" @click="openEdit(med)">
+              {{ $t('common.edit') }}
+            </button>
+            <button v-if="med.is_active" class="btn-danger btn-sm" @click="confirmDeactivate(med)">
+              {{ $t('medications.deactivate') }}
+            </button>
+            <button class="btn-danger btn-sm" @click="confirmDelete(med)">
+              {{ $t('common.delete') }}
+            </button>
           </div>
         </div>
       </div>
@@ -203,7 +237,15 @@
     </div>
 
     <!-- FAB -->
-    <button v-if="!showForm" data-tour="med-add" class="fab" :title="$t('medications.addMedication')" @click="openAdd">+</button>
+    <button
+      v-if="!showForm"
+      data-tour="med-add"
+      class="fab"
+      :title="$t('medications.addMedication')"
+      @click="openAdd"
+    >
+      +
+    </button>
 
     <TourButton above-fab @start-tour="startTour" />
 
@@ -221,7 +263,9 @@
     <!-- Deactivate ConfirmDialog -->
     <ConfirmDialog
       :show="!!deactivateTarget"
-      :message="deactivateTarget ? $t('medications.deactivateConfirm', { name: deactivateTarget.name }) : ''"
+      :message="
+        deactivateTarget ? $t('medications.deactivateConfirm', { name: deactivateTarget.name }) : ''
+      "
       :confirm-label="$t('medications.deactivate')"
       :cancel-label="$t('common.cancel')"
       :loading="deactivating"
@@ -247,36 +291,40 @@ import { useTour } from '../../composables/useTour'
 const { t } = useI18n()
 const { showToast } = useToast()
 
-const { startTour } = useTour('medication-management', () => [
-  {
-    element: '[data-tour="med-search"]',
-    popover: {
-      title: t('tour.medicationManagement.search.title'),
-      description: t('tour.medicationManagement.search.desc'),
-    }
-  },
-  {
-    element: '[data-tour="med-list"]',
-    popover: {
-      title: t('tour.medicationManagement.list.title'),
-      description: t('tour.medicationManagement.list.desc'),
-    }
-  },
-  {
-    element: '[data-tour="med-withdrawal"]',
-    popover: {
-      title: t('tour.medicationManagement.withdrawal.title'),
-      description: t('tour.medicationManagement.withdrawal.desc'),
-    }
-  },
-  {
-    element: '[data-tour="med-add"]',
-    popover: {
-      title: t('tour.medicationManagement.add.title'),
-      description: t('tour.medicationManagement.add.desc'),
-    }
-  },
-], { autoStart: false })
+const { startTour } = useTour(
+  'medication-management',
+  () => [
+    {
+      element: '[data-tour="med-search"]',
+      popover: {
+        title: t('tour.medicationManagement.search.title'),
+        description: t('tour.medicationManagement.search.desc'),
+      },
+    },
+    {
+      element: '[data-tour="med-list"]',
+      popover: {
+        title: t('tour.medicationManagement.list.title'),
+        description: t('tour.medicationManagement.list.desc'),
+      },
+    },
+    {
+      element: '[data-tour="med-withdrawal"]',
+      popover: {
+        title: t('tour.medicationManagement.withdrawal.title'),
+        description: t('tour.medicationManagement.withdrawal.desc'),
+      },
+    },
+    {
+      element: '[data-tour="med-add"]',
+      popover: {
+        title: t('tour.medicationManagement.add.title'),
+        description: t('tour.medicationManagement.add.desc'),
+      },
+    },
+  ],
+  { autoStart: false }
+)
 const store = useMedicationsStore()
 
 const loading = computed(() => store.loading)
@@ -287,7 +335,11 @@ const page = ref(1)
 const limit = ref(20)
 
 function loadMedications() {
-  store.fetchAll(true, { search: searchQuery.value || undefined, page: page.value, limit: limit.value })
+  store.fetchAll(true, {
+    search: searchQuery.value || undefined,
+    page: page.value,
+    limit: limit.value,
+  })
 }
 
 function onSearch() {
@@ -375,7 +427,10 @@ async function save() {
       withdrawal_milk_days: form.value.withdrawal_milk_days,
       withdrawal_meat_hours: form.value.withdrawal_meat_hours,
       withdrawal_meat_days: form.value.withdrawal_meat_days,
-      default_dosage: form.value.default_dosage != null && form.value.default_dosage !== '' ? form.value.default_dosage : null,
+      default_dosage:
+        form.value.default_dosage != null && form.value.default_dosage !== ''
+          ? form.value.default_dosage
+          : null,
       unit: form.value.unit || null,
       notes: form.value.notes || null,
       is_active: form.value.is_active ?? true,
@@ -431,7 +486,6 @@ async function doDelete() {
 .med-content {
   padding-bottom: 100px;
 }
-
 
 .form-card {
   margin: 0 auto 20px;
@@ -583,5 +637,4 @@ async function doDelete() {
   background: var(--border);
   color: var(--text-secondary);
 }
-
 </style>

@@ -1,9 +1,6 @@
 <template>
   <div class="page">
-    <AppHeader
-      :title="t('treatmentDetail.title')"
-      :show-back="true"
-    />
+    <AppHeader :title="t('treatmentDetail.title')" :show-back="true" />
 
     <div class="page-content">
       <div v-if="loading" class="center-spinner">
@@ -12,7 +9,9 @@
 
       <div v-else-if="error" class="error-state">
         <p>{{ error }}</p>
-        <button class="btn-secondary" style="width:auto;margin-top:8px" @click="load">{{ t('common.retry') }}</button>
+        <button class="btn-secondary" style="width: auto; margin-top: 8px" @click="load">
+          {{ t('common.retry') }}
+        </button>
       </div>
 
       <template v-else-if="treatment">
@@ -49,12 +48,20 @@
         <!-- Withdrawal (only if applicable) -->
         <div v-if="treatment.withdrawal_end_milk || treatment.withdrawal_end_meat" class="card">
           <h3 class="section-label">{{ t('treatmentDetail.withdrawal') }}</h3>
-          <div v-if="treatment.withdrawal_end_milk" class="withdrawal-row" :class="{ active: isMilkActive }">
+          <div
+            v-if="treatment.withdrawal_end_milk"
+            class="withdrawal-row"
+            :class="{ active: isMilkActive }"
+          >
             🥛 {{ t('cowDetail.milkClear') }}:
             <span class="mono">{{ formatDateTime(treatment.withdrawal_end_milk) }}</span>
             <span v-if="isMilkActive" class="active-tag">{{ t('treatmentDetail.active') }}</span>
           </div>
-          <div v-if="treatment.withdrawal_end_meat" class="withdrawal-row" :class="{ active: isMeatActive }">
+          <div
+            v-if="treatment.withdrawal_end_meat"
+            class="withdrawal-row"
+            :class="{ active: isMeatActive }"
+          >
             🥩 {{ t('treatments.meatClear') }}:
             <span class="mono">{{ formatDateTime(treatment.withdrawal_end_meat) }}</span>
             <span v-if="isMeatActive" class="active-tag">{{ t('treatmentDetail.active') }}</span>
@@ -75,7 +82,9 @@
             </div>
             <div class="detail-item">
               <span class="detail-label">{{ t('treatments.isVetVisit') }}</span>
-              <span class="detail-value">{{ treatment.is_vet_visit ? t('common.yes') : t('common.no') }}</span>
+              <span class="detail-value">{{
+                treatment.is_vet_visit ? t('common.yes') : t('common.no')
+              }}</span>
             </div>
             <div v-if="treatment.vet_name" class="detail-item">
               <span class="detail-label">{{ t('treatments.vetName') }}</span>
@@ -90,9 +99,7 @@
 
         <!-- Admin delete -->
         <div v-if="authStore.isAdmin" class="action-row">
-          <button class="btn-danger" @click="confirmDelete">
-            🗑 {{ t('common.delete') }}
-          </button>
+          <button class="btn-danger" @click="confirmDelete">🗑 {{ t('common.delete') }}</button>
         </div>
       </template>
     </div>
@@ -132,10 +139,14 @@ const showDeleteDialog = ref(false)
 const deleting = ref(false)
 
 const isMilkActive = computed(
-  () => treatment.value?.withdrawal_end_milk && new Date(treatment.value.withdrawal_end_milk) > new Date(),
+  () =>
+    treatment.value?.withdrawal_end_milk &&
+    new Date(treatment.value.withdrawal_end_milk) > new Date()
 )
 const isMeatActive = computed(
-  () => treatment.value?.withdrawal_end_meat && new Date(treatment.value.withdrawal_end_meat) > new Date(),
+  () =>
+    treatment.value?.withdrawal_end_meat &&
+    new Date(treatment.value.withdrawal_end_meat) > new Date()
 )
 
 async function load() {
@@ -339,5 +350,4 @@ async function handleDelete() {
 .action-row > * {
   width: 100%;
 }
-
 </style>

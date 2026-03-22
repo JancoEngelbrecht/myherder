@@ -11,9 +11,7 @@ const { randomUUID } = require('crypto')
  * Idempotent: skips if a super_admin user already exists.
  */
 exports.seed = async function (knex) {
-  const existing = await knex('users')
-    .where({ role: 'super_admin' })
-    .first()
+  const existing = await knex('users').where({ role: 'super_admin' }).first()
 
   if (existing) {
     console.log('Super admin already exists — skipping seed.')
@@ -24,7 +22,7 @@ exports.seed = async function (knex) {
   if (!password) {
     throw new Error(
       'SUPER_ADMIN_PASSWORD env var is required for production seed. ' +
-      'Set it before running: npx knex seed:run --env production'
+        'Set it before running: npx knex seed:run --env production'
     )
   }
   if (password.length < 12) {

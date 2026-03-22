@@ -57,7 +57,7 @@ describe('logAudit()', () => {
         action: 'create',
         entityType: 'test',
         entityId: 'test-1',
-      }),
+      })
     ).resolves.not.toThrow()
   })
 })
@@ -91,16 +91,12 @@ describe('GET /api/audit-log', () => {
   })
 
   it('returns 403 for a worker token', async () => {
-    const res = await request(app)
-      .get('/api/audit-log')
-      .set('Authorization', workerToken())
+    const res = await request(app).get('/api/audit-log').set('Authorization', workerToken())
     expect(res.status).toBe(403)
   })
 
   it('returns paginated results with total', async () => {
-    const res = await request(app)
-      .get('/api/audit-log')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/audit-log').set('Authorization', adminToken())
     expect(res.status).toBe(200)
     expect(res.body).toHaveProperty('data')
     expect(res.body).toHaveProperty('total', 30)
@@ -138,9 +134,7 @@ describe('GET /api/audit-log', () => {
   })
 
   it('parses JSON old_values and new_values', async () => {
-    const res = await request(app)
-      .get('/api/audit-log?limit=5')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/audit-log?limit=5').set('Authorization', adminToken())
     expect(res.status).toBe(200)
     res.body.data.forEach((entry) => {
       if (entry.new_values) {
@@ -153,9 +147,7 @@ describe('GET /api/audit-log', () => {
   })
 
   it('returns results ordered by created_at desc', async () => {
-    const res = await request(app)
-      .get('/api/audit-log?limit=5')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/audit-log?limit=5').set('Authorization', adminToken())
     expect(res.status).toBe(200)
     const dates = res.body.data.map((e) => new Date(e.created_at).getTime())
     for (let i = 1; i < dates.length; i++) {
@@ -164,18 +156,14 @@ describe('GET /api/audit-log', () => {
   })
 
   it('includes user info from join', async () => {
-    const res = await request(app)
-      .get('/api/audit-log?limit=1')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/audit-log?limit=1').set('Authorization', adminToken())
     expect(res.status).toBe(200)
     expect(res.body.data[0]).toHaveProperty('user_username')
     expect(res.body.data[0]).toHaveProperty('user_full_name')
   })
 
   it('returns 400 for unknown query param', async () => {
-    const res = await request(app)
-      .get('/api/audit-log?bogus=1')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/audit-log?bogus=1').set('Authorization', adminToken())
     expect(res.status).toBe(400)
   })
 })

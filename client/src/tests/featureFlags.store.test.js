@@ -99,7 +99,11 @@ describe('useFeatureFlagsStore', () => {
 
     it('sets loading true during fetch, false after', async () => {
       let resolveRequest
-      api.get.mockReturnValue(new Promise((resolve) => { resolveRequest = () => resolve({ data: DEFAULTS }) }))
+      api.get.mockReturnValue(
+        new Promise((resolve) => {
+          resolveRequest = () => resolve({ data: DEFAULTS })
+        })
+      )
 
       const store = useFeatureFlagsStore()
       const p = store.fetchFlags()
@@ -145,5 +149,4 @@ describe('useFeatureFlagsStore', () => {
       expect(store.flags.breeding).toBe(true)
     })
   })
-
 })

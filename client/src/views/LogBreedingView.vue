@@ -116,11 +116,7 @@
         <template v-if="form.event_type === 'preg_check_positive'">
           <div class="form-group">
             <label>{{ t('breeding.form.expectedCalving') }}</label>
-            <input
-              v-model="form.expected_calving"
-              type="date"
-              class="form-input"
-            />
+            <input v-model="form.expected_calving" type="date" class="form-input" />
             <span v-if="prefillSource" class="field-hint">{{ prefillSource }}</span>
           </div>
           <div v-if="computedDryOff" class="auto-dates-preview card">
@@ -161,13 +157,17 @@
                 class="method-btn"
                 :class="{ active: form.calving_details.calf_sex === 'female' }"
                 @click="form.calving_details.calf_sex = 'female'"
-              >{{ speciesEmoji.female }} {{ t('sex.female') }}</button>
+              >
+                {{ speciesEmoji.female }} {{ t('sex.female') }}
+              </button>
               <button
                 type="button"
                 class="method-btn"
                 :class="{ active: form.calving_details.calf_sex === 'male' }"
                 @click="form.calving_details.calf_sex = 'male'"
-              >{{ speciesEmoji.male }} {{ t('sex.male') }}</button>
+              >
+                {{ speciesEmoji.male }} {{ t('sex.male') }}
+              </button>
             </div>
           </div>
           <div class="form-group">
@@ -194,12 +194,19 @@
 
         <!-- Register offspring prompt (shown after save, only for birth events) -->
         <div v-if="showOffspringPrompt" class="offspring-prompt card">
-          <p class="offspring-prompt-text">{{ t('breeding.registerOffspringPrompt', { count: lastSavedOffspringCount }) }}</p>
+          <p class="offspring-prompt-text">
+            {{ t('breeding.registerOffspringPrompt', { count: lastSavedOffspringCount }) }}
+          </p>
           <div class="offspring-prompt-actions">
-            <button type="button" class="btn-primary" style="width:auto" @click="goRegisterOffspring">
+            <button
+              type="button"
+              class="btn-primary"
+              style="width: auto"
+              @click="goRegisterOffspring"
+            >
               {{ t('breeding.registerOffspringYes') }}
             </button>
-            <button type="button" class="btn-secondary" style="width:auto" @click="skipOffspring">
+            <button type="button" class="btn-secondary" style="width: auto" @click="skipOffspring">
               {{ t('breeding.registerOffspringNo') }}
             </button>
           </div>
@@ -283,12 +290,7 @@ const router = useRouter()
 const breedingStore = useBreedingEventsStore()
 const breedTypesStore = useBreedTypesStore()
 const cowsStore = useCowsStore()
-const {
-  speciesCode,
-  emoji: speciesEmoji,
-  typicalMultipleBirths,
-  maxOffspring,
-} = useSpeciesTerms()
+const { speciesCode, emoji: speciesEmoji, typicalMultipleBirths, maxOffspring } = useSpeciesTerms()
 
 const PREG_CHECK_METHODS = ['manual', 'ultrasound', 'blood_test']
 
@@ -339,12 +341,10 @@ const backRoute = computed(() => {
 const isInsemination = computed(() => form.value.event_type === 'ai_insemination')
 
 const isPregCheck = computed(() =>
-  ['preg_check_positive', 'preg_check_negative'].includes(form.value.event_type),
+  ['preg_check_positive', 'preg_check_negative'].includes(form.value.event_type)
 )
 
-const isBirthEvent = computed(() =>
-  ['calving', 'lambing'].includes(form.value.event_type),
-)
+const isBirthEvent = computed(() => ['calving', 'lambing'].includes(form.value.event_type))
 
 // Look up breed timings for the selected cow
 const selectedCowBreed = computed(() => {
@@ -357,11 +357,16 @@ const selectedCowBreed = computed(() => {
 // Find the latest insemination's expected_calving for the selected cow
 function findLatestInsemCalving(cowId) {
   if (!cowId) return null
-  return breedingStore.events
-    .filter((e) => e.cow_id === cowId &&
-      ['ai_insemination', 'bull_service', 'ram_service'].includes(e.event_type) &&
-      e.expected_calving)
-    .sort((a, b) => b.event_date.localeCompare(a.event_date))[0] ?? null
+  return (
+    breedingStore.events
+      .filter(
+        (e) =>
+          e.cow_id === cowId &&
+          ['ai_insemination', 'bull_service', 'ram_service'].includes(e.event_type) &&
+          e.expected_calving
+      )
+      .sort((a, b) => b.event_date.localeCompare(a.event_date))[0] ?? null
+  )
 }
 
 // Compute dry-off date from the entered expected calving date
@@ -388,13 +393,14 @@ watch(
     if (eventType !== 'preg_check_positive' || editMode.value) return
     const insem = findLatestInsemCalving(cowId)
     form.value.expected_calving = insem?.expected_calving ?? ''
-  },
+  }
 )
 
 const autoDates = computed(() => {
   const { event_type, event_date } = form.value
   if (!event_date || !event_type) return null
-  if (!['heat_observed', 'ai_insemination', 'bull_service', 'ram_service'].includes(event_type)) return null
+  if (!['heat_observed', 'ai_insemination', 'bull_service', 'ram_service'].includes(event_type))
+    return null
 
   const bt = selectedCowBreed.value
   const heatCycle = bt?.heat_cycle_days ?? 21
@@ -428,9 +434,8 @@ const autoDates = computed(() => {
   return result
 })
 
-const hasAutoDates = computed(() =>
-  autoDates.value &&
-  (autoDates.value.expected_next_heat || autoDates.value.expected_calving),
+const hasAutoDates = computed(
+  () => autoDates.value && (autoDates.value.expected_next_heat || autoDates.value.expected_calving)
 )
 
 // Reset offspring_count when switching to a birth event type
@@ -440,7 +445,7 @@ watch(
     if (['calving', 'lambing'].includes(eventType)) {
       form.value.offspring_count = typicalMultipleBirths.value
     }
-  },
+  }
 )
 
 function goRegisterOffspring() {
@@ -493,7 +498,8 @@ async function submit() {
 
       if (isBirthEvent.value) {
         const cd = form.value.calving_details
-        payload.calving_details = (cd.calf_sex || cd.calf_tag_number || cd.calf_weight) ? { ...cd } : null
+        payload.calving_details =
+          cd.calf_sex || cd.calf_tag_number || cd.calf_weight ? { ...cd } : null
         payload.offspring_count = form.value.offspring_count || 1
       } else {
         payload.calving_details = null
@@ -521,7 +527,8 @@ async function submit() {
 
       if (isBirthEvent.value) {
         const cd = form.value.calving_details
-        payload.calving_details = (cd.calf_sex || cd.calf_tag_number || cd.calf_weight) ? { ...cd } : null
+        payload.calving_details =
+          cd.calf_sex || cd.calf_tag_number || cd.calf_weight ? { ...cd } : null
         payload.offspring_count = form.value.offspring_count || 1
       }
 
@@ -603,9 +610,10 @@ onMounted(async () => {
       form.value.notes = data.notes ?? ''
 
       if (data.calving_details) {
-        const cd = typeof data.calving_details === 'string'
-          ? JSON.parse(data.calving_details)
-          : data.calving_details
+        const cd =
+          typeof data.calving_details === 'string'
+            ? JSON.parse(data.calving_details)
+            : data.calving_details
         form.value.calving_details = {
           calf_sex: cd.calf_sex ?? null,
           calf_tag_number: cd.calf_tag_number ?? '',
@@ -776,5 +784,4 @@ onMounted(async () => {
   gap: 0.5rem;
   flex-wrap: wrap;
 }
-
 </style>

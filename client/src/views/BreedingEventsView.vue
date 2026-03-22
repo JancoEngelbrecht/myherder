@@ -11,7 +11,9 @@
           class="chip"
           :class="{ active: eventFilter === f.value }"
           @click="setEventFilter(f.value)"
-        >{{ f.label }}</button>
+        >
+          {{ f.label }}
+        </button>
       </div>
 
       <!-- Advanced filters toggle -->
@@ -27,10 +29,38 @@
           <span class="filter-group-title">{{ t('breeding.filterGroupCow') }}</span>
           <CowSearchDropdown v-model="cowFilter" :placeholder="t('breeding.form.cowPlaceholder')" />
           <div class="filter-chips filter-chips-wrap">
-            <button class="chip" :class="{ active: cowStatusFilter === '' }" :aria-pressed="cowStatusFilter === ''" @click="setCowStatusFilter('')">{{ t('cows.filterAll') }}</button>
-            <button class="chip" :class="{ active: cowStatusFilter === 'active' }" :aria-pressed="cowStatusFilter === 'active'" @click="setCowStatusFilter('active')">{{ t('status.active') }}</button>
-            <button class="chip" :class="{ active: cowStatusFilter === 'pregnant' }" :aria-pressed="cowStatusFilter === 'pregnant'" @click="setCowStatusFilter('pregnant')">{{ t('status.pregnant') }}</button>
-            <button class="chip" :class="{ active: cowStatusFilter === 'dry' }" :aria-pressed="cowStatusFilter === 'dry'" @click="setCowStatusFilter('dry')">{{ t('breeding.filterDry') }}</button>
+            <button
+              class="chip"
+              :class="{ active: cowStatusFilter === '' }"
+              :aria-pressed="cowStatusFilter === ''"
+              @click="setCowStatusFilter('')"
+            >
+              {{ t('cows.filterAll') }}
+            </button>
+            <button
+              class="chip"
+              :class="{ active: cowStatusFilter === 'active' }"
+              :aria-pressed="cowStatusFilter === 'active'"
+              @click="setCowStatusFilter('active')"
+            >
+              {{ t('status.active') }}
+            </button>
+            <button
+              class="chip"
+              :class="{ active: cowStatusFilter === 'pregnant' }"
+              :aria-pressed="cowStatusFilter === 'pregnant'"
+              @click="setCowStatusFilter('pregnant')"
+            >
+              {{ t('status.pregnant') }}
+            </button>
+            <button
+              class="chip"
+              :class="{ active: cowStatusFilter === 'dry' }"
+              :aria-pressed="cowStatusFilter === 'dry'"
+              @click="setCowStatusFilter('dry')"
+            >
+              {{ t('breeding.filterDry') }}
+            </button>
           </div>
         </div>
 
@@ -42,9 +72,19 @@
           <div class="filter-range-row">
             <span class="filter-label">{{ t('breeding.filterEventDate') }}</span>
             <div class="filter-range-inputs">
-              <input v-model="dateFrom" type="date" class="form-input filter-date-input" @change="onAdvancedChange" />
+              <input
+                v-model="dateFrom"
+                type="date"
+                class="form-input filter-date-input"
+                @change="onAdvancedChange"
+              />
               <span class="filter-sep">–</span>
-              <input v-model="dateTo" type="date" class="form-input filter-date-input" @change="onAdvancedChange" />
+              <input
+                v-model="dateTo"
+                type="date"
+                class="form-input filter-date-input"
+                @change="onAdvancedChange"
+              />
             </div>
           </div>
         </div>
@@ -87,7 +127,9 @@
     </div>
 
     <!-- FAB -->
-    <RouterLink to="/breed/log?from=/breed/events" class="fab" :title="t('breeding.logEvent')">+</RouterLink>
+    <RouterLink to="/breed/log?from=/breed/events" class="fab" :title="t('breeding.logEvent')"
+      >+</RouterLink
+    >
 
     <!-- Confirm delete -->
     <ConfirmDialog

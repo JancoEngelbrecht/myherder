@@ -5,7 +5,10 @@
     <div class="page-content">
       <!-- Greeting -->
       <div class="greeting">
-        <p class="greeting-text">{{ t('dashboard.greeting') }}, <strong>{{ authStore.user?.full_name || authStore.user?.username }}</strong> 👋</p>
+        <p class="greeting-text">
+          {{ t('dashboard.greeting') }},
+          <strong>{{ authStore.user?.full_name || authStore.user?.username }}</strong> 👋
+        </p>
       </div>
 
       <!-- Super-admin without farm context -->
@@ -51,74 +54,104 @@
 
       <!-- Normal farm dashboard -->
       <template v-else>
-
-      <!-- Herd Summary -->
-      <div v-if="!summaryLoading && hasPermission('can_view_analytics')" data-tour="dashboard-stats" class="stats-row">
-        <div class="stat-chip stat-active">
-          <span class="stat-count">{{ summary.active ?? '—' }}</span>
-          <span class="stat-label">{{ t('dashboard.active') }}</span>
+        <!-- Herd Summary -->
+        <div
+          v-if="!summaryLoading && hasPermission('can_view_analytics')"
+          data-tour="dashboard-stats"
+          class="stats-row"
+        >
+          <div class="stat-chip stat-active">
+            <span class="stat-count">{{ summary.active ?? '—' }}</span>
+            <span class="stat-label">{{ t('dashboard.active') }}</span>
+          </div>
+          <div class="stat-chip stat-dry">
+            <span class="stat-count">{{ summary.dry ?? '—' }}</span>
+            <span class="stat-label">{{ t('dashboard.dry') }}</span>
+          </div>
+          <div class="stat-chip stat-pregnant">
+            <span class="stat-count">{{ summary.pregnant ?? '—' }}</span>
+            <span class="stat-label">{{ t('dashboard.pregnant') }}</span>
+          </div>
+          <div class="stat-chip stat-sick">
+            <span class="stat-count">{{ summary.sick ?? '—' }}</span>
+            <span class="stat-label">{{ t('dashboard.sick') }}</span>
+          </div>
         </div>
-        <div class="stat-chip stat-dry">
-          <span class="stat-count">{{ summary.dry ?? '—' }}</span>
-          <span class="stat-label">{{ t('dashboard.dry') }}</span>
-        </div>
-        <div class="stat-chip stat-pregnant">
-          <span class="stat-count">{{ summary.pregnant ?? '—' }}</span>
-          <span class="stat-label">{{ t('dashboard.pregnant') }}</span>
-        </div>
-        <div class="stat-chip stat-sick">
-          <span class="stat-count">{{ summary.sick ?? '—' }}</span>
-          <span class="stat-label">{{ t('dashboard.sick') }}</span>
-        </div>
-      </div>
 
-      <!-- Quick Actions -->
-      <section class="section">
-        <h2 class="section-label">{{ t('dashboard.quickActions') }}</h2>
-        <div data-tour="dashboard-actions" class="actions-grid">
-          <RouterLink to="/cows" class="action-card active-action">
-            <span class="action-icon">{{ speciesEmoji.female }}</span>
-            <span class="action-label">{{ t('dashboard.viewAnimals', { collectiveNoun }) }}</span>
-          </RouterLink>
+        <!-- Quick Actions -->
+        <section class="section">
+          <h2 class="section-label">{{ t('dashboard.quickActions') }}</h2>
+          <div data-tour="dashboard-actions" class="actions-grid">
+            <RouterLink to="/cows" class="action-card active-action">
+              <span class="action-icon">{{ speciesEmoji.female }}</span>
+              <span class="action-label">{{ t('dashboard.viewAnimals', { collectiveNoun }) }}</span>
+            </RouterLink>
 
-          <RouterLink v-if="flags.analytics && hasPermission('can_view_analytics')" to="/analytics" class="action-card active-action">
-            <span class="action-icon">📊</span>
-            <span class="action-label">{{ t('dashboard.analytics') }}</span>
-          </RouterLink>
+            <RouterLink
+              v-if="flags.analytics && hasPermission('can_view_analytics')"
+              to="/analytics"
+              class="action-card active-action"
+            >
+              <span class="action-icon">📊</span>
+              <span class="action-label">{{ t('dashboard.analytics') }}</span>
+            </RouterLink>
 
-          <RouterLink v-if="flags.treatments && hasPermission('can_log_treatments')" to="/log/treatment" class="action-card active-action">
-            <span class="action-icon">💉</span>
-            <span class="action-label">{{ t('dashboard.addLog') }}</span>
-          </RouterLink>
+            <RouterLink
+              v-if="flags.treatments && hasPermission('can_log_treatments')"
+              to="/log/treatment"
+              class="action-card active-action"
+            >
+              <span class="action-icon">💉</span>
+              <span class="action-label">{{ t('dashboard.addLog') }}</span>
+            </RouterLink>
 
-          <RouterLink v-if="flags.healthIssues && hasPermission('can_log_issues')" to="/log/issue" class="action-card active-action">
-            <span class="action-icon">🩺</span>
-            <span class="action-label">{{ t('dashboard.logIssue') }}</span>
-          </RouterLink>
+            <RouterLink
+              v-if="flags.healthIssues && hasPermission('can_log_issues')"
+              to="/log/issue"
+              class="action-card active-action"
+            >
+              <span class="action-icon">🩺</span>
+              <span class="action-label">{{ t('dashboard.logIssue') }}</span>
+            </RouterLink>
 
-          <RouterLink v-if="flags.healthIssues && hasPermission('can_log_issues')" to="/health-issues" class="action-card issues-action">
-            <span class="action-icon">🚨</span>
-            <span class="action-label">{{ t('dashboard.openIssues') }}</span>
-          </RouterLink>
+            <RouterLink
+              v-if="flags.healthIssues && hasPermission('can_log_issues')"
+              to="/health-issues"
+              class="action-card issues-action"
+            >
+              <span class="action-icon">🚨</span>
+              <span class="action-label">{{ t('dashboard.openIssues') }}</span>
+            </RouterLink>
 
-          <RouterLink v-if="flags.treatments && hasPermission('can_log_treatments')" to="/withdrawal" class="action-card withdrawal-action">
-            <span class="action-icon">🚫</span>
-            <span class="action-label">{{ t('dashboard.withdrawal') }}</span>
-          </RouterLink>
+            <RouterLink
+              v-if="flags.treatments && hasPermission('can_log_treatments')"
+              to="/withdrawal"
+              class="action-card withdrawal-action"
+            >
+              <span class="action-icon">🚫</span>
+              <span class="action-label">{{ t('dashboard.withdrawal') }}</span>
+            </RouterLink>
 
-          <RouterLink v-if="flags.milkRecording && hasPermission('can_record_milk')" to="/milk" class="action-card">
-            <span class="action-icon">🥛</span>
-            <span class="action-label">{{ t('dashboard.recordMilk') }}</span>
-          </RouterLink>
+            <RouterLink
+              v-if="flags.milkRecording && hasPermission('can_record_milk')"
+              to="/milk"
+              class="action-card"
+            >
+              <span class="action-icon">🥛</span>
+              <span class="action-label">{{ t('dashboard.recordMilk') }}</span>
+            </RouterLink>
 
-          <RouterLink v-if="flags.breeding && hasPermission('can_log_breeding')" to="/breed" class="action-card active-action">
-            <span class="action-icon">{{ speciesEmoji.male }}</span>
-            <span class="action-label">{{ t('dashboard.breed') }}</span>
-          </RouterLink>
-        </div>
-      </section>
-
-      </template><!-- end normal farm dashboard -->
+            <RouterLink
+              v-if="flags.breeding && hasPermission('can_log_breeding')"
+              to="/breed"
+              class="action-card active-action"
+            >
+              <span class="action-icon">{{ speciesEmoji.male }}</span>
+              <span class="action-label">{{ t('dashboard.breed') }}</span>
+            </RouterLink>
+          </div>
+        </section> </template
+      ><!-- end normal farm dashboard -->
     </div>
 
     <TourButton v-if="hasFarmContext" @start-tour="startTour" />
@@ -150,28 +183,28 @@ const { startTour } = useTour('dashboard', () => [
     popover: {
       title: t('tour.dashboard.welcome.title'),
       description: t('tour.dashboard.welcome.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="dashboard-stats"]',
     popover: {
       title: t('tour.dashboard.stats.title'),
       description: t('tour.dashboard.stats.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="dashboard-actions"]',
     popover: {
       title: t('tour.dashboard.quickActions.title'),
       description: t('tour.dashboard.quickActions.desc'),
-    }
+    },
   },
   {
     element: '.bottom-nav',
     popover: {
       title: t('tour.dashboard.nav.title'),
       description: t('tour.dashboard.nav.desc'),
-    }
+    },
   },
 ])
 
@@ -200,7 +233,7 @@ onMounted(async () => {
     const r = await api.get('/analytics/herd-summary')
     // API returns { total, by_status: [{status, count}] }
     const rows = r.data.by_status || []
-    rows.forEach(item => {
+    rows.forEach((item) => {
       if (item.status in summary.value) summary.value[item.status] = item.count
     })
   } catch {
@@ -269,12 +302,36 @@ onMounted(async () => {
   white-space: nowrap;
 }
 
-.stat-active { background: var(--success-light); color: var(--primary-dark); border-color: rgba(4, 120, 87, 0.2); }
-.stat-dry { background: var(--badge-dry-bg); color: var(--badge-dry-text); border-color: rgba(146, 64, 14, 0.15); }
-.stat-pregnant { background: var(--badge-pregnant-bg); color: var(--badge-pregnant-text); border-color: rgba(91, 33, 182, 0.15); }
-.stat-sick { background: var(--danger-light); color: var(--danger); border-color: rgba(220, 38, 38, 0.15); }
-.stat-total { background: #EEF2FF; color: #3730A3; border-color: rgba(67, 56, 202, 0.15); }
-.stat-milking { background: #EFF6FF; color: #1D4ED8; border-color: rgba(29, 78, 216, 0.15); }
+.stat-active {
+  background: var(--success-light);
+  color: var(--primary-dark);
+  border-color: rgba(4, 120, 87, 0.2);
+}
+.stat-dry {
+  background: var(--badge-dry-bg);
+  color: var(--badge-dry-text);
+  border-color: rgba(146, 64, 14, 0.15);
+}
+.stat-pregnant {
+  background: var(--badge-pregnant-bg);
+  color: var(--badge-pregnant-text);
+  border-color: rgba(91, 33, 182, 0.15);
+}
+.stat-sick {
+  background: var(--danger-light);
+  color: var(--danger);
+  border-color: rgba(220, 38, 38, 0.15);
+}
+.stat-total {
+  background: #eef2ff;
+  color: #3730a3;
+  border-color: rgba(67, 56, 202, 0.15);
+}
+.stat-milking {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: rgba(29, 78, 216, 0.15);
+}
 
 /* Actions */
 .actions-grid {
@@ -300,7 +357,10 @@ onMounted(async () => {
   text-align: center;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.15s, border-color 0.15s;
+  transition:
+    transform 0.1s,
+    box-shadow 0.15s,
+    border-color 0.15s;
   color: var(--text);
 }
 

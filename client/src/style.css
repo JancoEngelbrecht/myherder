@@ -5,76 +5,76 @@
 :root {
   /* Colors — Emerald primary */
   --primary: #047857;
-  --primary-light: #10B981;
-  --primary-dark: #065F46;
-  --primary-bg: #ECFDF5;
+  --primary-light: #10b981;
+  --primary-dark: #065f46;
+  --primary-bg: #ecfdf5;
   --primary-ring: rgba(4, 120, 87, 0.15);
-  --danger: #DC2626;
-  --danger-light: #FEE2E2;
-  --warning: #D97706;
-  --warning-light: #FEF3C7;
-  --warning-dark: #92400E;
+  --danger: #dc2626;
+  --danger-light: #fee2e2;
+  --warning: #d97706;
+  --warning-light: #fef3c7;
+  --warning-dark: #92400e;
   --success: #047857;
-  --success-light: #ECFDF5;
-  --info: #2563EB;
-  --info-light: #DBEAFE;
-  --purple: #7C3AED;
+  --success-light: #ecfdf5;
+  --info: #2563eb;
+  --info-light: #dbeafe;
+  --purple: #7c3aed;
   --purple-light: rgba(124, 58, 237, 0.15);
 
   /* Neutrals — cool gray */
-  --bg: #F9FAFB;
-  --surface: #FFFFFF;
-  --surface-2: #F3F4F6;
-  --border: #E5E7EB;
-  --border-strong: #D1D5DB;
+  --bg: #f9fafb;
+  --surface: #ffffff;
+  --surface-2: #f3f4f6;
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
   --text: #111827;
-  --text-secondary: #6B7280;
-  --text-muted: #9CA3AF;
-  --text-on-primary: #FFFFFF;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --text-on-primary: #ffffff;
 
   /* Semantic — sex avatars, withdrawal, announcements */
-  --sex-female-bg: #FDF2F8;
-  --sex-female-border: #FBCFE8;
-  --sex-male-bg: #EFF6FF;
-  --sex-male-border: #BFDBFE;
-  --withdrawal: #92400E;
-  --withdrawal-bg: #FEF3C7;
-  --synced: #22C55E;
+  --sex-female-bg: #fdf2f8;
+  --sex-female-border: #fbcfe8;
+  --sex-male-bg: #eff6ff;
+  --sex-male-border: #bfdbfe;
+  --withdrawal: #92400e;
+  --withdrawal-bg: #fef3c7;
+  --synced: #22c55e;
   --overlay: rgba(0, 0, 0, 0.5);
 
   /* Status badge pairs */
-  --badge-dry-bg: #FEF3C7;
-  --badge-dry-text: #92400E;
-  --badge-pregnant-bg: #EDE9FE;
-  --badge-pregnant-text: #5B21B6;
-  --badge-dead-bg: #F3F4F6;
+  --badge-dry-bg: #fef3c7;
+  --badge-dry-text: #92400e;
+  --badge-pregnant-bg: #ede9fe;
+  --badge-pregnant-text: #5b21b6;
+  --badge-dead-bg: #f3f4f6;
   --badge-dead-text: #374151;
   --badge-sold-bg: var(--border);
-  --badge-sold-text: #4B5563;
-  --danger-dark: #991B1B;
+  --badge-sold-text: #4b5563;
+  --danger-dark: #991b1b;
 
   /* Life phase badge pairs */
-  --badge-calf-bg: #FFF7ED;
-  --badge-calf-text: #C2410C;
-  --badge-heifer-bg: #FDF2F8;
-  --badge-heifer-text: #BE185D;
-  --badge-cow-bg: #ECFDF5;
-  --badge-cow-text: #065F46;
-  --badge-young-bull-bg: #EFF6FF;
-  --badge-young-bull-text: #1D4ED8;
-  --badge-bull-bg: #EDE9FE;
-  --badge-bull-text: #6D28D9;
+  --badge-calf-bg: #fff7ed;
+  --badge-calf-text: #c2410c;
+  --badge-heifer-bg: #fdf2f8;
+  --badge-heifer-text: #be185d;
+  --badge-cow-bg: #ecfdf5;
+  --badge-cow-text: #065f46;
+  --badge-young-bull-bg: #eff6ff;
+  --badge-young-bull-text: #1d4ed8;
+  --badge-bull-bg: #ede9fe;
+  --badge-bull-text: #6d28d9;
 
   /* Announcement type pairs */
-  --announce-info-bg: #DBEAFE;
-  --announce-info-text: #1E40AF;
-  --announce-info-border: #93C5FD;
-  --announce-warning-bg: #FEF3C7;
-  --announce-warning-text: #92400E;
-  --announce-warning-border: #FCD34D;
-  --announce-maintenance-bg: #FEE2E2;
-  --announce-maintenance-text: #991B1B;
-  --announce-maintenance-border: #FCA5A5;
+  --announce-info-bg: #dbeafe;
+  --announce-info-text: #1e40af;
+  --announce-info-border: #93c5fd;
+  --announce-warning-bg: #fef3c7;
+  --announce-warning-text: #92400e;
+  --announce-warning-border: #fcd34d;
+  --announce-maintenance-bg: #fee2e2;
+  --announce-maintenance-text: #991b1b;
+  --announce-maintenance-border: #fca5a5;
 
   /* Typography */
   --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
@@ -88,10 +88,10 @@
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-  --shadow: 0 4px 12px rgba(0,0,0,0.10);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
-  --shadow-card: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
 
   /* Spacing */
   --nav-height: 64px;
@@ -100,7 +100,9 @@
 }
 
 /* ===== Base Reset ===== */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -128,7 +130,8 @@ body {
   flex-direction: column;
 }
 
-img, svg {
+img,
+svg {
   display: block;
   max-width: 100%;
 }
@@ -140,7 +143,9 @@ button {
   background: none;
 }
 
-input, select, textarea {
+input,
+select,
+textarea {
   font-family: var(--font-body);
   font-size: 1rem;
 }
@@ -164,7 +169,10 @@ a {
   border-radius: var(--radius);
   font-weight: 600;
   font-size: 0.9375rem;
-  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+  transition:
+    background 0.15s,
+    transform 0.1s,
+    box-shadow 0.15s;
   border: none;
   cursor: pointer;
   width: 100%;
@@ -205,7 +213,9 @@ a {
   border-radius: var(--radius);
   font-weight: 600;
   font-size: 0.9375rem;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
   cursor: pointer;
   width: 100%;
   overflow: hidden;
@@ -261,7 +271,9 @@ a {
   border-radius: var(--radius);
   font-weight: 600;
   font-size: 0.9375rem;
-  transition: background 0.15s, transform 0.1s;
+  transition:
+    background 0.15s,
+    transform 0.1s;
   border: none;
   cursor: pointer;
   width: 100%;
@@ -271,7 +283,7 @@ a {
 
 @media (hover: hover) {
   .btn-danger:hover:not(:disabled) {
-    background: #B91C1C;
+    background: #b91c1c;
   }
 }
 
@@ -358,7 +370,9 @@ a {
   background: var(--surface);
   color: var(--text);
   font-size: 1rem;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
   outline: none;
   appearance: none;
 }
@@ -398,7 +412,9 @@ a {
   padding: 12px 14px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
-  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 14px center;
+  background: var(--surface)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")
+    no-repeat right 14px center;
   color: var(--text);
   font-size: 1rem;
   transition: border-color 0.15s;
@@ -418,8 +434,8 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
-[role="button"]:focus-visible,
-[role="tab"]:focus-visible,
+[role='button']:focus-visible,
+[role='tab']:focus-visible,
 [tabindex]:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
@@ -436,7 +452,10 @@ textarea:focus-visible,
 
 /* Interactive card variant — opt-in hover lift for clickable cards */
 .card-link {
-  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s,
+    border-color 0.15s;
 }
 
 @media (hover: hover) {
@@ -449,7 +468,9 @@ textarea:focus-visible,
 
 /* Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
@@ -498,11 +519,26 @@ textarea:focus-visible,
 }
 
 /* Life phase badges */
-.badge-phase-calf { background: var(--badge-calf-bg); color: var(--badge-calf-text); }
-.badge-phase-heifer { background: var(--badge-heifer-bg); color: var(--badge-heifer-text); }
-.badge-phase-cow { background: var(--badge-cow-bg); color: var(--badge-cow-text); }
-.badge-phase-young_bull { background: var(--badge-young-bull-bg); color: var(--badge-young-bull-text); }
-.badge-phase-bull { background: var(--badge-bull-bg); color: var(--badge-bull-text); }
+.badge-phase-calf {
+  background: var(--badge-calf-bg);
+  color: var(--badge-calf-text);
+}
+.badge-phase-heifer {
+  background: var(--badge-heifer-bg);
+  color: var(--badge-heifer-text);
+}
+.badge-phase-cow {
+  background: var(--badge-cow-bg);
+  color: var(--badge-cow-text);
+}
+.badge-phase-young_bull {
+  background: var(--badge-young-bull-bg);
+  color: var(--badge-young-bull-text);
+}
+.badge-phase-bull {
+  background: var(--badge-bull-bg);
+  color: var(--badge-bull-text);
+}
 
 /* Typography */
 .section-label {
@@ -576,7 +612,11 @@ textarea:focus-visible,
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s,
+    transform 0.1s;
   white-space: nowrap;
 }
 
@@ -625,7 +665,10 @@ textarea:focus-visible,
   box-shadow: var(--shadow-lg);
   border: none;
   cursor: pointer;
-  transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+  transition:
+    transform 0.15s,
+    background 0.15s,
+    box-shadow 0.15s;
   z-index: 100;
 }
 
@@ -687,19 +730,26 @@ textarea:focus-visible,
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Transitions */
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.2s;
 }
-.fade-enter-from, .fade-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
 
-.slide-up-enter-active, .slide-up-leave-active {
-  transition: transform 0.25s ease, opacity 0.25s;
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s;
 }
 .slide-up-enter-from {
   transform: translateY(12px);
@@ -743,7 +793,7 @@ textarea:focus-visible,
   background: white;
   border-radius: 50%;
   transition: transform 0.2s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .toggle-switch input:checked + .toggle-slider {
@@ -765,7 +815,7 @@ textarea:focus-visible,
   color: var(--text);
   border-radius: var(--radius-lg);
   font-family: var(--font-body);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   max-width: min(360px, 90vw);
   padding: 20px;
 }

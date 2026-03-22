@@ -37,7 +37,10 @@ const MAX_SEARCH_LENGTH = 100
 function parsePagination(query, defaults = {}) {
   const defaultLimit = defaults.defaultLimit ?? DEFAULT_PAGE_SIZE
   const page = Math.max(1, parseInt(String(query.page ?? '1'), 10) || 1)
-  const limit = Math.min(MAX_PAGE_SIZE, Math.max(1, parseInt(String(query.limit ?? String(defaultLimit)), 10) || defaultLimit))
+  const limit = Math.min(
+    MAX_PAGE_SIZE,
+    Math.max(1, parseInt(String(query.limit ?? String(defaultLimit)), 10) || defaultLimit)
+  )
   const offset = (page - 1) * limit
   return { page, limit, offset }
 }

@@ -67,15 +67,12 @@ beforeAll(async () => {
 
 describe('can_record_milk permission', () => {
   it('returns 403 on POST /api/milk-records without permission', async () => {
-    const res = await request(app)
-      .post('/api/milk-records')
-      .set('Authorization', noPerms)
-      .send({
-        cow_id: cowId,
-        litres: 5,
-        session: 'morning',
-        recording_date: '2026-03-01',
-      })
+    const res = await request(app).post('/api/milk-records').set('Authorization', noPerms).send({
+      cow_id: cowId,
+      litres: 5,
+      session: 'morning',
+      recording_date: '2026-03-01',
+    })
     expect(res.status).toBe(403)
   })
 
@@ -153,14 +150,11 @@ describe('can_log_treatments permission', () => {
 
 describe('can_log_breeding permission', () => {
   it('returns 403 on POST /api/breeding-events without permission', async () => {
-    const res = await request(app)
-      .post('/api/breeding-events')
-      .set('Authorization', noPerms)
-      .send({
-        cow_id: cowId,
-        event_type: 'heat_observed',
-        event_date: '2026-03-01T08:00:00.000Z',
-      })
+    const res = await request(app).post('/api/breeding-events').set('Authorization', noPerms).send({
+      cow_id: cowId,
+      event_type: 'heat_observed',
+      event_date: '2026-03-01T08:00:00.000Z',
+    })
     expect(res.status).toBe(403)
   })
 
@@ -181,9 +175,7 @@ describe('can_log_breeding permission', () => {
 
 describe('can_view_analytics permission', () => {
   it('returns 403 on GET /api/analytics/herd-summary without permission', async () => {
-    const res = await request(app)
-      .get('/api/analytics/herd-summary')
-      .set('Authorization', noPerms)
+    const res = await request(app).get('/api/analytics/herd-summary').set('Authorization', noPerms)
     expect(res.status).toBe(403)
   })
 

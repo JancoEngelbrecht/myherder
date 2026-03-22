@@ -45,10 +45,25 @@ exports.up = async function (knex) {
 )`)
 
       const cols = [
-        'id', 'farm_id', 'username', 'pin_hash', 'password_hash', 'full_name',
-        'role', 'permissions', 'language', 'is_active', 'failed_attempts',
-        'locked_until', 'created_at', 'updated_at', 'deleted_at', 'token_version',
-        'totp_secret', 'totp_enabled', 'recovery_codes',
+        'id',
+        'farm_id',
+        'username',
+        'pin_hash',
+        'password_hash',
+        'full_name',
+        'role',
+        'permissions',
+        'language',
+        'is_active',
+        'failed_attempts',
+        'locked_until',
+        'created_at',
+        'updated_at',
+        'deleted_at',
+        'token_version',
+        'totp_secret',
+        'totp_enabled',
+        'recovery_codes',
       ].join(', ')
 
       await knex.raw(`INSERT INTO users_new (${cols}) SELECT ${cols} FROM users`)
@@ -111,10 +126,25 @@ exports.down = async function (knex) {
 )`)
 
       const cols = [
-        'id', 'farm_id', 'username', 'pin_hash', 'password_hash', 'full_name',
-        'role', 'permissions', 'language', 'is_active', 'failed_attempts',
-        'locked_until', 'created_at', 'updated_at', 'deleted_at', 'token_version',
-        'totp_secret', 'totp_enabled', 'recovery_codes',
+        'id',
+        'farm_id',
+        'username',
+        'pin_hash',
+        'password_hash',
+        'full_name',
+        'role',
+        'permissions',
+        'language',
+        'is_active',
+        'failed_attempts',
+        'locked_until',
+        'created_at',
+        'updated_at',
+        'deleted_at',
+        'token_version',
+        'totp_secret',
+        'totp_enabled',
+        'recovery_codes',
       ].join(', ')
 
       await knex.raw(`INSERT INTO users_new (${cols}) SELECT ${cols} FROM users`)

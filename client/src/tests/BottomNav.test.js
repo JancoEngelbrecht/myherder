@@ -88,31 +88,49 @@ describe('BottomNav', () => {
   it('hides milk tab when milkRecording flag is disabled', () => {
     setAdmin()
     const store = useFeatureFlagsStore()
-    store.flags = { breeding: true, milkRecording: false, healthIssues: true, treatments: true, analytics: true }
+    store.flags = {
+      breeding: true,
+      milkRecording: false,
+      healthIssues: true,
+      treatments: true,
+      analytics: true,
+    }
 
     const wrapper = mountNav('/')
     const tabs = wrapper.findAll('a')
     expect(tabs).toHaveLength(3)
-    const labels = tabs.map(t => t.text())
+    const labels = tabs.map((t) => t.text())
     expect(labels).not.toContain('nav.milk')
   })
 
   it('hides breed tab when breeding flag is disabled', () => {
     setAdmin()
     const store = useFeatureFlagsStore()
-    store.flags = { breeding: false, milkRecording: true, healthIssues: true, treatments: true, analytics: true }
+    store.flags = {
+      breeding: false,
+      milkRecording: true,
+      healthIssues: true,
+      treatments: true,
+      analytics: true,
+    }
 
     const wrapper = mountNav('/')
     const tabs = wrapper.findAll('a')
     expect(tabs).toHaveLength(3)
-    const labels = tabs.map(t => t.text())
+    const labels = tabs.map((t) => t.text())
     expect(labels).not.toContain('nav.breed')
   })
 
   it('shows only 2 tabs when both milk and breed flags are disabled', () => {
     setAdmin()
     const store = useFeatureFlagsStore()
-    store.flags = { breeding: false, milkRecording: false, healthIssues: true, treatments: true, analytics: true }
+    store.flags = {
+      breeding: false,
+      milkRecording: false,
+      healthIssues: true,
+      treatments: true,
+      analytics: true,
+    }
 
     const wrapper = mountNav('/')
     const tabs = wrapper.findAll('a')
@@ -124,19 +142,31 @@ describe('BottomNav', () => {
   it('hides milk tab when worker lacks can_record_milk permission', () => {
     setWorker(['can_log_breeding'])
     const store = useFeatureFlagsStore()
-    store.flags = { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true }
+    store.flags = {
+      breeding: true,
+      milkRecording: true,
+      healthIssues: true,
+      treatments: true,
+      analytics: true,
+    }
 
     const wrapper = mountNav('/')
     const tabs = wrapper.findAll('a')
     expect(tabs).toHaveLength(3) // home, cows, breed
-    const labels = tabs.map(t => t.text())
+    const labels = tabs.map((t) => t.text())
     expect(labels).not.toContain('nav.milk')
   })
 
   it('shows milk tab when worker has can_record_milk permission', () => {
     setWorker(['can_record_milk', 'can_log_breeding'])
     const store = useFeatureFlagsStore()
-    store.flags = { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true }
+    store.flags = {
+      breeding: true,
+      milkRecording: true,
+      healthIssues: true,
+      treatments: true,
+      analytics: true,
+    }
 
     const wrapper = mountNav('/')
     const tabs = wrapper.findAll('a')
@@ -146,7 +176,13 @@ describe('BottomNav', () => {
   it('admin sees all tabs regardless of permissions array', () => {
     setAdmin()
     const store = useFeatureFlagsStore()
-    store.flags = { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true }
+    store.flags = {
+      breeding: true,
+      milkRecording: true,
+      healthIssues: true,
+      treatments: true,
+      analytics: true,
+    }
 
     const wrapper = mountNav('/')
     expect(wrapper.findAll('a')).toHaveLength(4)

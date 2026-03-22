@@ -9,17 +9,24 @@
       </div>
 
       <div v-if="!offline" class="filter-chips">
-        <button v-for="opt in TIME_RANGE_OPTIONS" :key="opt.value"
-          class="chip" :class="{ active: selectedRange === opt.value }"
+        <button
+          v-for="opt in TIME_RANGE_OPTIONS"
+          :key="opt.value"
+          class="chip"
+          :class="{ active: selectedRange === opt.value }"
           :aria-pressed="selectedRange === opt.value"
           @click="selectedRange = opt.value"
-        >{{ t(opt.labelKey) }}</button>
+        >
+          {{ t(opt.labelKey) }}
+        </button>
       </div>
 
       <template v-if="!offline">
         <!-- 1. Stat Chips (6) -->
         <section class="analytics-card">
-          <div v-if="overviewLoading || conceptionLoading" class="center-spinner"><div class="spinner" /></div>
+          <div v-if="overviewLoading || conceptionLoading" class="center-spinner">
+            <div class="spinner" />
+          </div>
           <div v-else class="stat-chips" @click="toggleChip">
             <div class="stat-chip">
               <span class="stat-value mono">{{ breedingData?.pregnant_count ?? '—' }}</span>
@@ -30,15 +37,25 @@
               <span class="stat-label">{{ t('analytics.notPregnantCount') }}</span>
             </div>
             <div class="stat-chip">
-              <span class="stat-value mono">{{ conceptionData?.first_service_rate != null ? Math.round(conceptionData.first_service_rate) + '%' : '—' }}</span>
+              <span class="stat-value mono">{{
+                conceptionData?.first_service_rate != null
+                  ? Math.round(conceptionData.first_service_rate) + '%'
+                  : '—'
+              }}</span>
               <span class="stat-label">{{ t('analytics.fertility.conceptionRate') }}</span>
             </div>
             <div class="stat-chip">
-              <span class="stat-value mono">{{ breedingData?.avg_services_per_conception ?? '—' }}</span>
+              <span class="stat-value mono">{{
+                breedingData?.avg_services_per_conception ?? '—'
+              }}</span>
               <span class="stat-label">{{ t('analytics.servicesPerConception') }}</span>
             </div>
             <div class="stat-chip">
-              <span class="stat-value mono">{{ breedingData?.pregnancy_rate != null ? Math.round(breedingData.pregnancy_rate) + '%' : '—' }}</span>
+              <span class="stat-value mono">{{
+                breedingData?.pregnancy_rate != null
+                  ? Math.round(breedingData.pregnancy_rate) + '%'
+                  : '—'
+              }}</span>
               <span class="stat-label">{{ t('analytics.pregnancyRate') }}</span>
             </div>
             <div class="stat-chip">
@@ -68,7 +85,8 @@
           <div v-if="calvingLoading" class="center-spinner"><div class="spinner" /></div>
           <template v-else-if="calvingData && calvingData.intervals.length > 0">
             <p class="chart-subtitle mono">
-              {{ t('analytics.fertility.avgCalvingInterval') }}: {{ calvingData.avg_calving_interval_days }} {{ t('analytics.fertility.days') }}
+              {{ t('analytics.fertility.avgCalvingInterval') }}:
+              {{ calvingData.avg_calving_interval_days }} {{ t('analytics.fertility.days') }}
             </p>
             <div class="chart-wrap">
               <Bar :data="calvingHistogram" :options="calvingHistogramOptions" />
@@ -84,7 +102,8 @@
           <div v-if="daysOpenLoading" class="center-spinner"><div class="spinner" /></div>
           <template v-else-if="daysOpenData && daysOpenData.records.length > 0">
             <p class="chart-subtitle mono">
-              {{ t('analytics.fertility.avgDaysOpen') }}: {{ daysOpenData.avg_days_open }} {{ t('analytics.fertility.days') }}
+              {{ t('analytics.fertility.avgDaysOpen') }}: {{ daysOpenData.avg_days_open }}
+              {{ t('analytics.fertility.days') }}
             </p>
             <div class="chart-wrap">
               <Bar :data="daysOpenHistogram" :options="daysOpenHistogramOptions" />
@@ -144,8 +163,12 @@ import '../../assets/analytics.css'
 import api from '../../services/api.js'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import {
-  useAnalytics, chartColors, formatMonth, barChartOptions,
-  useTimeRange, TIME_RANGE_OPTIONS,
+  useAnalytics,
+  chartColors,
+  formatMonth,
+  barChartOptions,
+  useTimeRange,
+  TIME_RANGE_OPTIONS,
 } from '../../composables/useAnalytics.js'
 
 const { offline, handleError, t } = useAnalytics()
@@ -189,7 +212,6 @@ function bucketize(values, bucketDefs) {
   return counts
 }
 
-
 // ── Histogram bucket definitions ──────────────────────
 
 const calvingBuckets = [
@@ -199,7 +221,13 @@ const calvingBuckets = [
   { label: '450–500', min: 450, max: 500 },
   { label: '500+', min: 500, max: Infinity },
 ]
-const calvingBucketColors = [chartColors.primary, chartColors.primary, chartColors.warning, chartColors.danger, chartColors.danger]
+const calvingBucketColors = [
+  chartColors.primary,
+  chartColors.primary,
+  chartColors.warning,
+  chartColors.danger,
+  chartColors.danger,
+]
 
 const daysOpenBuckets = [
   { label: '<60', min: 0, max: 60 },
@@ -209,17 +237,34 @@ const daysOpenBuckets = [
   { label: '150–200', min: 150, max: 200 },
   { label: '200+', min: 200, max: Infinity },
 ]
-const daysOpenBucketColors = [chartColors.primary, chartColors.primary, chartColors.primary, chartColors.warning, chartColors.danger, chartColors.danger]
+const daysOpenBucketColors = [
+  chartColors.primary,
+  chartColors.primary,
+  chartColors.primary,
+  chartColors.warning,
+  chartColors.danger,
+  chartColors.danger,
+]
 
 // ── Doughnut options ──────────────────────────────────
 
-const reproColors = [chartColors.primary, chartColors.warning, chartColors.info, '#9CA3AF', chartColors.purple]
+const reproColors = [
+  chartColors.primary,
+  chartColors.warning,
+  chartColors.info,
+  '#9CA3AF',
+  chartColors.purple,
+]
 
 const doughnutOptions = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
-    legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } },
+    legend: {
+      display: true,
+      position: 'bottom',
+      labels: { boxWidth: 10, padding: 8, font: { size: 10 } },
+    },
   },
 }
 
@@ -239,35 +284,39 @@ const reproChart = computed(() => ({
     t('analytics.fertility.dry'),
     t('analytics.fertility.heiferNotBred'),
   ],
-  datasets: [{
-    data: breedingData.value?.repro_status
-      ? [
-          breedingData.value.repro_status.pregnant,
-          breedingData.value.repro_status.not_pregnant,
-          breedingData.value.repro_status.bred_awaiting_check,
-          breedingData.value.repro_status.dry,
-          breedingData.value.repro_status.heifer_not_bred,
-        ]
-      : [],
-    backgroundColor: reproColors,
-    borderWidth: 2,
-    borderColor: '#fff',
-  }],
+  datasets: [
+    {
+      data: breedingData.value?.repro_status
+        ? [
+            breedingData.value.repro_status.pregnant,
+            breedingData.value.repro_status.not_pregnant,
+            breedingData.value.repro_status.bred_awaiting_check,
+            breedingData.value.repro_status.dry,
+            breedingData.value.repro_status.heifer_not_bred,
+          ]
+        : [],
+      backgroundColor: reproColors,
+      borderWidth: 2,
+      borderColor: '#fff',
+    },
+  ],
 }))
 
 // ── Chart data: Calving Interval Histogram ────────────
 
 const calvingHistogram = computed(() => {
-  const values = (calvingData.value?.intervals || []).map(c => c.interval_days)
+  const values = (calvingData.value?.intervals || []).map((c) => c.interval_days)
   const counts = bucketize(values, calvingBuckets)
   return {
-    labels: calvingBuckets.map(b => b.label),
-    datasets: [{
-      label: t('analytics.fertility.calvingInterval'),
-      data: counts,
-      backgroundColor: calvingBucketColors,
-      borderRadius: 4,
-    }],
+    labels: calvingBuckets.map((b) => b.label),
+    datasets: [
+      {
+        label: t('analytics.fertility.calvingInterval'),
+        data: counts,
+        backgroundColor: calvingBucketColors,
+        borderRadius: 4,
+      },
+    ],
   }
 })
 
@@ -295,16 +344,18 @@ const calvingHistogramOptions = computed(() => ({
 // ── Chart data: Days Open Histogram ───────────────────
 
 const daysOpenHistogram = computed(() => {
-  const values = (daysOpenData.value?.records || []).map(c => c.days_open)
+  const values = (daysOpenData.value?.records || []).map((c) => c.days_open)
   const counts = bucketize(values, daysOpenBuckets)
   return {
-    labels: daysOpenBuckets.map(b => b.label),
-    datasets: [{
-      label: t('analytics.fertility.daysOpen'),
-      data: counts,
-      backgroundColor: daysOpenBucketColors,
-      borderRadius: 4,
-    }],
+    labels: daysOpenBuckets.map((b) => b.label),
+    datasets: [
+      {
+        label: t('analytics.fertility.daysOpen'),
+        data: counts,
+        backgroundColor: daysOpenBucketColors,
+        borderRadius: 4,
+      },
+    ],
   }
 })
 
@@ -332,17 +383,17 @@ const daysOpenHistogramOptions = computed(() => ({
 // ── Chart data: Breeding Activity ─────────────────────
 
 const activityChart = computed(() => ({
-  labels: (activityData.value?.months || []).map(m => formatMonth(m.month)),
+  labels: (activityData.value?.months || []).map((m) => formatMonth(m.month)),
   datasets: [
     {
       label: t('analytics.fertility.inseminations'),
-      data: (activityData.value?.months || []).map(m => m.inseminations),
+      data: (activityData.value?.months || []).map((m) => m.inseminations),
       backgroundColor: chartColors.purple,
       borderRadius: 4,
     },
     {
       label: t('analytics.fertility.conceptions'),
-      data: (activityData.value?.months || []).map(m => m.conceptions),
+      data: (activityData.value?.months || []).map((m) => m.conceptions),
       backgroundColor: chartColors.primary,
       borderRadius: 4,
     },
@@ -353,7 +404,11 @@ const activityChartOptions = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
-    legend: { display: true, position: 'bottom', labels: { boxWidth: 10, padding: 8, font: { size: 10 } } },
+    legend: {
+      display: true,
+      position: 'bottom',
+      labels: { boxWidth: 10, padding: 8, font: { size: 10 } },
+    },
   },
   scales: {
     y: {
@@ -371,17 +426,19 @@ const activityChartOptions = {
 // ── Chart data: Conception Rate Trend ─────────────────
 
 const conceptionTrendChart = computed(() => ({
-  labels: (conceptionData.value?.by_month || []).map(m => formatMonth(m.month)),
-  datasets: [{
-    label: t('analytics.fertility.conceptionRate'),
-    data: (conceptionData.value?.by_month || []).map(m => m.rate),
-    borderColor: chartColors.primary,
-    backgroundColor: chartColors.primaryLight,
-    fill: true,
-    tension: 0.3,
-    pointRadius: 4,
-    pointBackgroundColor: chartColors.primary,
-  }],
+  labels: (conceptionData.value?.by_month || []).map((m) => formatMonth(m.month)),
+  datasets: [
+    {
+      label: t('analytics.fertility.conceptionRate'),
+      data: (conceptionData.value?.by_month || []).map((m) => m.rate),
+      borderColor: chartColors.primary,
+      backgroundColor: chartColors.primaryLight,
+      fill: true,
+      tension: 0.3,
+      pointRadius: 4,
+      pointBackgroundColor: chartColors.primary,
+    },
+  ],
 }))
 
 const conceptionTrendOptions = computed(() => ({
@@ -395,7 +452,10 @@ const conceptionTrendOptions = computed(() => ({
       beginAtZero: true,
       max: 100,
       title: { display: true, text: '%', font: { size: 10 } },
-      ticks: { callback: v => v + '%', font: { family: "'JetBrains Mono', monospace", size: 11 } },
+      ticks: {
+        callback: (v) => v + '%',
+        font: { family: "'JetBrains Mono', monospace", size: 11 },
+      },
       grid: { color: 'rgba(0,0,0,0.06)' },
     },
     x: {
@@ -408,13 +468,15 @@ const conceptionTrendOptions = computed(() => ({
 // ── Chart data: Expected Calvings (unchanged) ─────────
 
 const calvingsMonthChart = computed(() => ({
-  labels: (breedingData.value?.calvings_by_month || []).map(m => formatMonth(m.month)),
-  datasets: [{
-    label: t('analytics.expectedCalvings'),
-    data: (breedingData.value?.calvings_by_month || []).map(m => m.count),
-    backgroundColor: chartColors.purple,
-    borderRadius: 4,
-  }],
+  labels: (breedingData.value?.calvings_by_month || []).map((m) => formatMonth(m.month)),
+  datasets: [
+    {
+      label: t('analytics.expectedCalvings'),
+      data: (breedingData.value?.calvings_by_month || []).map((m) => m.count),
+      backgroundColor: chartColors.purple,
+      borderRadius: 4,
+    },
+  ],
 }))
 
 // ── Fetch data ────────────────────────────────────────
@@ -433,30 +495,55 @@ function loadData() {
   activityLoading.value = true
   calvingLoading.value = true
 
-  api.get(`/analytics/breeding-overview${params}`)
-    .then(r => { breedingData.value = r.data })
+  api
+    .get(`/analytics/breeding-overview${params}`)
+    .then((r) => {
+      breedingData.value = r.data
+    })
     .catch(handleError)
-    .finally(() => { overviewLoading.value = false })
+    .finally(() => {
+      overviewLoading.value = false
+    })
 
-  api.get(`/analytics/conception-rate${params}`)
-    .then(r => { conceptionData.value = r.data })
+  api
+    .get(`/analytics/conception-rate${params}`)
+    .then((r) => {
+      conceptionData.value = r.data
+    })
     .catch(handleError)
-    .finally(() => { conceptionLoading.value = false })
+    .finally(() => {
+      conceptionLoading.value = false
+    })
 
-  api.get(`/analytics/days-open${params}`)
-    .then(r => { daysOpenData.value = r.data })
+  api
+    .get(`/analytics/days-open${params}`)
+    .then((r) => {
+      daysOpenData.value = r.data
+    })
     .catch(handleError)
-    .finally(() => { daysOpenLoading.value = false })
+    .finally(() => {
+      daysOpenLoading.value = false
+    })
 
-  api.get(`/analytics/breeding-activity${params}`)
-    .then(r => { activityData.value = r.data })
+  api
+    .get(`/analytics/breeding-activity${params}`)
+    .then((r) => {
+      activityData.value = r.data
+    })
     .catch(handleError)
-    .finally(() => { activityLoading.value = false })
+    .finally(() => {
+      activityLoading.value = false
+    })
 
-  api.get(`/analytics/calving-interval${params}`)
-    .then(r => { calvingData.value = r.data })
+  api
+    .get(`/analytics/calving-interval${params}`)
+    .then((r) => {
+      calvingData.value = r.data
+    })
     .catch(handleError)
-    .finally(() => { calvingLoading.value = false })
+    .finally(() => {
+      calvingLoading.value = false
+    })
 }
 
 onMounted(loadData)

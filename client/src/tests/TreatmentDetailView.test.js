@@ -49,36 +49,70 @@ vi.mock('../services/syncManager.js', () => {
 vi.mock('../db/indexedDB.js', () => ({
   default: {
     cows: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      orderBy: vi.fn().mockReturnValue({ reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      orderBy: vi
+        .fn()
+        .mockReturnValue({
+          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     treatments: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     healthIssues: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     breedingEvents: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
-      orderBy: vi.fn().mockReturnValue({ reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
+      orderBy: vi
+        .fn()
+        .mockReturnValue({
+          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     issueTypes: {
-      bulkPut: vi.fn(), put: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
     },
     breedTypes: {
-      bulkPut: vi.fn(), put: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
     },
     medications: {
-      bulkPut: vi.fn(), put: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
     },
     featureFlags: {
@@ -115,7 +149,7 @@ const MOCK_TREATMENT = {
   cow_name: 'Bessie',
   medication_name: 'Pen-Strep',
   dosage: '10ml',
-  cost: 150.50,
+  cost: 150.5,
   treatment_date: '2024-01-15T10:00:00Z',
   administered_by_name: 'Admin',
   is_vet_visit: true,
@@ -175,8 +209,9 @@ describe('TreatmentDetailView', () => {
     const adminWrapper = mount(TreatmentDetailView, { global: { stubs } })
     await flushPromises()
     const adminHtml = adminWrapper.html()
-    const adminHasDelete = adminHtml.toLowerCase().includes('delete') ||
-      adminWrapper.findAll('button').some(b => b.text().toLowerCase().includes('delete'))
+    const adminHasDelete =
+      adminHtml.toLowerCase().includes('delete') ||
+      adminWrapper.findAll('button').some((b) => b.text().toLowerCase().includes('delete'))
     expect(adminHasDelete).toBe(true)
 
     // Worker does not see delete
@@ -190,9 +225,9 @@ describe('TreatmentDetailView', () => {
     vi.spyOn(tx2, 'fetchOne').mockResolvedValue(MOCK_TREATMENT)
     const workerWrapper = mount(TreatmentDetailView, { global: { stubs } })
     await flushPromises()
-    const workerDeleteButtons = workerWrapper.findAll('button').filter(b =>
-      b.text().toLowerCase().includes('delete')
-    )
+    const workerDeleteButtons = workerWrapper
+      .findAll('button')
+      .filter((b) => b.text().toLowerCase().includes('delete'))
     expect(workerDeleteButtons.length).toBe(0)
   })
 })

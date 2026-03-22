@@ -31,14 +31,14 @@ const pushSchema = Joi.object({
             'milkRecords',
             'breedingEvents',
             'breedTypes',
-            'issueTypes',
+            'issueTypes'
           )
           .required(),
         action: Joi.string().valid('create', 'update', 'delete').required(),
         id: Joi.string().uuid().required(),
         data: Joi.object().allow(null),
         updatedAt: Joi.string().isoDate().allow(null),
-      }),
+      })
     )
     .min(1)
     .max(100)
@@ -79,7 +79,7 @@ router.post('/push', syncPushLimiter, authenticate, tenantScope, async (req, res
           change.data,
           change.updatedAt,
           req.user,
-          trx,
+          trx
         )
         batchResults.push(result)
       }
@@ -92,7 +92,11 @@ router.post('/push', syncPushLimiter, authenticate, tenantScope, async (req, res
     if (errorCount === changes.length) status = 'failed'
     else if (errorCount > 0) status = 'partial'
 
-    try { await logSync(req.user.id, deviceId, 'push', changes.length, status, null, req.farmId) } catch (e) { console.error('[sync] logSync failed:', e.message) }
+    try {
+      await logSync(req.user.id, deviceId, 'push', changes.length, status, null, req.farmId)
+    } catch (e) {
+      console.error('[sync] logSync failed:', e.message)
+    }
 
     res.json({ results })
   } catch (err) {
@@ -114,7 +118,11 @@ router.get('/pull', authenticate, tenantScope, async (req, res, next) => {
       .reduce((sum, [, records]) => sum + (Array.isArray(records) ? records.length : 0), 0)
 
     const deviceId = value.deviceId || 'unknown'
-    try { await logSync(req.user.id, deviceId, 'pull', totalRecords, 'success', null, req.farmId) } catch (e) { console.error('[sync] logSync failed:', e.message) }
+    try {
+      await logSync(req.user.id, deviceId, 'pull', totalRecords, 'success', null, req.farmId)
+    } catch (e) {
+      console.error('[sync] logSync failed:', e.message)
+    }
 
     res.json(data)
   } catch (err) {

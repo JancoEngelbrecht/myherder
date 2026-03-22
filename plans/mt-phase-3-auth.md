@@ -1,9 +1,11 @@
 # MT Phase 3: Auth Changes (Login, 2FA, Token Versioning)
 
 ## Goal
+
 Update authentication to support multi-tenant login (farm code), TOTP 2FA for super-admin, and token versioning for session revocation. Update both backend and frontend.
 
 ## Prerequisites
+
 - Phases 1 + 2A-2D complete (all routes farm-scoped)
 - Install: `npm install otpauth` (server)
 - Install: `cd client && npm install qrcode.vue` or similar QR component (frontend)
@@ -47,14 +49,14 @@ Request: { pin, farm_code }
 
 ```js
 {
-  id,           // user UUID
-  username,
-  full_name,
-  role,         // 'admin' | 'worker' | 'super_admin'
-  permissions,  // string[]
-  language,
-  farm_id,      // UUID or null (super-admin without farm context)
-  token_version // integer, for revocation
+  ;(id, // user UUID
+    username,
+    full_name,
+    role, // 'admin' | 'worker' | 'super_admin'
+    permissions, // string[]
+    language,
+    farm_id, // UUID or null (super-admin without farm context)
+    token_version) // integer, for revocation
 }
 ```
 
@@ -71,10 +73,11 @@ Request: { pin, farm_code }
 Update `server/middleware/auth.js`:
 
 After JWT signature verification, add a DB check:
+
 ```js
-const user = await db('users').where('id', decoded.id).select('token_version', 'is_active').first();
+const user = await db('users').where('id', decoded.id).select('token_version', 'is_active').first()
 if (!user || !user.is_active || decoded.token_version !== user.token_version) {
-  return res.status(401).json({ error: 'Token revoked' });
+  return res.status(401).json({ error: 'Token revoked' })
 }
 ```
 
@@ -85,6 +88,7 @@ This adds one PK lookup per request. Acceptable cost for <10 farms.
 ## Step 3.3 -- 2FA endpoints (new)
 
 ### `POST /api/auth/setup-2fa`
+
 - Auth: `temp_token` only (verify it's a temp token with short expiry)
 - Generate TOTP secret using `otpauth` library
 - Generate 8 recovery codes (random 8-char alphanumeric strings)
@@ -94,6 +98,7 @@ This adds one PK lookup per request. Acceptable cost for <10 farms.
 - Do NOT set `totp_enabled = true` yet -- wait for confirmation
 
 ### `POST /api/auth/confirm-2fa`
+
 - Auth: `temp_token`
 - Body: `{ code }` (6-digit TOTP code)
 - Verify code against stored `totp_secret`
@@ -101,6 +106,7 @@ This adds one PK lookup per request. Acceptable cost for <10 farms.
 - If invalid: 401
 
 ### `POST /api/auth/verify-2fa`
+
 - Auth: `temp_token`
 - Body: `{ code }` (6-digit TOTP code OR recovery code)
 - Try TOTP verification first
@@ -112,6 +118,7 @@ This adds one PK lookup per request. Acceptable cost for <10 farms.
 ## Step 3.4 -- Frontend auth store changes (`client/src/stores/auth.js`)
 
 ### `login()` action
+
 - Accept `farmCode` parameter
 - Send `farm_code` in request body
 - Handle new response shapes:
@@ -121,10 +128,12 @@ This adds one PK lookup per request. Acceptable cost for <10 farms.
 - On success: `localStorage.setItem('farm_code', farmCode)`
 
 ### `loginPin()` action
+
 - Accept `farmCode` parameter (required)
 - Send `farm_code` in request body
 
 ### New state
+
 - `tempToken` -- short-lived token for 2FA flow
 - `pending2fa` -- boolean, true when awaiting 2FA
 
@@ -142,6 +151,7 @@ This adds one PK lookup per request. Acceptable cost for <10 farms.
 ## Step 3.6 -- New 2FA views
 
 ### `client/src/views/TwoFactorVerifyView.vue`
+
 - Route: `/auth/2fa`
 - 6-digit code input (numeric, auto-advance, or single input field)
 - Submit button calls `POST /api/auth/verify-2fa` with temp token
@@ -150,6 +160,7 @@ This adds one PK lookup per request. Acceptable cost for <10 farms.
 - On failure: show error, allow retry
 
 ### `client/src/views/TwoFactorSetupView.vue`
+
 - Route: `/auth/setup-2fa`
 - Step 1: Show QR code (rendered from `qr_uri` using QR component) + secret text for manual entry
 - Step 2: "Enter code from your authenticator app" -- 6-digit input
@@ -158,6 +169,7 @@ This adds one PK lookup per request. Acceptable cost for <10 farms.
 - "Continue" button -> `authStore.setSession(token)`, navigate to `/`
 
 ### Router updates (`client/src/router/index.js`)
+
 - Add `/auth/2fa` -> TwoFactorVerifyView (no auth required, but needs temp token)
 - Add `/auth/setup-2fa` -> TwoFactorSetupView (no auth required, but needs temp token)
 
@@ -166,10 +178,12 @@ This adds one PK lookup per request. Acceptable cost for <10 farms.
 Add to both `en.json` and `af.json`:
 
 ### `login` namespace additions
+
 - `login.farmCode` / `login.farmCodePlaceholder`
 - `login.invalidFarmCode`
 
 ### New `twoFactor` namespace
+
 - `twoFactor.title` / `twoFactor.subtitle`
 - `twoFactor.enterCode` / `twoFactor.verify`
 - `twoFactor.useRecoveryCode` / `twoFactor.useAuthenticator`

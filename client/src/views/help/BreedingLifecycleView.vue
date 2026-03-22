@@ -66,10 +66,22 @@ const mainCycleSteps = computed(() => [
   { label: t('help.breedingCycle.steps.insemination'), type: 'action', icon: '💉' },
   { label: t('help.breedingCycle.steps.waitPregCheck'), type: 'system', icon: '⏳' },
   {
-    label: t('help.breedingCycle.steps.pregCheck'), type: 'decision', icon: '🤰',
+    label: t('help.breedingCycle.steps.pregCheck'),
+    type: 'decision',
+    icon: '🤰',
     branches: [
-      { label: t('common.yes'), nodeLabel: t('help.breedingCycle.steps.pregnant'), type: 'yes', icon: '✅' },
-      { label: t('common.no'), nodeLabel: t('help.breedingCycle.steps.notPregnant'), type: 'no', icon: '🔄' },
+      {
+        label: t('common.yes'),
+        nodeLabel: t('help.breedingCycle.steps.pregnant'),
+        type: 'yes',
+        icon: '✅',
+      },
+      {
+        label: t('common.no'),
+        nodeLabel: t('help.breedingCycle.steps.notPregnant'),
+        type: 'no',
+        icon: '🔄',
+      },
     ],
   },
   { label: t('help.breedingCycle.steps.dryOff'), type: 'action', icon: '🚫' },
@@ -93,7 +105,9 @@ const abortionSteps = computed(() => [
 
 const tips = computed(() => {
   const raw = tm('help.topics.breeding-lifecycle.tips')
-  return Array.isArray(raw) ? raw.map(s => typeof s === 'object' ? s.value || String(s) : String(s)) : []
+  return Array.isArray(raw)
+    ? raw.map((s) => (typeof s === 'object' ? s.value || String(s) : String(s)))
+    : []
 })
 </script>
 

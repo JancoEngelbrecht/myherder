@@ -1,10 +1,28 @@
 const { randomUUID: uuidv4 } = require('crypto')
 
 const DEFAULTS = [
-  { code: 'lameness', name: 'Lameness', emoji: '🦵', requires_teat_selection: false, sort_order: 0 },
+  {
+    code: 'lameness',
+    name: 'Lameness',
+    emoji: '🦵',
+    requires_teat_selection: false,
+    sort_order: 0,
+  },
   { code: 'mastitis', name: 'Mastitis', emoji: '🍼', requires_teat_selection: true, sort_order: 1 },
-  { code: 'respiratory', name: 'Respiratory', emoji: '🫁', requires_teat_selection: false, sort_order: 2 },
-  { code: 'digestive', name: 'Digestive', emoji: '🤢', requires_teat_selection: false, sort_order: 3 },
+  {
+    code: 'respiratory',
+    name: 'Respiratory',
+    emoji: '🫁',
+    requires_teat_selection: false,
+    sort_order: 2,
+  },
+  {
+    code: 'digestive',
+    name: 'Digestive',
+    emoji: '🤢',
+    requires_teat_selection: false,
+    sort_order: 3,
+  },
   { code: 'fever', name: 'Fever', emoji: '🌡️', requires_teat_selection: false, sort_order: 4 },
   { code: 'bad_milk', name: 'Bad Milk', emoji: '🥛', requires_teat_selection: true, sort_order: 5 },
   { code: 'eye', name: 'Eye', emoji: '👁️', requires_teat_selection: false, sort_order: 6 },
@@ -36,7 +54,7 @@ exports.up = async function (knex) {
       sort_order: d.sort_order,
       created_at: now,
       updated_at: now,
-    })),
+    }))
   )
 }
 

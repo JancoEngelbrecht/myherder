@@ -9,13 +9,13 @@ Server-stored, admin-toggled, client-enforced module flags. Admins can enable/di
 
 ## Module Flags
 
-| Flag key | Controls | Nav tab affected | Dashboard cards affected | CowDetail sections |
-|---|---|---|---|---|
-| `breeding` | Breeding hub, events, repro views, breed types admin | `breed` tab | "Breeding Hub" card | Reproduction section + breeding action btn |
-| `milk_recording` | Milk recording view | `milk` tab | "Record Milk" card | — |
-| `health_issues` | Health issues, issue logging, issue types admin | — | "Log Issue", "Open Issues" cards | Health Issues section |
-| `treatments` | Treatments, withdrawal, medications admin | — | "Log Treatment", "Withdrawal" cards | Treatment History section + withdrawal badge |
-| `analytics` | Analytics dashboard | — | "Analytics" card | — |
+| Flag key         | Controls                                             | Nav tab affected | Dashboard cards affected            | CowDetail sections                           |
+| ---------------- | ---------------------------------------------------- | ---------------- | ----------------------------------- | -------------------------------------------- |
+| `breeding`       | Breeding hub, events, repro views, breed types admin | `breed` tab      | "Breeding Hub" card                 | Reproduction section + breeding action btn   |
+| `milk_recording` | Milk recording view                                  | `milk` tab       | "Record Milk" card                  | —                                            |
+| `health_issues`  | Health issues, issue logging, issue types admin      | —                | "Log Issue", "Open Issues" cards    | Health Issues section                        |
+| `treatments`     | Treatments, withdrawal, medications admin            | —                | "Log Treatment", "Withdrawal" cards | Treatment History section + withdrawal badge |
+| `analytics`      | Analytics dashboard                                  | —                | "Analytics" card                    | —                                            |
 
 ## Quality Gate — After Every Phase
 
@@ -41,6 +41,7 @@ Each phase ends with a mandatory quality checkpoint before proceeding:
 ## Phase 1: Database Migration + API
 
 **Migration 023** — `feature_flags` table:
+
 ```
 key        VARCHAR(50) PRIMARY KEY
 enabled    BOOLEAN NOT NULL DEFAULT true
@@ -50,12 +51,14 @@ updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 Seed 5 rows (all `enabled: true`): `breeding`, `milk_recording`, `health_issues`, `treatments`, `analytics`.
 
 **API route** — `server/routes/featureFlags.js`:
+
 - `GET /api/feature-flags` — authenticated (any role). Returns `{ breeding: true, milkRecording: true, ... }` (camelCase keys).
 - `PATCH /api/feature-flags` — admin only. Body: `{ breeding?: bool, milkRecording?: bool, ... }`. Updates matching rows, returns updated flags object.
 
 **Mount** in `server/app.js`.
 
 **Files:**
+
 - [ ] `server/migrations/023_create_feature_flags.js`
 - [ ] `server/routes/featureFlags.js`
 - [ ] `server/app.js` — add route mount
@@ -63,6 +66,7 @@ Seed 5 rows (all `enabled: true`): `breeding`, `milk_recording`, `health_issues`
 **Verify:** `npm run migrate` succeeds, `curl` GET returns all 5 flags as true, PATCH toggles a flag.
 
 **Quality gate:**
+
 - Route follows `issueTypes.js` CRUD pattern (section dividers, top-level Joi schemas, no inline validation)
 - No duplicated DB helper logic — reuse `getAllFlags()` helper for both GET and PATCH response
 - Run `npm run lint` + `npm run knip` — no new issues
@@ -74,6 +78,7 @@ Seed 5 rows (all `enabled: true`): `breeding`, `milk_recording`, `health_issues`
 **IndexedDB v9** — add `featureFlags` table (key: `key`, stores `{ key, enabled }`).
 
 **Pinia store** — `client/src/stores/featureFlags.js`:
+
 - State: `flags` reactive object `{ breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true }`
 - `fetchFlags()` — GET API → update state + persist to IndexedDB. On API failure, load from IndexedDB. If neither available, use defaults (all true).
 - `updateFlag(key, enabled)` — PATCH API → update state + IndexedDB.
@@ -83,6 +88,7 @@ Seed 5 rows (all `enabled: true`): `breeding`, `milk_recording`, `health_issues`
 **Load on auth** — call `featureFlagsStore.fetchFlags()` in auth store's `setSession()` (same pattern as breedTypes).
 
 **Files:**
+
 - [ ] `client/src/db/indexedDB.js` — bump to v9, add `featureFlags` table
 - [ ] `client/src/stores/featureFlags.js` — new store
 - [ ] `client/src/stores/auth.js` — import + call fetchFlags on login
@@ -90,6 +96,7 @@ Seed 5 rows (all `enabled: true`): `breeding`, `milk_recording`, `health_issues`
 **Verify:** Login → flags fetched and cached. Kill server → reload → flags load from IndexedDB.
 
 **Quality gate:**
+
 - Store follows `breedTypes.js` pattern (offline fallback, IndexedDB persistence, no reactive proxy leaks)
 - No duplicate fetch logic — single `fetchFlags()` with cascading fallback (API → IndexedDB → defaults)
 - Verify `{ ...obj }` spread before any `db.featureFlags.put()` call (DataCloneError prevention)
@@ -101,12 +108,14 @@ Seed 5 rows (all `enabled: true`): `breeding`, `milk_recording`, `health_issues`
 ## Phase 3: Settings UI — Module Toggles
 
 **New section** in `SettingsView.vue` — "Modules" section between Admin Tools and Data Sync:
+
 - Each module flag rendered as a toggle row (flag name + description + switch)
 - Toggle calls `featureFlagsStore.updateFlag(key, newValue)`
 - Show loading state per toggle while API completes
 - Admin-only section (the whole settings page is already admin-gated)
 
 **Conditionally hide admin tool links** based on parent module:
+
 - "Medications" link → `v-if="flags.treatments"`
 - "Issue Types" link → `v-if="flags.healthIssues"`
 - "Breed Types" link → `v-if="flags.breeding"`
@@ -114,6 +123,7 @@ Seed 5 rows (all `enabled: true`): `breeding`, `milk_recording`, `health_issues`
 **i18n keys** (en + af) — `featureFlags.sectionTitle`, `featureFlags.sectionDesc`, and per-flag: `featureFlags.breeding.name`, `featureFlags.breeding.desc`, etc.
 
 **Files:**
+
 - [ ] `client/src/views/admin/SettingsView.vue` — add modules section + conditional admin links
 - [ ] `client/src/i18n/en.json` — featureFlags namespace
 - [ ] `client/src/i18n/af.json` — featureFlags namespace
@@ -122,6 +132,7 @@ Seed 5 rows (all `enabled: true`): `breeding`, `milk_recording`, `health_issues`
 **Verify:** Settings page shows 5 toggles. Toggling one updates the DB (check via API). Disabled module's admin link disappears.
 
 **Quality gate:**
+
 - Toggle component uses global `.toggle-switch` class — no duplicated inline styles
 - i18n keys consistent across en.json and af.json (same key set, no missing translations)
 - No hardcoded strings in template — all user-facing text through `t()`
@@ -133,11 +144,13 @@ Seed 5 rows (all `enabled: true`): `breeding`, `milk_recording`, `health_issues`
 ## Phase 4: Navigation + Route Gating
 
 **BottomNav** — make `tabs` a computed property that filters based on `featureFlagsStore`:
+
 - `milk` tab → `flags.milkRecording`
 - `breed` tab → `flags.breeding`
 - `home`, `cows`, `log` tabs always shown
 
 **Router guards** — extend `router.beforeEach`:
+
 - Add route meta: `requiresModule: 'breeding'` (etc.) on all module-specific routes
 - In the guard: if `to.meta.requiresModule` and that flag is disabled → redirect to `/`
 - Module-to-routes mapping:
@@ -148,6 +161,7 @@ Seed 5 rows (all `enabled: true`): `breeding`, `milk_recording`, `health_issues`
   - `analytics`: `/analytics`
 
 **DashboardView** — wrap action cards with `v-if`:
+
 - "Analytics" → `flags.analytics`
 - "Log Treatment" → `flags.treatments`
 - "Log Issue" → `flags.healthIssues`
@@ -156,6 +170,7 @@ Seed 5 rows (all `enabled: true`): `breeding`, `milk_recording`, `health_issues`
 - "Breeding Hub" → `flags.breeding`
 
 **Files:**
+
 - [ ] `client/src/components/organisms/BottomNav.vue` — computed filtered tabs
 - [ ] `client/src/router/index.js` — add `requiresModule` meta + guard logic
 - [ ] `client/src/views/DashboardView.vue` — conditional action cards
@@ -163,6 +178,7 @@ Seed 5 rows (all `enabled: true`): `breeding`, `milk_recording`, `health_issues`
 **Verify:** Disable breeding → breed tab gone, `/breed` redirects to `/`, dashboard card hidden. Same for each module.
 
 **Quality gate:**
+
 - Router guard is a single clean check — no nested if/else chain per module. Use `requiresModule` meta + flags store lookup
 - BottomNav `tabs` computed doesn't re-create array on every render — verify reactivity is efficient
 - Dashboard doesn't leave visual gaps when cards are hidden — check grid/flex layout still flows naturally
@@ -174,17 +190,20 @@ Seed 5 rows (all `enabled: true`): `breeding`, `milk_recording`, `health_issues`
 ## Phase 5: Detail View Gating + API Call Optimization
 
 **CowDetailView** — conditional sections and skip unnecessary API calls:
+
 - Reproduction section + breeding action btn → `v-if="flags.breeding"`
 - Health Issues section → `v-if="flags.healthIssues"`
 - Treatment History section + withdrawal badge → `v-if="flags.treatments"`
 - In `load()`: skip `breedingEventsStore.fetchForCow()` if breeding disabled, skip `treatmentsStore.fetchByCow()` if treatments disabled, skip `healthIssuesStore.fetchByCow()` if healthIssues disabled.
 
 **Files:**
+
 - [ ] `client/src/views/CowDetailView.vue` — conditional sections + conditional API calls
 
 **Verify:** Disable health issues → cow detail page loads without health section, no health API call made (check network tab).
 
 **Quality gate:**
+
 - No leftover empty card containers when sections are hidden — use `v-if` not `v-show`
 - API call skipping is clean — no try/catch wrapping already-skipped calls
 - Verify CowDetailView still loads correctly with ALL flags disabled (edge case — cow page should still show core cow info)
@@ -195,6 +214,7 @@ Seed 5 rows (all `enabled: true`): `breeding`, `milk_recording`, `health_issues`
 ## Phase 6: i18n + Tests
 
 **Tests** — `client/src/tests/featureFlags.store.test.js`:
+
 - Fetches flags from API and persists to IndexedDB
 - Falls back to IndexedDB when API fails
 - Falls back to defaults when both fail
@@ -204,12 +224,14 @@ Seed 5 rows (all `enabled: true`): `breeding`, `milk_recording`, `health_issues`
 **BottomNav test updates** — verify tabs are filtered when flags change.
 
 **Files:**
+
 - [ ] `client/src/tests/featureFlags.store.test.js` — new test file
 - [ ] `client/src/tests/BottomNav.test.js` — add flag-based filtering tests
 
 **Verify:** `cd client && npm run test:run` — all tests pass.
 
 **Quality gate (final):**
+
 - New tests follow project patterns — `featureFlags.store.test.js` uses mocked IndexedDB pattern (see `healthIssues.store.test.js`)
 - BottomNav test additions use the same test setup as existing `BottomNav.test.js`
 - No test duplication — each test covers one specific behavior
@@ -222,11 +244,11 @@ Seed 5 rows (all `enabled: true`): `breeding`, `milk_recording`, `health_issues`
 
 ## Phase Summary
 
-| Phase | What | Key files | Effort |
-|---|---|---|---|
-| 1 | DB migration + API | migration, route, app.js | Small |
-| 2 | Pinia store + IndexedDB | store, indexedDB, auth | Small |
-| 3 | Settings UI toggles | SettingsView, i18n, style.css | Medium |
-| 4 | Nav + route gating | BottomNav, router, Dashboard | Medium |
-| 5 | Detail view gating | CowDetailView | Small |
-| 6 | Tests | 2 test files | Small |
+| Phase | What                    | Key files                     | Effort |
+| ----- | ----------------------- | ----------------------------- | ------ |
+| 1     | DB migration + API      | migration, route, app.js      | Small  |
+| 2     | Pinia store + IndexedDB | store, indexedDB, auth        | Small  |
+| 3     | Settings UI toggles     | SettingsView, i18n, style.css | Medium |
+| 4     | Nav + route gating      | BottomNav, router, Dashboard  | Medium |
+| 5     | Detail view gating      | CowDetailView                 | Small  |
+| 6     | Tests                   | 2 test files                  | Small  |

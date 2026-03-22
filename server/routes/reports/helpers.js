@@ -31,7 +31,7 @@ async function batchMedications(treatmentIds, farmId) {
   }
 
   for (const row of extra) {
-    const list = map[row.treatment_id] ??= []
+    const list = (map[row.treatment_id] ??= [])
     if (!list.some((r) => r.name === row.name)) list.push(row) // dedupe by name
   }
 
@@ -55,7 +55,11 @@ async function getIssueTypeMap(farmId) {
  */
 function parseJsonColumn(val) {
   if (typeof val === 'string') {
-    try { return JSON.parse(val) } catch { return [] }
+    try {
+      return JSON.parse(val)
+    } catch {
+      return []
+    }
   }
   return Array.isArray(val) ? val : []
 }

@@ -78,11 +78,7 @@ module.exports = [
 
   // 5. Test files — relax rules
   {
-    files: [
-      'server/tests/**/*.js',
-      'client/src/**/*.test.js',
-      'client/src/**/*.spec.js',
-    ],
+    files: ['server/tests/**/*.js', 'client/src/**/*.test.js', 'client/src/**/*.spec.js'],
     languageOptions: {
       globals: {
         ...globals.node,

@@ -29,10 +29,24 @@ const authStore = useAuthStore()
 const { emoji: speciesEmoji } = useSpeciesTerms()
 
 const allTabs = computed(() => [
-  { name: 'home',  to: '/',      icon: '🏠', labelKey: 'nav.home' },
-  { name: 'cows',  to: '/cows',  icon: speciesEmoji.value.female, labelKey: 'nav.cows' },
-  { name: 'milk',  to: '/milk',  icon: '🥛', labelKey: 'nav.milk',  flag: 'milkRecording', permission: 'can_record_milk' },
-  { name: 'breed', to: '/breed', icon: speciesEmoji.value.male, labelKey: 'nav.breed', flag: 'breeding', permission: 'can_log_breeding' },
+  { name: 'home', to: '/', icon: '🏠', labelKey: 'nav.home' },
+  { name: 'cows', to: '/cows', icon: speciesEmoji.value.female, labelKey: 'nav.cows' },
+  {
+    name: 'milk',
+    to: '/milk',
+    icon: '🥛',
+    labelKey: 'nav.milk',
+    flag: 'milkRecording',
+    permission: 'can_record_milk',
+  },
+  {
+    name: 'breed',
+    to: '/breed',
+    icon: speciesEmoji.value.male,
+    labelKey: 'nav.breed',
+    flag: 'breeding',
+    permission: 'can_log_breeding',
+  },
 ])
 
 const visibleTabs = computed(() =>
@@ -40,7 +54,7 @@ const visibleTabs = computed(() =>
     if (tab.flag && !featureFlagsStore.flags[tab.flag]) return false
     if (tab.permission && !authStore.hasPermission(tab.permission)) return false
     return true
-  }),
+  })
 )
 
 function isActive(tab) {
@@ -65,7 +79,7 @@ function isActive(tab) {
   align-items: flex-start;
   justify-content: space-around;
   z-index: 200;
-  box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
 }
 
 .nav-tab {

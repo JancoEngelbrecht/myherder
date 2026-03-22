@@ -25,11 +25,19 @@ vi.mock('../services/api.js', () => ({
 vi.mock('../services/syncManager.js', () => {
   const { ref } = require('vue')
   return {
-    isOnline: ref(true), pendingCount: ref(0), isSyncing: ref(false),
-    lastSyncTime: ref(null), failedItems: ref([]), sync: vi.fn(),
-    initialSync: vi.fn(), getPending: vi.fn().mockResolvedValue([]),
-    init: vi.fn(), destroyListeners: vi.fn(),
-    isOfflineError: vi.fn().mockReturnValue(false), enqueue: vi.fn(), dequeueByEntityId: vi.fn(),
+    isOnline: ref(true),
+    pendingCount: ref(0),
+    isSyncing: ref(false),
+    lastSyncTime: ref(null),
+    failedItems: ref([]),
+    sync: vi.fn(),
+    initialSync: vi.fn(),
+    getPending: vi.fn().mockResolvedValue([]),
+    init: vi.fn(),
+    destroyListeners: vi.fn(),
+    isOfflineError: vi.fn().mockReturnValue(false),
+    enqueue: vi.fn(),
+    dequeueByEntityId: vi.fn(),
   }
 })
 
@@ -68,10 +76,20 @@ describe('SettingsView', () => {
     vi.clearAllMocks()
     mockGet.mockImplementation((url) => {
       if (url === '/settings') {
-        return Promise.resolve({ data: { farm_name: 'Test Farm', default_language: 'en', milk_price_per_litre: '4.50' } })
+        return Promise.resolve({
+          data: { farm_name: 'Test Farm', default_language: 'en', milk_price_per_litre: '4.50' },
+        })
       }
       if (url === '/feature-flags') {
-        return Promise.resolve({ data: { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true } })
+        return Promise.resolve({
+          data: {
+            breeding: true,
+            milkRecording: true,
+            healthIssues: true,
+            treatments: true,
+            analytics: true,
+          },
+        })
       }
       return Promise.resolve({ data: {} })
     })
@@ -128,8 +146,18 @@ describe('SettingsView', () => {
 
   it('export button exists and calls GET /export on click', async () => {
     mockGet.mockImplementation((url) => {
-      if (url === '/settings') return Promise.resolve({ data: { farm_name: 'Test Farm', default_language: 'en' } })
-      if (url === '/feature-flags') return Promise.resolve({ data: { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true } })
+      if (url === '/settings')
+        return Promise.resolve({ data: { farm_name: 'Test Farm', default_language: 'en' } })
+      if (url === '/feature-flags')
+        return Promise.resolve({
+          data: {
+            breeding: true,
+            milkRecording: true,
+            healthIssues: true,
+            treatments: true,
+            analytics: true,
+          },
+        })
       if (url === '/export') return Promise.resolve({ data: { cows: [], users: [] } })
       return Promise.resolve({ data: {} })
     })
@@ -141,9 +169,9 @@ describe('SettingsView', () => {
     const wrapper = mountComponent()
     await flushPromises()
 
-    const exportBtn = wrapper.findAll('button.settings-item').find((b) =>
-      b.text().includes('settings.exportData'),
-    )
+    const exportBtn = wrapper
+      .findAll('button.settings-item')
+      .find((b) => b.text().includes('settings.exportData'))
     expect(exportBtn).toBeDefined()
 
     await exportBtn.trigger('click')

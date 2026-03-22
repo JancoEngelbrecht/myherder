@@ -15,11 +15,13 @@ An in-app documentation system with visual CSS-based flow diagrams for each work
 ### 1.1 Create `client/src/components/molecules/FlowDiagram.vue`
 
 Props:
+
 - `nodes: Array` — `[{ id, label, type: 'action'|'system'|'decision', column?, row? }]`
 - `connections: Array` — `[{ from, to, label? }]`
 - `direction: String` — `'vertical'` (default)
 
 Node types:
+
 - **action** (user does something): white bg, primary border, solid
 - **system** (app does automatically): light green bg, dashed primary border
 - **decision** (yes/no branch): accent card with two outgoing connectors
@@ -31,6 +33,7 @@ All text comes pre-translated from parent via `label` prop.
 ### 1.2 Create `client/src/config/helpTopicData.js`
 
 Topic registry exporting:
+
 - `slug`, `category`, `icon`, `adminOnly`
 - `getNodes(t)` — returns FlowDiagram nodes with translated labels
 - `getConnections()` — returns FlowDiagram connections
@@ -45,6 +48,7 @@ Topic registry exporting:
 ### 1.4 Create `client/src/views/HelpTopicView.vue`
 
 Renders topic content by slug from route params:
+
 1. "What is this?" — `t('help.topics.<slug>.what')`
 2. "When do I use it?" — `t('help.topics.<slug>.when')`
 3. FlowDiagram — nodes/connections from `helpTopicData.js`
@@ -127,6 +131,7 @@ RouterLink below settings section, visible to all users.
 ### 4.1 Breeding Lifecycle Overview (`breeding-lifecycle`)
 
 Full cycle diagram in `BreedingLifecycleView`:
+
 - Main: Heat → Insemination → Preg Check → Positive → Dry Off → Calving → Recovery → Heat (repeat)
 - Branch: Preg Check Negative → back to Heat Detection
 - Branch: Abortion → Recovery → Heat Detection
@@ -233,17 +238,17 @@ All topics `adminOnly: true`.
 
 ## Files Summary
 
-| File | Type | Phase |
-|------|------|-------|
-| `client/src/components/molecules/FlowDiagram.vue` | New | 1 |
-| `client/src/config/helpTopicData.js` | New | 1-6 |
-| `client/src/views/HelpLibraryView.vue` | New | 1 |
-| `client/src/views/HelpTopicView.vue` | New | 1 |
-| `client/src/views/help/BreedingLifecycleView.vue` | New | 1+4 |
-| `client/src/views/ProfileView.vue` | Modified | 1 |
-| `client/src/router/index.js` | Modified | 1 |
-| `client/src/i18n/en.json` | Modified | 1-6 |
-| `client/src/i18n/af.json` | Modified | 1-6 |
+| File                                              | Type     | Phase |
+| ------------------------------------------------- | -------- | ----- |
+| `client/src/components/molecules/FlowDiagram.vue` | New      | 1     |
+| `client/src/config/helpTopicData.js`              | New      | 1-6   |
+| `client/src/views/HelpLibraryView.vue`            | New      | 1     |
+| `client/src/views/HelpTopicView.vue`              | New      | 1     |
+| `client/src/views/help/BreedingLifecycleView.vue` | New      | 1+4   |
+| `client/src/views/ProfileView.vue`                | Modified | 1     |
+| `client/src/router/index.js`                      | Modified | 1     |
+| `client/src/i18n/en.json`                         | Modified | 1-6   |
+| `client/src/i18n/af.json`                         | Modified | 1-6   |
 
 ## Testing
 

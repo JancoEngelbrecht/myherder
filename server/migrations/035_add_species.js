@@ -25,11 +25,15 @@ const SHEEP_ID = '00000000-0000-4000-a000-000000000002'
 
 const CATTLE_CONFIG = JSON.stringify({
   terminology: {
-    singular: 'Cow', plural: 'Cows',
-    maleSingular: 'Bull', femaleSingular: 'Cow',
-    youngSingular: 'Calf', youngPlural: 'Calves',
+    singular: 'Cow',
+    plural: 'Cows',
+    maleSingular: 'Bull',
+    femaleSingular: 'Cow',
+    youngSingular: 'Calf',
+    youngPlural: 'Calves',
     collectiveNoun: 'Herd',
-    birthEvent: 'Calving', birthEventPast: 'Calved',
+    birthEvent: 'Calving',
+    birthEventPast: 'Calved',
     maleService: 'Bull Service',
   },
   emoji: { female: '🐄', male: '🐂', young: '🐮' },
@@ -46,9 +50,14 @@ const CATTLE_CONFIG = JSON.stringify({
     ],
   },
   event_types: [
-    'heat_observed', 'ai_insemination', 'bull_service',
-    'preg_check_positive', 'preg_check_negative',
-    'calving', 'abortion', 'dry_off',
+    'heat_observed',
+    'ai_insemination',
+    'bull_service',
+    'preg_check_positive',
+    'preg_check_negative',
+    'calving',
+    'abortion',
+    'dry_off',
   ],
   typical_multiple_births: 1,
   max_offspring: 2,
@@ -56,11 +65,15 @@ const CATTLE_CONFIG = JSON.stringify({
 
 const SHEEP_CONFIG = JSON.stringify({
   terminology: {
-    singular: 'Sheep', plural: 'Sheep',
-    maleSingular: 'Ram', femaleSingular: 'Ewe',
-    youngSingular: 'Lamb', youngPlural: 'Lambs',
+    singular: 'Sheep',
+    plural: 'Sheep',
+    maleSingular: 'Ram',
+    femaleSingular: 'Ewe',
+    youngSingular: 'Lamb',
+    youngPlural: 'Lambs',
     collectiveNoun: 'Flock',
-    birthEvent: 'Lambing', birthEventPast: 'Lambed',
+    birthEvent: 'Lambing',
+    birthEventPast: 'Lambed',
     maleService: 'Ram Service',
   },
   emoji: { female: '🐑', male: '🐏', young: '🐑' },
@@ -75,9 +88,13 @@ const SHEEP_CONFIG = JSON.stringify({
     ],
   },
   event_types: [
-    'heat_observed', 'ai_insemination', 'ram_service',
-    'preg_check_positive', 'preg_check_negative',
-    'lambing', 'abortion',
+    'heat_observed',
+    'ai_insemination',
+    'ram_service',
+    'preg_check_positive',
+    'preg_check_negative',
+    'lambing',
+    'abortion',
   ],
   typical_multiple_births: 2,
   max_offspring: 4,
@@ -86,24 +103,126 @@ const SHEEP_CONFIG = JSON.stringify({
 // ── Sheep default data ───────────────────────────────────────────────────
 
 const SHEEP_BREED_DEFAULTS = [
-  { code: 'dorper', name: 'Dorper', heat_cycle_days: 17, gestation_days: 150, preg_check_days: 30, voluntary_waiting_days: 60, dry_off_days: 0, calf_max_months: 6, heifer_min_months: 8, young_bull_min_months: 8, sort_order: 10 },
-  { code: 'meatmaster', name: 'Meatmaster', heat_cycle_days: 17, gestation_days: 150, preg_check_days: 30, voluntary_waiting_days: 60, dry_off_days: 0, calf_max_months: 6, heifer_min_months: 8, young_bull_min_months: 8, sort_order: 11 },
-  { code: 'sa_mutton_merino', name: 'SA Mutton Merino', heat_cycle_days: 17, gestation_days: 150, preg_check_days: 30, voluntary_waiting_days: 60, dry_off_days: 0, calf_max_months: 6, heifer_min_months: 8, young_bull_min_months: 8, sort_order: 12 },
-  { code: 'dohne_merino', name: 'Dohne Merino', heat_cycle_days: 17, gestation_days: 150, preg_check_days: 30, voluntary_waiting_days: 60, dry_off_days: 0, calf_max_months: 6, heifer_min_months: 8, young_bull_min_months: 8, sort_order: 13 },
+  {
+    code: 'dorper',
+    name: 'Dorper',
+    heat_cycle_days: 17,
+    gestation_days: 150,
+    preg_check_days: 30,
+    voluntary_waiting_days: 60,
+    dry_off_days: 0,
+    calf_max_months: 6,
+    heifer_min_months: 8,
+    young_bull_min_months: 8,
+    sort_order: 10,
+  },
+  {
+    code: 'meatmaster',
+    name: 'Meatmaster',
+    heat_cycle_days: 17,
+    gestation_days: 150,
+    preg_check_days: 30,
+    voluntary_waiting_days: 60,
+    dry_off_days: 0,
+    calf_max_months: 6,
+    heifer_min_months: 8,
+    young_bull_min_months: 8,
+    sort_order: 11,
+  },
+  {
+    code: 'sa_mutton_merino',
+    name: 'SA Mutton Merino',
+    heat_cycle_days: 17,
+    gestation_days: 150,
+    preg_check_days: 30,
+    voluntary_waiting_days: 60,
+    dry_off_days: 0,
+    calf_max_months: 6,
+    heifer_min_months: 8,
+    young_bull_min_months: 8,
+    sort_order: 12,
+  },
+  {
+    code: 'dohne_merino',
+    name: 'Dohne Merino',
+    heat_cycle_days: 17,
+    gestation_days: 150,
+    preg_check_days: 30,
+    voluntary_waiting_days: 60,
+    dry_off_days: 0,
+    calf_max_months: 6,
+    heifer_min_months: 8,
+    young_bull_min_months: 8,
+    sort_order: 13,
+  },
 ]
 
 const SHEEP_ISSUE_DEFAULTS = [
-  { code: 'pulpy_kidney', name: 'Pulpy Kidney', emoji: '💉', requires_teat_selection: false, sort_order: 20 },
-  { code: 'blue_tongue', name: 'Blue Tongue', emoji: '👅', requires_teat_selection: false, sort_order: 21 },
-  { code: 'internal_parasites', name: 'Internal Parasites', emoji: '🪱', requires_teat_selection: false, sort_order: 22 },
+  {
+    code: 'pulpy_kidney',
+    name: 'Pulpy Kidney',
+    emoji: '💉',
+    requires_teat_selection: false,
+    sort_order: 20,
+  },
+  {
+    code: 'blue_tongue',
+    name: 'Blue Tongue',
+    emoji: '👅',
+    requires_teat_selection: false,
+    sort_order: 21,
+  },
+  {
+    code: 'internal_parasites',
+    name: 'Internal Parasites',
+    emoji: '🪱',
+    requires_teat_selection: false,
+    sort_order: 22,
+  },
   { code: 'orf', name: 'Orf', emoji: '🤕', requires_teat_selection: false, sort_order: 23 },
-  { code: 'foot_rot', name: 'Foot Rot', emoji: '🦶', requires_teat_selection: false, sort_order: 24 },
+  {
+    code: 'foot_rot',
+    name: 'Foot Rot',
+    emoji: '🦶',
+    requires_teat_selection: false,
+    sort_order: 24,
+  },
 ]
 
 const SHEEP_MEDICATION_DEFAULTS = [
-  { name: 'Multivax P Plus', active_ingredient: 'Clostridial vaccine', withdrawal_milk_hours: 0, withdrawal_milk_days: 0, withdrawal_meat_hours: 0, withdrawal_meat_days: 21, default_dosage: '2ml', unit: 'ml', notes: 'Clostridial vaccine for sheep. Annual booster.' },
-  { name: 'Dectomax Injectable', active_ingredient: 'Doramectin', withdrawal_milk_hours: 0, withdrawal_milk_days: 0, withdrawal_meat_hours: 0, withdrawal_meat_days: 35, default_dosage: '1ml/50kg', unit: 'ml', notes: 'Broad-spectrum parasiticide. Inject SC.' },
-  { name: 'Ivermectin 1%', active_ingredient: 'Ivermectin', withdrawal_milk_hours: 0, withdrawal_milk_days: 0, withdrawal_meat_hours: 0, withdrawal_meat_days: 14, default_dosage: '1ml/50kg', unit: 'ml', notes: 'Internal and external parasite control. Inject SC.' },
+  {
+    name: 'Multivax P Plus',
+    active_ingredient: 'Clostridial vaccine',
+    withdrawal_milk_hours: 0,
+    withdrawal_milk_days: 0,
+    withdrawal_meat_hours: 0,
+    withdrawal_meat_days: 21,
+    default_dosage: '2ml',
+    unit: 'ml',
+    notes: 'Clostridial vaccine for sheep. Annual booster.',
+  },
+  {
+    name: 'Dectomax Injectable',
+    active_ingredient: 'Doramectin',
+    withdrawal_milk_hours: 0,
+    withdrawal_milk_days: 0,
+    withdrawal_meat_hours: 0,
+    withdrawal_meat_days: 35,
+    default_dosage: '1ml/50kg',
+    unit: 'ml',
+    notes: 'Broad-spectrum parasiticide. Inject SC.',
+  },
+  {
+    name: 'Ivermectin 1%',
+    active_ingredient: 'Ivermectin',
+    withdrawal_milk_hours: 0,
+    withdrawal_milk_days: 0,
+    withdrawal_meat_hours: 0,
+    withdrawal_meat_days: 14,
+    default_dosage: '1ml/50kg',
+    unit: 'ml',
+    notes: 'Internal and external parasite control. Inject SC.',
+  },
 ]
 
 // ── Migration ────────────────────────────────────────────────────────────
@@ -143,8 +262,26 @@ exports.up = async function (knex) {
 
   // 3. Seed species rows
   await knex('species').insert([
-    { id: CATTLE_ID, code: 'cattle', name: 'Cattle', config: CATTLE_CONFIG, is_active: true, sort_order: 0, created_at: now, updated_at: now },
-    { id: SHEEP_ID, code: 'sheep', name: 'Sheep', config: SHEEP_CONFIG, is_active: true, sort_order: 1, created_at: now, updated_at: now },
+    {
+      id: CATTLE_ID,
+      code: 'cattle',
+      name: 'Cattle',
+      config: CATTLE_CONFIG,
+      is_active: true,
+      sort_order: 0,
+      created_at: now,
+      updated_at: now,
+    },
+    {
+      id: SHEEP_ID,
+      code: 'sheep',
+      name: 'Sheep',
+      config: SHEEP_CONFIG,
+      is_active: true,
+      sort_order: 1,
+      created_at: now,
+      updated_at: now,
+    },
   ])
 
   // 4. Add species_id to breed_types (nullable — backfill below)
@@ -176,9 +313,7 @@ exports.up = async function (knex) {
   // 9. Backfill farm_species for all existing farms
   const farms = await knex('farms').select('id')
   if (farms.length > 0) {
-    await knex('farm_species').insert(
-      farms.map((f) => ({ farm_id: f.id, species_id: CATTLE_ID }))
-    )
+    await knex('farm_species').insert(farms.map((f) => ({ farm_id: f.id, species_id: CATTLE_ID })))
   }
 
   // 10. Seed sheep breed types into global defaults
@@ -220,10 +355,18 @@ exports.up = async function (knex) {
   // SQLite: ALTER TABLE ADD COLUMN doesn't support FK — FKs only enforced at INSERT/UPDATE
   // MySQL: add actual FK constraints
   if (!isSQLite) {
-    await knex.raw('ALTER TABLE `breed_types` ADD CONSTRAINT `breed_types_species_id_fk` FOREIGN KEY (`species_id`) REFERENCES `species`(`id`)')
-    await knex.raw('ALTER TABLE `default_breed_types` ADD CONSTRAINT `default_breed_types_species_id_fk` FOREIGN KEY (`species_id`) REFERENCES `species`(`id`)')
-    await knex.raw('ALTER TABLE `cows` ADD CONSTRAINT `cows_species_id_fk` FOREIGN KEY (`species_id`) REFERENCES `species`(`id`)')
-    await knex.raw('ALTER TABLE `cows` ADD CONSTRAINT `cows_birth_event_id_fk` FOREIGN KEY (`birth_event_id`) REFERENCES `breeding_events`(`id`) ON DELETE SET NULL')
+    await knex.raw(
+      'ALTER TABLE `breed_types` ADD CONSTRAINT `breed_types_species_id_fk` FOREIGN KEY (`species_id`) REFERENCES `species`(`id`)'
+    )
+    await knex.raw(
+      'ALTER TABLE `default_breed_types` ADD CONSTRAINT `default_breed_types_species_id_fk` FOREIGN KEY (`species_id`) REFERENCES `species`(`id`)'
+    )
+    await knex.raw(
+      'ALTER TABLE `cows` ADD CONSTRAINT `cows_species_id_fk` FOREIGN KEY (`species_id`) REFERENCES `species`(`id`)'
+    )
+    await knex.raw(
+      'ALTER TABLE `cows` ADD CONSTRAINT `cows_birth_event_id_fk` FOREIGN KEY (`birth_event_id`) REFERENCES `breeding_events`(`id`) ON DELETE SET NULL'
+    )
   }
 }
 
@@ -239,7 +382,11 @@ exports.down = async function (knex) {
       'ALTER TABLE `default_breed_types` DROP FOREIGN KEY `default_breed_types_species_id_fk`',
       'ALTER TABLE `breed_types` DROP FOREIGN KEY `breed_types_species_id_fk`',
     ]) {
-      try { await knex.raw(sql) } catch { /* constraint may not exist */ }
+      try {
+        await knex.raw(sql)
+      } catch {
+        /* constraint may not exist */
+      }
     }
   }
 

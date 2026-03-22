@@ -164,7 +164,10 @@ describe('useBreedTypesStore', () => {
   describe('getById', () => {
     it('returns correct breed type by id', () => {
       const store = useBreedTypesStore()
-      store.types = [BREED_FIXTURE, { ...BREED_FIXTURE, id: 'bt-2', code: 'jersey', name: 'Jersey' }]
+      store.types = [
+        BREED_FIXTURE,
+        { ...BREED_FIXTURE, id: 'bt-2', code: 'jersey', name: 'Jersey' },
+      ]
 
       const result = store.getById('bt-2')
       expect(result).not.toBeNull()

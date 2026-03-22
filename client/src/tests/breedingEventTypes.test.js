@@ -49,7 +49,13 @@ describe('breedingEventTypes', () => {
     it('includes universal events for both species', () => {
       const cattleCodes = getEventTypesForSpecies('cattle').map((t) => t.code)
       const sheepCodes = getEventTypesForSpecies('sheep').map((t) => t.code)
-      for (const code of ['heat_observed', 'ai_insemination', 'preg_check_positive', 'preg_check_negative', 'abortion']) {
+      for (const code of [
+        'heat_observed',
+        'ai_insemination',
+        'preg_check_positive',
+        'preg_check_negative',
+        'abortion',
+      ]) {
         expect(cattleCodes).toContain(code)
         expect(sheepCodes).toContain(code)
       }

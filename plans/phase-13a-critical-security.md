@@ -11,6 +11,7 @@
 **Files:** `server/services/syncService.js`
 
 **Tasks:**
+
 1. Add a `requiredRole` field to each entry in `ENTITY_MAP` (e.g. `breedTypes: { table: 'breed_types', requiredRole: 'admin' }`, `cows: { ..., requiredRole: null }`)
 2. Add a `allowedFields` allowlist per entity in `ENTITY_MAP` — only these fields can be written via sync
 3. In `processChange()`, check `req.user.role` against `requiredRole` before processing; return `{ status: 'error', error: 'Insufficient permissions' }` for unauthorized changes
@@ -29,6 +30,7 @@
 **Files:** `server/routes/auth.js`
 
 **Tasks:**
+
 1. In the password login handler (POST `/api/auth/login`), add the same lockout check that exists in PIN login:
    - Check `locked_until > now` → return 423 "Account locked"
    - After failed attempt: if `failed_attempts >= lockoutThreshold`, set `locked_until = now + lockoutDuration`
@@ -49,6 +51,7 @@
 **Files:** `server/config/env.js`
 
 **Tasks:**
+
 1. Change the default check: require `JWT_SECRET` env var to be set and ≥32 characters in ALL environments (not just production)
 2. In development only (`NODE_ENV === 'development'` or unset), allow a fallback but log a loud warning to stderr on startup
 3. For test environment (`NODE_ENV === 'test'`), allow the existing default (tests need a predictable secret)
@@ -65,6 +68,7 @@
 **Files:** `server/app.js`, `server/config/env.js`
 
 **Tasks:**
+
 1. In `env.js`, add a `corsOrigins` config that defaults to `['http://localhost:5173', 'http://localhost:3000']` in dev
 2. In `app.js`, always pass an explicit origin config to `cors()` — never `undefined`
 3. In production, require `ALLOWED_ORIGINS` to be set; throw on startup if missing
@@ -77,6 +81,7 @@
 ## Verification
 
 After all 13A steps:
+
 - [ ] Run full backend test suite: `npm test` (all pass)
 - [ ] Run full frontend test suite: `cd client && npm run test:run` (all pass)
 - [ ] Manual test: worker sync push of breedType change → rejected

@@ -29,10 +29,15 @@ async function getDiscardedMilkData(from, to, farmId) {
     .where('mr.recording_date', '>=', from)
     .where('mr.recording_date', '<=', to)
     .select(
-      'mr.recording_date', 'mr.session', 'mr.session_time', 'mr.litres',
-      'mr.discard_reason', 'mr.notes',
-      'c.tag_number', 'c.name as cow_name',
-      'u.full_name as recorded_by_name',
+      'mr.recording_date',
+      'mr.session',
+      'mr.session_time',
+      'mr.litres',
+      'mr.discard_reason',
+      'mr.notes',
+      'c.tag_number',
+      'c.name as cow_name',
+      'u.full_name as recorded_by_name'
     )
     .orderBy([{ column: 'mr.recording_date', order: 'asc' }, { column: 'mr.session' }])
 
@@ -55,7 +60,11 @@ async function getDiscardedMilkData(from, to, farmId) {
 
   return {
     rows,
-    summaryRow: { date: 'TOTAL', litres: totalLitres.toFixed(2), reason: `${records.length} records` },
+    summaryRow: {
+      date: 'TOTAL',
+      litres: totalLitres.toFixed(2),
+      reason: `${records.length} records`,
+    },
   }
 }
 
@@ -99,10 +108,12 @@ async function getMilkProductionData(from, to, farmId) {
       db.raw('COUNT(DISTINCT mr.recording_date) as days_recorded'),
       db.raw("SUM(CASE WHEN mr.session = 'morning' THEN mr.litres ELSE 0 END) as morning_total"),
       db.raw("SUM(CASE WHEN mr.session = 'morning' THEN 1 ELSE 0 END) as morning_count"),
-      db.raw("SUM(CASE WHEN mr.session = 'afternoon' THEN mr.litres ELSE 0 END) as afternoon_total"),
+      db.raw(
+        "SUM(CASE WHEN mr.session = 'afternoon' THEN mr.litres ELSE 0 END) as afternoon_total"
+      ),
       db.raw("SUM(CASE WHEN mr.session = 'afternoon' THEN 1 ELSE 0 END) as afternoon_count"),
       db.raw("SUM(CASE WHEN mr.session = 'evening' THEN mr.litres ELSE 0 END) as evening_total"),
-      db.raw("SUM(CASE WHEN mr.session = 'evening' THEN 1 ELSE 0 END) as evening_count"),
+      db.raw("SUM(CASE WHEN mr.session = 'evening' THEN 1 ELSE 0 END) as evening_count")
     )
     .groupBy('mr.cow_id')
     .orderBy('total_litres', 'desc')
@@ -133,7 +144,10 @@ async function getMilkProductionData(from, to, farmId) {
     const totalLitres = Number(r.total_litres) || 0
     const daysRecorded = Number(r.days_recorded) || 0
     herdTotal += totalLitres
-    if (daysRecorded > 0) { avgDailySum += totalLitres / daysRecorded; avgDailyCount++ }
+    if (daysRecorded > 0) {
+      avgDailySum += totalLitres / daysRecorded
+      avgDailyCount++
+    }
   }
   const herdAvgDaily = avgDailyCount > 0 ? (avgDailySum / avgDailyCount).toFixed(2) : '0.00'
 

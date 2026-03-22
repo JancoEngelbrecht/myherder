@@ -10,8 +10,12 @@ let mockRouteQuery = {}
 
 vi.mock('vue-router', () => ({
   useRoute: () => ({
-    get params() { return mockRouteParams },
-    get query() { return mockRouteQuery },
+    get params() {
+      return mockRouteParams
+    },
+    get query() {
+      return mockRouteQuery
+    },
   }),
   useRouter: () => ({ push: mockPush, replace: mockReplace }),
   RouterLink: { template: '<a><slot /></a>', props: ['to'] },
@@ -42,8 +46,20 @@ vi.mock('../services/syncManager.js', () => {
 
 vi.mock('../db/indexedDB.js', () => ({
   default: {
-    cows: { toArray: vi.fn().mockResolvedValue([]), bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn() },
-    breedTypes: { toArray: vi.fn().mockResolvedValue([]), bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn() },
+    cows: {
+      toArray: vi.fn().mockResolvedValue([]),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
+    },
+    breedTypes: {
+      toArray: vi.fn().mockResolvedValue([]),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
+    },
     breedingEvents: {
       toArray: vi.fn().mockResolvedValue([]),
       bulkPut: vi.fn(),
@@ -72,7 +88,10 @@ import { createPinia, setActivePinia } from 'pinia'
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const stubs = {
-  AppHeader: { template: '<div class="app-header"><slot /></div>', props: ['title', 'showBack', 'backTo'] },
+  AppHeader: {
+    template: '<div class="app-header"><slot /></div>',
+    props: ['title', 'showBack', 'backTo'],
+  },
   CowSearchDropdown: {
     template: '<select class="cow-search-dropdown" />',
     props: ['modelValue', 'placeholder', 'error', 'sexFilter'],
@@ -84,13 +103,27 @@ function createWrapper() {
     if (url === '/breed-types') return Promise.resolve({ data: [] })
     if (url === '/breed-types?all=1') return Promise.resolve({ data: [] })
     if (url === '/cows') return Promise.resolve({ data: [] })
-    if (url.includes('feature-flags')) return Promise.resolve({ data: { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true } })
+    if (url.includes('feature-flags'))
+      return Promise.resolve({
+        data: {
+          breeding: true,
+          milkRecording: true,
+          healthIssues: true,
+          treatments: true,
+          analytics: true,
+        },
+      })
     if (typeof url === 'string' && url.startsWith('/breeding-events/')) {
       return Promise.resolve({
         data: {
-          id: 'be-1', cow_id: 'cow-1', event_type: 'ai_insemination',
-          event_date: '2026-01-15T10:00:00.000Z', semen_id: 'SEM-001',
-          inseminator: 'Dr. Smith', tag_number: 'TAG-001', cow_name: 'Bessie',
+          id: 'be-1',
+          cow_id: 'cow-1',
+          event_type: 'ai_insemination',
+          event_date: '2026-01-15T10:00:00.000Z',
+          semen_id: 'SEM-001',
+          inseminator: 'Dr. Smith',
+          tag_number: 'TAG-001',
+          cow_name: 'Bessie',
         },
       })
     }

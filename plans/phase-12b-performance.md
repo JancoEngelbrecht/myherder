@@ -24,14 +24,14 @@ const rows = await db('milk_records')
   .count('* as record_count')
   .countDistinct('cow_id as cow_count')
   .groupByRaw(monthExpr('recording_date'))
-  .orderBy('month');
+  .orderBy('month')
 
-const months = rows.map(row => ({
+const months = rows.map((row) => ({
   month: row.month,
   total_litres: round2(Number(row.total_litres) || 0),
   record_count: row.record_count,
   avg_per_cow: round2((Number(row.total_litres) || 0) / (Number(row.cow_count) || 1)),
-}));
+}))
 ```
 
 **Verification:** Existing `analytics.test.js` milk-trends tests pass with same response shape.
@@ -49,18 +49,18 @@ const months = rows.map(row => ({
 ```javascript
 // Step 1: Get all preg-check-positive events in range (already have this)
 // Step 2: Bulk-fetch all calving/abortion events for those cow_ids
-const cowIds = [...new Set(positiveChecks.map(c => c.cow_id))];
+const cowIds = [...new Set(positiveChecks.map((c) => c.cow_id))]
 const resets = await db('breeding_events')
   .whereIn('cow_id', cowIds)
   .whereIn('event_type', ['calving', 'abortion'])
   .select('cow_id', 'event_date')
-  .orderBy('event_date', 'desc');
+  .orderBy('event_date', 'desc')
 
 // Step 3: Bulk-fetch all insemination/bull_service events for those cow_ids
 const services = await db('breeding_events')
   .whereIn('cow_id', cowIds)
   .whereIn('event_type', ['ai_insemination', 'bull_service'])
-  .select('cow_id', 'event_date');
+  .select('cow_id', 'event_date')
 
 // Step 4: Build lookup maps, compute per-check service counts in memory
 ```
@@ -87,8 +87,10 @@ const [summary] = await db('cows')
     db.raw("SUM(CASE WHEN sex = 'male' THEN 1 ELSE 0 END) as males"),
     db.raw("SUM(CASE WHEN sex = 'female' THEN 1 ELSE 0 END) as females"),
     db.raw("SUM(CASE WHEN sex = 'female' AND is_dry = 1 THEN 1 ELSE 0 END) as dry_count"),
-    db.raw("SUM(CASE WHEN sex = 'female' AND is_dry = 0 AND status IN ('active','pregnant','sick') THEN 1 ELSE 0 END) as milking_count"),
-  );
+    db.raw(
+      "SUM(CASE WHEN sex = 'female' AND is_dry = 0 AND status IN ('active','pregnant','sick') THEN 1 ELSE 0 END) as milking_count"
+    )
+  )
 ```
 
 Keep the heifer query + replacement_rate calculation separate (needs breeding_events join).
@@ -117,7 +119,7 @@ const cowQuerySchema = Joi.object({
   limit: Joi.number().integer().min(1).max(100),
   sort: Joi.string().valid('tag_number', 'name', 'dob', 'status'),
   order: Joi.string().valid('asc', 'desc'),
-}).unknown(false);
+}).unknown(false)
 ```
 
 Validate at the start of the GET handler with `{ allowUnknown: false }`.
@@ -146,17 +148,18 @@ Validate at the start of the GET handler with `{ allowUnknown: false }`.
 
 **Redundant re-fetches to eliminate:**
 
-| File | Endpoint | Line | Notes |
-|------|----------|------|-------|
-| cows.js | POST | ~227 | No joins in create response |
-| breedTypes.js | POST | ~71 | No joins, data in memory |
-| issueTypes.js | POST | ~82 | No joins, data in memory |
-| medications.js | POST | ~82 | No joins, data in memory |
-| users.js | POST | ~135 | No joins, just sanitize from insert payload |
+| File           | Endpoint | Line | Notes                                       |
+| -------------- | -------- | ---- | ------------------------------------------- |
+| cows.js        | POST     | ~227 | No joins in create response                 |
+| breedTypes.js  | POST     | ~71  | No joins, data in memory                    |
+| issueTypes.js  | POST     | ~82  | No joins, data in memory                    |
+| medications.js | POST     | ~82  | No joins, data in memory                    |
+| users.js       | POST     | ~135 | No joins, just sanitize from insert payload |
 
 **Fix:** Construct the response object from the validated input + generated fields (id, created_at, updated_at) instead of re-querying.
 
 **Justified re-fetches (KEEP — need JOIN data):**
+
 - healthIssues.js POST (needs cow/user names via issueQuery JOIN)
 - treatments.js POST (needs medication/cow/user names via treatmentQuery JOIN)
 - milkRecords.js POST (needs cow/user names via milkQuery JOIN)
@@ -178,7 +181,7 @@ Validate at the start of the GET handler with `{ allowUnknown: false }`.
 const dateRangeSchema = Joi.object({
   from: Joi.date().iso().allow(''),
   to: Joi.date().iso().allow(''),
-}).unknown(true); // allow other params like format
+}).unknown(true) // allow other params like format
 ```
 
 Apply validation inside `defaultRange()` helper or at the start of each handler. Since all 32 endpoints call `defaultRange(req.query.from, req.query.to)`, the cleanest approach is to validate inside that helper and throw a 400 if invalid.
@@ -193,13 +196,13 @@ Apply validation inside `defaultRange()` helper or at the start of each handler.
 
 **Problem:** Several GET endpoints accept query params with only manual parsing or length guards, no schema validation.
 
-| Route | Params | Risk |
-|-------|--------|------|
-| auditLog.js GET | `page`, `limit`, `entity_type`, `entity_id`, `user_id`, `action`, `from`, `to` | MEDIUM |
-| breedingEvents.js GET | `date_from`, `date_to` (other params already validated) | MEDIUM |
-| treatments.js GET | `cow_id` | MEDIUM |
-| medications.js GET | `all`, `search`, `page`, `limit` | LOW-MEDIUM |
-| issueTypes.js GET | `all`, `search`, `page`, `limit` | LOW-MEDIUM |
+| Route                 | Params                                                                         | Risk       |
+| --------------------- | ------------------------------------------------------------------------------ | ---------- |
+| auditLog.js GET       | `page`, `limit`, `entity_type`, `entity_id`, `user_id`, `action`, `from`, `to` | MEDIUM     |
+| breedingEvents.js GET | `date_from`, `date_to` (other params already validated)                        | MEDIUM     |
+| treatments.js GET     | `cow_id`                                                                       | MEDIUM     |
+| medications.js GET    | `all`, `search`, `page`, `limit`                                               | LOW-MEDIUM |
+| issueTypes.js GET     | `all`, `search`, `page`, `limit`                                               | LOW-MEDIUM |
 
 **Fix:** Add Joi query schemas to each. Follow the pattern from milkRecords.js (the exemplary reference).
 
@@ -213,21 +216,23 @@ Apply validation inside `defaultRange()` helper or at the start of each handler.
 
 **Problem:** Several endpoints fetch all rows and aggregate in JavaScript when SQL could do it in one query.
 
-| Endpoint | File:Lines | Current Pattern | SQL Fix |
-|----------|-----------|-----------------|---------|
-| mortality-rate | analytics:1108-1139 | Loop counting sold/dead per month | `GROUP BY month` + `SUM(CASE WHEN status='sold'...)` |
-| age-distribution | analytics:1022-1054 | Loop assigning age brackets | `CASE` expression for brackets in SQL |
+| Endpoint               | File:Lines          | Current Pattern                     | SQL Fix                                                  |
+| ---------------------- | ------------------- | ----------------------------------- | -------------------------------------------------------- |
+| mortality-rate         | analytics:1108-1139 | Loop counting sold/dead per month   | `GROUP BY month` + `SUM(CASE WHEN status='sold'...)`     |
+| age-distribution       | analytics:1022-1054 | Loop assigning age brackets         | `CASE` expression for brackets in SQL                    |
 | health-cure-rate-trend | analytics:1452-1466 | Manual monthly total/resolved count | `GROUP BY month` + `SUM(CASE WHEN status='resolved'...)` |
-| slowest-to-resolve | analytics:1488-1514 | Per-cow avg resolution days in JS | SQL `AVG()` + date arithmetic + `GROUP BY cow_id` |
-| milk-summary | milkRecords:130-154 | Manual session totals | `GROUP BY session` + `SUM(litres)` |
-| treatments/withdrawal | treatments:93-113 | Dedup latest per cow in JS | Subquery with `MAX(withdrawal_end_milk)` per cow |
+| slowest-to-resolve     | analytics:1488-1514 | Per-cow avg resolution days in JS   | SQL `AVG()` + date arithmetic + `GROUP BY cow_id`        |
+| milk-summary           | milkRecords:130-154 | Manual session totals               | `GROUP BY session` + `SUM(litres)`                       |
+| treatments/withdrawal  | treatments:93-113   | Dedup latest per cow in JS          | Subquery with `MAX(withdrawal_end_milk)` per cow         |
 
 **Fix for each:**
+
 - Replace JS loops with SQL aggregation queries
 - For age-distribution, use `CASE WHEN age < 1 THEN 'calf' WHEN age < 2 THEN 'yearling' ...` (adjust brackets to match current JS logic)
 - For slowest-to-resolve, use `JULIANDAY(resolved_at) - JULIANDAY(observed_at)` in SQLite (or `TIMESTAMPDIFF` in MySQL)
 
 **Note:** Skip endpoints with justified JS aggregation:
+
 - seasonal-prediction, issue-frequency, health-resolution-by-type (JSON column parsing in SQLite)
 - health-recurrence (complex 60-day window logic)
 - withdrawal-days (intentional per code comment — SQLite date limitations)

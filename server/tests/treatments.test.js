@@ -278,8 +278,16 @@ describe('GET /api/treatments', () => {
     const medId = await createMedication()
     const date = '2026-01-21T10:00:00.000Z'
 
-    await postTreatment({ cow_id: cow1, medications: [{ medication_id: medId }], treatment_date: date })
-    await postTreatment({ cow_id: cow2, medications: [{ medication_id: medId }], treatment_date: date })
+    await postTreatment({
+      cow_id: cow1,
+      medications: [{ medication_id: medId }],
+      treatment_date: date,
+    })
+    await postTreatment({
+      cow_id: cow2,
+      medications: [{ medication_id: medId }],
+      treatment_date: date,
+    })
 
     const res = await request(app)
       .get(`/api/treatments?cow_id=${cow1}`)
@@ -304,7 +312,9 @@ describe('GET /api/treatments/withdrawal', () => {
       treatment_date: new Date().toISOString(),
     })
 
-    const res = await request(app).get('/api/treatments/withdrawal').set('Authorization', adminToken())
+    const res = await request(app)
+      .get('/api/treatments/withdrawal')
+      .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body)).toBe(true)
@@ -323,7 +333,9 @@ describe('GET /api/treatments/withdrawal', () => {
       treatment_date: new Date().toISOString(),
     })
 
-    const res = await request(app).get('/api/treatments/withdrawal').set('Authorization', adminToken())
+    const res = await request(app)
+      .get('/api/treatments/withdrawal')
+      .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
     const entry = res.body.find((t) => t.cow_id === bull)
@@ -343,7 +355,9 @@ describe('GET /api/treatments/withdrawal', () => {
       treatment_date: new Date().toISOString(),
     })
 
-    const res = await request(app).get('/api/treatments/withdrawal').set('Authorization', adminToken())
+    const res = await request(app)
+      .get('/api/treatments/withdrawal')
+      .set('Authorization', adminToken())
     expect(res.status).toBe(200)
 
     const entry = res.body.find((t) => t.cow_id === heifer)
@@ -361,16 +375,25 @@ describe('GET /api/treatments/withdrawal', () => {
     const now = new Date().toISOString()
     const futureDate = new Date(Date.now() + 999 * 3600000).toISOString()
     await db('treatments').insert({
-      id, farm_id: DEFAULT_FARM_ID, cow_id: soldCow, medication_id: med,
+      id,
+      farm_id: DEFAULT_FARM_ID,
+      cow_id: soldCow,
+      medication_id: med,
       administered_by: (await db('users').where({ farm_id: DEFAULT_FARM_ID }).first()).id,
-      treatment_date: now, withdrawal_end_milk: futureDate,
-      created_at: now, updated_at: now,
+      treatment_date: now,
+      withdrawal_end_milk: futureDate,
+      created_at: now,
+      updated_at: now,
     })
     await db('treatment_medications').insert({
-      id: randomUUID(), treatment_id: id, medication_id: med,
+      id: randomUUID(),
+      treatment_id: id,
+      medication_id: med,
     })
 
-    const res = await request(app).get('/api/treatments/withdrawal').set('Authorization', adminToken())
+    const res = await request(app)
+      .get('/api/treatments/withdrawal')
+      .set('Authorization', adminToken())
     expect(res.status).toBe(200)
     expect(res.body.find((t) => t.cow_id === soldCow)).toBeUndefined()
   })
@@ -383,10 +406,20 @@ describe('GET /api/treatments/withdrawal', () => {
     // Two treatments for the same cow — the later one has the further withdrawal end
     const earlier = new Date(base.getTime() - 100_000).toISOString()
     const later = new Date(base.getTime() - 1_000).toISOString()
-    await postTreatment({ cow_id: cow, medications: [{ medication_id: med }], treatment_date: earlier })
-    await postTreatment({ cow_id: cow, medications: [{ medication_id: med }], treatment_date: later })
+    await postTreatment({
+      cow_id: cow,
+      medications: [{ medication_id: med }],
+      treatment_date: earlier,
+    })
+    await postTreatment({
+      cow_id: cow,
+      medications: [{ medication_id: med }],
+      treatment_date: later,
+    })
 
-    const res = await request(app).get('/api/treatments/withdrawal').set('Authorization', adminToken())
+    const res = await request(app)
+      .get('/api/treatments/withdrawal')
+      .set('Authorization', adminToken())
 
     const cowEntries = res.body.filter((t) => t.cow_id === cow)
     expect(cowEntries).toHaveLength(1)
@@ -516,9 +549,7 @@ describe('GET /api/treatments pagination (13B.4)', () => {
   })
 
   it('returns plain array when page/limit are omitted (backward compatible)', async () => {
-    const res = await request(app)
-      .get('/api/treatments')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/treatments').set('Authorization', adminToken())
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body)).toBe(true)
   })

@@ -7,6 +7,7 @@
 ---
 
 ## Phase 1: Dependency & Config Fixes
+
 > Priority: CRITICAL — app won't start without these
 
 - [x] **1A.** Add `mysql2` to root `package.json` dependencies
@@ -19,6 +20,7 @@
 ---
 
 ## Phase 2: Passenger Compatibility
+
 > Priority: CRITICAL — cPanel uses Phusion Passenger to run Node apps
 
 - [x] **2A.** Created root `app.js` that exports `require('./server/app')` without calling `listen()`. Set cPanel "Application startup file" to `app.js`. `server/index.js` (with `app.listen()`) remains unchanged for direct node execution. This eliminates the PORT/socket conflict risk with Passenger.
@@ -30,33 +32,42 @@
 ---
 
 ## Phase 3: MySQL Migration Compatibility
+
 > Priority: CRITICAL — 4 migrations have SQLite-specific code that will fail on MySQL
 
 ### 3A. Migration 007 (`add_withdrawal_hours_days`) — LOW risk
+
 - [ ] `.after('column_name')` is MySQL-only but harmless on MySQL (it's the target). SQLite ignores column ordering. **No fix needed** — we're migrating TO MySQL.
 
 ### 3B. Migration 009 (`add_health_issue_id_to_treatments`) — LOW risk
+
 - [ ] Same `.after()` issue as 007. **No fix needed** for MySQL target.
 
 ### 3C. Migration 011 (`multi_issue_types`) — NO ACTION NEEDED
+
 - [x] `json_array()` and `json_extract()` are valid MySQL 5.7.8+ and MariaDB 10.2.3+ functions (case-insensitive SQL). Path syntax `'$[0]'` is identical. Works as-is.
 
 ### 3D. Migration 022 (`fix_breeding_event_type_enum`) — FIXED
+
 - [x] Added MySQL dialect branch: `if (!isSQLite)` uses `ALTER TABLE breeding_events MODIFY COLUMN event_type ENUM(...) NOT NULL`
 - [x] SQLite path (table recreation) unchanged — dev/test continue to work
 - [x] `down` migration also branched: MySQL shrinks ENUM back; SQLite uses table recreation
 
 ### 3E. Migration 030 (`add_multi_tenancy`) — VERIFIED, NO ACTION NEEDED
+
 - [x] `ALTER TABLE t ALTER COLUMN col DROP DEFAULT` is valid ANSI SQL supported by MySQL 5.7+, MySQL 8.x, and MariaDB 10.x. No version issue.
 - [x] Unique index names (`users_username_unique`, etc.) match Knex naming convention. Correct.
 
 ### 3F. Migrations 031, 032 — VERIFIED, NO ACTION NEEDED
+
 - [x] Already have MySQL branches. `.alter()` usage verified correct with Knex + mysql2.
 
 ### 3G. Migration 033 (`global_defaults_and_announcements`) — VERIFIED, NO ACTION NEEDED
+
 - [x] Conditional `.collate('utf8mb4_unicode_ci')` is correct Knex API and produces valid MySQL SQL. FK on `created_by` correctly gated behind `if (!isSQLite)`.
 
 ### 3H. Full migration test — COMPLETE ✓
+
 - [x] Spun up MariaDB 10.11 via Docker Desktop
 - [x] All 34 migrations passed (`Batch 1 run: 34 migrations`)
 - [x] All 3 seed files passed (114,336 milk records, 648 health issues, 691 treatments, 214 breeding events, 5 default breed types, 9 issue types, 5 default medications)
@@ -70,6 +81,7 @@
 ---
 
 ## Phase 4: Seed Data for Production — COMPLETE
+
 > Priority: HIGH — first deploy needs initial data
 
 - [x] **4A.** Review seed files for production safety — demo seeds (001-003) truncate all tables and insert demo data. **Solution:** production knexfile now points to separate `server/seeds/production/` directory.
@@ -106,6 +118,7 @@
 8. **Farm admin logs in** with farm code → starts using the app
 
 ### Dev/test seeds unchanged
+
 - `npm run seed` (dev) still uses `server/seeds/` (demo data with 30 cows, analytics, etc.)
 - `npm test` (test) uses in-memory SQLite with test helpers — no seed files involved
 - Only `--env production` uses `server/seeds/production/`
@@ -113,6 +126,7 @@
 ---
 
 ## Phase 5: Build & Deploy Checklist
+
 > Priority: HIGH — the actual deployment steps
 
 - [ ] **5A.** Create `.env.production.example` with all required production vars documented
@@ -131,6 +145,7 @@
 ---
 
 ## Phase 6: Production Hardening (Post-Deploy)
+
 > Priority: MEDIUM — nice-to-have for reliability
 
 - [ ] **6A.** Add a `/api/health` endpoint (returns 200 + DB connectivity check) for monitoring
@@ -143,15 +158,15 @@
 
 ## Risk Register
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|-----------|------------|
-| Migration 022 fails on MySQL | Blocks deploy | High | Phase 3D — add MySQL branch |
-| Migration 011 JSON functions fail | Blocks deploy | Medium | Phase 3C — test + branch |
-| Passenger doesn't call app correctly | App won't start | Medium | Phase 2A — proper entry point |
-| MariaDB version too old for migration 030 | Blocks deploy | Low | Phase 3E — verify version |
-| `better-sqlite3` compile fails on install | npm install fails | High | Phase 1B — move to devDeps |
-| ~~Seeds create insecure demo users~~ | ~~Security hole~~ | ~~Medium~~ | ~~Phase 4B~~ — MITIGATED: separate production seed directory |
-| Rate limit counters reset on worker restart | Reduced protection | Low | Phase 6D — acceptable for low-traffic farm app |
+| Risk                                        | Impact             | Likelihood | Mitigation                                                   |
+| ------------------------------------------- | ------------------ | ---------- | ------------------------------------------------------------ |
+| Migration 022 fails on MySQL                | Blocks deploy      | High       | Phase 3D — add MySQL branch                                  |
+| Migration 011 JSON functions fail           | Blocks deploy      | Medium     | Phase 3C — test + branch                                     |
+| Passenger doesn't call app correctly        | App won't start    | Medium     | Phase 2A — proper entry point                                |
+| MariaDB version too old for migration 030   | Blocks deploy      | Low        | Phase 3E — verify version                                    |
+| `better-sqlite3` compile fails on install   | npm install fails  | High       | Phase 1B — move to devDeps                                   |
+| ~~Seeds create insecure demo users~~        | ~~Security hole~~  | ~~Medium~~ | ~~Phase 4B~~ — MITIGATED: separate production seed directory |
+| Rate limit counters reset on worker restart | Reduced protection | Low        | Phase 6D — acceptable for low-traffic farm app               |
 
 ---
 

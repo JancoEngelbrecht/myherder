@@ -7,7 +7,9 @@
       </div>
       <div class="litres-info">
         <span class="mono litres">{{ Number(record.litres).toFixed(1) }} L</span>
-        <span v-if="record.milk_discarded" class="discarded-badge">{{ t('milkHistory.discardedLabel') }}</span>
+        <span v-if="record.milk_discarded" class="discarded-badge">{{
+          t('milkHistory.discardedLabel')
+        }}</span>
       </div>
     </div>
     <div class="card-bottom">

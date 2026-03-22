@@ -21,21 +21,22 @@ Per-feature guided tours using driver.js. Each tour highlights key UI elements w
 
 ## Tours to Build
 
-| Tour ID | Feature | Target View | Steps (approx) | Permission |
-|---------|---------|-------------|-----------------|------------|
-| `dashboard` | Dashboard overview | DashboardView | 4 | any |
-| `cow-list` | Browsing cows | CowListView | 4 | any |
-| `milk-recording` | Recording milk | MilkRecordingView | 5 | can_record_milk |
-| `milk-history` | Milk history | MilkHistoryView | 4 | can_record_milk |
-| `health-issues` | Logging health issues | LogIssueView | 5 | can_log_issues |
-| `treatments` | Adding treatments | LogTreatmentView | 5 | can_log_treatments |
-| `breeding-hub` | Breeding hub | BreedingHubView | 5 | can_log_breeding |
-| `analytics` | Analytics landing | AnalyticsView | 4 | can_view_analytics |
-| `settings` | Admin settings | SettingsView | 4 | admin only |
+| Tour ID          | Feature               | Target View       | Steps (approx) | Permission         |
+| ---------------- | --------------------- | ----------------- | -------------- | ------------------ |
+| `dashboard`      | Dashboard overview    | DashboardView     | 4              | any                |
+| `cow-list`       | Browsing cows         | CowListView       | 4              | any                |
+| `milk-recording` | Recording milk        | MilkRecordingView | 5              | can_record_milk    |
+| `milk-history`   | Milk history          | MilkHistoryView   | 4              | can_record_milk    |
+| `health-issues`  | Logging health issues | LogIssueView      | 5              | can_log_issues     |
+| `treatments`     | Adding treatments     | LogTreatmentView  | 5              | can_log_treatments |
+| `breeding-hub`   | Breeding hub          | BreedingHubView   | 5              | can_log_breeding   |
+| `analytics`      | Analytics landing     | AnalyticsView     | 4              | can_view_analytics |
+| `settings`       | Admin settings        | SettingsView      | 4              | admin only         |
 
 ## Phases
 
 ### Phase 1: Infrastructure
+
 > Status: COMPLETE
 
 1. Install driver.js: `cd client && npm install driver.js`
@@ -58,6 +59,7 @@ Per-feature guided tours using driver.js. Each tour highlights key UI elements w
    - Emits `start-tour` event
 
 ### Phase 2: Core Tours (Dashboard, Cows, Milk)
+
 > Status: COMPLETE
 
 1. Define tour steps for `dashboard`:
@@ -85,6 +87,7 @@ Per-feature guided tours using driver.js. Each tour highlights key UI elements w
 6. i18n: Add step text for all 4 tours to en.json and af.json
 
 ### Phase 3: Health & Treatment Tours
+
 > Status: COMPLETE
 
 1. Define tour steps for `health-issues` (LogIssueView):
@@ -103,6 +106,7 @@ Per-feature guided tours using driver.js. Each tour highlights key UI elements w
 4. i18n for both tours (en + af)
 
 ### Phase 4: Breeding & Analytics Tours
+
 > Status: COMPLETE
 
 1. Define tour steps for `breeding-hub`:
@@ -120,6 +124,7 @@ Per-feature guided tours using driver.js. Each tour highlights key UI elements w
 4. i18n for both tours (en + af)
 
 ### Phase 5: Admin Tour + Polish
+
 > Status: COMPLETE
 
 1. Define tour steps for `settings` (admin only):
@@ -137,6 +142,7 @@ Per-feature guided tours using driver.js. Each tour highlights key UI elements w
    - Window resize → driver.js handles via `refresh()`
 
 ### Phase 6: Verification & Testing
+
 > Status: COMPLETE
 
 1. Test useTour composable:
@@ -159,14 +165,14 @@ const { startTour } = useTour('milk-recording', [
     popover: {
       title: t('tour.milkRecording.session.title'),
       description: t('tour.milkRecording.session.desc'),
-    }
+    },
   },
   {
     element: '#cow-search',
     popover: {
       title: t('tour.milkRecording.cowSearch.title'),
       description: t('tour.milkRecording.cowSearch.desc'),
-    }
+    },
   },
   // ...
 ])
@@ -175,13 +181,14 @@ const { startTour } = useTour('milk-recording', [
 ## CSS Strategy
 
 Override driver.js defaults with design system tokens:
+
 ```css
 .driver-popover {
   background: var(--color-surface);
   color: var(--color-text);
   border-radius: var(--radius-lg);
   font-family: var(--font-body);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   max-width: min(360px, 90vw);
 }
 .driver-popover-title {
@@ -204,6 +211,7 @@ tour_completed_{tourId}_{userId}_{farmId}
 ```
 
 Examples:
+
 - `tour_completed_dashboard_abc123_farm456`
 - `tour_completed_milk-recording_abc123_farm456`
 

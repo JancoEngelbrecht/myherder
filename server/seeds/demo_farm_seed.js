@@ -59,10 +59,18 @@ function isoDatetime(d) {
   return `${isoDate(d)} ${h}:${min}:${s}`
 }
 
-function rand(min, max) { return Math.random() * (max - min) + min }
-function randInt(min, max) { return Math.floor(rand(min, max + 1)) }
-function pick(arr) { return arr[Math.floor(Math.random() * arr.length)] }
-function jitter(base, pct) { return base * (1 + (Math.random() - 0.5) * 2 * pct) }
+function rand(min, max) {
+  return Math.random() * (max - min) + min
+}
+function randInt(min, max) {
+  return Math.floor(rand(min, max + 1))
+}
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+function jitter(base, pct) {
+  return base * (1 + (Math.random() - 0.5) * 2 * pct)
+}
 
 function addDays(date, days) {
   const d = new Date(date)
@@ -73,7 +81,7 @@ function addDays(date, days) {
 // South African seasonal milk factor
 function seasonalMilkFactor(month) {
   //                  Jan   Feb   Mar   Apr   May   Jun   Jul   Aug   Sep   Oct   Nov   Dec
-  const f = [0, 1.10, 1.12, 1.05, 0.95, 0.85, 0.78, 0.75, 0.80, 0.90, 0.98, 1.05, 1.08]
+  const f = [0, 1.1, 1.12, 1.05, 0.95, 0.85, 0.78, 0.75, 0.8, 0.9, 0.98, 1.05, 1.08]
   return f[month] || 1.0
 }
 
@@ -94,27 +102,106 @@ function randomTeats() {
 // ── Cow name lists (Afrikaans / SA themed) ───────────────────────────────────
 
 const FEMALE_NAMES = [
-  'Bessie', 'Daisy', 'Blossom', 'Rosie', 'Bella', 'Sarie', 'Lettie', 'Elsie',
-  'Gertie', 'Mielie', 'Bokkie', 'Toffie', 'Kaatjie', 'Rooibes', 'Soetjie',
-  'Witblits', 'Boerland', 'Vaalwit', 'Sterretjie', 'Klippie', 'Bloekom',
-  'Sannie', 'Nellie', 'Hettie', 'Marietjie', 'Koeitjie', 'Lemoentjie',
-  'Vonkel', 'Perske', 'Appelkoos', 'Malva', 'Fynbos', 'Karoo', 'Namaqualand',
-  'Protea', 'Rooibos', 'Melktert', 'Koeksisters', 'Tannie', 'Ouma',
-  'Springbok', 'Kudu', 'Gemsbok', 'Suikerbos', 'Waterbessie', 'Bergie',
-  'Namib', 'Kalahari', 'Limpopo', 'Mpumalanga', 'Overberg', 'Tsitsikamma',
-  'Drakensberg', 'Langkloof', 'Swartberg', 'Bainskloof', 'Helderberg',
-  'Franschhoek', 'Stellenbosch', 'Paarl', 'Tulbagh', 'Ceres', 'Montagu',
-  'Barrydale', 'Swellendam', 'Bredasdorp', 'Hermanus', 'Knysna', 'Mosselbaai',
-  'Graaff-Reinet', 'Nieu-Bethesda', 'Matjiesfontein', 'Rietbron', 'Vrystaat',
-  'Bloemfontein', 'Ladybrand', 'Clarens', 'Bethlehem', 'Harrismith',
-  'Bergville', 'Winterton', 'Howick', 'Nottingham', 'Lidgetton', 'Mooi River',
-  'Estcourt', 'Dundee', 'Vryheid', 'Pongola', 'Mkuze', 'Hluhluwe',
-  'Eshowe', 'Stanger', 'Ballito', 'Umhlali', 'Tongaat', 'Shongweni',
+  'Bessie',
+  'Daisy',
+  'Blossom',
+  'Rosie',
+  'Bella',
+  'Sarie',
+  'Lettie',
+  'Elsie',
+  'Gertie',
+  'Mielie',
+  'Bokkie',
+  'Toffie',
+  'Kaatjie',
+  'Rooibes',
+  'Soetjie',
+  'Witblits',
+  'Boerland',
+  'Vaalwit',
+  'Sterretjie',
+  'Klippie',
+  'Bloekom',
+  'Sannie',
+  'Nellie',
+  'Hettie',
+  'Marietjie',
+  'Koeitjie',
+  'Lemoentjie',
+  'Vonkel',
+  'Perske',
+  'Appelkoos',
+  'Malva',
+  'Fynbos',
+  'Karoo',
+  'Namaqualand',
+  'Protea',
+  'Rooibos',
+  'Melktert',
+  'Koeksisters',
+  'Tannie',
+  'Ouma',
+  'Springbok',
+  'Kudu',
+  'Gemsbok',
+  'Suikerbos',
+  'Waterbessie',
+  'Bergie',
+  'Namib',
+  'Kalahari',
+  'Limpopo',
+  'Mpumalanga',
+  'Overberg',
+  'Tsitsikamma',
+  'Drakensberg',
+  'Langkloof',
+  'Swartberg',
+  'Bainskloof',
+  'Helderberg',
+  'Franschhoek',
+  'Stellenbosch',
+  'Paarl',
+  'Tulbagh',
+  'Ceres',
+  'Montagu',
+  'Barrydale',
+  'Swellendam',
+  'Bredasdorp',
+  'Hermanus',
+  'Knysna',
+  'Mosselbaai',
+  'Graaff-Reinet',
+  'Nieu-Bethesda',
+  'Matjiesfontein',
+  'Rietbron',
+  'Vrystaat',
+  'Bloemfontein',
+  'Ladybrand',
+  'Clarens',
+  'Bethlehem',
+  'Harrismith',
+  'Bergville',
+  'Winterton',
+  'Howick',
+  'Nottingham',
+  'Lidgetton',
+  'Mooi River',
+  'Estcourt',
+  'Dundee',
+  'Vryheid',
+  'Pongola',
+  'Mkuze',
+  'Hluhluwe',
+  'Eshowe',
+  'Stanger',
+  'Ballito',
+  'Umhlali',
+  'Tongaat',
+  'Shongweni',
 ]
 
-const MALE_NAMES = [
-  'Bul', 'Groot Jan', 'Sterk Hendrik',
-]
+const MALE_NAMES = ['Bul', 'Groot Jan', 'Sterk Hendrik']
 
 const VET_NAMES = ['Dr. H. Botha', 'Dr. P. van Niekerk', 'Dr. S. Dlamini', 'Dr. M. van der Merwe']
 
@@ -132,7 +219,7 @@ async function main() {
     process.exit(0) // eslint-disable-line n/no-process-exit
   }
 
-  const isSQLite = (knexConfig.client === 'better-sqlite3')
+  const isSQLite = knexConfig.client === 'better-sqlite3'
 
   console.log('[demo-seed] Creating demo farm with 12 months of data...')
 
@@ -179,7 +266,13 @@ async function main() {
         pin_hash: workerPinHash,
         full_name: 'Melker Werker',
         role: 'worker',
-        permissions: JSON.stringify(['can_record_milk', 'can_log_issues', 'can_log_treatments', 'can_log_breeding', 'can_view_analytics']),
+        permissions: JSON.stringify([
+          'can_record_milk',
+          'can_log_issues',
+          'can_log_treatments',
+          'can_log_breeding',
+          'can_view_analytics',
+        ]),
         language: 'af',
         is_active: true,
         token_version: 0,
@@ -213,14 +306,50 @@ async function main() {
 
     // ── 4. Issue types ─────────────────────────────────────────────────────
     const issueTypeDefs = [
-      { code: 'lameness', name: 'Lameness', emoji: '🦵', requires_teat_selection: false, sort_order: 0 },
-      { code: 'mastitis', name: 'Mastitis', emoji: '🍼', requires_teat_selection: true, sort_order: 1 },
-      { code: 'respiratory', name: 'Respiratory', emoji: '🫁', requires_teat_selection: false, sort_order: 2 },
-      { code: 'digestive', name: 'Digestive', emoji: '🤢', requires_teat_selection: false, sort_order: 3 },
+      {
+        code: 'lameness',
+        name: 'Lameness',
+        emoji: '🦵',
+        requires_teat_selection: false,
+        sort_order: 0,
+      },
+      {
+        code: 'mastitis',
+        name: 'Mastitis',
+        emoji: '🍼',
+        requires_teat_selection: true,
+        sort_order: 1,
+      },
+      {
+        code: 'respiratory',
+        name: 'Respiratory',
+        emoji: '🫁',
+        requires_teat_selection: false,
+        sort_order: 2,
+      },
+      {
+        code: 'digestive',
+        name: 'Digestive',
+        emoji: '🤢',
+        requires_teat_selection: false,
+        sort_order: 3,
+      },
       { code: 'fever', name: 'Fever', emoji: '🌡️', requires_teat_selection: false, sort_order: 4 },
-      { code: 'bad_milk', name: 'Bad Milk', emoji: '🥛', requires_teat_selection: true, sort_order: 5 },
+      {
+        code: 'bad_milk',
+        name: 'Bad Milk',
+        emoji: '🥛',
+        requires_teat_selection: true,
+        sort_order: 5,
+      },
       { code: 'eye', name: 'Eye', emoji: '👁️', requires_teat_selection: false, sort_order: 6 },
-      { code: 'calving', name: 'Calving', emoji: '🐄', requires_teat_selection: false, sort_order: 7 },
+      {
+        code: 'calving',
+        name: 'Calving',
+        emoji: '🐄',
+        requires_teat_selection: false,
+        sort_order: 7,
+      },
       { code: 'other', name: 'Other', emoji: '❓', requires_teat_selection: false, sort_order: 8 },
     ]
     await trx('issue_type_definitions').insert(
@@ -237,11 +366,51 @@ async function main() {
 
     // ── 5. Medications ─────────────────────────────────────────────────────
     const medDefs = [
-      { name: 'Penicillin G', active_ingredient: 'Benzylpenicillin', withdrawal_milk_hours: 72, withdrawal_meat_days: 10, default_dosage: '5ml', unit: 'ml', notes: 'Broad-spectrum antibiotic. Administer IM.' },
-      { name: 'Oxytetracycline 200mg/ml', active_ingredient: 'Oxytetracycline', withdrawal_milk_hours: 96, withdrawal_meat_days: 28, default_dosage: '10ml', unit: 'ml', notes: 'Long-acting. For respiratory and systemic infections.' },
-      { name: 'Flunixin Meglumine (Banamine)', active_ingredient: 'Flunixin', withdrawal_milk_hours: 36, withdrawal_meat_days: 4, default_dosage: '2ml', unit: 'ml', notes: 'NSAID. Anti-inflammatory and analgesic.' },
-      { name: 'Mastitis Intramammary Tube', active_ingredient: 'Cloxacillin', withdrawal_milk_hours: 96, withdrawal_meat_days: 7, default_dosage: '1 tube', unit: 'tube', notes: 'For mastitis. Infuse directly into affected quarter after milking.' },
-      { name: 'Vitamins B-complex', active_ingredient: 'B-vitamins', withdrawal_milk_hours: 0, withdrawal_meat_days: 0, default_dosage: '10ml', unit: 'ml', notes: 'No withdrawal period. General supplementation.' },
+      {
+        name: 'Penicillin G',
+        active_ingredient: 'Benzylpenicillin',
+        withdrawal_milk_hours: 72,
+        withdrawal_meat_days: 10,
+        default_dosage: '5ml',
+        unit: 'ml',
+        notes: 'Broad-spectrum antibiotic. Administer IM.',
+      },
+      {
+        name: 'Oxytetracycline 200mg/ml',
+        active_ingredient: 'Oxytetracycline',
+        withdrawal_milk_hours: 96,
+        withdrawal_meat_days: 28,
+        default_dosage: '10ml',
+        unit: 'ml',
+        notes: 'Long-acting. For respiratory and systemic infections.',
+      },
+      {
+        name: 'Flunixin Meglumine (Banamine)',
+        active_ingredient: 'Flunixin',
+        withdrawal_milk_hours: 36,
+        withdrawal_meat_days: 4,
+        default_dosage: '2ml',
+        unit: 'ml',
+        notes: 'NSAID. Anti-inflammatory and analgesic.',
+      },
+      {
+        name: 'Mastitis Intramammary Tube',
+        active_ingredient: 'Cloxacillin',
+        withdrawal_milk_hours: 96,
+        withdrawal_meat_days: 7,
+        default_dosage: '1 tube',
+        unit: 'tube',
+        notes: 'For mastitis. Infuse directly into affected quarter after milking.',
+      },
+      {
+        name: 'Vitamins B-complex',
+        active_ingredient: 'B-vitamins',
+        withdrawal_milk_hours: 0,
+        withdrawal_meat_days: 0,
+        default_dosage: '10ml',
+        unit: 'ml',
+        notes: 'No withdrawal period. General supplementation.',
+      },
     ]
     const medRows = medDefs.map((d) => ({
       id: randomUUID(),
@@ -255,7 +424,9 @@ async function main() {
     }))
     await trx('medications').insert(medRows)
     const medMap = {}
-    medRows.forEach((m) => { medMap[m.name] = m })
+    medRows.forEach((m) => {
+      medMap[m.name] = m
+    })
     console.log('[demo-seed] ✓ Medications (5)')
 
     // ── 6. Feature flags + settings ────────────────────────────────────────
@@ -380,7 +551,9 @@ async function main() {
       const ageMonths = randInt(36, 72)
       const dob = addDays(TODAY, -ageMonths * 30.4)
       const soldDate = addDays(TODAY, -randInt(30, 300))
-      makeCow('female', 'sold', false, dob, FEMALE_NAMES[91 + i], { statusChangedAt: isoDatetime(soldDate) })
+      makeCow('female', 'sold', false, dob, FEMALE_NAMES[91 + i], {
+        statusChangedAt: isoDatetime(soldDate),
+      })
     }
 
     // Dead cows (2): died in last 12 months
@@ -388,7 +561,9 @@ async function main() {
       const ageMonths = randInt(36, 72)
       const dob = addDays(TODAY, -ageMonths * 30.4)
       const deadDate = addDays(TODAY, -randInt(30, 300))
-      makeCow('female', 'dead', false, dob, FEMALE_NAMES[95 + i], { statusChangedAt: isoDatetime(deadDate) })
+      makeCow('female', 'dead', false, dob, FEMALE_NAMES[95 + i], {
+        statusChangedAt: isoDatetime(deadDate),
+      })
     }
 
     // Batch insert remaining cows (bulls already inserted)
@@ -499,7 +674,9 @@ async function main() {
           cow_id: cowId,
           event_type: 'heat_observed',
           event_date: isoDate(reHeatDate),
-          heat_signs: JSON.stringify(pick([['standing_heat'], ['standing_heat', 'mucus_discharge']])),
+          heat_signs: JSON.stringify(
+            pick([['standing_heat'], ['standing_heat', 'mucus_discharge']])
+          ),
           recorded_by: pick(reporters),
           created_at: isoDatetime(reHeatDate),
           updated_at: isoDatetime(reHeatDate),
@@ -527,7 +704,7 @@ async function main() {
 
         lastAiDate = new Date(reAiDate)
         serviceCount++
-        conceived = Math.random() < (serviceCount === 2 ? 0.60 : 0.70)
+        conceived = Math.random() < (serviceCount === 2 ? 0.6 : 0.7)
       }
 
       if (!conceived) return { events, nextCalving: null }
@@ -612,7 +789,9 @@ async function main() {
         expected_next_heat: isoDate(addDays(aiDate, AYRSHIRE.heat_cycle_days)),
         expected_preg_check: isoDate(addDays(aiDate, AYRSHIRE.preg_check_days)),
         expected_calving: isoDate(addDays(aiDate, AYRSHIRE.gestation_days)),
-        expected_dry_off: isoDate(addDays(addDays(aiDate, AYRSHIRE.gestation_days), -AYRSHIRE.dry_off_days)),
+        expected_dry_off: isoDate(
+          addDays(addDays(aiDate, AYRSHIRE.gestation_days), -AYRSHIRE.dry_off_days)
+        ),
         recorded_by: pick(reporters),
         created_at: isoDatetime(aiDate),
         updated_at: isoDatetime(aiDate),
@@ -650,17 +829,47 @@ async function main() {
 
     // ── 9. Health issues ───────────────────────────────────────────────────
     const issueTypeProbs = [
-      { code: 'mastitis',    baseProb: 0.025, seasonal: [0, 0.7, 0.6, 0.8, 1.0, 1.4, 1.6, 1.8, 1.5, 1.0, 0.8, 0.7, 0.7] },
-      { code: 'lameness',    baseProb: 0.015, seasonal: [0, 0.6, 0.5, 0.7, 0.9, 1.3, 1.5, 1.4, 1.2, 0.9, 0.7, 0.6, 0.6] },
-      { code: 'respiratory', baseProb: 0.010, seasonal: [0, 0.4, 0.4, 0.5, 0.7, 1.2, 1.6, 1.8, 1.4, 0.8, 0.5, 0.4, 0.4] },
-      { code: 'digestive',   baseProb: 0.008, seasonal: [0, 0.6, 0.5, 0.7, 0.8, 0.9, 0.8, 0.8, 0.9, 1.5, 1.6, 1.0, 0.7] },
-      { code: 'fever',       baseProb: 0.006, seasonal: [0, 0.8, 0.7, 0.8, 0.9, 1.2, 1.4, 1.3, 1.1, 0.9, 0.8, 0.7, 0.8] },
-      { code: 'eye',         baseProb: 0.005, seasonal: [0, 1.5, 1.6, 1.3, 0.8, 0.5, 0.4, 0.4, 0.5, 0.8, 1.0, 1.3, 1.5] },
-      { code: 'bad_milk',    baseProb: 0.004, seasonal: [0, 0.8, 0.7, 0.8, 1.0, 1.3, 1.5, 1.4, 1.2, 0.9, 0.8, 0.7, 0.8] },
+      {
+        code: 'mastitis',
+        baseProb: 0.025,
+        seasonal: [0, 0.7, 0.6, 0.8, 1.0, 1.4, 1.6, 1.8, 1.5, 1.0, 0.8, 0.7, 0.7],
+      },
+      {
+        code: 'lameness',
+        baseProb: 0.015,
+        seasonal: [0, 0.6, 0.5, 0.7, 0.9, 1.3, 1.5, 1.4, 1.2, 0.9, 0.7, 0.6, 0.6],
+      },
+      {
+        code: 'respiratory',
+        baseProb: 0.01,
+        seasonal: [0, 0.4, 0.4, 0.5, 0.7, 1.2, 1.6, 1.8, 1.4, 0.8, 0.5, 0.4, 0.4],
+      },
+      {
+        code: 'digestive',
+        baseProb: 0.008,
+        seasonal: [0, 0.6, 0.5, 0.7, 0.8, 0.9, 0.8, 0.8, 0.9, 1.5, 1.6, 1.0, 0.7],
+      },
+      {
+        code: 'fever',
+        baseProb: 0.006,
+        seasonal: [0, 0.8, 0.7, 0.8, 0.9, 1.2, 1.4, 1.3, 1.1, 0.9, 0.8, 0.7, 0.8],
+      },
+      {
+        code: 'eye',
+        baseProb: 0.005,
+        seasonal: [0, 1.5, 1.6, 1.3, 0.8, 0.5, 0.4, 0.4, 0.5, 0.8, 1.0, 1.3, 1.5],
+      },
+      {
+        code: 'bad_milk',
+        baseProb: 0.004,
+        seasonal: [0, 0.8, 0.7, 0.8, 1.0, 1.3, 1.5, 1.4, 1.2, 0.9, 0.8, 0.7, 0.8],
+      },
     ]
 
     // Only generate issues for female cows that are alive
-    const issueEligibleCows = cows.filter((c) => c.sex === 'female' && c.status !== 'sold' && c.status !== 'dead')
+    const issueEligibleCows = cows.filter(
+      (c) => c.sex === 'female' && c.status !== 'sold' && c.status !== 'dead'
+    )
 
     const healthIssues = []
     const healthIssueIndex = {} // id -> { ...issue, issueCode, issueDate }
@@ -678,7 +887,7 @@ async function main() {
           const issueDate = addDays(weekCursor, dayOffset)
           if (issueDate > TODAY) continue
 
-          const needsTeats = (it.code === 'mastitis' || it.code === 'bad_milk')
+          const needsTeats = it.code === 'mastitis' || it.code === 'bad_milk'
           const daysOld = Math.floor((TODAY - issueDate) / 86400000)
 
           let status = 'resolved'
@@ -726,13 +935,13 @@ async function main() {
 
     // ── 10. Treatments ─────────────────────────────────────────────────────
     const treatmentMedMap = {
-      mastitis:    ['Mastitis Intramammary Tube', 'Penicillin G'],
-      lameness:    ['Flunixin Meglumine (Banamine)', 'Oxytetracycline 200mg/ml'],
+      mastitis: ['Mastitis Intramammary Tube', 'Penicillin G'],
+      lameness: ['Flunixin Meglumine (Banamine)', 'Oxytetracycline 200mg/ml'],
       respiratory: ['Oxytetracycline 200mg/ml', 'Flunixin Meglumine (Banamine)'],
-      digestive:   ['Vitamins B-complex'],
-      fever:       ['Flunixin Meglumine (Banamine)', 'Penicillin G'],
-      eye:         ['Oxytetracycline 200mg/ml'],
-      bad_milk:    ['Mastitis Intramammary Tube'],
+      digestive: ['Vitamins B-complex'],
+      fever: ['Flunixin Meglumine (Banamine)', 'Penicillin G'],
+      eye: ['Oxytetracycline 200mg/ml'],
+      bad_milk: ['Mastitis Intramammary Tube'],
     }
 
     const costRanges = {
@@ -744,13 +953,28 @@ async function main() {
     }
 
     const treatmentNotes = {
-      mastitis:    ['Swelling in affected quarter', 'Milk clots observed', 'Repeat treatment after 48h', 'Mild case, responding well'],
-      lameness:    ['Hoof trimmed and cleaned', 'Abscess drained', 'Swelling in left rear', 'Stone bruise on sole'],
-      respiratory: ['Nasal discharge, laboured breathing', 'Coughing for 3 days', 'Isolated from herd', 'Temperature 40.2°C'],
-      digestive:   ['Off feed for 2 days', 'Rumen sounds reduced', 'Possible grain overload'],
-      fever:       ['Temperature 40.5°C', 'Lethargic, not eating', 'Responded well to treatment'],
-      eye:         ['Pinkeye, left eye cloudy', 'Tearing and swelling', 'Fly irritation likely cause'],
-      bad_milk:    ['Abnormal milk consistency', 'Flakes in foremilk', 'CMT positive'],
+      mastitis: [
+        'Swelling in affected quarter',
+        'Milk clots observed',
+        'Repeat treatment after 48h',
+        'Mild case, responding well',
+      ],
+      lameness: [
+        'Hoof trimmed and cleaned',
+        'Abscess drained',
+        'Swelling in left rear',
+        'Stone bruise on sole',
+      ],
+      respiratory: [
+        'Nasal discharge, laboured breathing',
+        'Coughing for 3 days',
+        'Isolated from herd',
+        'Temperature 40.2°C',
+      ],
+      digestive: ['Off feed for 2 days', 'Rumen sounds reduced', 'Possible grain overload'],
+      fever: ['Temperature 40.5°C', 'Lethargic, not eating', 'Responded well to treatment'],
+      eye: ['Pinkeye, left eye cloudy', 'Tearing and swelling', 'Fly irritation likely cause'],
+      bad_milk: ['Abnormal milk consistency', 'Flakes in foremilk', 'CMT positive'],
     }
 
     const treatments = []
@@ -761,7 +985,7 @@ async function main() {
       if (Math.random() > 0.85) continue // 85% get treated
 
       const meds = treatmentMedMap[issue.issueCode] || ['Vitamins B-complex']
-      const numMeds = (meds.length > 1 && Math.random() < 0.3) ? 2 : 1
+      const numMeds = meds.length > 1 && Math.random() < 0.3 ? 2 : 1
 
       for (let m = 0; m < numMeds; m++) {
         const medName = meds[m]
@@ -827,7 +1051,9 @@ async function main() {
     for (let i = 0; i < treatmentMeds.length; i += 50) {
       await trx.batchInsert('treatment_medications', treatmentMeds.slice(i, i + 50), 50)
     }
-    console.log(`[demo-seed] ✓ Treatments (${treatments.length}, ${treatmentMeds.length} medication links)`)
+    console.log(
+      `[demo-seed] ✓ Treatments (${treatments.length}, ${treatmentMeds.length} medication links)`
+    )
 
     // ── 11. Milk records ───────────────────────────────────────────────────
     // Daily records for milking cows, 2 sessions, 12 months
@@ -837,12 +1063,13 @@ async function main() {
     const cowMilkBase = {}
 
     // All female, non-calf, non-dry cows that should be milked
-    const milkableCows = cows.filter((c) =>
-      c.sex === 'female' &&
-      !['sold', 'dead'].includes(c.status) &&
-      c.is_dry !== 1 &&
-      // Exclude calves (< 12 months old)
-      new Date(c.dob) < addDays(TODAY, -365)
+    const milkableCows = cows.filter(
+      (c) =>
+        c.sex === 'female' &&
+        !['sold', 'dead'].includes(c.status) &&
+        c.is_dry !== 1 &&
+        // Exclude calves (< 12 months old)
+        new Date(c.dob) < addDays(TODAY, -365)
     )
 
     for (const cow of milkableCows) {
@@ -867,7 +1094,8 @@ async function main() {
 
         const baseLitres = cowMilkBase[cow.id]
         const morningLitres = Math.round(jitter(baseLitres * 0.55 * seasonFactor, 0.15) * 100) / 100
-        const afternoonLitres = Math.round(jitter(baseLitres * 0.45 * seasonFactor, 0.15) * 100) / 100
+        const afternoonLitres =
+          Math.round(jitter(baseLitres * 0.45 * seasonFactor, 0.15) * 100) / 100
 
         if (morningLitres > 0.5) {
           milkRecords.push({
@@ -909,7 +1137,9 @@ async function main() {
     for (let i = 0; i < milkRecords.length; i += 50) {
       await trx.batchInsert('milk_records', milkRecords.slice(i, i + 50), 50)
       if (i % 5000 === 0 && i > 0) {
-        console.log(`[demo-seed]   ... ${i.toLocaleString()} / ${milkRecords.length.toLocaleString()}`)
+        console.log(
+          `[demo-seed]   ... ${i.toLocaleString()} / ${milkRecords.length.toLocaleString()}`
+        )
       }
     }
     console.log(`[demo-seed] ✓ Milk records (${milkRecords.length.toLocaleString()})`)

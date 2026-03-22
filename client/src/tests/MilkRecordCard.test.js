@@ -65,20 +65,24 @@ describe('MilkRecordCard', () => {
   })
 
   it('shows discard reason when present', () => {
-    const wrapper = createWrapper(makeRecord({
-      milk_discarded: true,
-      discard_reason: 'Medication withdrawal until 2026-03-01',
-    }))
+    const wrapper = createWrapper(
+      makeRecord({
+        milk_discarded: true,
+        discard_reason: 'Medication withdrawal until 2026-03-01',
+      })
+    )
     expect(wrapper.text()).toContain('Medication withdrawal until 2026-03-01')
   })
 
   it('handles missing optional fields gracefully', () => {
-    const wrapper = createWrapper(makeRecord({
-      cow_name: null,
-      session_time: null,
-      recorded_by_name: null,
-      notes: null,
-    }))
+    const wrapper = createWrapper(
+      makeRecord({
+        cow_name: null,
+        session_time: null,
+        recorded_by_name: null,
+        notes: null,
+      })
+    )
     expect(wrapper.find('.cow-name').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('null')
   })

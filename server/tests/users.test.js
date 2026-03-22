@@ -103,9 +103,7 @@ describe('GET /api/users', () => {
 
 describe('GET /api/users/:id', () => {
   it('returns a single user', async () => {
-    const res = await request(app)
-      .get(`/api/users/${ADMIN_ID}`)
-      .set('Authorization', adminToken())
+    const res = await request(app).get(`/api/users/${ADMIN_ID}`).set('Authorization', adminToken())
     expect(res.status).toBe(200)
     expect(res.body.username).toBe('test_admin')
     expect(res.body.password_hash).toBeUndefined()
@@ -124,10 +122,7 @@ describe('GET /api/users/:id', () => {
 describe('POST /api/users', () => {
   it('creates a worker with PIN', async () => {
     const data = makeWorker()
-    const res = await request(app)
-      .post('/api/users')
-      .set('Authorization', adminToken())
-      .send(data)
+    const res = await request(app).post('/api/users').set('Authorization', adminToken()).send(data)
 
     expect(res.status).toBe(201)
     expect(res.body.username).toBe(data.username)
@@ -140,10 +135,7 @@ describe('POST /api/users', () => {
 
   it('creates an admin with password', async () => {
     const data = makeAdmin()
-    const res = await request(app)
-      .post('/api/users')
-      .set('Authorization', adminToken())
-      .send(data)
+    const res = await request(app).post('/api/users').set('Authorization', adminToken()).send(data)
 
     expect(res.status).toBe(201)
     expect(res.body.role).toBe('admin')
@@ -196,7 +188,10 @@ describe('POST /api/users', () => {
 
   it('reactivates an inactive user with same username instead of 409', async () => {
     const data = makeWorker()
-    const create = await request(app).post('/api/users').set('Authorization', adminToken()).send(data)
+    const create = await request(app)
+      .post('/api/users')
+      .set('Authorization', adminToken())
+      .send(data)
     expect(create.status).toBe(201)
 
     // Deactivate the user
@@ -426,10 +421,19 @@ describe('POST /api/users/:id/revoke-sessions', () => {
       .send(makeWorker({ username: `e2e_rev_${randomUUID().slice(0, 6)}` }))
     const userId = createRes.body.id
 
-    const userToken = `Bearer ${jwt.sign({
-      id: userId, farm_id: DEFAULT_FARM_ID, username: createRes.body.username,
-      role: 'worker', permissions: ['can_manage_cows'], language: 'en', token_version: 0,
-    }, jwtSecret, { expiresIn: '1h' })}`
+    const userToken = `Bearer ${jwt.sign(
+      {
+        id: userId,
+        farm_id: DEFAULT_FARM_ID,
+        username: createRes.body.username,
+        role: 'worker',
+        permissions: ['can_manage_cows'],
+        language: 'en',
+        token_version: 0,
+      },
+      jwtSecret,
+      { expiresIn: '1h' }
+    )}`
 
     // Token works before revoke
     const before = await request(app).get('/api/cows').set('Authorization', userToken)

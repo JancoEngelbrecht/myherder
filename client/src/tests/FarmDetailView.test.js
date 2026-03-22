@@ -74,14 +74,18 @@ const MOCK_FARM = {
   code: 'TESTFM',
   is_active: true,
   created_at: '2025-01-01T00:00:00Z',
-  users: [
-    { id: 'u1', username: 'admin1', full_name: 'Admin One', role: 'admin', is_active: true },
-  ],
+  users: [{ id: 'u1', username: 'admin1', full_name: 'Admin One', role: 'admin', is_active: true }],
 }
 
 function setSuperAdmin() {
   const auth = useAuthStore()
-  auth.user = { full_name: 'Super Admin', username: 'super', role: 'super_admin', permissions: [], farm_id: null }
+  auth.user = {
+    full_name: 'Super Admin',
+    username: 'super',
+    role: 'super_admin',
+    permissions: [],
+    farm_id: null,
+  }
   auth.token = 'test-token'
 }
 
@@ -172,7 +176,11 @@ describe('FarmDetailView', () => {
 
   it('shows toast on API error', async () => {
     setSuperAdmin()
-    mockDelete.mockRejectedValue({ response: { data: { error: 'Cannot delete farm with super-admin users. Reassign them first.' } } })
+    mockDelete.mockRejectedValue({
+      response: {
+        data: { error: 'Cannot delete farm with super-admin users. Reassign them first.' },
+      },
+    })
     const wrapper = mount(FarmDetailView)
     await flushPromises()
 
@@ -197,7 +205,9 @@ describe('FarmDetailView', () => {
     await flushPromises()
 
     // Click deactivate button (the one that shows the ConfirmDialog)
-    const deactivateBtn = wrapper.findAll('.btn-danger').find((b) => b.text().includes('superAdmin.deactivateFarm'))
+    const deactivateBtn = wrapper
+      .findAll('.btn-danger')
+      .find((b) => b.text().includes('superAdmin.deactivateFarm'))
     await deactivateBtn.trigger('click')
 
     // Find the ConfirmDialog confirm button and click it

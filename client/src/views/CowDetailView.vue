@@ -1,10 +1,6 @@
 <template>
   <div class="page">
-    <AppHeader
-      :title="cow ? cow.tag_number : ''"
-      :show-back="true"
-      back-to="/cows"
-    />
+    <AppHeader :title="cow ? cow.tag_number : ''" :show-back="true" back-to="/cows" />
 
     <div class="page-content">
       <!-- Loading -->
@@ -15,7 +11,9 @@
       <!-- Error -->
       <div v-else-if="error" class="error-state">
         <p>{{ error }}</p>
-        <button class="btn-secondary" style="width:auto;margin-top:8px" @click="load">{{ t('common.retry') }}</button>
+        <button class="btn-secondary" style="width: auto; margin-top: 8px" @click="load">
+          {{ t('common.retry') }}
+        </button>
       </div>
 
       <template v-else-if="cow">
@@ -60,7 +58,11 @@
             </div>
             <div v-if="cow.sex === 'male' && cow.purpose" class="info-item">
               <span class="info-label">{{ t('animalDetail.purpose') }}</span>
-              <span class="info-value">{{ t(`animalForm.purpose${cow.purpose === 'natural_service' ? 'Natural' : cow.purpose === 'ai_semen_donor' ? 'AI' : 'Both'}`) }}</span>
+              <span class="info-value">{{
+                t(
+                  `animalForm.purpose${cow.purpose === 'natural_service' ? 'Natural' : cow.purpose === 'ai_semen_donor' ? 'AI' : 'Both'}`
+                )
+              }}</span>
             </div>
             <div v-if="cow.sex === 'male' && cow.is_external" class="info-item">
               <span class="info-label">{{ t('animalDetail.external') }}</span>
@@ -124,11 +126,15 @@
 
           <!-- Incomplete offspring indicator -->
           <div v-if="incompleteOffspring" class="incomplete-offspring-banner">
-            <span>{{ t('animalDetail.offspringRegistered', { registered: incompleteOffspring.registered, total: incompleteOffspring.total }) }}</span>
-            <RouterLink
-              :to="incompleteOffspringRegisterRoute"
-              class="register-remaining-link"
-            >{{ t('animalDetail.registerRemaining') }} ›</RouterLink>
+            <span>{{
+              t('animalDetail.offspringRegistered', {
+                registered: incompleteOffspring.registered,
+                total: incompleteOffspring.total,
+              })
+            }}</span>
+            <RouterLink :to="incompleteOffspringRegisterRoute" class="register-remaining-link"
+              >{{ t('animalDetail.registerRemaining') }} ›</RouterLink
+            >
           </div>
 
           <div v-if="offspring.length === 0" class="no-offspring">
@@ -144,14 +150,19 @@
               <span>{{ calf.sex === 'male' ? speciesEmoji.male : speciesEmoji.female }}</span>
               <span class="mono offspring-tag">{{ calf.tag_number }}</span>
               <span class="offspring-name">{{ calf.name || '—' }}</span>
-              <span class="badge" :class="`badge-${calf.status}`">{{ t(`status.${calf.status}`) }}</span>
+              <span class="badge" :class="`badge-${calf.status}`">{{
+                t(`status.${calf.status}`)
+              }}</span>
               <span class="offspring-chevron">›</span>
             </RouterLink>
           </div>
         </div>
 
         <!-- Reproduction (female only, breeding enabled, permission required) -->
-        <div v-if="flags.breeding && cow.sex !== 'male' && authStore.hasPermission('can_log_breeding')" class="card treatment-card">
+        <div
+          v-if="flags.breeding && cow.sex !== 'male' && authStore.hasPermission('can_log_breeding')"
+          class="card treatment-card"
+        >
           <div class="treatment-header">
             <h3 class="section-label">{{ t('breeding.reproTitle') }}</h3>
             <RouterLink :to="`/cows/${cow.id}/repro`" class="view-all-link">
@@ -167,7 +178,12 @@
                 <div class="tx-summary-last-med">
                   <template v-if="latestReproEvent">
                     {{ getEventType(latestReproEvent.event_type)?.emoji ?? '📋' }}
-                    {{ t(`breeding.eventTypes.${latestReproEvent.event_type}`, latestReproEvent.event_type) }}
+                    {{
+                      t(
+                        `breeding.eventTypes.${latestReproEvent.event_type}`,
+                        latestReproEvent.event_type
+                      )
+                    }}
                   </template>
                   <template v-else>{{ t('breeding.noEvents') }}</template>
                 </div>
@@ -184,7 +200,10 @@
         </div>
 
         <!-- Health Issues (compact) -->
-        <div v-if="flags.healthIssues && authStore.hasPermission('can_log_issues')" class="card treatment-card">
+        <div
+          v-if="flags.healthIssues && authStore.hasPermission('can_log_issues')"
+          class="card treatment-card"
+        >
           <div class="treatment-header">
             <h3 class="section-label">{{ t('healthIssues.title') }}</h3>
             <RouterLink :to="`/cows/${cow.id}/issues`" class="view-all-link">
@@ -201,12 +220,22 @@
             <RouterLink v-else :to="`/cows/${cow.id}/issues`" class="treatment-summary-link">
               <div class="tx-summary-body">
                 <div class="tx-summary-last-med">
-                  {{ (cowIssues[0].issue_types || []).map(c => issueTypesStore.getByCode(c)?.emoji || '❓').join(' ') }}
-                  {{ (cowIssues[0].issue_types || []).map(c => issueTypesStore.getByCode(c)?.name || c).join(' + ') }}
+                  {{
+                    (cowIssues[0].issue_types || [])
+                      .map((c) => issueTypesStore.getByCode(c)?.emoji || '❓')
+                      .join(' ')
+                  }}
+                  {{
+                    (cowIssues[0].issue_types || [])
+                      .map((c) => issueTypesStore.getByCode(c)?.name || c)
+                      .join(' + ')
+                  }}
                 </div>
                 <div class="tx-summary-meta mono">
                   {{ formatDate(cowIssues[0].observed_at) }}
-                  <template v-if="openIssueCount"> · {{ openIssueCount }} {{ t('healthIssues.open').toLowerCase() }}</template>
+                  <template v-if="openIssueCount">
+                    · {{ openIssueCount }} {{ t('healthIssues.open').toLowerCase() }}</template
+                  >
                 </div>
               </div>
               <span class="tx-summary-chevron">›</span>
@@ -215,7 +244,10 @@
         </div>
 
         <!-- Treatment History (compact) -->
-        <div v-if="flags.treatments && authStore.hasPermission('can_log_treatments')" class="card treatment-card">
+        <div
+          v-if="flags.treatments && authStore.hasPermission('can_log_treatments')"
+          class="card treatment-card"
+        >
           <div class="treatment-header">
             <h3 class="section-label">{{ t('animalDetail.treatments') }}</h3>
             <RouterLink :to="`/cows/${cow.id}/treatments`" class="view-all-link">
@@ -239,7 +271,8 @@
               <div class="tx-summary-body">
                 <div class="tx-summary-last-med">{{ firstMedName(cowTreatments[0]) }}</div>
                 <div class="tx-summary-meta mono">
-                  {{ formatDate(cowTreatments[0].treatment_date) }} · {{ t('animalDetail.treatmentsCount', { count: cowTreatments.length }) }}
+                  {{ formatDate(cowTreatments[0].treatment_date) }} ·
+                  {{ t('animalDetail.treatmentsCount', { count: cowTreatments.length }) }}
                 </div>
               </div>
               <span class="tx-summary-chevron">›</span>
@@ -248,7 +281,10 @@
         </div>
 
         <!-- Breeding action (female cows, breeding enabled, permission required) -->
-        <div v-if="flags.breeding && cow.sex !== 'male' && authStore.hasPermission('can_log_breeding')" class="action-row">
+        <div
+          v-if="flags.breeding && cow.sex !== 'male' && authStore.hasPermission('can_log_breeding')"
+          class="action-row"
+        >
           <RouterLink :to="`/breed/log?cow_id=${cow.id}`" class="btn-secondary edit-link">
             🐂 {{ t('breeding.logEvent') }}
           </RouterLink>
@@ -328,14 +364,12 @@ const latestReproEvent = ref(null)
 const reproLoading = ref(false)
 const treatmentsLoading = computed(() => treatmentsStore.loadingByCow)
 const issuesLoading = computed(() => healthIssuesStore.loadingByCow)
-const cowIssues = computed(() => cow.value ? healthIssuesStore.getCowIssues(cow.value.id) : [])
+const cowIssues = computed(() => (cow.value ? healthIssuesStore.getCowIssues(cow.value.id) : []))
 const openIssueCount = computed(() => cowIssues.value.filter((i) => i.status === 'open').length)
 
 const offspring = computed(() => {
   if (!cow.value) return []
-  return cowsStore.cows.filter(c =>
-    c.sire_id === cow.value.id || c.dam_id === cow.value.id
-  )
+  return cowsStore.cows.filter((c) => c.sire_id === cow.value.id || c.dam_id === cow.value.id)
 })
 
 // Incomplete offspring: birth event where offspring_count > registered
@@ -365,7 +399,7 @@ const incompleteOffspringRegisterRoute = computed(() => {
 })
 
 const cowTreatments = computed(() =>
-  cow.value ? treatmentsStore.getCowTreatments(cow.value.id) : [],
+  cow.value ? treatmentsStore.getCowTreatments(cow.value.id) : []
 )
 
 const onWithdrawal = computed(() => {
@@ -373,7 +407,7 @@ const onWithdrawal = computed(() => {
   if (lifePhase.value === 'heifer' || lifePhase.value === 'calf') return false
   const now = new Date()
   return cowTreatments.value.some(
-    (t) => t.withdrawal_end_milk && new Date(t.withdrawal_end_milk) > now,
+    (t) => t.withdrawal_end_milk && new Date(t.withdrawal_end_milk) > now
   )
 })
 
@@ -413,17 +447,21 @@ async function load() {
     if (featureFlagsStore.flags.breeding && authStore.hasPermission('can_log_breeding')) {
       if (cow.value.sex !== 'male') {
         reproLoading.value = true
-        breedingEventsStore.fetchForCow(cow.value.id)
+        breedingEventsStore
+          .fetchForCow(cow.value.id)
           .then((events) => {
             latestReproEvent.value = breedingEventsStore.latestForCow(cow.value.id, events)
           })
-          .finally(() => { reproLoading.value = false })
+          .finally(() => {
+            reproLoading.value = false
+          })
       }
       // Check for incomplete offspring from birth events where this animal is the dam
-      api.get('/breeding-events', { params: { cow_id: cow.value.id } })
+      api
+        .get('/breeding-events', { params: { cow_id: cow.value.id } })
         .then(({ data }) => {
-          const birthEvents = data.filter((e) =>
-            ['calving', 'lambing'].includes(e.event_type) && (e.offspring_count ?? 1) > 1
+          const birthEvents = data.filter(
+            (e) => ['calving', 'lambing'].includes(e.event_type) && (e.offspring_count ?? 1) > 1
           )
           if (birthEvents.length) {
             // Use the most recent birth event
@@ -432,7 +470,9 @@ async function load() {
             )[0]
           }
         })
-        .catch(() => { /* non-critical */ })
+        .catch(() => {
+          /* non-critical */
+        })
     }
   }
 }
@@ -513,8 +553,12 @@ async function handleDelete() {
   flex-shrink: 0;
 }
 
-.sex-female { background: var(--sex-female-bg); }
-.sex-male { background: var(--sex-male-bg); }
+.sex-female {
+  background: var(--sex-female-bg);
+}
+.sex-male {
+  background: var(--sex-male-bg);
+}
 
 .cow-hero-tag {
   font-size: 0.875rem;
@@ -610,9 +654,18 @@ async function handleDelete() {
   transition: background 0.1s;
 }
 
-.parent-card.sire { background: var(--sex-male-bg); border-color: var(--sex-male-border); }
-.parent-card.dam { background: var(--sex-female-bg); border-color: var(--sex-female-border); }
-.parent-card.unknown { background: var(--surface-2); opacity: 0.7; }
+.parent-card.sire {
+  background: var(--sex-male-bg);
+  border-color: var(--sex-male-border);
+}
+.parent-card.dam {
+  background: var(--sex-female-bg);
+  border-color: var(--sex-female-border);
+}
+.parent-card.unknown {
+  background: var(--surface-2);
+  opacity: 0.7;
+}
 
 .parent-role {
   font-size: 0.6875rem;
@@ -755,7 +808,6 @@ async function handleDelete() {
   justify-content: center;
   gap: 6px;
 }
-
 
 /* Treatment History */
 .treatment-card {

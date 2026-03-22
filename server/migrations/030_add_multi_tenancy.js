@@ -37,13 +37,24 @@ const TABLE_SCHEMAS = {
   UNIQUE(farm_id, username)
 )`,
     columns: [
-      'id', 'farm_id', 'username', 'pin_hash', 'password_hash', 'full_name',
-      'role', 'permissions', 'language', 'is_active', 'failed_attempts',
-      'locked_until', 'created_at', 'updated_at', 'deleted_at', 'token_version',
+      'id',
+      'farm_id',
+      'username',
+      'pin_hash',
+      'password_hash',
+      'full_name',
+      'role',
+      'permissions',
+      'language',
+      'is_active',
+      'failed_attempts',
+      'locked_until',
+      'created_at',
+      'updated_at',
+      'deleted_at',
+      'token_version',
     ],
-    indexes: [
-      'CREATE INDEX idx_users_updated_at ON users(updated_at)',
-    ],
+    indexes: ['CREATE INDEX idx_users_updated_at ON users(updated_at)'],
   },
 
   cows: {
@@ -72,10 +83,27 @@ const TABLE_SCHEMAS = {
   UNIQUE(farm_id, tag_number)
 )`,
     columns: [
-      'id', 'farm_id', 'tag_number', 'name', 'dob', 'breed', 'sex', 'status',
-      'sire_id', 'dam_id', 'notes', 'created_by', 'created_at', 'updated_at',
-      'deleted_at', 'breed_type_id', 'is_external', 'purpose',
-      'life_phase_override', 'is_dry', 'status_changed_at',
+      'id',
+      'farm_id',
+      'tag_number',
+      'name',
+      'dob',
+      'breed',
+      'sex',
+      'status',
+      'sire_id',
+      'dam_id',
+      'notes',
+      'created_by',
+      'created_at',
+      'updated_at',
+      'deleted_at',
+      'breed_type_id',
+      'is_external',
+      'purpose',
+      'life_phase_override',
+      'is_dry',
+      'status_changed_at',
     ],
     indexes: [
       'CREATE INDEX cows_sire_id_index ON cows(sire_id)',
@@ -105,13 +133,22 @@ const TABLE_SCHEMAS = {
   withdrawal_meat_hours integer NOT NULL DEFAULT '0'
 )`,
     columns: [
-      'id', 'farm_id', 'name', 'active_ingredient', 'withdrawal_milk_hours',
-      'withdrawal_meat_days', 'default_dosage', 'unit', 'notes', 'is_active',
-      'created_at', 'updated_at', 'withdrawal_milk_days', 'withdrawal_meat_hours',
+      'id',
+      'farm_id',
+      'name',
+      'active_ingredient',
+      'withdrawal_milk_hours',
+      'withdrawal_meat_days',
+      'default_dosage',
+      'unit',
+      'notes',
+      'is_active',
+      'created_at',
+      'updated_at',
+      'withdrawal_milk_days',
+      'withdrawal_meat_hours',
     ],
-    indexes: [
-      'CREATE INDEX idx_medications_updated_at ON medications(updated_at)',
-    ],
+    indexes: ['CREATE INDEX idx_medications_updated_at ON medications(updated_at)'],
   },
 
   treatments: {
@@ -135,10 +172,23 @@ const TABLE_SCHEMAS = {
   health_issue_id varchar(36) NULL REFERENCES health_issues(id)
 )`,
     columns: [
-      'id', 'farm_id', 'cow_id', 'medication_id', 'administered_by', 'dosage',
-      'cost', 'treatment_date', 'withdrawal_end_milk', 'withdrawal_end_meat',
-      'is_vet_visit', 'vet_name', 'notes', 'created_at', 'updated_at',
-      'synced_at', 'health_issue_id',
+      'id',
+      'farm_id',
+      'cow_id',
+      'medication_id',
+      'administered_by',
+      'dosage',
+      'cost',
+      'treatment_date',
+      'withdrawal_end_milk',
+      'withdrawal_end_meat',
+      'is_vet_visit',
+      'vet_name',
+      'notes',
+      'created_at',
+      'updated_at',
+      'synced_at',
+      'health_issue_id',
     ],
     indexes: [
       'CREATE INDEX idx_treatments_cow_withdrawal ON treatments(cow_id, withdrawal_end_milk)',
@@ -165,9 +215,20 @@ const TABLE_SCHEMAS = {
   issue_types text NULL
 )`,
     columns: [
-      'id', 'farm_id', 'cow_id', 'reported_by', 'severity', 'affected_teats',
-      'description', 'observed_at', 'status', 'resolved_at', 'created_at',
-      'updated_at', 'synced_at', 'issue_types',
+      'id',
+      'farm_id',
+      'cow_id',
+      'reported_by',
+      'severity',
+      'affected_teats',
+      'description',
+      'observed_at',
+      'status',
+      'resolved_at',
+      'created_at',
+      'updated_at',
+      'synced_at',
+      'issue_types',
     ],
     indexes: [
       'CREATE INDEX health_issues_cow_id_index ON health_issues(cow_id)',
@@ -187,10 +248,7 @@ const TABLE_SCHEMAS = {
   created_at datetime NOT NULL,
   updated_at datetime NOT NULL
 )`,
-    columns: [
-      'id', 'farm_id', 'health_issue_id', 'user_id', 'comment',
-      'created_at', 'updated_at',
-    ],
+    columns: ['id', 'farm_id', 'health_issue_id', 'user_id', 'comment', 'created_at', 'updated_at'],
     indexes: [
       'CREATE INDEX health_issue_comments_health_issue_id_index ON health_issue_comments(health_issue_id)',
     ],
@@ -215,9 +273,20 @@ const TABLE_SCHEMAS = {
   UNIQUE(farm_id, cow_id, session, recording_date)
 )`,
     columns: [
-      'id', 'farm_id', 'cow_id', 'recorded_by', 'session', 'litres',
-      'recording_date', 'milk_discarded', 'discard_reason', 'notes',
-      'created_at', 'updated_at', 'synced_at', 'session_time',
+      'id',
+      'farm_id',
+      'cow_id',
+      'recorded_by',
+      'session',
+      'litres',
+      'recording_date',
+      'milk_discarded',
+      'discard_reason',
+      'notes',
+      'created_at',
+      'updated_at',
+      'synced_at',
+      'session_time',
     ],
     indexes: [
       'CREATE INDEX idx_milk_records_recording_date ON milk_records(recording_date)',
@@ -258,11 +327,29 @@ const TABLE_SCHEMAS = {
   dismiss_reason VARCHAR(500)
 )`,
     columns: [
-      'id', 'farm_id', 'cow_id', 'event_type', 'event_date', 'sire_id',
-      'semen_id', 'inseminator', 'heat_signs', 'preg_check_method',
-      'calving_details', 'cost', 'expected_next_heat', 'expected_preg_check',
-      'expected_calving', 'expected_dry_off', 'notes', 'recorded_by',
-      'created_at', 'updated_at', 'synced_at', 'dismissed_at', 'dismissed_by',
+      'id',
+      'farm_id',
+      'cow_id',
+      'event_type',
+      'event_date',
+      'sire_id',
+      'semen_id',
+      'inseminator',
+      'heat_signs',
+      'preg_check_method',
+      'calving_details',
+      'cost',
+      'expected_next_heat',
+      'expected_preg_check',
+      'expected_calving',
+      'expected_dry_off',
+      'notes',
+      'recorded_by',
+      'created_at',
+      'updated_at',
+      'synced_at',
+      'dismissed_at',
+      'dismissed_by',
       'dismiss_reason',
     ],
     indexes: [
@@ -299,14 +386,24 @@ const TABLE_SCHEMAS = {
   UNIQUE(farm_id, code)
 )`,
     columns: [
-      'id', 'farm_id', 'code', 'name', 'heat_cycle_days', 'gestation_days',
-      'preg_check_days', 'voluntary_waiting_days', 'dry_off_days',
-      'calf_max_months', 'heifer_min_months', 'young_bull_min_months',
-      'is_active', 'sort_order', 'created_at', 'updated_at',
+      'id',
+      'farm_id',
+      'code',
+      'name',
+      'heat_cycle_days',
+      'gestation_days',
+      'preg_check_days',
+      'voluntary_waiting_days',
+      'dry_off_days',
+      'calf_max_months',
+      'heifer_min_months',
+      'young_bull_min_months',
+      'is_active',
+      'sort_order',
+      'created_at',
+      'updated_at',
     ],
-    indexes: [
-      'CREATE INDEX idx_breed_types_updated_at ON breed_types(updated_at)',
-    ],
+    indexes: ['CREATE INDEX idx_breed_types_updated_at ON breed_types(updated_at)'],
   },
 
   issue_type_definitions: {
@@ -324,8 +421,16 @@ const TABLE_SCHEMAS = {
   UNIQUE(farm_id, code)
 )`,
     columns: [
-      'id', 'farm_id', 'code', 'name', 'emoji', 'requires_teat_selection',
-      'is_active', 'sort_order', 'created_at', 'updated_at',
+      'id',
+      'farm_id',
+      'code',
+      'name',
+      'emoji',
+      'requires_teat_selection',
+      'is_active',
+      'sort_order',
+      'created_at',
+      'updated_at',
     ],
     indexes: [
       'CREATE INDEX idx_issue_type_definitions_updated_at ON issue_type_definitions(updated_at)',
@@ -369,8 +474,15 @@ const TABLE_SCHEMAS = {
   created_at datetime DEFAULT CURRENT_TIMESTAMP
 )`,
     columns: [
-      'id', 'farm_id', 'user_id', 'action', 'entity_type', 'entity_id',
-      'old_values', 'new_values', 'created_at',
+      'id',
+      'farm_id',
+      'user_id',
+      'action',
+      'entity_type',
+      'entity_id',
+      'old_values',
+      'new_values',
+      'created_at',
     ],
     indexes: [
       'CREATE INDEX audit_log_entity_type_entity_id_index ON audit_log(entity_type, entity_id)',
@@ -422,13 +534,22 @@ const ROLLBACK_SCHEMAS = {
   deleted_at datetime NULL DEFAULT NULL
 )`,
     columns: [
-      'id', 'username', 'pin_hash', 'password_hash', 'full_name',
-      'role', 'permissions', 'language', 'is_active', 'failed_attempts',
-      'locked_until', 'created_at', 'updated_at', 'deleted_at',
+      'id',
+      'username',
+      'pin_hash',
+      'password_hash',
+      'full_name',
+      'role',
+      'permissions',
+      'language',
+      'is_active',
+      'failed_attempts',
+      'locked_until',
+      'created_at',
+      'updated_at',
+      'deleted_at',
     ],
-    indexes: [
-      'CREATE INDEX idx_users_updated_at ON users(updated_at)',
-    ],
+    indexes: ['CREATE INDEX idx_users_updated_at ON users(updated_at)'],
   },
 
   cows: {
@@ -455,10 +576,26 @@ const ROLLBACK_SCHEMAS = {
   status_changed_at datetime NULL
 )`,
     columns: [
-      'id', 'tag_number', 'name', 'dob', 'breed', 'sex', 'status',
-      'sire_id', 'dam_id', 'notes', 'created_by', 'created_at', 'updated_at',
-      'deleted_at', 'breed_type_id', 'is_external', 'purpose',
-      'life_phase_override', 'is_dry', 'status_changed_at',
+      'id',
+      'tag_number',
+      'name',
+      'dob',
+      'breed',
+      'sex',
+      'status',
+      'sire_id',
+      'dam_id',
+      'notes',
+      'created_by',
+      'created_at',
+      'updated_at',
+      'deleted_at',
+      'breed_type_id',
+      'is_external',
+      'purpose',
+      'life_phase_override',
+      'is_dry',
+      'status_changed_at',
     ],
     indexes: [
       'CREATE INDEX cows_sire_id_index ON cows(sire_id)',
@@ -487,13 +624,21 @@ const ROLLBACK_SCHEMAS = {
   withdrawal_meat_hours integer NOT NULL DEFAULT '0'
 )`,
     columns: [
-      'id', 'name', 'active_ingredient', 'withdrawal_milk_hours',
-      'withdrawal_meat_days', 'default_dosage', 'unit', 'notes', 'is_active',
-      'created_at', 'updated_at', 'withdrawal_milk_days', 'withdrawal_meat_hours',
+      'id',
+      'name',
+      'active_ingredient',
+      'withdrawal_milk_hours',
+      'withdrawal_meat_days',
+      'default_dosage',
+      'unit',
+      'notes',
+      'is_active',
+      'created_at',
+      'updated_at',
+      'withdrawal_milk_days',
+      'withdrawal_meat_hours',
     ],
-    indexes: [
-      'CREATE INDEX idx_medications_updated_at ON medications(updated_at)',
-    ],
+    indexes: ['CREATE INDEX idx_medications_updated_at ON medications(updated_at)'],
   },
 
   treatments: {
@@ -516,10 +661,22 @@ const ROLLBACK_SCHEMAS = {
   health_issue_id varchar(36) NULL REFERENCES health_issues(id)
 )`,
     columns: [
-      'id', 'cow_id', 'medication_id', 'administered_by', 'dosage',
-      'cost', 'treatment_date', 'withdrawal_end_milk', 'withdrawal_end_meat',
-      'is_vet_visit', 'vet_name', 'notes', 'created_at', 'updated_at',
-      'synced_at', 'health_issue_id',
+      'id',
+      'cow_id',
+      'medication_id',
+      'administered_by',
+      'dosage',
+      'cost',
+      'treatment_date',
+      'withdrawal_end_milk',
+      'withdrawal_end_meat',
+      'is_vet_visit',
+      'vet_name',
+      'notes',
+      'created_at',
+      'updated_at',
+      'synced_at',
+      'health_issue_id',
     ],
     indexes: [
       'CREATE INDEX idx_treatments_cow_withdrawal ON treatments(cow_id, withdrawal_end_milk)',
@@ -545,9 +702,19 @@ const ROLLBACK_SCHEMAS = {
   issue_types text NULL
 )`,
     columns: [
-      'id', 'cow_id', 'reported_by', 'severity', 'affected_teats',
-      'description', 'observed_at', 'status', 'resolved_at', 'created_at',
-      'updated_at', 'synced_at', 'issue_types',
+      'id',
+      'cow_id',
+      'reported_by',
+      'severity',
+      'affected_teats',
+      'description',
+      'observed_at',
+      'status',
+      'resolved_at',
+      'created_at',
+      'updated_at',
+      'synced_at',
+      'issue_types',
     ],
     indexes: [
       'CREATE INDEX health_issues_cow_id_index ON health_issues(cow_id)',
@@ -566,9 +733,7 @@ const ROLLBACK_SCHEMAS = {
   created_at datetime NOT NULL,
   updated_at datetime NOT NULL
 )`,
-    columns: [
-      'id', 'health_issue_id', 'user_id', 'comment', 'created_at', 'updated_at',
-    ],
+    columns: ['id', 'health_issue_id', 'user_id', 'comment', 'created_at', 'updated_at'],
     indexes: [
       'CREATE INDEX health_issue_comments_health_issue_id_index ON health_issue_comments(health_issue_id)',
     ],
@@ -592,9 +757,19 @@ const ROLLBACK_SCHEMAS = {
   UNIQUE(cow_id, session, recording_date)
 )`,
     columns: [
-      'id', 'cow_id', 'recorded_by', 'session', 'litres', 'recording_date',
-      'milk_discarded', 'discard_reason', 'notes', 'created_at', 'updated_at',
-      'synced_at', 'session_time',
+      'id',
+      'cow_id',
+      'recorded_by',
+      'session',
+      'litres',
+      'recording_date',
+      'milk_discarded',
+      'discard_reason',
+      'notes',
+      'created_at',
+      'updated_at',
+      'synced_at',
+      'session_time',
     ],
     indexes: [
       'CREATE INDEX idx_milk_records_recording_date ON milk_records(recording_date)',
@@ -634,11 +809,29 @@ const ROLLBACK_SCHEMAS = {
   dismiss_reason VARCHAR(500)
 )`,
     columns: [
-      'id', 'cow_id', 'event_type', 'event_date', 'sire_id', 'semen_id',
-      'inseminator', 'heat_signs', 'preg_check_method', 'calving_details',
-      'cost', 'expected_next_heat', 'expected_preg_check', 'expected_calving',
-      'expected_dry_off', 'notes', 'recorded_by', 'created_at', 'updated_at',
-      'synced_at', 'dismissed_at', 'dismissed_by', 'dismiss_reason',
+      'id',
+      'cow_id',
+      'event_type',
+      'event_date',
+      'sire_id',
+      'semen_id',
+      'inseminator',
+      'heat_signs',
+      'preg_check_method',
+      'calving_details',
+      'cost',
+      'expected_next_heat',
+      'expected_preg_check',
+      'expected_calving',
+      'expected_dry_off',
+      'notes',
+      'recorded_by',
+      'created_at',
+      'updated_at',
+      'synced_at',
+      'dismissed_at',
+      'dismissed_by',
+      'dismiss_reason',
     ],
     indexes: [
       'CREATE INDEX breeding_events_cow_id_index ON breeding_events(cow_id)',
@@ -674,14 +867,23 @@ const ROLLBACK_SCHEMAS = {
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 )`,
     columns: [
-      'id', 'code', 'name', 'heat_cycle_days', 'gestation_days',
-      'preg_check_days', 'voluntary_waiting_days', 'dry_off_days',
-      'calf_max_months', 'heifer_min_months', 'young_bull_min_months',
-      'is_active', 'sort_order', 'created_at', 'updated_at',
+      'id',
+      'code',
+      'name',
+      'heat_cycle_days',
+      'gestation_days',
+      'preg_check_days',
+      'voluntary_waiting_days',
+      'dry_off_days',
+      'calf_max_months',
+      'heifer_min_months',
+      'young_bull_min_months',
+      'is_active',
+      'sort_order',
+      'created_at',
+      'updated_at',
     ],
-    indexes: [
-      'CREATE INDEX idx_breed_types_updated_at ON breed_types(updated_at)',
-    ],
+    indexes: ['CREATE INDEX idx_breed_types_updated_at ON breed_types(updated_at)'],
   },
 
   issue_type_definitions: {
@@ -697,8 +899,15 @@ const ROLLBACK_SCHEMAS = {
   updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 )`,
     columns: [
-      'id', 'code', 'name', 'emoji', 'requires_teat_selection',
-      'is_active', 'sort_order', 'created_at', 'updated_at',
+      'id',
+      'code',
+      'name',
+      'emoji',
+      'requires_teat_selection',
+      'is_active',
+      'sort_order',
+      'created_at',
+      'updated_at',
     ],
     indexes: [
       'CREATE INDEX idx_issue_type_definitions_updated_at ON issue_type_definitions(updated_at)',
@@ -737,8 +946,14 @@ const ROLLBACK_SCHEMAS = {
   created_at datetime DEFAULT CURRENT_TIMESTAMP
 )`,
     columns: [
-      'id', 'user_id', 'action', 'entity_type', 'entity_id',
-      'old_values', 'new_values', 'created_at',
+      'id',
+      'user_id',
+      'action',
+      'entity_type',
+      'entity_id',
+      'old_values',
+      'new_values',
+      'created_at',
     ],
     indexes: [
       'CREATE INDEX audit_log_entity_type_entity_id_index ON audit_log(entity_type, entity_id)',
@@ -752,10 +967,7 @@ const ROLLBACK_SCHEMAS = {
 
 async function recreateTable(knex, tableName, schema) {
   const tempName = `${tableName}_new`
-  const createSql = schema.create.replace(
-    `CREATE TABLE ${tableName}`,
-    `CREATE TABLE ${tempName}`
-  )
+  const createSql = schema.create.replace(`CREATE TABLE ${tableName}`, `CREATE TABLE ${tempName}`)
 
   await knex.raw(createSql)
 
@@ -774,15 +986,23 @@ async function recreateTable(knex, tableName, schema) {
 
 const RECREATION_ORDER = [
   // Phase A: Leaf tables
-  'audit_log', 'health_issue_comments', 'milk_records', 'breeding_events', 'treatments',
+  'audit_log',
+  'health_issue_comments',
+  'milk_records',
+  'breeding_events',
+  'treatments',
   // Phase B: Mid-level
   'health_issues',
   // Phase C: Core entity
   'cows',
   // Phase D: Root/lookup
-  'users', 'medications', 'breed_types', 'issue_type_definitions',
+  'users',
+  'medications',
+  'breed_types',
+  'issue_type_definitions',
   // Phase E: Config (PK changes)
-  'feature_flags', 'app_settings',
+  'feature_flags',
+  'app_settings',
 ]
 
 // ── UP ─────────────────────────────────────────────────────────────────────
@@ -806,7 +1026,9 @@ exports.up = async function (knex) {
   try {
     const row = await knex('app_settings').where('key', 'farm_name').first()
     if (row && row.value) farmName = row.value
-  } catch { /* app_settings may not exist on fresh DB */ }
+  } catch {
+    /* app_settings may not exist on fresh DB */
+  }
 
   await knex('farms').insert({
     id: DEFAULT_FARM_ID,
@@ -829,10 +1051,14 @@ exports.up = async function (knex) {
         // All handled by the new CREATE TABLE schemas.
 
         // Add nullable farm_id column (PK changes for config tables handled by recreation)
-        await knex.raw(`ALTER TABLE ${tableName} ADD COLUMN farm_id TEXT DEFAULT '${DEFAULT_FARM_ID}'`)
+        await knex.raw(
+          `ALTER TABLE ${tableName} ADD COLUMN farm_id TEXT DEFAULT '${DEFAULT_FARM_ID}'`
+        )
 
         // Backfill all rows
-        await knex.raw(`UPDATE ${tableName} SET farm_id = '${DEFAULT_FARM_ID}' WHERE farm_id IS NULL`)
+        await knex.raw(
+          `UPDATE ${tableName} SET farm_id = '${DEFAULT_FARM_ID}' WHERE farm_id IS NULL`
+        )
 
         // For users, also add token_version before recreation
         if (tableName === 'users') {
@@ -862,20 +1088,34 @@ exports.up = async function (knex) {
     await knex.raw('SET FOREIGN_KEY_CHECKS=0')
     try {
       for (const tableName of RECREATION_ORDER) {
-        await knex.raw(`ALTER TABLE \`${tableName}\` ADD COLUMN farm_id VARCHAR(36) NOT NULL DEFAULT '${DEFAULT_FARM_ID}'`)
+        await knex.raw(
+          `ALTER TABLE \`${tableName}\` ADD COLUMN farm_id VARCHAR(36) NOT NULL DEFAULT '${DEFAULT_FARM_ID}'`
+        )
         await knex.raw(`ALTER TABLE \`${tableName}\` ALTER COLUMN farm_id DROP DEFAULT`)
       }
 
       // Users: add token_version + expand role ENUM
       await knex.raw(`ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0`)
-      await knex.raw(`ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'worker', 'super_admin') NOT NULL DEFAULT 'worker'`)
+      await knex.raw(
+        `ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'worker', 'super_admin') NOT NULL DEFAULT 'worker'`
+      )
 
       // Update unique constraints
-      await knex.raw('ALTER TABLE users DROP INDEX users_username_unique, ADD UNIQUE INDEX (farm_id, username)')
-      await knex.raw('ALTER TABLE cows DROP INDEX cows_tag_number_unique, ADD UNIQUE INDEX (farm_id, tag_number)')
-      await knex.raw('ALTER TABLE breed_types DROP INDEX breed_types_code_unique, ADD UNIQUE INDEX (farm_id, code)')
-      await knex.raw('ALTER TABLE issue_type_definitions DROP INDEX issue_type_definitions_code_unique, ADD UNIQUE INDEX (farm_id, code)')
-      await knex.raw('ALTER TABLE milk_records DROP INDEX milk_records_cow_id_session_recording_date_unique, ADD UNIQUE INDEX (farm_id, cow_id, session, recording_date)')
+      await knex.raw(
+        'ALTER TABLE users DROP INDEX users_username_unique, ADD UNIQUE INDEX (farm_id, username)'
+      )
+      await knex.raw(
+        'ALTER TABLE cows DROP INDEX cows_tag_number_unique, ADD UNIQUE INDEX (farm_id, tag_number)'
+      )
+      await knex.raw(
+        'ALTER TABLE breed_types DROP INDEX breed_types_code_unique, ADD UNIQUE INDEX (farm_id, code)'
+      )
+      await knex.raw(
+        'ALTER TABLE issue_type_definitions DROP INDEX issue_type_definitions_code_unique, ADD UNIQUE INDEX (farm_id, code)'
+      )
+      await knex.raw(
+        'ALTER TABLE milk_records DROP INDEX milk_records_cow_id_session_recording_date_unique, ADD UNIQUE INDEX (farm_id, cow_id, session, recording_date)'
+      )
 
       // Composite PK changes for config tables
       await knex.raw('ALTER TABLE feature_flags DROP PRIMARY KEY, ADD PRIMARY KEY (farm_id, `key`)')
@@ -927,18 +1167,30 @@ exports.down = async function (knex) {
   } else {
     // MySQL branch
     // Restore original unique constraints
-    await knex.raw('ALTER TABLE users DROP INDEX farm_id, ADD UNIQUE INDEX users_username_unique (username)')
-    await knex.raw('ALTER TABLE cows DROP INDEX farm_id, ADD UNIQUE INDEX cows_tag_number_unique (tag_number)')
-    await knex.raw('ALTER TABLE breed_types DROP INDEX farm_id, ADD UNIQUE INDEX breed_types_code_unique (code)')
-    await knex.raw('ALTER TABLE issue_type_definitions DROP INDEX farm_id, ADD UNIQUE INDEX issue_type_definitions_code_unique (code)')
-    await knex.raw('ALTER TABLE milk_records DROP INDEX farm_id, ADD UNIQUE INDEX milk_records_cow_id_session_recording_date_unique (cow_id, session, recording_date)')
+    await knex.raw(
+      'ALTER TABLE users DROP INDEX farm_id, ADD UNIQUE INDEX users_username_unique (username)'
+    )
+    await knex.raw(
+      'ALTER TABLE cows DROP INDEX farm_id, ADD UNIQUE INDEX cows_tag_number_unique (tag_number)'
+    )
+    await knex.raw(
+      'ALTER TABLE breed_types DROP INDEX farm_id, ADD UNIQUE INDEX breed_types_code_unique (code)'
+    )
+    await knex.raw(
+      'ALTER TABLE issue_type_definitions DROP INDEX farm_id, ADD UNIQUE INDEX issue_type_definitions_code_unique (code)'
+    )
+    await knex.raw(
+      'ALTER TABLE milk_records DROP INDEX farm_id, ADD UNIQUE INDEX milk_records_cow_id_session_recording_date_unique (cow_id, session, recording_date)'
+    )
 
     // Restore original PKs for config tables
     await knex.raw('ALTER TABLE feature_flags DROP PRIMARY KEY, ADD PRIMARY KEY (`key`)')
     await knex.raw('ALTER TABLE app_settings DROP PRIMARY KEY, ADD PRIMARY KEY (`key`)')
 
     // Revert role ENUM
-    await knex.raw(`ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'worker') NOT NULL DEFAULT 'worker'`)
+    await knex.raw(
+      `ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'worker') NOT NULL DEFAULT 'worker'`
+    )
 
     // Drop token_version
     await knex.raw('ALTER TABLE users DROP COLUMN token_version')

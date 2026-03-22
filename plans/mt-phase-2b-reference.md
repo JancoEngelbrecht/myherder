@@ -1,9 +1,11 @@
 # MT Phase 2B: Reference Data Routes
 
 ## Goal
+
 Apply tenant scoping to reference/admin route files: medications (9 queries), issueTypes (9), breedTypes (9), users (11), appSettings (1), featureFlags (1), auditLog (1), export (11). Total: ~52 query locations.
 
 ## Prerequisites
+
 - Phase 2A complete (tenantScope middleware exists, core CRUD routes scoped)
 - Test tokens include `farm_id` (set up in Phase 2A)
 - Read each route file before modifying it
@@ -12,24 +14,24 @@ Apply tenant scoping to reference/admin route files: medications (9 queries), is
 
 Add `tenantScope` middleware. For each endpoint:
 
-| Endpoint | Query changes |
-|----------|--------------|
-| `GET /` | `req.scoped('medications')` (respects `?all=1` for admin) |
-| `GET /:id` | `req.scoped('medications').where('id', id)` |
-| `POST /` | Add `farm_id: req.farmId` to insert |
-| `PUT /:id` | Scope SELECT + UPDATE |
+| Endpoint      | Query changes                                                  |
+| ------------- | -------------------------------------------------------------- |
+| `GET /`       | `req.scoped('medications')` (respects `?all=1` for admin)      |
+| `GET /:id`    | `req.scoped('medications').where('id', id)`                    |
+| `POST /`      | Add `farm_id: req.farmId` to insert                            |
+| `PUT /:id`    | Scope SELECT + UPDATE                                          |
 | `DELETE /:id` | Scope SELECT. Check for treatment references within same farm. |
 
 Usage check before delete: `db('treatments').where('medication_id', id)` needs farm scoping -- `req.scoped('treatments').where('medication_id', id)`.
 
 ## Step 2B.2 -- Update `server/routes/issueTypes.js` (9 queries)
 
-| Endpoint | Query changes |
-|----------|--------------|
-| `GET /` | `req.scoped('issue_type_definitions')` |
-| `GET /:id` | Scope by farm_id |
-| `POST /` | Add `farm_id: req.farmId`. Code uniqueness check scoped to farm. |
-| `PUT /:id` | Scope SELECT + UPDATE |
+| Endpoint      | Query changes                                                    |
+| ------------- | ---------------------------------------------------------------- |
+| `GET /`       | `req.scoped('issue_type_definitions')`                           |
+| `GET /:id`    | Scope by farm_id                                                 |
+| `POST /`      | Add `farm_id: req.farmId`. Code uniqueness check scoped to farm. |
+| `PUT /:id`    | Scope SELECT + UPDATE                                            |
 | `DELETE /:id` | Scope SELECT. Reference check in `health_issues` scoped to farm. |
 
 Important: `code` uniqueness is now `UNIQUE(farm_id, code)` -- the duplicate check in POST must be `req.scoped('issue_type_definitions').where('code', code)`.
@@ -38,22 +40,22 @@ Important: `code` uniqueness is now `UNIQUE(farm_id, code)` -- the duplicate che
 
 Same pattern as issueTypes:
 
-| Endpoint | Query changes |
-|----------|--------------|
-| `GET /` | `req.scoped('breed_types')` |
-| `GET /:id` | Scope by farm_id |
-| `POST /` | Add `farm_id: req.farmId`. Code uniqueness scoped to farm. |
-| `PUT /:id` | Scope SELECT + UPDATE |
-| `DELETE /:id` | Scope SELECT. Reference check in `cows` scoped to farm. |
+| Endpoint      | Query changes                                              |
+| ------------- | ---------------------------------------------------------- |
+| `GET /`       | `req.scoped('breed_types')`                                |
+| `GET /:id`    | Scope by farm_id                                           |
+| `POST /`      | Add `farm_id: req.farmId`. Code uniqueness scoped to farm. |
+| `PUT /:id`    | Scope SELECT + UPDATE                                      |
+| `DELETE /:id` | Scope SELECT. Reference check in `cows` scoped to farm.    |
 
 ## Step 2B.4 -- Update `server/routes/users.js` (11 queries)
 
-| Endpoint | Query changes |
-|----------|--------------|
-| `GET /` | `req.scoped('users')` (with `?active_only` filter) |
-| `GET /:id` | `req.scoped('users').where('id', id)` |
-| `POST /` | Add `farm_id: req.farmId`. Username uniqueness scoped to farm. |
-| `PATCH /:id` | Scope SELECT + UPDATE. Target user must be in same farm. |
+| Endpoint      | Query changes                                                         |
+| ------------- | --------------------------------------------------------------------- |
+| `GET /`       | `req.scoped('users')` (with `?active_only` filter)                    |
+| `GET /:id`    | `req.scoped('users').where('id', id)`                                 |
+| `POST /`      | Add `farm_id: req.farmId`. Username uniqueness scoped to farm.        |
+| `PATCH /:id`  | Scope SELECT + UPDATE. Target user must be in same farm.              |
 | `DELETE /:id` | Scope SELECT + UPDATE (soft deactivate). Target must be in same farm. |
 
 Important: PIN uniqueness check (if any) must also be farm-scoped. Two workers in different farms can have the same PIN.
@@ -62,12 +64,13 @@ Important: PIN uniqueness check (if any) must also be farm-scoped. Two workers i
 
 Settings are now keyed by `(farm_id, key)`:
 
-| Endpoint | Query changes |
-|----------|--------------|
+| Endpoint         | Query changes                                                                                                                                             |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `GET /` (public) | This is a special case -- currently no auth required. Needs `farm_code` query param to resolve farm, OR returns nothing without context. See notes below. |
-| `PATCH /` | Scope reads and upserts by `farm_id` |
+| `PATCH /`        | Scope reads and upserts by `farm_id`                                                                                                                      |
 
 **Special handling for GET /api/settings (public)**:
+
 - Currently returns settings without auth for the login screen (shows farm name)
 - With multi-tenancy: accept `?farm_code=BOER` query param, resolve to `farm_id`, return that farm's settings
 - If no `farm_code`, return empty or global defaults
@@ -77,16 +80,16 @@ Settings are now keyed by `(farm_id, key)`:
 
 Feature flags are now keyed by `(farm_id, key)`:
 
-| Endpoint | Query changes |
-|----------|--------------|
-| `GET /` | `req.scoped('feature_flags')` or `db('feature_flags').where('farm_id', req.farmId)` |
-| `PATCH /` | Upserts scoped by `farm_id` |
+| Endpoint  | Query changes                                                                       |
+| --------- | ----------------------------------------------------------------------------------- |
+| `GET /`   | `req.scoped('feature_flags')` or `db('feature_flags').where('farm_id', req.farmId)` |
+| `PATCH /` | Upserts scoped by `farm_id`                                                         |
 
 ## Step 2B.7 -- Update `server/routes/auditLog.js` (1 direct query, but with filters)
 
-| Endpoint | Query changes |
-|----------|--------------|
-| `GET /` | `req.scoped('audit_log')` with existing filters (entity_type, user_id, etc.) |
+| Endpoint | Query changes                                                                |
+| -------- | ---------------------------------------------------------------------------- |
+| `GET /`  | `req.scoped('audit_log')` with existing filters (entity_type, user_id, etc.) |
 
 ## Step 2B.8 -- Update `server/routes/export.js` (11 queries)
 

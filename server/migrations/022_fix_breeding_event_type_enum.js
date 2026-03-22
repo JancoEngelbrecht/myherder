@@ -12,11 +12,29 @@
 exports.config = { transaction: false }
 
 const COLUMNS = [
-  'id', 'cow_id', 'event_type', 'event_date', 'sire_id', 'semen_id',
-  'inseminator', 'heat_signs', 'preg_check_method', 'calving_details',
-  'cost', 'expected_next_heat', 'expected_preg_check', 'expected_calving',
-  'expected_dry_off', 'notes', 'recorded_by', 'created_at', 'updated_at',
-  'synced_at', 'dismissed_at', 'dismissed_by', 'dismiss_reason',
+  'id',
+  'cow_id',
+  'event_type',
+  'event_date',
+  'sire_id',
+  'semen_id',
+  'inseminator',
+  'heat_signs',
+  'preg_check_method',
+  'calving_details',
+  'cost',
+  'expected_next_heat',
+  'expected_preg_check',
+  'expected_calving',
+  'expected_dry_off',
+  'notes',
+  'recorded_by',
+  'created_at',
+  'updated_at',
+  'synced_at',
+  'dismissed_at',
+  'dismissed_by',
+  'dismiss_reason',
 ]
 
 exports.up = async function (knex) {
@@ -60,7 +78,9 @@ exports.up = async function (knex) {
       `)
 
       const cols = COLUMNS.join(', ')
-      await knex.raw(`INSERT INTO breeding_events_new (${cols}) SELECT ${cols} FROM breeding_events`)
+      await knex.raw(
+        `INSERT INTO breeding_events_new (${cols}) SELECT ${cols} FROM breeding_events`
+      )
       await knex.raw('DROP TABLE breeding_events')
       await knex.raw('ALTER TABLE breeding_events_new RENAME TO breeding_events')
 
@@ -68,8 +88,12 @@ exports.up = async function (knex) {
       await knex.raw('CREATE INDEX breeding_events_cow_id_index ON breeding_events(cow_id)')
       await knex.raw('CREATE INDEX breeding_events_event_type_index ON breeding_events(event_type)')
       await knex.raw('CREATE INDEX breeding_events_event_date_index ON breeding_events(event_date)')
-      await knex.raw('CREATE INDEX breeding_events_expected_calving_index ON breeding_events(expected_calving)')
-      await knex.raw('CREATE INDEX breeding_events_expected_next_heat_index ON breeding_events(expected_next_heat)')
+      await knex.raw(
+        'CREATE INDEX breeding_events_expected_calving_index ON breeding_events(expected_calving)'
+      )
+      await knex.raw(
+        'CREATE INDEX breeding_events_expected_next_heat_index ON breeding_events(expected_next_heat)'
+      )
 
       await knex.raw('COMMIT')
       await knex.raw('PRAGMA foreign_keys = ON')
@@ -136,15 +160,21 @@ exports.down = async function (knex) {
       `)
 
       const cols = COLUMNS.join(', ')
-      await knex.raw(`INSERT INTO breeding_events_old (${cols}) SELECT ${cols} FROM breeding_events`)
+      await knex.raw(
+        `INSERT INTO breeding_events_old (${cols}) SELECT ${cols} FROM breeding_events`
+      )
       await knex.raw('DROP TABLE breeding_events')
       await knex.raw('ALTER TABLE breeding_events_old RENAME TO breeding_events')
 
       await knex.raw('CREATE INDEX breeding_events_cow_id_index ON breeding_events(cow_id)')
       await knex.raw('CREATE INDEX breeding_events_event_type_index ON breeding_events(event_type)')
       await knex.raw('CREATE INDEX breeding_events_event_date_index ON breeding_events(event_date)')
-      await knex.raw('CREATE INDEX breeding_events_expected_calving_index ON breeding_events(expected_calving)')
-      await knex.raw('CREATE INDEX breeding_events_expected_next_heat_index ON breeding_events(expected_next_heat)')
+      await knex.raw(
+        'CREATE INDEX breeding_events_expected_calving_index ON breeding_events(expected_calving)'
+      )
+      await knex.raw(
+        'CREATE INDEX breeding_events_expected_next_heat_index ON breeding_events(expected_next_heat)'
+      )
 
       await knex.raw('COMMIT')
       await knex.raw('PRAGMA foreign_keys = ON')

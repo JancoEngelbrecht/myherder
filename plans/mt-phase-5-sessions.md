@@ -1,9 +1,11 @@
 # MT Phase 5: Session Management & Token Revocation
 
 ## Goal
+
 Add token revocation endpoint and UI so farm admins can force-logout users (stolen device response). Super-admin can revoke any user's sessions.
 
 ## Prerequisites
+
 - Phases 1-4 complete (DB, scoping, auth, isolation tests)
 - Read `server/routes/users.js` for existing user management pattern
 - Read `client/src/views/admin/UserManagement.vue` for UI pattern
@@ -34,6 +36,7 @@ Permissions:
 ## Step 5.2 -- Update auth middleware for token_version
 
 This should already be done in Phase 3 (Step 3.2). Verify:
+
 - `server/middleware/auth.js` checks `token_version` on every request
 - Bumped version -> old tokens return 401 immediately
 

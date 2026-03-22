@@ -100,7 +100,8 @@ export function computeIsReadyToBreed(cow, breedType = null, lastCalvingDate = n
     return ageMonths >= heiferMin
   }
   // Cow with calving history: ready if past voluntary waiting period
-  const daysSinceCalving = (Date.now() - new Date(lastCalvingDate).getTime()) / (1000 * 60 * 60 * 24)
+  const daysSinceCalving =
+    (Date.now() - new Date(lastCalvingDate).getTime()) / (1000 * 60 * 60 * 24)
   return daysSinceCalving >= vwd
 }
 

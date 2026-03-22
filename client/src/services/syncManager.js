@@ -44,9 +44,7 @@ async function dequeue(autoId) {
 }
 
 async function dequeueByEntityId(entityType, id) {
-  const entries = await db.syncQueue
-    .where({ entityType, id })
-    .toArray()
+  const entries = await db.syncQueue.where({ entityType, id }).toArray()
   if (entries.length) {
     await db.syncQueue.bulkDelete(entries.map((e) => e.autoId))
     await refreshPendingCount()
@@ -101,7 +99,7 @@ async function pushChanges() {
     // Process results
     for (const result of response.results) {
       const queueEntry = pending.find(
-        (e) => e.id === result.id && e.entityType === result.entityType,
+        (e) => e.id === result.id && e.entityType === result.entityType
       )
       if (!queueEntry) continue
 

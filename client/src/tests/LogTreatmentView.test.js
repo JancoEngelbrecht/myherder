@@ -10,7 +10,9 @@ let mockRouteQuery = {}
 vi.mock('vue-router', () => ({
   useRoute: () => ({
     params: {},
-    get query() { return mockRouteQuery },
+    get query() {
+      return mockRouteQuery
+    },
   }),
   useRouter: () => ({ push: mockPush, replace: mockReplace }),
   RouterLink: { template: '<a><slot /></a>', props: ['to'] },
@@ -42,7 +44,13 @@ vi.mock('../services/syncManager.js', () => {
 vi.mock('../db/indexedDB.js', () => ({
   default: {
     cows: { toArray: vi.fn().mockResolvedValue([]), bulkPut: vi.fn(), put: vi.fn() },
-    medications: { toArray: vi.fn().mockResolvedValue([]), bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn() },
+    medications: {
+      toArray: vi.fn().mockResolvedValue([]),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
+    },
     treatments: {
       toArray: vi.fn().mockResolvedValue([]),
       bulkPut: vi.fn(),
@@ -64,7 +72,13 @@ vi.mock('../db/indexedDB.js', () => ({
         equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
       }),
     },
-    issueTypes: { toArray: vi.fn().mockResolvedValue([]), bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn() },
+    issueTypes: {
+      toArray: vi.fn().mockResolvedValue([]),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
+    },
     featureFlags: { toArray: vi.fn().mockResolvedValue([]), put: vi.fn(), bulkPut: vi.fn() },
     syncQueue: { toArray: vi.fn().mockResolvedValue([]) },
   },
@@ -88,19 +102,32 @@ import { createPinia, setActivePinia } from 'pinia'
 
 const MEDICATIONS = [
   {
-    id: 'med-1', name: 'Penicillin', active_ingredient: 'Penicillin G',
-    withdrawal_milk_hours: 72, withdrawal_meat_days: 14,
-    default_dosage: '10', unit: 'ml', is_active: true,
+    id: 'med-1',
+    name: 'Penicillin',
+    active_ingredient: 'Penicillin G',
+    withdrawal_milk_hours: 72,
+    withdrawal_meat_days: 14,
+    default_dosage: '10',
+    unit: 'ml',
+    is_active: true,
   },
   {
-    id: 'med-2', name: 'Ibuprofen', active_ingredient: null,
-    withdrawal_milk_hours: 0, withdrawal_meat_days: 0,
-    default_dosage: null, unit: null, is_active: true,
+    id: 'med-2',
+    name: 'Ibuprofen',
+    active_ingredient: null,
+    withdrawal_milk_hours: 0,
+    withdrawal_meat_days: 0,
+    default_dosage: null,
+    unit: null,
+    is_active: true,
   },
 ]
 
 const stubs = {
-  AppHeader: { template: '<div class="app-header"><slot /></div>', props: ['title', 'showBack', 'backTo'] },
+  AppHeader: {
+    template: '<div class="app-header"><slot /></div>',
+    props: ['title', 'showBack', 'backTo'],
+  },
   CowSearchDropdown: {
     template: '<select class="cow-search-dropdown" />',
     props: ['modelValue', 'placeholder', 'error'],
@@ -109,10 +136,21 @@ const stubs = {
 
 function createWrapper() {
   api.get.mockImplementation((url) => {
-    if (url === '/medications') return Promise.resolve({ data: MEDICATIONS, headers: { 'x-total-count': '2' } })
-    if (url === '/issue-types') return Promise.resolve({ data: [], headers: { 'x-total-count': '0' } })
+    if (url === '/medications')
+      return Promise.resolve({ data: MEDICATIONS, headers: { 'x-total-count': '2' } })
+    if (url === '/issue-types')
+      return Promise.resolve({ data: [], headers: { 'x-total-count': '0' } })
     if (url === '/cows') return Promise.resolve({ data: [] })
-    if (url.includes('feature-flags')) return Promise.resolve({ data: { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true } })
+    if (url.includes('feature-flags'))
+      return Promise.resolve({
+        data: {
+          breeding: true,
+          milkRecording: true,
+          healthIssues: true,
+          treatments: true,
+          analytics: true,
+        },
+      })
     if (url === '/health-issues') return Promise.resolve({ data: [] })
     return Promise.resolve({ data: [] })
   })

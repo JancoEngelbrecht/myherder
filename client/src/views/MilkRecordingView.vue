@@ -31,20 +31,13 @@
       <!-- Time picker — always shown -->
       <div class="time-row">
         <label class="control-label">{{ t('milkRecording.sessionTime') }}</label>
-        <input
-          v-model="selectedTime"
-          type="time"
-          class="form-input time-input"
-        />
+        <input v-model="selectedTime" type="time" class="form-input time-input" />
         <span class="time-hint">{{ t('milkRecording.sessionTimeHint') }}</span>
       </div>
 
       <!-- Search -->
       <div data-tour="milk-search">
-        <SearchInput
-          v-model="searchQuery"
-          :placeholder="t('milkRecording.search')"
-        />
+        <SearchInput v-model="searchQuery" :placeholder="t('milkRecording.search')" />
       </div>
     </div>
 
@@ -87,12 +80,14 @@
 
     <!-- Summary footer -->
     <div v-if="!milkStore.loading && qualifyingCows.length > 0" class="summary-footer">
-      {{ t('milkRecording.summary', {
-        recorded: summary.recorded,
-        total: qualifyingCows.length,
-        litres: summary.litres,
-        discarded: summary.discarded,
-      }) }}
+      {{
+        t('milkRecording.summary', {
+          recorded: summary.recorded,
+          total: qualifyingCows.length,
+          litres: summary.litres,
+          discarded: summary.discarded,
+        })
+      }}
     </div>
 
     <TourButton @start-tour="startTour" />
@@ -118,11 +113,7 @@ const cowsStore = useCowsStore()
 const treatmentsStore = useTreatmentsStore()
 const milkStore = useMilkRecordsStore()
 
-const sessions = [
-  { value: 'morning' },
-  { value: 'afternoon' },
-  { value: 'evening' },
-]
+const sessions = [{ value: 'morning' }, { value: 'afternoon' }, { value: 'evening' }]
 
 const sessionDefaultTimes = { morning: '06:00', afternoon: '12:00', evening: '18:00' }
 
@@ -131,7 +122,10 @@ function roundToQuarter() {
   const mins = Math.round(now.getMinutes() / 15) * 15
   let h = mins === 60 ? now.getHours() + 1 : now.getHours()
   let m = mins === 60 ? 0 : mins
-  if (h >= 24) { h = 23; m = 45 }
+  if (h >= 24) {
+    h = 23
+    m = 45
+  }
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 }
 
@@ -148,16 +142,14 @@ const isToday = computed(() => selectedDate.value === today)
 const isMilkable = (c) => c.sex !== 'male' && computeLifePhase(c) === 'cow'
 
 const qualifyingCows = computed(() =>
-  cowsStore.cows.filter((c) => isMilkable(c) && c.status === 'active'),
+  cowsStore.cows.filter((c) => isMilkable(c) && c.status === 'active')
 )
 
 const filteredCows = computed(() => {
   const q = searchQuery.value.toLowerCase().trim()
   if (!q) return qualifyingCows.value
   return qualifyingCows.value.filter(
-    (c) =>
-      c.tag_number.toLowerCase().includes(q) ||
-      (c.name && c.name.toLowerCase().includes(q)),
+    (c) => c.tag_number.toLowerCase().includes(q) || (c.name && c.name.toLowerCase().includes(q))
   )
 })
 
@@ -185,7 +177,9 @@ function withdrawalEndDate(cowId) {
 // ── Summary ─────────────────────────────────────────────────────────────────
 
 const summary = computed(() => {
-  let recorded = 0, litres = 0, discarded = 0
+  let recorded = 0,
+    litres = 0,
+    discarded = 0
   for (const c of qualifyingCows.value) {
     const r = milkStore.getRecord(c.id)
     if (r) {
@@ -202,11 +196,20 @@ const summary = computed(() => {
 function handleUpdate(cowId, litres) {
   const onWithdrawal = isOnWithdrawal(cowId)
   const endDate = withdrawalEndDate(cowId)
-  const discardReason = onWithdrawal && endDate
-    ? t('milkRecording.withdrawalDiscard', { date: new Date(endDate).toLocaleDateString() })
-    : null
+  const discardReason =
+    onWithdrawal && endDate
+      ? t('milkRecording.withdrawalDiscard', { date: new Date(endDate).toLocaleDateString() })
+      : null
 
-  milkStore.autoSave(cowId, litres, selectedSession.value, selectedDate.value, onWithdrawal, discardReason, selectedTime.value)
+  milkStore.autoSave(
+    cowId,
+    litres,
+    selectedSession.value,
+    selectedDate.value,
+    onWithdrawal,
+    discardReason,
+    selectedTime.value
+  )
 }
 
 function setSession(session) {
@@ -243,28 +246,28 @@ const { startTour } = useTour('milk-recording', () => [
     popover: {
       title: t('tour.milkRecording.session.title'),
       description: t('tour.milkRecording.session.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="milk-search"]',
     popover: {
       title: t('tour.milkRecording.search.title'),
       description: t('tour.milkRecording.search.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="milk-entries"]',
     popover: {
       title: t('tour.milkRecording.entryCard.title'),
       description: t('tour.milkRecording.entryCard.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="milk-history"]',
     popover: {
       title: t('tour.milkRecording.history.title'),
       description: t('tour.milkRecording.history.desc'),
-    }
+    },
   },
 ])
 </script>

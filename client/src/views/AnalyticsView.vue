@@ -27,8 +27,12 @@
             <div v-if="flags.milkRecording" class="kpi-card">
               <div class="kpi-value mono">{{ kpis.litres_today }}</div>
               <div class="kpi-label">{{ t('analytics.landing.litresToday') }}</div>
-              <div class="kpi-compare mono" :class="litresTrendPct >= 0 ? 'trend-up' : 'trend-down'">
-                {{ litresTrendPct >= 0 ? '▲' : '▼' }} {{ Math.abs(litresTrendPct) }}% {{ t('analytics.landing.vs7dayAvg') }}
+              <div
+                class="kpi-compare mono"
+                :class="litresTrendPct >= 0 ? 'trend-up' : 'trend-down'"
+              >
+                {{ litresTrendPct >= 0 ? '▲' : '▼' }} {{ Math.abs(litresTrendPct) }}%
+                {{ t('analytics.landing.vs7dayAvg') }}
               </div>
             </div>
 
@@ -36,14 +40,20 @@
             <div v-if="flags.milkRecording" class="kpi-card">
               <div class="kpi-value mono">{{ kpis.cows_milked_today }}</div>
               <div class="kpi-label">{{ t('analytics.landing.cowsMilked') }}</div>
-              <div class="kpi-compare mono" :class="kpis.cows_milked_today >= kpis.cows_expected ? 'trend-up' : 'trend-down'">
+              <div
+                class="kpi-compare mono"
+                :class="kpis.cows_milked_today >= kpis.cows_expected ? 'trend-up' : 'trend-down'"
+              >
                 {{ t('analytics.landing.ofExpected', { expected: kpis.cows_expected }) }}
               </div>
             </div>
 
             <!-- Active Health Issues -->
             <div v-if="flags.healthIssues" class="kpi-card">
-              <div class="kpi-value mono" :class="kpis.active_health_issues > 0 ? 'value-warn' : ''">
+              <div
+                class="kpi-value mono"
+                :class="kpis.active_health_issues > 0 ? 'value-warn' : ''"
+              >
                 {{ kpis.active_health_issues }}
               </div>
               <div class="kpi-label">{{ t('analytics.landing.activeIssues') }}</div>
@@ -51,7 +61,10 @@
 
             <!-- Breeding Due -->
             <div v-if="flags.breeding" class="kpi-card">
-              <div class="kpi-value mono" :class="kpis.breeding_actions_due > 0 ? 'value-info' : ''">
+              <div
+                class="kpi-value mono"
+                :class="kpis.breeding_actions_due > 0 ? 'value-info' : ''"
+              >
                 {{ kpis.breeding_actions_due }}
               </div>
               <div class="kpi-label">{{ t('analytics.landing.breedingDue') }}</div>
@@ -66,11 +79,7 @@
           <div v-if="statusLoading" class="center-spinner"><div class="spinner" /></div>
 
           <div v-else class="status-list">
-            <div
-              v-for="item in statusBreakdown"
-              :key="item.status"
-              class="status-row"
-            >
+            <div v-for="item in statusBreakdown" :key="item.status" class="status-row">
               <div class="status-info">
                 <span class="badge" :class="`badge-${item.status}`">
                   {{ t(`status.${item.status}`) }}
@@ -106,11 +115,7 @@
               <div class="category-arrow">›</div>
             </RouterLink>
 
-            <RouterLink
-              v-if="flags.breeding"
-              to="/analytics/fertility"
-              class="category-card"
-            >
+            <RouterLink v-if="flags.breeding" to="/analytics/fertility" class="category-card">
               <div class="category-icon-wrap category-icon-fertility">🐄</div>
               <div class="category-text">
                 <div class="category-name">{{ t('analytics.categories.fertility') }}</div>
@@ -166,14 +171,14 @@ const { startTour } = useTour('analytics', () => [
     popover: {
       title: t('tour.analytics.kpis.title'),
       description: t('tour.analytics.kpis.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="analytics-categories"]',
     popover: {
       title: t('tour.analytics.categories.title'),
       description: t('tour.analytics.categories.desc'),
-    }
+    },
   },
 ])
 
@@ -202,16 +207,15 @@ const litresTrendPct = computed(() => {
   return Math.round(((kpis.value.litres_today - avg) / avg) * 100)
 })
 
-
 const statusBreakdown = computed(() => {
   const allStatuses = ['active', 'dry', 'pregnant', 'sick', 'sold', 'dead']
-  return allStatuses.map(status => {
-    const found = rawStatus.value.find(d => d.status === status)
+  return allStatuses.map((status) => {
+    const found = rawStatus.value.find((d) => d.status === status)
     return { status, count: found ? found.count : 0 }
   })
 })
 
-const maxCount = computed(() => Math.max(...statusBreakdown.value.map(d => d.count), 1))
+const maxCount = computed(() => Math.max(...statusBreakdown.value.map((d) => d.count), 1))
 
 // ── Helpers ───────────────────────────────────────────
 
@@ -222,18 +226,26 @@ function barWidth(count) {
 // ── Fetch data ────────────────────────────────────────
 
 onMounted(() => {
-  api.get('/analytics/daily-kpis')
-    .then(r => { kpis.value = r.data })
+  api
+    .get('/analytics/daily-kpis')
+    .then((r) => {
+      kpis.value = r.data
+    })
     .catch(handleError)
-    .finally(() => { loading.value = false })
+    .finally(() => {
+      loading.value = false
+    })
 
-  api.get('/analytics/herd-summary')
-    .then(r => {
+  api
+    .get('/analytics/herd-summary')
+    .then((r) => {
       rawStatus.value = r.data.by_status || []
       totalHerd.value = r.data.total || 0
     })
     .catch(handleError)
-    .finally(() => { statusLoading.value = false })
+    .finally(() => {
+      statusLoading.value = false
+    })
 })
 </script>
 
@@ -273,7 +285,7 @@ onMounted(() => {
 }
 
 .kpi-value.value-info {
-  color: var(--info, #3A86FF);
+  color: var(--info, #3a86ff);
 }
 
 .kpi-label {
@@ -333,12 +345,24 @@ onMounted(() => {
   transition: width 0.4s ease;
 }
 
-.bar-active { background: var(--primary); }
-.bar-dry { background: #D97706; }
-.bar-pregnant { background: #7C3AED; }
-.bar-sick { background: var(--danger); }
-.bar-sold { background: var(--text-muted); }
-.bar-dead { background: #9CA3AF; }
+.bar-active {
+  background: var(--primary);
+}
+.bar-dry {
+  background: #d97706;
+}
+.bar-pregnant {
+  background: #7c3aed;
+}
+.bar-sick {
+  background: var(--danger);
+}
+.bar-sold {
+  background: var(--text-muted);
+}
+.bar-dead {
+  background: #9ca3af;
+}
 
 .status-count {
   width: 28px;
@@ -370,7 +394,9 @@ onMounted(() => {
   box-shadow: var(--shadow-card);
   text-decoration: none;
   color: var(--text);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .category-card:active {
@@ -388,10 +414,18 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
-.category-icon-financial { background: #E8F5E9; }
-.category-icon-fertility { background: #EDE7F6; }
-.category-icon-health { background: #E3F2FD; }
-.category-icon-structure { background: #FFF3E0; }
+.category-icon-financial {
+  background: #e8f5e9;
+}
+.category-icon-fertility {
+  background: #ede7f6;
+}
+.category-icon-health {
+  background: #e3f2fd;
+}
+.category-icon-structure {
+  background: #fff3e0;
+}
 
 .category-text {
   flex: 1;

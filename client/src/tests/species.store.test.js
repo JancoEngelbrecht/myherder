@@ -50,19 +50,38 @@ const CATTLE = {
   is_active: true,
   config: {
     terminology: {
-      singular: 'Cow', plural: 'Cows',
-      maleSingular: 'Bull', femaleSingular: 'Cow',
-      youngSingular: 'Calf', youngPlural: 'Calves',
+      singular: 'Cow',
+      plural: 'Cows',
+      maleSingular: 'Bull',
+      femaleSingular: 'Cow',
+      youngSingular: 'Calf',
+      youngPlural: 'Calves',
       collectiveNoun: 'Herd',
-      birthEvent: 'Calving', birthEventPast: 'Calved',
+      birthEvent: 'Calving',
+      birthEventPast: 'Calved',
       maleService: 'Bull Service',
     },
     emoji: { female: '🐄', male: '🐂', young: '🐮' },
     life_phases: {
-      female: [{ code: 'calf', maxMonths: 6 }, { code: 'heifer', minMonths: 6 }, { code: 'cow', minMonths: 15 }],
-      male: [{ code: 'calf', maxMonths: 6 }, { code: 'young_bull', minMonths: 6 }, { code: 'bull', minMonths: 15 }],
+      female: [
+        { code: 'calf', maxMonths: 6 },
+        { code: 'heifer', minMonths: 6 },
+        { code: 'cow', minMonths: 15 },
+      ],
+      male: [
+        { code: 'calf', maxMonths: 6 },
+        { code: 'young_bull', minMonths: 6 },
+        { code: 'bull', minMonths: 15 },
+      ],
     },
-    event_types: ['heat_observed', 'ai_insemination', 'bull_service', 'calving', 'abortion', 'dry_off'],
+    event_types: [
+      'heat_observed',
+      'ai_insemination',
+      'bull_service',
+      'calving',
+      'abortion',
+      'dry_off',
+    ],
     typical_multiple_births: 1,
     max_offspring: 2,
   },
@@ -75,17 +94,27 @@ const SHEEP = {
   is_active: true,
   config: {
     terminology: {
-      singular: 'Sheep', plural: 'Sheep',
-      maleSingular: 'Ram', femaleSingular: 'Ewe',
-      youngSingular: 'Lamb', youngPlural: 'Lambs',
+      singular: 'Sheep',
+      plural: 'Sheep',
+      maleSingular: 'Ram',
+      femaleSingular: 'Ewe',
+      youngSingular: 'Lamb',
+      youngPlural: 'Lambs',
       collectiveNoun: 'Flock',
-      birthEvent: 'Lambing', birthEventPast: 'Lambed',
+      birthEvent: 'Lambing',
+      birthEventPast: 'Lambed',
       maleService: 'Ram Service',
     },
     emoji: { female: '🐑', male: '🐏', young: '🐑' },
     life_phases: {
-      female: [{ code: 'lamb', maxMonths: 6 }, { code: 'ewe', minMonths: 6 }],
-      male: [{ code: 'lamb', maxMonths: 6 }, { code: 'ram', minMonths: 6 }],
+      female: [
+        { code: 'lamb', maxMonths: 6 },
+        { code: 'ewe', minMonths: 6 },
+      ],
+      male: [
+        { code: 'lamb', maxMonths: 6 },
+        { code: 'ram', minMonths: 6 },
+      ],
     },
     event_types: ['heat_observed', 'ai_insemination', 'ram_service', 'lambing', 'abortion'],
     typical_multiple_births: 2,
@@ -126,10 +155,12 @@ describe('useSpeciesStore', () => {
 
     it('falls back to IndexedDB when offline', async () => {
       api.get.mockRejectedValue(new Error('Network Error'))
-      mockSpeciesTable.toArray.mockResolvedValue([{
-        ...SHEEP,
-        config: JSON.stringify(SHEEP.config),
-      }])
+      mockSpeciesTable.toArray.mockResolvedValue([
+        {
+          ...SHEEP,
+          config: JSON.stringify(SHEEP.config),
+        },
+      ])
 
       const store = useSpeciesStore()
       await store.fetchAll()

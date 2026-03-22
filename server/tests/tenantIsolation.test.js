@@ -49,8 +49,22 @@ beforeAll(async () => {
 
   // Seed issue type + breed type in both farms (needed for health issues and breeding)
   await db('issue_type_definitions').insert([
-    { id: randomUUID(), farm_id: farmAId, name: 'Mastitis', code: 'mastitis', emoji: '🔴', is_active: true },
-    { id: randomUUID(), farm_id: farmBId, name: 'Mastitis', code: 'mastitis', emoji: '🔴', is_active: true },
+    {
+      id: randomUUID(),
+      farm_id: farmAId,
+      name: 'Mastitis',
+      code: 'mastitis',
+      emoji: '🔴',
+      is_active: true,
+    },
+    {
+      id: randomUUID(),
+      farm_id: farmBId,
+      name: 'Mastitis',
+      code: 'mastitis',
+      emoji: '🔴',
+      is_active: true,
+    },
   ])
   await db('breed_types').insert([
     { id: randomUUID(), farm_id: farmAId, name: 'Holstein', code: 'holstein', is_active: true },
@@ -120,7 +134,7 @@ beforeAll(async () => {
     medication_id: medId,
     treatment_date: '2026-03-01',
     administered_by: farmAAdminId,
-    cost: 25.00,
+    cost: 25.0,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   })
@@ -160,16 +174,12 @@ afterAll(() => db.destroy())
 
 describe('Cows isolation', () => {
   it('Farm B cannot GET Farm A cow by ID → 404', async () => {
-    const res = await request(app)
-      .get(`/api/cows/${cowA1}`)
-      .set('Authorization', farmBToken)
+    const res = await request(app).get(`/api/cows/${cowA1}`).set('Authorization', farmBToken)
     expect(res.status).toBe(404)
   })
 
   it('Farm B list returns zero Farm A cows', async () => {
-    const res = await request(app)
-      .get('/api/cows')
-      .set('Authorization', farmBToken)
+    const res = await request(app).get('/api/cows').set('Authorization', farmBToken)
     expect(res.status).toBe(200)
     const ids = res.body.map((c) => c.id)
     expect(ids).not.toContain(cowA1)
@@ -187,19 +197,13 @@ describe('Cows isolation', () => {
   })
 
   it('Farm B cannot DELETE Farm A cow → 404', async () => {
-    const res = await request(app)
-      .delete(`/api/cows/${cowA1}`)
-      .set('Authorization', farmBToken)
+    const res = await request(app).delete(`/api/cows/${cowA1}`).set('Authorization', farmBToken)
     expect(res.status).toBe(404)
   })
 
   it('same tag_number allowed in both farms', async () => {
-    const resA = await request(app)
-      .get('/api/cows?search=COW001')
-      .set('Authorization', farmAToken)
-    const resB = await request(app)
-      .get('/api/cows?search=COW001')
-      .set('Authorization', farmBToken)
+    const resA = await request(app).get('/api/cows?search=COW001').set('Authorization', farmAToken)
+    const resB = await request(app).get('/api/cows?search=COW001').set('Authorization', farmBToken)
 
     expect(resA.body.length).toBeGreaterThanOrEqual(1)
     expect(resB.body.length).toBeGreaterThanOrEqual(1)
@@ -221,9 +225,7 @@ describe('Milk Records isolation', () => {
   })
 
   it('Farm B list returns zero Farm A records', async () => {
-    const res = await request(app)
-      .get('/api/milk-records')
-      .set('Authorization', farmBToken)
+    const res = await request(app).get('/api/milk-records').set('Authorization', farmBToken)
     expect(res.status).toBe(200)
     const body = Array.isArray(res.body) ? res.body : res.body.data
     const ids = body.map((r) => r.id)
@@ -259,9 +261,7 @@ describe('Health Issues isolation', () => {
   })
 
   it('Farm B list returns zero Farm A issues', async () => {
-    const res = await request(app)
-      .get('/api/health-issues')
-      .set('Authorization', farmBToken)
+    const res = await request(app).get('/api/health-issues').set('Authorization', farmBToken)
     expect(res.status).toBe(200)
     const body = Array.isArray(res.body) ? res.body : res.body.data
     const ids = body.map((r) => r.id)
@@ -305,9 +305,7 @@ describe('Treatments isolation', () => {
   })
 
   it('Farm B unfiltered list contains zero Farm A treatments', async () => {
-    const res = await request(app)
-      .get('/api/treatments')
-      .set('Authorization', farmBToken)
+    const res = await request(app).get('/api/treatments').set('Authorization', farmBToken)
     expect(res.status).toBe(200)
     const body = Array.isArray(res.body) ? res.body : res.body.data
     const ids = body.map((r) => r.id)
@@ -397,9 +395,7 @@ describe('Medications isolation', () => {
   })
 
   it('Farm B list returns zero Farm A medications', async () => {
-    const res = await request(app)
-      .get('/api/medications')
-      .set('Authorization', farmBToken)
+    const res = await request(app).get('/api/medications').set('Authorization', farmBToken)
     expect(res.status).toBe(200)
     const ids = res.body.map((m) => m.id)
     expect(ids).not.toContain(medicationA)
@@ -413,9 +409,7 @@ describe('Medications isolation', () => {
 
 describe('Analytics isolation', () => {
   it('KPI: Farm B daily-kpis reflect only Farm B data (zero litres)', async () => {
-    const res = await request(app)
-      .get('/api/analytics/daily-kpis')
-      .set('Authorization', farmBToken)
+    const res = await request(app).get('/api/analytics/daily-kpis').set('Authorization', farmBToken)
     expect(res.status).toBe(200)
     expect(Number(res.body.litres_today)).toBe(0)
   })
@@ -432,9 +426,39 @@ describe('Analytics isolation', () => {
     // Seed 3 milk records for Farm B cow so it passes the >= 3 days gate
     const now = new Date().toISOString()
     await db('milk_records').insert([
-      { id: randomUUID(), farm_id: farmBId, cow_id: cowB1, recorded_by: farmBAdminId, session: 'morning', litres: 10, recording_date: '2026-03-01', created_at: now, updated_at: now },
-      { id: randomUUID(), farm_id: farmBId, cow_id: cowB1, recorded_by: farmBAdminId, session: 'morning', litres: 10, recording_date: '2026-03-02', created_at: now, updated_at: now },
-      { id: randomUUID(), farm_id: farmBId, cow_id: cowB1, recorded_by: farmBAdminId, session: 'morning', litres: 10, recording_date: '2026-03-03', created_at: now, updated_at: now },
+      {
+        id: randomUUID(),
+        farm_id: farmBId,
+        cow_id: cowB1,
+        recorded_by: farmBAdminId,
+        session: 'morning',
+        litres: 10,
+        recording_date: '2026-03-01',
+        created_at: now,
+        updated_at: now,
+      },
+      {
+        id: randomUUID(),
+        farm_id: farmBId,
+        cow_id: cowB1,
+        recorded_by: farmBAdminId,
+        session: 'morning',
+        litres: 10,
+        recording_date: '2026-03-02',
+        created_at: now,
+        updated_at: now,
+      },
+      {
+        id: randomUUID(),
+        farm_id: farmBId,
+        cow_id: cowB1,
+        recorded_by: farmBAdminId,
+        session: 'morning',
+        litres: 10,
+        recording_date: '2026-03-03',
+        created_at: now,
+        updated_at: now,
+      },
     ])
     const res = await request(app)
       .get('/api/analytics/top-producers?from=2026-01-01&to=2026-12-31')
@@ -492,9 +516,7 @@ describe('Reports isolation', () => {
 
 describe('Export isolation', () => {
   it('Farm B export contains zero Farm A records', async () => {
-    const res = await request(app)
-      .get('/api/export')
-      .set('Authorization', farmBToken)
+    const res = await request(app).get('/api/export').set('Authorization', farmBToken)
     expect(res.status).toBe(200)
 
     const { tables } = res.body
@@ -510,9 +532,7 @@ describe('Export isolation', () => {
   })
 
   it('export strips password_hash and pin_hash from users', async () => {
-    const res = await request(app)
-      .get('/api/export')
-      .set('Authorization', farmBToken)
+    const res = await request(app).get('/api/export').set('Authorization', farmBToken)
     expect(res.status).toBe(200)
     const users = res.body.tables.users
     expect(users.every((u) => !u.password_hash && !u.pin_hash)).toBe(true)
@@ -525,9 +545,7 @@ describe('Export isolation', () => {
 
 describe('Audit Log isolation', () => {
   it('Farm B audit log contains zero Farm A entries', async () => {
-    const res = await request(app)
-      .get('/api/audit-log')
-      .set('Authorization', farmBToken)
+    const res = await request(app).get('/api/audit-log').set('Authorization', farmBToken)
     expect(res.status).toBe(200)
     const entries = res.body.data || []
     expect(entries.some((e) => e.entity_id === cowA1)).toBe(false)
@@ -541,9 +559,7 @@ describe('Audit Log isolation', () => {
 
 describe('Sync isolation', () => {
   it('Farm B pull returns zero Farm A data', async () => {
-    const res = await request(app)
-      .get('/api/sync/pull?full=1')
-      .set('Authorization', farmBToken)
+    const res = await request(app).get('/api/sync/pull?full=1').set('Authorization', farmBToken)
     expect(res.status).toBe(200)
 
     const cowIds = (res.body.cows || []).map((c) => c.id)
@@ -562,18 +578,20 @@ describe('Sync isolation', () => {
       .set('Authorization', farmBToken)
       .send({
         deviceId: randomUUID(),
-        changes: [{
-          entityType: 'cows',
-          action: 'create',
-          id: newCowId,
-          data: {
-            tag_number: 'SYNC001',
-            name: 'Sync Cow',
-            sex: 'female',
-            status: 'active',
+        changes: [
+          {
+            entityType: 'cows',
+            action: 'create',
+            id: newCowId,
+            data: {
+              tag_number: 'SYNC001',
+              name: 'Sync Cow',
+              sex: 'female',
+              status: 'active',
+            },
+            updatedAt: new Date().toISOString(),
           },
-          updatedAt: new Date().toISOString(),
-        }],
+        ],
       })
     expect(res.status).toBe(200)
 
@@ -589,13 +607,15 @@ describe('Sync isolation', () => {
       .set('Authorization', farmBToken)
       .send({
         deviceId: randomUUID(),
-        changes: [{
-          entityType: 'cows',
-          action: 'update',
-          id: cowA1,
-          data: { name: 'Hacked via sync' },
-          updatedAt: new Date().toISOString(),
-        }],
+        changes: [
+          {
+            entityType: 'cows',
+            action: 'update',
+            id: cowA1,
+            data: { name: 'Hacked via sync' },
+            updatedAt: new Date().toISOString(),
+          },
+        ],
       })
     expect(res.status).toBe(200)
     // The individual change result should be an error (not found in Farm B scope)
@@ -685,9 +705,7 @@ describe('Auth isolation', () => {
 
 describe('Edge cases', () => {
   it('empty farm (Farm C) — cows list returns empty, not error', async () => {
-    const res = await request(app)
-      .get('/api/cows')
-      .set('Authorization', farmCToken)
+    const res = await request(app).get('/api/cows').set('Authorization', farmCToken)
     expect(res.status).toBe(200)
     expect(res.body).toEqual([])
   })
@@ -701,32 +719,32 @@ describe('Edge cases', () => {
   })
 
   it('empty farm — export returns empty tables', async () => {
-    const res = await request(app)
-      .get('/api/export')
-      .set('Authorization', farmCToken)
+    const res = await request(app).get('/api/export').set('Authorization', farmCToken)
     expect(res.status).toBe(200)
     expect(res.body.tables.cows.length).toBe(0)
   })
 
   it('deactivated user JWT returns 401', async () => {
-    const tempUserId = await seedFarmUser(db, farmAId, { username: 'temp_user', password: 'pass123' })
+    const tempUserId = await seedFarmUser(db, farmAId, {
+      username: 'temp_user',
+      password: 'pass123',
+    })
     const tempToken = tokenForFarm(farmAId, tempUserId)
     await db('users').where({ id: tempUserId }).update({ is_active: false })
 
-    const res = await request(app)
-      .get('/api/cows')
-      .set('Authorization', tempToken)
+    const res = await request(app).get('/api/cows').set('Authorization', tempToken)
     expect(res.status).toBe(401)
   })
 
   it('token version mismatch returns 401', async () => {
-    const versionUser = await seedFarmUser(db, farmAId, { username: 'version_user', password: 'pass123' })
+    const versionUser = await seedFarmUser(db, farmAId, {
+      username: 'version_user',
+      password: 'pass123',
+    })
     const oldToken = tokenForFarm(farmAId, versionUser)
     await db('users').where({ id: versionUser }).update({ token_version: 1 })
 
-    const res = await request(app)
-      .get('/api/cows')
-      .set('Authorization', oldToken)
+    const res = await request(app).get('/api/cows').set('Authorization', oldToken)
     expect(res.status).toBe(401)
   })
 })

@@ -7,11 +7,81 @@ import { enqueue, dequeueByEntityId, isOfflineError } from '../services/syncMana
 
 // Last-resort fallback for offline first-load before any DB fetch succeeds.
 const FALLBACK = [
-  { id: '_fb_holstein', code: 'holstein', name: 'Holstein', heat_cycle_days: 21, gestation_days: 280, preg_check_days: 35, voluntary_waiting_days: 50, dry_off_days: 60, calf_max_months: 6, heifer_min_months: 15, young_bull_min_months: 15, is_active: true, sort_order: 0 },
-  { id: '_fb_jersey', code: 'jersey', name: 'Jersey', heat_cycle_days: 21, gestation_days: 279, preg_check_days: 35, voluntary_waiting_days: 45, dry_off_days: 60, calf_max_months: 6, heifer_min_months: 14, young_bull_min_months: 15, is_active: true, sort_order: 1 },
-  { id: '_fb_ayrshire', code: 'ayrshire', name: 'Ayrshire', heat_cycle_days: 21, gestation_days: 279, preg_check_days: 35, voluntary_waiting_days: 45, dry_off_days: 60, calf_max_months: 6, heifer_min_months: 15, young_bull_min_months: 15, is_active: true, sort_order: 2 },
-  { id: '_fb_nguni', code: 'nguni', name: 'Nguni', heat_cycle_days: 21, gestation_days: 285, preg_check_days: 35, voluntary_waiting_days: 60, dry_off_days: 60, calf_max_months: 8, heifer_min_months: 18, young_bull_min_months: 15, is_active: true, sort_order: 3 },
-  { id: '_fb_brahman', code: 'brahman', name: 'Brahman', heat_cycle_days: 21, gestation_days: 292, preg_check_days: 35, voluntary_waiting_days: 60, dry_off_days: 60, calf_max_months: 8, heifer_min_months: 24, young_bull_min_months: 15, is_active: true, sort_order: 4 },
+  {
+    id: '_fb_holstein',
+    code: 'holstein',
+    name: 'Holstein',
+    heat_cycle_days: 21,
+    gestation_days: 280,
+    preg_check_days: 35,
+    voluntary_waiting_days: 50,
+    dry_off_days: 60,
+    calf_max_months: 6,
+    heifer_min_months: 15,
+    young_bull_min_months: 15,
+    is_active: true,
+    sort_order: 0,
+  },
+  {
+    id: '_fb_jersey',
+    code: 'jersey',
+    name: 'Jersey',
+    heat_cycle_days: 21,
+    gestation_days: 279,
+    preg_check_days: 35,
+    voluntary_waiting_days: 45,
+    dry_off_days: 60,
+    calf_max_months: 6,
+    heifer_min_months: 14,
+    young_bull_min_months: 15,
+    is_active: true,
+    sort_order: 1,
+  },
+  {
+    id: '_fb_ayrshire',
+    code: 'ayrshire',
+    name: 'Ayrshire',
+    heat_cycle_days: 21,
+    gestation_days: 279,
+    preg_check_days: 35,
+    voluntary_waiting_days: 45,
+    dry_off_days: 60,
+    calf_max_months: 6,
+    heifer_min_months: 15,
+    young_bull_min_months: 15,
+    is_active: true,
+    sort_order: 2,
+  },
+  {
+    id: '_fb_nguni',
+    code: 'nguni',
+    name: 'Nguni',
+    heat_cycle_days: 21,
+    gestation_days: 285,
+    preg_check_days: 35,
+    voluntary_waiting_days: 60,
+    dry_off_days: 60,
+    calf_max_months: 8,
+    heifer_min_months: 18,
+    young_bull_min_months: 15,
+    is_active: true,
+    sort_order: 3,
+  },
+  {
+    id: '_fb_brahman',
+    code: 'brahman',
+    name: 'Brahman',
+    heat_cycle_days: 21,
+    gestation_days: 292,
+    preg_check_days: 35,
+    voluntary_waiting_days: 60,
+    dry_off_days: 60,
+    calf_max_months: 8,
+    heifer_min_months: 24,
+    young_bull_min_months: 15,
+    is_active: true,
+    sort_order: 4,
+  },
 ]
 
 export const useBreedTypesStore = defineStore('breedTypes', () => {
@@ -116,7 +186,7 @@ export const useBreedTypesStore = defineStore('breedTypes', () => {
   const activeTypes = computed(() =>
     (types.value.length ? types.value : FALLBACK)
       .filter((t) => t.is_active)
-      .sort((a, b) => a.sort_order - b.sort_order),
+      .sort((a, b) => a.sort_order - b.sort_order)
   )
 
   function getById(id) {
@@ -127,5 +197,16 @@ export const useBreedTypesStore = defineStore('breedTypes', () => {
   /** True when real data has been loaded (not just fallbacks) */
   const hasData = computed(() => types.value.length > 0)
 
-  return { types, loading, fetchAll, fetchActive, create, update, remove, activeTypes, getById, hasData }
+  return {
+    types,
+    loading,
+    fetchAll,
+    fetchActive,
+    create,
+    update,
+    remove,
+    activeTypes,
+    getById,
+    hasData,
+  }
 })

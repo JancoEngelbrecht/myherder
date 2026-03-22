@@ -30,7 +30,12 @@ async function clearAllTables() {
 }
 
 const COW_DATA = { tag_number: 'T-001', name: 'Bessie', status: 'active', sex: 'female' }
-const SERVER_COW = { id: 'server-uuid', ...COW_DATA, updated_at: '2026-01-01T12:00:00Z', created_at: '2026-01-01T12:00:00Z' }
+const SERVER_COW = {
+  id: 'server-uuid',
+  ...COW_DATA,
+  updated_at: '2026-01-01T12:00:00Z',
+  created_at: '2026-01-01T12:00:00Z',
+}
 
 // ── Setup / Teardown ────────────────────────────────────────────
 
@@ -271,7 +276,10 @@ describe('cowsStore.fetchAll — integration', () => {
   })
 
   it('filtered fetch does not mirror to IndexedDB', async () => {
-    api.get.mockResolvedValue({ data: [{ id: 'cow-1', name: 'Filtered' }], headers: { 'x-total-count': '1' } })
+    api.get.mockResolvedValue({
+      data: [{ id: 'cow-1', name: 'Filtered' }],
+      headers: { 'x-total-count': '1' },
+    })
 
     const store = useCowsStore()
     await store.fetchAll({ status: 'active' })
@@ -322,7 +330,9 @@ describe('cowsStore.fetchOne — integration', () => {
 
 describe('computeLifePhase', () => {
   it('returns override if set', () => {
-    expect(computeLifePhase({ sex: 'female', dob: '2020-01-01', life_phase_override: 'heifer' })).toBe('heifer')
+    expect(
+      computeLifePhase({ sex: 'female', dob: '2020-01-01', life_phase_override: 'heifer' })
+    ).toBe('heifer')
   })
 
   it('returns cow/bull when no dob', () => {
@@ -355,13 +365,27 @@ describe('computeLifePhase', () => {
   // ── Species-aware (3rd parameter) ──
 
   const SHEEP_PHASES = {
-    female: [{ code: 'lamb', maxMonths: 6 }, { code: 'ewe', minMonths: 6 }],
-    male: [{ code: 'lamb', maxMonths: 6 }, { code: 'ram', minMonths: 6 }],
+    female: [
+      { code: 'lamb', maxMonths: 6 },
+      { code: 'ewe', minMonths: 6 },
+    ],
+    male: [
+      { code: 'lamb', maxMonths: 6 },
+      { code: 'ram', minMonths: 6 },
+    ],
   }
 
   const CATTLE_PHASES = {
-    female: [{ code: 'calf', maxMonths: 6 }, { code: 'heifer', minMonths: 6 }, { code: 'cow', minMonths: 15 }],
-    male: [{ code: 'calf', maxMonths: 6 }, { code: 'young_bull', minMonths: 6 }, { code: 'bull', minMonths: 15 }],
+    female: [
+      { code: 'calf', maxMonths: 6 },
+      { code: 'heifer', minMonths: 6 },
+      { code: 'cow', minMonths: 15 },
+    ],
+    male: [
+      { code: 'calf', maxMonths: 6 },
+      { code: 'young_bull', minMonths: 6 },
+      { code: 'bull', minMonths: 15 },
+    ],
   }
 
   it('returns sheep lamb for young female with species config', () => {
@@ -406,7 +430,13 @@ describe('computeLifePhase', () => {
   })
 
   it('override still applies to species-aware path', () => {
-    expect(computeLifePhase({ sex: 'female', dob: '2020-01-01', life_phase_override: 'lamb' }, null, SHEEP_PHASES)).toBe('lamb')
+    expect(
+      computeLifePhase(
+        { sex: 'female', dob: '2020-01-01', life_phase_override: 'lamb' },
+        null,
+        SHEEP_PHASES
+      )
+    ).toBe('lamb')
   })
 })
 
@@ -416,7 +446,9 @@ describe('computeIsReadyToBreed', () => {
   })
 
   it('returns false for pregnant cows', () => {
-    expect(computeIsReadyToBreed({ sex: 'female', dob: '2020-01-01', status: 'pregnant' })).toBe(false)
+    expect(computeIsReadyToBreed({ sex: 'female', dob: '2020-01-01', status: 'pregnant' })).toBe(
+      false
+    )
   })
 
   it('returns false when no dob', () => {
@@ -436,12 +468,16 @@ describe('computeIsReadyToBreed', () => {
   it('returns true when past voluntary waiting period after calving', () => {
     const dob = '2020-01-01'
     const lastCalving = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString() // 60 days ago
-    expect(computeIsReadyToBreed({ sex: 'female', dob, status: 'active' }, null, lastCalving)).toBe(true)
+    expect(computeIsReadyToBreed({ sex: 'female', dob, status: 'active' }, null, lastCalving)).toBe(
+      true
+    )
   })
 
   it('returns false when within voluntary waiting period', () => {
     const dob = '2020-01-01'
     const lastCalving = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString() // 20 days ago
-    expect(computeIsReadyToBreed({ sex: 'female', dob, status: 'active' }, null, lastCalving)).toBe(false)
+    expect(computeIsReadyToBreed({ sex: 'female', dob, status: 'active' }, null, lastCalving)).toBe(
+      false
+    )
   })
 })

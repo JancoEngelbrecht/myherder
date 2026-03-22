@@ -40,18 +40,10 @@
       <section class="section">
         <h2 class="section-label">{{ t('reports.format') }}</h2>
         <div data-tour="reports-format" class="filter-chips">
-          <button
-            class="chip"
-            :class="{ active: format === 'pdf' }"
-            @click="format = 'pdf'"
-          >
+          <button class="chip" :class="{ active: format === 'pdf' }" @click="format = 'pdf'">
             PDF
           </button>
-          <button
-            class="chip"
-            :class="{ active: format === 'xlsx' }"
-            @click="format = 'xlsx'"
-          >
+          <button class="chip" :class="{ active: format === 'xlsx' }" @click="format = 'xlsx'">
             Excel
           </button>
         </div>
@@ -92,28 +84,28 @@ const { startTour } = useTour('reports', () => [
     popover: {
       title: t('tour.reports.types.title'),
       description: t('tour.reports.types.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="reports-dates"]',
     popover: {
       title: t('tour.reports.dates.title'),
       description: t('tour.reports.dates.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="reports-format"]',
     popover: {
       title: t('tour.reports.format.title'),
       description: t('tour.reports.format.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="reports-generate"]',
     popover: {
       title: t('tour.reports.generate.title'),
       description: t('tour.reports.generate.desc'),
-    }
+    },
   },
 ])
 
@@ -131,7 +123,9 @@ const selectedReport = ref(null)
 // Default: last 12 months
 const now = new Date()
 const toDate = now.toISOString().slice(0, 10)
-const fromDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()).toISOString().slice(0, 10)
+const fromDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
+  .toISOString()
+  .slice(0, 10)
 const dateFrom = ref(fromDate)
 const dateTo = ref(toDate)
 const format = ref('pdf')
@@ -204,7 +198,9 @@ async function generate() {
   border-radius: var(--radius);
   cursor: pointer;
   text-align: left;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
 
 .report-card:hover {

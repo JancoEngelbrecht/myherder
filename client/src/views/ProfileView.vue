@@ -7,8 +7,19 @@
         <div class="profile-avatar">{{ initials }}</div>
         <h2 class="profile-name">{{ authStore.user?.full_name || authStore.user?.username }}</h2>
         <span class="profile-username">@{{ authStore.user?.username }}</span>
-        <span class="role-badge" :class="authStore.isSuperAdmin ? 'role-super' : authStore.isAdmin ? 'role-admin' : 'role-worker'">
-          {{ authStore.isSuperAdmin ? t('profile.roleSuperAdmin') : authStore.isAdmin ? t('profile.roleAdmin') : t('profile.roleWorker') }}
+        <span
+          class="role-badge"
+          :class="
+            authStore.isSuperAdmin ? 'role-super' : authStore.isAdmin ? 'role-admin' : 'role-worker'
+          "
+        >
+          {{
+            authStore.isSuperAdmin
+              ? t('profile.roleSuperAdmin')
+              : authStore.isAdmin
+                ? t('profile.roleAdmin')
+                : t('profile.roleWorker')
+          }}
         </span>
       </div>
 
@@ -46,7 +57,6 @@
       @confirm="handleLogout"
       @cancel="showLogoutDialog = false"
     />
-
   </div>
 </template>
 
@@ -72,7 +82,6 @@ async function handleLogout() {
   await authStore.logout()
   router.push('/login')
 }
-
 </script>
 
 <style scoped>

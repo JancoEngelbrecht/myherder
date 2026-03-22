@@ -48,36 +48,70 @@ vi.mock('../services/syncManager.js', () => {
 vi.mock('../db/indexedDB.js', () => ({
   default: {
     cows: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      orderBy: vi.fn().mockReturnValue({ reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      orderBy: vi
+        .fn()
+        .mockReturnValue({
+          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     treatments: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     healthIssues: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     breedingEvents: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
-      orderBy: vi.fn().mockReturnValue({ reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
+      orderBy: vi
+        .fn()
+        .mockReturnValue({
+          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     issueTypes: {
-      bulkPut: vi.fn(), put: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
     },
     breedTypes: {
-      bulkPut: vi.fn(), put: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
     },
     medications: {
-      bulkPut: vi.fn(), put: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
     },
     featureFlags: {
@@ -121,7 +155,7 @@ const MOCK_TREATMENTS = [
     cow_id: 'cow-1',
     medication_name: 'Pen-Strep',
     dosage: '10ml',
-    cost: 150.50,
+    cost: 150.5,
     treatment_date: '2024-01-15T10:00:00Z',
     administered_by_name: 'Admin',
     is_vet_visit: false,
@@ -133,7 +167,7 @@ const MOCK_TREATMENTS = [
     cow_id: 'cow-1',
     medication_name: 'Oxytocin',
     dosage: '5ml',
-    cost: 80.00,
+    cost: 80.0,
     treatment_date: '2024-01-10T10:00:00Z',
     administered_by_name: 'Admin',
     is_vet_visit: true,
@@ -174,9 +208,10 @@ describe('CowTreatmentHistoryView', () => {
     const wrapper = mount(CowTreatmentHistoryView, { global: { stubs } })
     await flushPromises()
     const links = wrapper.findAll('a')
-    const treatmentLinks = links.filter(a =>
-      a.attributes('href')?.includes('/treatments/') ||
-      a.attributes('to')?.includes('/treatments/')
+    const treatmentLinks = links.filter(
+      (a) =>
+        a.attributes('href')?.includes('/treatments/') ||
+        a.attributes('to')?.includes('/treatments/')
     )
     expect(treatmentLinks.length).toBeGreaterThan(0)
   })
@@ -187,7 +222,8 @@ describe('CowTreatmentHistoryView', () => {
     const wrapper = mount(CowTreatmentHistoryView, { global: { stubs } })
     await flushPromises()
     const html = wrapper.html()
-    const hasEmpty = wrapper.find('.empty-state').exists() ||
+    const hasEmpty =
+      wrapper.find('.empty-state').exists() ||
       html.toLowerCase().includes('no treatment') ||
       html.toLowerCase().includes('geen behandeling')
     expect(hasEmpty).toBe(true)

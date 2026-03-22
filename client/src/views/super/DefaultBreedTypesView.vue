@@ -15,40 +15,80 @@
           <div class="form-row">
             <div class="form-group">
               <label for="bt-gestation">{{ $t('breedTypes.gestationDays') }} *</label>
-              <input id="bt-gestation" v-model.number="form.gestation_days" type="number" min="1" class="form-input" required />
+              <input
+                id="bt-gestation"
+                v-model.number="form.gestation_days"
+                type="number"
+                min="1"
+                class="form-input"
+                required
+              />
             </div>
             <div class="form-group">
               <label for="bt-heat">{{ $t('breedTypes.heatCycleDays') }} *</label>
-              <input id="bt-heat" v-model.number="form.heat_cycle_days" type="number" min="1" class="form-input" required />
+              <input
+                id="bt-heat"
+                v-model.number="form.heat_cycle_days"
+                type="number"
+                min="1"
+                class="form-input"
+                required
+              />
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label for="bt-preg">{{ $t('breedTypes.pregCheckDays') }}</label>
-              <input id="bt-preg" v-model.number="form.preg_check_days" type="number" min="1" class="form-input" />
+              <input
+                id="bt-preg"
+                v-model.number="form.preg_check_days"
+                type="number"
+                min="1"
+                class="form-input"
+              />
             </div>
             <div class="form-group">
               <label for="bt-dryoff">{{ $t('breedTypes.dryOffDays') }}</label>
-              <input id="bt-dryoff" v-model.number="form.dry_off_days" type="number" min="0" class="form-input" />
+              <input
+                id="bt-dryoff"
+                v-model.number="form.dry_off_days"
+                type="number"
+                min="0"
+                class="form-input"
+              />
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label for="bt-vwait">{{ $t('breedTypes.voluntaryWaitingDays') }}</label>
-              <input id="bt-vwait" v-model.number="form.voluntary_waiting_days" type="number" min="0" class="form-input" />
+              <input
+                id="bt-vwait"
+                v-model.number="form.voluntary_waiting_days"
+                type="number"
+                min="0"
+                class="form-input"
+              />
             </div>
             <div class="form-group">
               <label for="bt-sort">{{ $t('globalDefaults.sortOrder') }}</label>
-              <input id="bt-sort" v-model.number="form.sort_order" type="number" min="0" class="form-input" />
+              <input
+                id="bt-sort"
+                v-model.number="form.sort_order"
+                type="number"
+                min="0"
+                class="form-input"
+              />
             </div>
           </div>
 
           <p v-if="formError" class="form-error">{{ formError }}</p>
 
           <div class="form-actions">
-            <button type="button" class="btn-secondary" @click="showForm = false">{{ $t('common.cancel') }}</button>
+            <button type="button" class="btn-secondary" @click="showForm = false">
+              {{ $t('common.cancel') }}
+            </button>
             <button type="submit" class="btn-primary" :disabled="saving">
               {{ saving ? $t('common.saving') : $t('common.save') }}
             </button>
@@ -66,7 +106,12 @@
         </div>
 
         <div v-else class="defaults-list">
-          <div v-for="bt in items" :key="bt.id" class="card defaults-card" :class="{ inactive: !bt.is_active }">
+          <div
+            v-for="bt in items"
+            :key="bt.id"
+            class="card defaults-card"
+            :class="{ inactive: !bt.is_active }"
+          >
             <div class="defaults-header">
               <div>
                 <span class="defaults-name">{{ bt.name }}</span>
@@ -78,17 +123,38 @@
             </div>
 
             <div class="breed-stats">
-              <span class="stat-pill">{{ $t('breedTypes.gestationDays') }}: <strong class="mono">{{ bt.gestation_days }}</strong></span>
-              <span class="stat-pill">{{ $t('breedTypes.heatCycleDays') }}: <strong class="mono">{{ bt.heat_cycle_days }}</strong></span>
-              <span class="stat-pill">{{ $t('breedTypes.dryOffDays') }}: <strong class="mono">{{ bt.dry_off_days }}</strong></span>
+              <span class="stat-pill"
+                >{{ $t('breedTypes.gestationDays') }}:
+                <strong class="mono">{{ bt.gestation_days }}</strong></span
+              >
+              <span class="stat-pill"
+                >{{ $t('breedTypes.heatCycleDays') }}:
+                <strong class="mono">{{ bt.heat_cycle_days }}</strong></span
+              >
+              <span class="stat-pill"
+                >{{ $t('breedTypes.dryOffDays') }}:
+                <strong class="mono">{{ bt.dry_off_days }}</strong></span
+              >
             </div>
 
             <div class="defaults-actions">
-              <button class="btn-secondary btn-sm" @click="openEdit(bt)">{{ $t('common.edit') }}</button>
-              <button v-if="bt.is_active" class="btn-danger btn-sm" @click="confirmDeactivate(bt)">{{ $t('common.deactivate') }}</button>
+              <button class="btn-secondary btn-sm" @click="openEdit(bt)">
+                {{ $t('common.edit') }}
+              </button>
+              <button v-if="bt.is_active" class="btn-danger btn-sm" @click="confirmDeactivate(bt)">
+                {{ $t('common.deactivate') }}
+              </button>
               <template v-else>
-                <button class="btn-primary btn-sm" :disabled="activating === bt.id" @click="doActivate(bt)">{{ $t('common.activate') }}</button>
-                <button class="btn-danger btn-sm" @click="confirmDelete(bt)">{{ $t('common.delete') }}</button>
+                <button
+                  class="btn-primary btn-sm"
+                  :disabled="activating === bt.id"
+                  @click="doActivate(bt)"
+                >
+                  {{ $t('common.activate') }}
+                </button>
+                <button class="btn-danger btn-sm" @click="confirmDelete(bt)">
+                  {{ $t('common.delete') }}
+                </button>
               </template>
             </div>
           </div>
@@ -100,7 +166,11 @@
 
     <ConfirmDialog
       :show="!!deactivateTarget"
-      :message="deactivateTarget ? $t('globalDefaults.deactivateConfirm', { name: deactivateTarget.name }) : ''"
+      :message="
+        deactivateTarget
+          ? $t('globalDefaults.deactivateConfirm', { name: deactivateTarget.name })
+          : ''
+      "
       :confirm-label="$t('common.deactivate')"
       :cancel-label="$t('common.cancel')"
       :loading="deactivating"
@@ -145,8 +215,13 @@ const deleteTarget = ref(null)
 const deleting = ref(false)
 
 const emptyForm = () => ({
-  name: '', gestation_days: 283, heat_cycle_days: 21, preg_check_days: 35,
-  dry_off_days: 60, voluntary_waiting_days: 50, sort_order: 0,
+  name: '',
+  gestation_days: 283,
+  heat_cycle_days: 21,
+  preg_check_days: 35,
+  dry_off_days: 60,
+  voluntary_waiting_days: 50,
+  sort_order: 0,
 })
 const form = ref(emptyForm())
 
@@ -205,7 +280,9 @@ async function save() {
   }
 }
 
-function confirmDeactivate(bt) { deactivateTarget.value = bt }
+function confirmDeactivate(bt) {
+  deactivateTarget.value = bt
+}
 
 async function doActivate(bt) {
   activating.value = bt.id
@@ -232,7 +309,9 @@ async function doDeactivate() {
   }
 }
 
-function confirmDelete(bt) { deleteTarget.value = bt }
+function confirmDelete(bt) {
+  deleteTarget.value = bt
+}
 
 async function doDelete() {
   deleting.value = true
@@ -249,22 +328,96 @@ async function doDelete() {
 </script>
 
 <style scoped>
-.defaults-content { padding-bottom: 100px; }
-.form-card { margin: 0 auto 20px; padding: 20px; max-width: 600px; }
-.form-title { margin: 0 0 16px; font-size: 1rem; font-weight: 600; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; }
-.form-actions .btn-primary, .form-actions .btn-secondary { width: auto; padding: 10px 20px; }
-.spinner-wrap { display: flex; justify-content: center; padding: 40px; }
-.defaults-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
-.defaults-card { padding: 16px; display: flex; flex-direction: column; }
-.defaults-card.inactive { opacity: 0.6; }
-.defaults-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-.defaults-name { font-weight: 600; font-size: 1rem; display: block; }
-.defaults-sub { font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 2px; }
-.breed-stats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; font-size: 0.8rem; color: var(--text-secondary); }
-.stat-pill { background: var(--bg); padding: 3px 8px; border-radius: var(--radius-sm); }
-.defaults-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
-.badge-active { background: var(--success-light); color: var(--primary-dark); }
-.badge-inactive { background: var(--border); color: var(--text-secondary); }
+.defaults-content {
+  padding-bottom: 100px;
+}
+.form-card {
+  margin: 0 auto 20px;
+  padding: 20px;
+  max-width: 600px;
+}
+.form-title {
+  margin: 0 0 16px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+.form-actions .btn-primary,
+.form-actions .btn-secondary {
+  width: auto;
+  padding: 10px 20px;
+}
+.spinner-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+.defaults-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+.defaults-card {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+.defaults-card.inactive {
+  opacity: 0.6;
+}
+.defaults-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.defaults-name {
+  font-weight: 600;
+  font-size: 1rem;
+  display: block;
+}
+.defaults-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 2px;
+}
+.breed-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+.stat-pill {
+  background: var(--bg);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+}
+.defaults-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.badge-active {
+  background: var(--success-light);
+  color: var(--primary-dark);
+}
+.badge-inactive {
+  background: var(--border);
+  color: var(--text-secondary);
+}
 </style>

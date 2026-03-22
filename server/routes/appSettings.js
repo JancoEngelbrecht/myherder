@@ -17,7 +17,7 @@ const VALID_KEYS = ['farm_name', 'default_language', 'milk_price_per_litre']
 const PUBLIC_KEYS = ['farm_name', 'default_language']
 
 const patchSchema = Joi.object(
-  Object.fromEntries(VALID_KEYS.map((k) => [k, Joi.string().max(255)])),
+  Object.fromEntries(VALID_KEYS.map((k) => [k, Joi.string().max(255)]))
 ).min(1)
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -84,15 +84,30 @@ router.patch('/', authenticate, tenantScope, requireAdmin, async (req, res, next
       for (const [key, val] of Object.entries(value)) {
         const existing = await trx('app_settings').where({ key, farm_id: req.farmId }).first()
         if (existing) {
-          await trx('app_settings').where({ key, farm_id: req.farmId }).update({ value: val, updated_at: now })
+          await trx('app_settings')
+            .where({ key, farm_id: req.farmId })
+            .update({ value: val, updated_at: now })
         } else {
-          await trx('app_settings').insert({ key, value: val, farm_id: req.farmId, updated_at: now })
+          await trx('app_settings').insert({
+            key,
+            value: val,
+            farm_id: req.farmId,
+            updated_at: now,
+          })
         }
       }
     })
 
     const settings = await getSettingsObject(req.farmId)
-    await logAudit({ farmId: req.farmId, userId: req.user.id, action: 'update', entityType: 'setting', entityId: 'app_settings', oldValues: oldSettings, newValues: settings })
+    await logAudit({
+      farmId: req.farmId,
+      userId: req.user.id,
+      action: 'update',
+      entityType: 'setting',
+      entityId: 'app_settings',
+      oldValues: oldSettings,
+      newValues: settings,
+    })
     res.json(settings)
   } catch (err) {
     next(err)

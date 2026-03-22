@@ -73,12 +73,16 @@ const topicTitle = computed(() =>
 
 const steps = computed(() => {
   const raw = tm(`help.topics.${slug.value}.steps`)
-  return Array.isArray(raw) ? raw.map(s => typeof s === 'object' ? s.value || String(s) : String(s)) : []
+  return Array.isArray(raw)
+    ? raw.map((s) => (typeof s === 'object' ? s.value || String(s) : String(s)))
+    : []
 })
 
 const tips = computed(() => {
   const raw = tm(`help.topics.${slug.value}.tips`)
-  return Array.isArray(raw) ? raw.map(s => typeof s === 'object' ? s.value || String(s) : String(s)) : []
+  return Array.isArray(raw)
+    ? raw.map((s) => (typeof s === 'object' ? s.value || String(s) : String(s)))
+    : []
 })
 </script>
 

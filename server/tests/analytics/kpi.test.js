@@ -184,7 +184,11 @@ describe('GET /api/analytics/herd-summary', () => {
 
   it('counts heifers via life_phase_override', async () => {
     // heifer_count uses SUM(CASE WHEN life_phase_override = 'heifer' ...)
-    const heiferId = await createCow({ sex: 'female', status: 'active', life_phase_override: 'heifer' })
+    const heiferId = await createCow({
+      sex: 'female',
+      status: 'active',
+      life_phase_override: 'heifer',
+    })
     const nonHeiferId = await createCow({ sex: 'female', status: 'active' })
 
     const res = await request(app)
@@ -206,7 +210,7 @@ describe('GET /api/analytics/herd-summary', () => {
 
     // The sold cow should not be in heifer count
     // We can't check exact count but can verify sold cow exists in total
-    expect(res.body.by_status.some(r => r.status === 'sold')).toBe(true)
+    expect(res.body.by_status.some((r) => r.status === 'sold')).toBe(true)
     await db('cows').where('id', soldHeifer).del()
   })
 })

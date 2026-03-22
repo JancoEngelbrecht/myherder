@@ -41,7 +41,8 @@ router.get('/', async (req, res, next) => {
     const { error: qError } = validateQuery(breedTypeQuerySchema, req.query)
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
-    const showAll = req.query.all === '1' && (req.user.role === 'admin' || req.user.role === 'super_admin')
+    const showAll =
+      req.query.all === '1' && (req.user.role === 'admin' || req.user.role === 'super_admin')
     const query = db('breed_types')
       .where('farm_id', req.farmId)
       .where(showAll ? {} : { is_active: true })
@@ -79,7 +80,14 @@ router.post('/', requireAdmin, async (req, res, next) => {
 
     const id = uuidv4()
     const now = new Date().toISOString()
-    const record = { id, farm_id: req.user.farm_id, code, ...value, created_at: now, updated_at: now }
+    const record = {
+      id,
+      farm_id: req.user.farm_id,
+      code,
+      ...value,
+      created_at: now,
+      updated_at: now,
+    }
     await db('breed_types').insert(record)
     // Coerce booleans to 0/1 to match SQLite's stored representation
     res.status(201).json({ ...record, is_active: record.is_active ? 1 : 0 })
@@ -91,7 +99,10 @@ router.post('/', requireAdmin, async (req, res, next) => {
 // PUT /api/breed-types/:id — admin only (code is immutable)
 router.put('/:id', requireAdmin, async (req, res, next) => {
   try {
-    const existing = await db('breed_types').where({ id: req.params.id }).where('farm_id', req.farmId).first()
+    const existing = await db('breed_types')
+      .where({ id: req.params.id })
+      .where('farm_id', req.farmId)
+      .first()
     if (!existing) return res.status(404).json({ error: 'Breed type not found' })
 
     const { error, value } = validateBody(schema, req.body)
@@ -102,7 +113,10 @@ router.put('/:id', requireAdmin, async (req, res, next) => {
       .where({ id: req.params.id })
       .where('farm_id', req.farmId)
       .update({ ...value, updated_at: now })
-    const updated = await db('breed_types').where({ id: req.params.id }).where('farm_id', req.farmId).first()
+    const updated = await db('breed_types')
+      .where({ id: req.params.id })
+      .where('farm_id', req.farmId)
+      .first()
     res.json(updated)
   } catch (err) {
     next(err)
@@ -112,7 +126,10 @@ router.put('/:id', requireAdmin, async (req, res, next) => {
 // DELETE /api/breed-types/:id — admin only; blocked if cows reference this breed
 router.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
-    const existing = await db('breed_types').where({ id: req.params.id }).where('farm_id', req.farmId).first()
+    const existing = await db('breed_types')
+      .where({ id: req.params.id })
+      .where('farm_id', req.farmId)
+      .first()
     if (!existing) return res.status(404).json({ error: 'Breed type not found' })
 
     const usageResult = await db('cows')

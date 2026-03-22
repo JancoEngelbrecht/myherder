@@ -118,7 +118,10 @@ describe('useTreatmentsStore', () => {
       const store = useTreatmentsStore()
       const result = await store.create({ cow_id: 'cow-1', medication_id: 'med-1' })
 
-      expect(api.post).toHaveBeenCalledWith('/treatments', { cow_id: 'cow-1', medication_id: 'med-1' })
+      expect(api.post).toHaveBeenCalledWith('/treatments', {
+        cow_id: 'cow-1',
+        medication_id: 'med-1',
+      })
       expect(store.treatments).toContainEqual(created)
       expect(result).toEqual(created)
     })

@@ -1,6 +1,12 @@
 <template>
   <Teleport to="body">
-    <TransitionGroup name="toast" tag="div" class="toast-container" role="status" aria-live="polite">
+    <TransitionGroup
+      name="toast"
+      tag="div"
+      class="toast-container"
+      role="status"
+      aria-live="polite"
+    >
       <div
         v-for="toast in toasts"
         :key="toast.id"

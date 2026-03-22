@@ -20,9 +20,11 @@
           <div class="banner-body">
             <span class="banner-status">{{ bannerStatus }}</span>
             <span v-if="daysToCalving !== null" class="banner-sub">
-              {{ daysToCalving > 0
-                ? t('breeding.status.daysToCalving', { days: daysToCalving })
-                : t('breeding.status.overdue') }}
+              {{
+                daysToCalving > 0
+                  ? t('breeding.status.daysToCalving', { days: daysToCalving })
+                  : t('breeding.status.overdue')
+              }}
             </span>
           </div>
         </div>
@@ -31,7 +33,9 @@
         <div v-if="isPregnant && latestEvent?.expected_calving" class="gestation-card card">
           <div class="gestation-header">
             <span class="gestation-label">{{ t('breeding.gestationDays') }}</span>
-            <span class="gestation-progress mono">{{ gestationDays }} / {{ breedGestation }} {{ t('common.days') }}</span>
+            <span class="gestation-progress mono"
+              >{{ gestationDays }} / {{ breedGestation }} {{ t('common.days') }}</span
+            >
           </div>
           <div class="progress-track">
             <div class="progress-fill" :style="{ width: `${gestationPct}%` }" />
@@ -99,10 +103,7 @@
 
         <!-- Action button -->
         <div class="actions-section">
-          <RouterLink
-            :to="`/breed/log?cow_id=${cowId}`"
-            class="btn-primary action-btn"
-          >
+          <RouterLink :to="`/breed/log?cow_id=${cowId}`" class="btn-primary action-btn">
             + {{ t('breeding.logEvent') }}
           </RouterLink>
         </div>
@@ -176,8 +177,10 @@ const cow = computed(() => cowsStore.cows.find((c) => c.id === cowId.value) ?? n
 
 const latestEvent = computed(() => {
   if (!cowEvents.value.length) return null
-  return cowEvents.value.reduce((latest, ev) =>
-    !latest || ev.event_date > latest.event_date ? ev : latest, null)
+  return cowEvents.value.reduce(
+    (latest, ev) => (!latest || ev.event_date > latest.event_date ? ev : latest),
+    null
+  )
 })
 
 const isPregnant = computed(() => cow.value?.status === 'pregnant')
@@ -194,8 +197,9 @@ const gestationDays = computed(() => {
   return Math.max(0, Math.round((today - conception) / 86400000))
 })
 
-const gestationPct = computed(() =>
-  breedingStore.gestationPercent(latestEvent.value?.expected_calving, breedGestation.value) ?? 0,
+const gestationPct = computed(
+  () =>
+    breedingStore.gestationPercent(latestEvent.value?.expected_calving, breedGestation.value) ?? 0
 )
 
 const daysToCalving = computed(() => {
@@ -211,10 +215,10 @@ const bannerClass = computed(() => {
   return 'banner-open'
 })
 
-const bannerIcon = computed(() => isPregnant.value ? '🤰' : '🐄')
+const bannerIcon = computed(() => (isPregnant.value ? '🤰' : '🐄'))
 
 const bannerStatus = computed(() =>
-  isPregnant.value ? t('breeding.status.pregnant') : t('breeding.status.open'),
+  isPregnant.value ? t('breeding.status.pregnant') : t('breeding.status.open')
 )
 
 const lifetimeStats = computed(() => {
@@ -230,7 +234,11 @@ const lifetimeStats = computed(() => {
 
 function formatDate(iso) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+  return new Date(iso).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
 }
 
 function goToEdit(id) {

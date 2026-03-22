@@ -10,7 +10,7 @@
       <!-- Step 1: QR Code -->
       <div v-if="step === 'qr'" class="setup-step">
         <div v-if="setupLoading" class="loading-box">
-          <span class="spinner" style="width:32px;height:32px" />
+          <span class="spinner" style="width: 32px; height: 32px" />
         </div>
 
         <template v-else-if="setupData">
@@ -55,7 +55,11 @@
           </div>
 
           <button type="submit" class="btn-primary" :disabled="loading || code.length < 6">
-            <span v-if="loading" class="spinner" style="width:18px;height:18px;border-width:2px" />
+            <span
+              v-if="loading"
+              class="spinner"
+              style="width: 18px; height: 18px; border-width: 2px"
+            />
             <span v-else>{{ t('twoFactor.verify') }}</span>
           </button>
         </form>
@@ -66,7 +70,9 @@
         <p class="step-label warning-text">{{ t('twoFactor.saveCodesWarning') }}</p>
 
         <div class="recovery-grid">
-          <code v-for="rc in setupData.recovery_codes" :key="rc" class="recovery-code">{{ rc }}</code>
+          <code v-for="rc in setupData.recovery_codes" :key="rc" class="recovery-code">{{
+            rc
+          }}</code>
         </div>
 
         <button class="btn-primary" @click="handleContinue">
@@ -104,7 +110,7 @@ if (!authStore.tempToken) {
 }
 
 onMounted(async () => {
-  if (setupData.value) return; // Prevent re-calling on re-mount
+  if (setupData.value) return // Prevent re-calling on re-mount
   try {
     setupData.value = await authStore.setup2fa()
     qrDataUrl.value = await QRCode.toDataURL(setupData.value.qr_uri, { width: 256 })
@@ -144,7 +150,12 @@ function handleContinue() {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(160deg, var(--primary-dark) 0%, var(--primary) 45%, var(--primary-light) 100%);
+  background: linear-gradient(
+    160deg,
+    var(--primary-dark) 0%,
+    var(--primary) 45%,
+    var(--primary-light) 100%
+  );
 }
 
 .twofa-hero {
@@ -170,7 +181,7 @@ function handleContinue() {
 
 .twofa-subtitle {
   font-size: 0.9375rem;
-  color: rgba(255,255,255,0.75);
+  color: rgba(255, 255, 255, 0.75);
   margin-top: 4px;
 }
 
@@ -178,7 +189,7 @@ function handleContinue() {
   background: var(--bg);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   padding: 24px 20px 32px;
-  box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
 }
 
 .setup-step {

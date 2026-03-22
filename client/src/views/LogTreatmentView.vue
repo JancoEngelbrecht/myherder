@@ -74,16 +74,22 @@
         </div>
 
         <!-- Withdrawal preview — reactive, reflects worst-case across all selected medications -->
-        <div v-if="anyMedSelected" class="withdrawal-preview" :class="{ 'has-withdrawal': hasWithdrawal }">
+        <div
+          v-if="anyMedSelected"
+          class="withdrawal-preview"
+          :class="{ 'has-withdrawal': hasWithdrawal }"
+        >
           <div class="preview-icon">{{ hasWithdrawal ? '⚠️' : '✅' }}</div>
           <div class="preview-text">
             <template v-if="hasWithdrawal">
               <strong>{{ $t('treatments.withdrawalWarning') }}</strong>
               <div v-if="previewMilkEnd" class="preview-date">
-                🥛 {{ $t('treatments.milkClear') }}: <span class="mono">{{ formatDateTime(previewMilkEnd) }}</span>
+                🥛 {{ $t('treatments.milkClear') }}:
+                <span class="mono">{{ formatDateTime(previewMilkEnd) }}</span>
               </div>
               <div v-if="previewMeatEnd" class="preview-date">
-                🥩 {{ $t('treatments.meatClear') }}: <span class="mono">{{ formatDateTime(previewMeatEnd) }}</span>
+                🥩 {{ $t('treatments.meatClear') }}:
+                <span class="mono">{{ formatDateTime(previewMeatEnd) }}</span>
               </div>
             </template>
             <template v-else>
@@ -125,13 +131,25 @@
         </div>
 
         <!-- Link to health issue (optional, shown when cow is selected) -->
-        <div v-if="form.cow_id && openIssues.length" data-tour="treat-health-link" class="form-group">
+        <div
+          v-if="form.cow_id && openIssues.length"
+          data-tour="treat-health-link"
+          class="form-group"
+        >
           <label for="health-issue">{{ $t('healthIssues.linkIssue') }}</label>
           <select id="health-issue" v-model="form.health_issue_id" class="form-input">
             <option value="">{{ $t('healthIssues.noLinkIssue') }}</option>
             <option v-for="issue in openIssues" :key="issue.id" :value="issue.id">
-              {{ (issue.issue_types || []).map(c => issueTypesStore.getByCode(c)?.emoji || '❓').join(' ') }}
-              {{ (issue.issue_types || []).map(c => issueTypesStore.getByCode(c)?.name || c).join(' + ') }}
+              {{
+                (issue.issue_types || [])
+                  .map((c) => issueTypesStore.getByCode(c)?.emoji || '❓')
+                  .join(' ')
+              }}
+              {{
+                (issue.issue_types || [])
+                  .map((c) => issueTypesStore.getByCode(c)?.name || c)
+                  .join(' + ')
+              }}
               — {{ formatDate(issue.observed_at) }}
             </option>
           </select>
@@ -151,7 +169,12 @@
 
         <p v-if="submitError" class="form-error">{{ submitError }}</p>
 
-        <button data-tour="treat-save" type="submit" class="btn-primary btn-full" :disabled="submitting">
+        <button
+          data-tour="treat-save"
+          type="submit"
+          class="btn-primary btn-full"
+          :disabled="submitting"
+        >
           {{ submitting ? $t('common.saving') : $t('treatments.logTreatment') }}
         </button>
       </form>
@@ -190,35 +213,35 @@ const { startTour } = useTour('treatments', () => [
     popover: {
       title: t('tour.treatments.cowSelect.title'),
       description: t('tour.treatments.cowSelect.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="treat-medication"]',
     popover: {
       title: t('tour.treatments.medication.title'),
       description: t('tour.treatments.medication.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="treat-dosage"]',
     popover: {
       title: t('tour.treatments.dosage.title'),
       description: t('tour.treatments.dosage.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="treat-health-link"]',
     popover: {
       title: t('tour.treatments.healthLink.title'),
       description: t('tour.treatments.healthLink.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="treat-save"]',
     popover: {
       title: t('tour.treatments.save.title'),
       description: t('tour.treatments.save.desc'),
-    }
+    },
   },
 ])
 
@@ -243,16 +266,19 @@ const form = ref({
 if (prefillCowId) healthIssuesStore.fetchByCow(prefillCowId)
 
 // Reset health_issue_id only when the user manually changes the cow
-watch(() => form.value.cow_id, (cowId) => {
-  form.value.health_issue_id = ''
-  if (cowId) healthIssuesStore.fetchByCow(cowId)
-})
+watch(
+  () => form.value.cow_id,
+  (cowId) => {
+    form.value.health_issue_id = ''
+    if (cowId) healthIssuesStore.fetchByCow(cowId)
+  }
+)
 
 const openIssues = computed(() => {
   if (!form.value.cow_id) return []
-  return healthIssuesStore.getCowIssues(form.value.cow_id).filter(
-    (i) => i.status === 'open' || i.status === 'treating',
-  )
+  return healthIssuesStore
+    .getCowIssues(form.value.cow_id)
+    .filter((i) => i.status === 'open' || i.status === 'treating')
 })
 
 const errors = ref({})
@@ -260,11 +286,15 @@ const submitting = ref(false)
 const submitError = ref('')
 
 // Clear server error when the user edits the form
-watch(form, () => { submitError.value = '' }, { deep: true })
-
-const anyMedSelected = computed(() =>
-  form.value.medications.some((m) => m.medication_id !== ''),
+watch(
+  form,
+  () => {
+    submitError.value = ''
+  },
+  { deep: true }
 )
+
+const anyMedSelected = computed(() => form.value.medications.some((m) => m.medication_id !== ''))
 
 // Shared helper: latest withdrawal end-date across all selected medications for a given field
 function maxWithdrawalDate(field, multiplierMs) {
@@ -448,7 +478,9 @@ async function submit() {
   cursor: pointer;
   width: 100%;
   margin-top: 2px;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
 }
 
 .btn-add-med:hover {

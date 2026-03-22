@@ -78,7 +78,13 @@ function mockAllApis() {
     if (url.includes('herd-summary')) return Promise.resolve(HERD_RESPONSE)
     if (url.includes('feature-flags'))
       return Promise.resolve({
-        data: { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true },
+        data: {
+          breeding: true,
+          milkRecording: true,
+          healthIssues: true,
+          treatments: true,
+          analytics: true,
+        },
       })
     return Promise.resolve({ data: {} })
   })
@@ -103,7 +109,7 @@ describe('AnalyticsView (Landing Page)', () => {
 
     // 5 cards: total herd + litres + cows milked + health + breeding
     expect(wrapper.findAll('.kpi-card').length).toBe(5)
-    expect(wrapper.text()).toContain('50')   // total herd
+    expect(wrapper.text()).toContain('50') // total herd
     expect(wrapper.text()).toContain('245.5')
     expect(wrapper.text()).toContain('42')
     expect(wrapper.text()).toContain('3')

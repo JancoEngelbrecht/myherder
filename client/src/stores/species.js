@@ -12,11 +12,15 @@ const CATTLE_FALLBACK = {
   name: 'Cattle',
   config: {
     terminology: {
-      singular: 'Cow', plural: 'Cows',
-      maleSingular: 'Bull', femaleSingular: 'Cow',
-      youngSingular: 'Calf', youngPlural: 'Calves',
+      singular: 'Cow',
+      plural: 'Cows',
+      maleSingular: 'Bull',
+      femaleSingular: 'Cow',
+      youngSingular: 'Calf',
+      youngPlural: 'Calves',
       collectiveNoun: 'Herd',
-      birthEvent: 'Calving', birthEventPast: 'Calved',
+      birthEvent: 'Calving',
+      birthEventPast: 'Calved',
       maleService: 'Bull Service',
     },
     emoji: { female: '🐄', male: '🐂', young: '🐮' },
@@ -32,7 +36,16 @@ const CATTLE_FALLBACK = {
         { code: 'bull', minMonths: 15 },
       ],
     },
-    event_types: ['heat_observed', 'ai_insemination', 'bull_service', 'preg_check_positive', 'preg_check_negative', 'calving', 'abortion', 'dry_off'],
+    event_types: [
+      'heat_observed',
+      'ai_insemination',
+      'bull_service',
+      'preg_check_positive',
+      'preg_check_negative',
+      'calving',
+      'abortion',
+      'dry_off',
+    ],
     typical_multiple_births: 1,
     max_offspring: 2,
   },
@@ -47,10 +60,12 @@ export const useSpeciesStore = defineStore('species', () => {
     try {
       const { data } = await api.get('/species')
       all.value = data
-      await db.species.bulkPut(data.map((sp) => ({
-        ...sp,
-        config: typeof sp.config === 'string' ? sp.config : JSON.stringify(sp.config),
-      })))
+      await db.species.bulkPut(
+        data.map((sp) => ({
+          ...sp,
+          config: typeof sp.config === 'string' ? sp.config : JSON.stringify(sp.config),
+        }))
+      )
     } catch (err) {
       if (!isOfflineError(err)) throw err
       // Offline fallback — try IndexedDB
@@ -60,7 +75,11 @@ export const useSpeciesStore = defineStore('species', () => {
           all.value = local.map((row) => {
             let config = {}
             if (row.config) {
-              try { config = typeof row.config === 'string' ? JSON.parse(row.config) : row.config } catch { config = {} }
+              try {
+                config = typeof row.config === 'string' ? JSON.parse(row.config) : row.config
+              } catch {
+                config = {}
+              }
             }
             return { ...row, config }
           })
@@ -116,10 +135,16 @@ export const useSpeciesStore = defineStore('species', () => {
   const hasData = computed(() => all.value.length > 0)
 
   return {
-    all, loading, hasData,
+    all,
+    loading,
+    hasData,
     fetchAll,
-    getById, getByCode,
+    getById,
+    getByCode,
     farmSpecies,
-    getTerminology, getLifePhases, getEventTypes, getEmoji,
+    getTerminology,
+    getLifePhases,
+    getEventTypes,
+    getEmoji,
   }
 })

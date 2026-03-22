@@ -6,16 +6,17 @@ const router = express.Router()
 // GET /api/species — public (no auth), returns active species with config
 router.get('/', async (_req, res, next) => {
   try {
-    const rows = await db('species')
-      .where('is_active', true)
-      .orderBy('sort_order')
-      .orderBy('name')
+    const rows = await db('species').where('is_active', true).orderBy('sort_order').orderBy('name')
 
     // Parse config JSON
     const species = rows.map((row) => {
       let config = {}
       if (row.config) {
-        try { config = JSON.parse(row.config) } catch { config = {} }
+        try {
+          config = JSON.parse(row.config)
+        } catch {
+          config = {}
+        }
       }
       return { ...row, config }
     })
@@ -34,7 +35,11 @@ router.get('/:id', async (req, res, next) => {
 
     let config = {}
     if (row.config) {
-      try { config = JSON.parse(row.config) } catch { config = {} }
+      try {
+        config = JSON.parse(row.config)
+      } catch {
+        config = {}
+      }
     }
 
     res.json({ ...row, config })

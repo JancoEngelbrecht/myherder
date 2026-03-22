@@ -11,6 +11,7 @@
 **Files:** `server/routes/breedingEvents.js`
 
 **Tasks:**
+
 1. Replace inline admin check on `PATCH /:id` (~line 331) with `requireAdmin` middleware in the route definition
 2. Replace inline admin check on `DELETE /:id` (~line 408) with `requireAdmin` middleware
 3. Verify `requireAdmin` is already imported (it should be)
@@ -27,6 +28,7 @@
 **Files:** New `server/helpers/constants.js`, modify 6+ route files
 
 **Tasks:**
+
 1. Create `server/helpers/constants.js` exporting:
    - `ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/`
    - `toCode(name)` — the slug generator
@@ -48,6 +50,7 @@
 **Files:** `server/routes/cows.js`, `server/routes/users.js`, `server/routes/appSettings.js`
 
 **Tasks:**
+
 1. Add `await` before all `logAudit()` calls in the three files
 2. Verify the audit service's internal try/catch still prevents route failures from audit errors
 3. Existing tests should pass
@@ -63,6 +66,7 @@
 **Files:** `client/src/views/admin/SettingsView.vue`
 
 **Tasks:**
+
 1. Import `onUnmounted` from Vue
 2. Track the timeout ID in a `let` variable
 3. Clear it in `onUnmounted(() => clearTimeout(saveTimeout))`
@@ -78,6 +82,7 @@
 **Files:** `client/src/views/MilkRecordingView.vue`
 
 **Tasks:**
+
 1. Add a `withdrawalMap` computed property that indexes `treatmentsStore.withdrawalCows` by `cow_id`
 2. Rewrite `isOnWithdrawal(cowId)` to use map lookup: `cowId in withdrawalMap.value`
 3. Rewrite `withdrawalEndDate(cowId)` to use map lookup: `withdrawalMap.value[cowId]?.withdrawal_end_milk`
@@ -94,15 +99,16 @@
 **Files:** `server/routes/cows.js`, `server/routes/milkRecords.js`, `server/routes/healthIssues.js`, `server/routes/treatments.js`, `server/routes/breedingEvents.js`
 
 **Tasks:**
+
 1. In each file, replace:
    ```js
-   const authorize = require('../middleware/authorize');
-   const { requireAdmin } = require('../middleware/authorize');
+   const authorize = require('../middleware/authorize')
+   const { requireAdmin } = require('../middleware/authorize')
    ```
    with:
    ```js
-   const authorize = require('../middleware/authorize');
-   const { requireAdmin } = authorize;
+   const authorize = require('../middleware/authorize')
+   const { requireAdmin } = authorize
    ```
 2. Lint check passes
 
@@ -117,6 +123,7 @@
 **Files:** `server/services/syncService.js`
 
 **Tasks:**
+
 1. In the catch block of `processChange()`, log the full `err.message` server-side
 2. Return a generic message to the client: `error: 'Failed to apply change'`
 3. Add a test: sync push with invalid data returns generic error (not DB column names)
@@ -132,6 +139,7 @@
 **Files:** `server/routes/breedingEvents.js`
 
 **Tasks:**
+
 1. Add Joi schema for dismiss-batch body: `ids: Joi.array().items(Joi.string().uuid()).min(1).max(100).required()`, `reason: Joi.string().max(500).allow(null, '').optional()`
 2. Apply same validation to the single dismiss endpoint's `reason` field
 3. Add `heat_signs` max constraints in `breedingSchemas.js`: `Joi.array().items(Joi.string().max(100)).max(20)`
@@ -148,10 +156,11 @@
 **Files:** `client/src/stores/milkRecords.js`
 
 **Tasks:**
+
 1. In `fetchSession()`, before clearing `records`, cancel all outstanding debounce timers:
    ```js
    Object.values(debounceTimers).forEach(clearTimeout)
-   Object.keys(debounceTimers).forEach(k => delete debounceTimers[k])
+   Object.keys(debounceTimers).forEach((k) => delete debounceTimers[k])
    ```
 2. Verify existing tests pass
 
@@ -166,6 +175,7 @@
 **Files:** `server/routes/analytics/helpers.js`
 
 **Tasks:**
+
 1. Add module-level cache with 60-second TTL:
    ```js
    let _cache = null, _expiry = 0;
@@ -186,6 +196,7 @@
 ## Verification
 
 After all 13C steps:
+
 - [ ] Run full backend test suite: `npm test` (all pass)
 - [ ] Run full frontend test suite: `cd client && npm run test:run` (all pass)
 - [ ] Lint clean: `npm run lint`

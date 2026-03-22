@@ -18,7 +18,9 @@ vi.mock('../db/indexedDB.js', () => ({
       put: vi.fn().mockResolvedValue(undefined),
       get: vi.fn().mockResolvedValue(undefined),
       delete: vi.fn().mockResolvedValue(undefined),
-      orderBy: vi.fn(() => ({ reverse: vi.fn(() => ({ toArray: vi.fn().mockResolvedValue([]) })) })),
+      orderBy: vi.fn(() => ({
+        reverse: vi.fn(() => ({ toArray: vi.fn().mockResolvedValue([]) })),
+      })),
       where: vi.fn(() => ({ equals: vi.fn(() => ({ toArray: vi.fn().mockResolvedValue([]) })) })),
       toArray: vi.fn().mockResolvedValue([]),
     },
@@ -168,7 +170,11 @@ describe('useBreedingEventsStore', () => {
   describe('loading state', () => {
     it('sets loading true during fetch, false after', async () => {
       let resolveReq
-      api.get.mockReturnValue(new Promise((r) => { resolveReq = () => r({ data: { data: [], total: 0 } }) }))
+      api.get.mockReturnValue(
+        new Promise((r) => {
+          resolveReq = () => r({ data: { data: [], total: 0 } })
+        })
+      )
 
       const store = useBreedingEventsStore()
       const p = store.fetchAll({})
@@ -222,10 +228,16 @@ describe('useBreedingEventsStore', () => {
     it('creates event and prepends to events list', async () => {
       const serverEvent = { ...EVENT_FIXTURE, id: 'server-id' }
       api.post.mockResolvedValue({ data: serverEvent })
-      api.get.mockResolvedValue({ data: { heats: [], calvings: [], pregChecks: [], dryOffs: [], needsAttention: [] } })
+      api.get.mockResolvedValue({
+        data: { heats: [], calvings: [], pregChecks: [], dryOffs: [], needsAttention: [] },
+      })
 
       const store = useBreedingEventsStore()
-      const result = await store.createEvent({ cow_id: 'cow-1', event_type: 'ai_insemination', event_date: '2026-02-01' })
+      const result = await store.createEvent({
+        cow_id: 'cow-1',
+        event_type: 'ai_insemination',
+        event_date: '2026-02-01',
+      })
 
       expect(api.post).toHaveBeenCalledWith('/breeding-events', expect.any(Object))
       expect(result).toEqual(serverEvent)
@@ -238,7 +250,11 @@ describe('useBreedingEventsStore', () => {
       isOfflineError.mockReturnValue(true)
 
       const store = useBreedingEventsStore()
-      const result = await store.createEvent({ cow_id: 'cow-1', event_type: 'heat_observed', event_date: '2026-02-01' })
+      const result = await store.createEvent({
+        cow_id: 'cow-1',
+        event_type: 'heat_observed',
+        event_date: '2026-02-01',
+      })
 
       expect(result).toBeDefined()
       expect(result.cow_id).toBe('cow-1')
@@ -252,7 +268,9 @@ describe('useBreedingEventsStore', () => {
     it('updates event and replaces in events list', async () => {
       const updated = { ...EVENT_FIXTURE, notes: 'updated' }
       api.patch.mockResolvedValue({ data: updated })
-      api.get.mockResolvedValue({ data: { heats: [], calvings: [], pregChecks: [], dryOffs: [], needsAttention: [] } })
+      api.get.mockResolvedValue({
+        data: { heats: [], calvings: [], pregChecks: [], dryOffs: [], needsAttention: [] },
+      })
 
       const { default: db } = await import('../db/indexedDB.js')
       db.breedingEvents.get.mockResolvedValue(EVENT_FIXTURE)
@@ -273,7 +291,9 @@ describe('useBreedingEventsStore', () => {
     it('dismisses event via API', async () => {
       const dismissed = { ...EVENT_FIXTURE, dismissed_at: '2026-02-01T00:00:00Z' }
       api.patch.mockResolvedValue({ data: dismissed })
-      api.get.mockResolvedValue({ data: { heats: [], calvings: [], pregChecks: [], dryOffs: [], needsAttention: [] } })
+      api.get.mockResolvedValue({
+        data: { heats: [], calvings: [], pregChecks: [], dryOffs: [], needsAttention: [] },
+      })
 
       const { default: db } = await import('../db/indexedDB.js')
       db.breedingEvents.get.mockResolvedValue(EVENT_FIXTURE)
@@ -282,7 +302,9 @@ describe('useBreedingEventsStore', () => {
       store.events = [EVENT_FIXTURE]
       const result = await store.dismissEvent('ev-1', 'Already handled')
 
-      expect(api.patch).toHaveBeenCalledWith('/breeding-events/ev-1/dismiss', { reason: 'Already handled' })
+      expect(api.patch).toHaveBeenCalledWith('/breeding-events/ev-1/dismiss', {
+        reason: 'Already handled',
+      })
       expect(result.dismissed_at).toBeDefined()
     })
   })
@@ -370,5 +392,4 @@ describe('useBreedingEventsStore', () => {
       expect(store.gestationPercent(null)).toBeNull()
     })
   })
-
 })

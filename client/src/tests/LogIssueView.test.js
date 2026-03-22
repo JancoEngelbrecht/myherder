@@ -10,7 +10,9 @@ let mockRouteQuery = {}
 vi.mock('vue-router', () => ({
   useRoute: () => ({
     params: {},
-    get query() { return mockRouteQuery },
+    get query() {
+      return mockRouteQuery
+    },
   }),
   useRouter: () => ({ push: mockPush, replace: mockReplace }),
   RouterLink: { template: '<a><slot /></a>', props: ['to'] },
@@ -42,7 +44,13 @@ vi.mock('../services/syncManager.js', () => {
 vi.mock('../db/indexedDB.js', () => ({
   default: {
     cows: { toArray: vi.fn().mockResolvedValue([]), bulkPut: vi.fn(), put: vi.fn() },
-    issueTypes: { toArray: vi.fn().mockResolvedValue([]), bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn() },
+    issueTypes: {
+      toArray: vi.fn().mockResolvedValue([]),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
+    },
     healthIssues: {
       toArray: vi.fn().mockResolvedValue([]),
       bulkPut: vi.fn(),
@@ -70,13 +78,40 @@ import { createPinia, setActivePinia } from 'pinia'
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const ISSUE_TYPES = [
-  { id: 'it-1', code: 'mastitis', name: 'Mastitis', emoji: '🩺', is_active: 1, requires_teat_selection: true, sort_order: 0 },
-  { id: 'it-2', code: 'lameness', name: 'Lameness', emoji: '🦶', is_active: 1, requires_teat_selection: false, sort_order: 1 },
-  { id: 'it-3', code: 'bloat', name: 'Bloat', emoji: '🫧', is_active: 1, requires_teat_selection: false, sort_order: 2 },
+  {
+    id: 'it-1',
+    code: 'mastitis',
+    name: 'Mastitis',
+    emoji: '🩺',
+    is_active: 1,
+    requires_teat_selection: true,
+    sort_order: 0,
+  },
+  {
+    id: 'it-2',
+    code: 'lameness',
+    name: 'Lameness',
+    emoji: '🦶',
+    is_active: 1,
+    requires_teat_selection: false,
+    sort_order: 1,
+  },
+  {
+    id: 'it-3',
+    code: 'bloat',
+    name: 'Bloat',
+    emoji: '🫧',
+    is_active: 1,
+    requires_teat_selection: false,
+    sort_order: 2,
+  },
 ]
 
 const stubs = {
-  AppHeader: { template: '<div class="app-header"><slot /></div>', props: ['title', 'showBack', 'backTo'] },
+  AppHeader: {
+    template: '<div class="app-header"><slot /></div>',
+    props: ['title', 'showBack', 'backTo'],
+  },
   CowSearchDropdown: {
     template: '<select class="cow-search-dropdown" />',
     props: ['modelValue', 'placeholder', 'error'],
@@ -89,9 +124,19 @@ const stubs = {
 
 function createWrapper() {
   api.get.mockImplementation((url) => {
-    if (url === '/issue-types') return Promise.resolve({ data: ISSUE_TYPES, headers: { 'x-total-count': '3' } })
+    if (url === '/issue-types')
+      return Promise.resolve({ data: ISSUE_TYPES, headers: { 'x-total-count': '3' } })
     if (url === '/cows') return Promise.resolve({ data: [] })
-    if (url.includes('feature-flags')) return Promise.resolve({ data: { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true } })
+    if (url.includes('feature-flags'))
+      return Promise.resolve({
+        data: {
+          breeding: true,
+          milkRecording: true,
+          healthIssues: true,
+          treatments: true,
+          analytics: true,
+        },
+      })
     return Promise.resolve({ data: [] })
   })
 

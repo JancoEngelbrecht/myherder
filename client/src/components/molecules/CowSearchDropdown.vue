@@ -21,7 +21,9 @@
           class="dropdown-item"
           @mousedown.prevent="select(cow)"
         >
-          <span class="item-icon">{{ cow.sex === 'male' ? speciesEmoji.male : speciesEmoji.female }}</span>
+          <span class="item-icon">{{
+            cow.sex === 'male' ? speciesEmoji.male : speciesEmoji.female
+          }}</span>
           <span class="item-tag mono">{{ cow.tag_number }}</span>
           <span class="item-name">{{ cow.name || '—' }}</span>
         </button>
@@ -29,7 +31,10 @@
     </Transition>
 
     <Transition name="fade">
-      <div v-if="showDropdown && query.length >= 2 && results.length === 0 && !searching" class="dropdown-empty">
+      <div
+        v-if="showDropdown && query.length >= 2 && results.length === 0 && !searching"
+        class="dropdown-empty"
+      >
         {{ t('cows.noResults') }}
       </div>
     </Transition>
@@ -74,29 +79,35 @@ let searchGeneration = 0
 let loadGeneration = 0
 
 // If initial value set, load the cow (with IndexedDB fallback)
-watch(() => props.modelValue, async (id) => {
-  if (id && !selectedCow.value) {
-    const gen = ++loadGeneration
-    try {
-      const r = await api.get(`/cows/${id}`)
-      if (gen !== loadGeneration) return
-      selectedCow.value = r.data
-      query.value = ''
-    } catch (err) {
-      if (gen !== loadGeneration) return
-      if (isOfflineError(err)) {
-        try {
-          const local = await db.cows.get(id)
-          if (gen !== loadGeneration) return
-          if (local && !local.deleted_at) {
-            selectedCow.value = local
-            query.value = ''
+watch(
+  () => props.modelValue,
+  async (id) => {
+    if (id && !selectedCow.value) {
+      const gen = ++loadGeneration
+      try {
+        const r = await api.get(`/cows/${id}`)
+        if (gen !== loadGeneration) return
+        selectedCow.value = r.data
+        query.value = ''
+      } catch (err) {
+        if (gen !== loadGeneration) return
+        if (isOfflineError(err)) {
+          try {
+            const local = await db.cows.get(id)
+            if (gen !== loadGeneration) return
+            if (local && !local.deleted_at) {
+              selectedCow.value = local
+              query.value = ''
+            }
+          } catch {
+            /* IndexedDB not ready */
           }
-        } catch { /* IndexedDB not ready */ }
+        }
       }
     }
-  }
-}, { immediate: true })
+  },
+  { immediate: true }
+)
 
 function onInput() {
   selectedCow.value = null
@@ -120,7 +131,9 @@ function onFocus() {
 let blurTimer = null
 
 function onBlur() {
-  blurTimer = setTimeout(() => { showDropdown.value = false }, 200)
+  blurTimer = setTimeout(() => {
+    showDropdown.value = false
+  }, 200)
 }
 
 async function search() {
@@ -155,10 +168,11 @@ async function searchIndexedDB(term, sexFilter) {
       all = all.filter((c) => c.sex === sexFilter)
     }
     return all
-      .filter((c) =>
-        !c.deleted_at &&
-        ((c.tag_number && c.tag_number.toLowerCase().includes(lowerTerm)) ||
-          (c.name && c.name.toLowerCase().includes(lowerTerm)))
+      .filter(
+        (c) =>
+          !c.deleted_at &&
+          ((c.tag_number && c.tag_number.toLowerCase().includes(lowerTerm)) ||
+            (c.name && c.name.toLowerCase().includes(lowerTerm)))
       )
       .slice(0, 8)
   } catch {

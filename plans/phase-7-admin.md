@@ -31,6 +31,7 @@ Every sub-phase ends with a mandatory quality gate before moving on. Do NOT skip
 ## SUB-PHASE 7.1: User Management API
 
 ### Step 7.1.1 — Create users API route
+
 - **Create** `server/routes/users.js`
 - Follow pattern from `server/routes/issueTypes.js` (section dividers, top-level Joi schemas)
 - Mount in `server/app.js` at `/api/users` with `auth` + `authorize(['admin'])` middleware
@@ -45,10 +46,12 @@ Every sub-phase ends with a mandatory quality gate before moving on. Do NOT skip
 - Validation: username uniqueness check on create/update, cannot change own role
 
 ### Step 7.1.2 — Mount route + verify
+
 - Add to `server/app.js`: `app.use('/api/users', require('./routes/users'))`
 - Verify with curl/node -e: GET returns 2 seed users, POST creates worker with PIN, PATCH updates permissions, DELETE deactivates
 
 ### Step 7.1.3 — Quality Gate
+
 - Write route tests for users API (follow pattern from existing server tests if any, or add new test file)
 - Run full Quality Gate checklist (see above)
 
@@ -57,6 +60,7 @@ Every sub-phase ends with a mandatory quality gate before moving on. Do NOT skip
 ## SUB-PHASE 7.2: User Management UI
 
 ### Step 7.2.1 — Create UserManagement view
+
 - **Create** `client/src/views/admin/UserManagement.vue`
 - Follow pattern from `BreedTypeManagement.vue` (list + add/edit form modal)
 - **List section**: cards showing username, full_name, role badge, active/inactive badge, language badge, permission count
@@ -69,17 +73,20 @@ Every sub-phase ends with a mandatory quality gate before moving on. Do NOT skip
 - Admin users auto-get all permissions (checkboxes disabled, all checked)
 
 ### Step 7.2.2 — Add route + navigation
+
 - Add to `client/src/router/index.js`: `/admin/users` with `requiresAuth` + `requiresAdmin` guards
 - Add to `SettingsView.vue`: User Management link in Admin Tools section (always visible to admin, not feature-flagged)
 - i18n keys: `users.title`, `users.addUser`, `users.editUser`, `users.username`, `users.fullName`, `users.role`, `users.pin`, `users.password`, `users.permissions`, `users.active`, `users.inactive`, `users.deactivate`, `users.reactivate`, `users.confirmDeactivate`, `users.selfDeactivateBlocked` — in both en.json and af.json
 
 ### Verification
+
 - Admin can list, create, edit, deactivate/reactivate users
 - Workers with PIN can log in after creation
 - Permission changes take effect on next login
 - Cannot deactivate self
 
 ### Step 7.2.3 — Quality Gate
+
 - Write component tests for UserManagement.vue (follow BreedTypeManagement test patterns if applicable)
 - Run full Quality Gate checklist (see above)
 
@@ -88,28 +95,33 @@ Every sub-phase ends with a mandatory quality gate before moving on. Do NOT skip
 ## SUB-PHASE 7.3: App Settings
 
 ### Step 7.3.1 — Migration: create `app_settings` table
+
 - **Create** `server/migrations/024_create_app_settings.js`
 - Schema: `key` (string 50, PK), `value` (text), `updated_at` (timestamp)
 - Seed default rows: `farm_name` = 'MyHerder Farm', `default_language` = 'en'
 
 ### Step 7.3.2 — App settings API route
+
 - **Create** `server/routes/appSettings.js`
 - `GET /api/settings` — returns all settings as `{ farm_name, default_language }` object (auth required, any user)
 - `PATCH /api/settings` — admin only; body `{ key: value }` pairs; upserts each key; returns updated settings object
 - Mount in `server/app.js`
 
 ### Step 7.3.3 — Frontend integration
+
 - Add settings section to `SettingsView.vue`: Farm Name input + Default Language select (admin only, inline save)
 - Display farm name in `AppHeader.vue` subtitle (optional — only if set and not on mobile)
 - Display farm name on `LoginView.vue` above the login form
 - i18n keys: `settings.farmName`, `settings.defaultLanguage`, `settings.farmNameDesc`, `settings.appSettings` — in both en.json and af.json
 
 ### Verification
+
 - Admin can set farm name and default language
 - Farm name shows on login screen
 - Settings persist across sessions
 
 ### Step 7.3.4 — Quality Gate
+
 - Write tests for appSettings route and any frontend integration
 - Run full Quality Gate checklist (see above)
 
@@ -118,21 +130,25 @@ Every sub-phase ends with a mandatory quality gate before moving on. Do NOT skip
 ## SUB-PHASE 7.4: Data Export
 
 ### Step 7.4.1 — Export API endpoint
+
 - Add to `server/routes/appSettings.js` (or new `server/routes/export.js`):
   - `GET /api/export` — admin only; queries all tables (users, cows, health_issues, treatments, medications, milk_records, breeding_events, breed_types, issue_types, app_settings, feature_flags), strips password/pin hashes; returns JSON with `{ exportedAt, tables: { users: [...], cows: [...], ... } }`
   - Set `Content-Disposition: attachment; filename="myherder-export-{date}.json"` header
 
 ### Step 7.4.2 — Frontend download button
+
 - Add to `SettingsView.vue` Data section: "Export All Data" button
 - On click: `api.get('/export', { responseType: 'blob' })` → trigger browser download
 - i18n keys: `settings.exportData`, `settings.exportDataDesc` — in both en.json and af.json
 
 ### Verification
+
 - Admin clicks export → JSON file downloads with all data
 - No password/PIN hashes in export
 - Workers cannot access export endpoint
 
 ### Step 7.4.3 — Quality Gate
+
 - Write tests for export endpoint (verify hash stripping, admin-only access)
 - Run full Quality Gate checklist (see above)
 
@@ -141,22 +157,26 @@ Every sub-phase ends with a mandatory quality gate before moving on. Do NOT skip
 ## SUB-PHASE 7.5: Audit Log
 
 ### Step 7.5.1 — Migration: create `audit_log` table
+
 - **Create** `server/migrations/025_create_audit_log.js`
 - Schema: `id` (string 36, PK), `user_id` (string 36, FK→users, nullable), `action` (string 50: 'create'|'update'|'delete'), `entity_type` (string 50: 'cow'|'user'|'treatment'|etc), `entity_id` (string 36), `old_values` (JSON text, nullable), `new_values` (JSON text, nullable), `created_at` (timestamp)
 - Index on `entity_type` + `entity_id` and `created_at`
 
 ### Step 7.5.2 — Audit helper
+
 - **Create** `server/services/auditService.js`
 - Export: `logAudit({ userId, action, entityType, entityId, oldValues, newValues })` — inserts row into audit_log
 - Call explicitly in route handlers for significant operations (user create/update/delete, cow create/update/delete, settings changes). NOT a global middleware — only for tracked entities.
 
 ### Step 7.5.3 — Wire audit calls into existing routes
+
 - `server/routes/users.js`: log create, update, deactivate
 - `server/routes/cows.js`: log create, update, soft-delete
 - `server/routes/appSettings.js`: log setting changes
 - Minimal: just these 3 routes initially. Can extend to other routes later.
 
 ### Step 7.5.4 — Audit log API + UI
+
 - `GET /api/audit-log` — admin only; paginated; supports filters: `entity_type`, `entity_id`, `user_id`, `action`, `from`/`to` date range; returns `{ data: [...], total }`
 - **Create** `client/src/views/admin/AuditLogView.vue` — scrollable list of audit entries with filter chips (by entity type), expandable rows showing old/new value diffs
 - Route: `/admin/audit-log` with `requiresAdmin` guard
@@ -164,6 +184,7 @@ Every sub-phase ends with a mandatory quality gate before moving on. Do NOT skip
 - i18n keys: `audit.title`, `audit.action`, `audit.entityType`, `audit.user`, `audit.date`, `audit.oldValues`, `audit.newValues`, `audit.noEntries`, `audit.create`, `audit.update`, `audit.delete` — in both en.json and af.json
 
 ### Verification
+
 - Creating/editing/deleting a user creates audit log entries
 - Creating/editing/deleting a cow creates audit log entries
 - Changing app settings creates audit log entries
@@ -171,6 +192,7 @@ Every sub-phase ends with a mandatory quality gate before moving on. Do NOT skip
 - Audit entries show who did what, when, with before/after values
 
 ### Step 7.5.5 — Quality Gate
+
 - Write tests for auditService helper, audit log API endpoint, and AuditLogView component
 - Run full Quality Gate checklist (see above)
 - **Final Phase 7 sweep**: Review ALL files created/modified across the entire phase for cross-cutting concerns (consistent error handling, shared patterns, unnecessary duplication between sub-phases)

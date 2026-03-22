@@ -20,6 +20,7 @@
 ## Scope
 
 **In scope:**
+
 - Species table with config (terminology, life phases, event types, emoji)
 - `species_id` on `breed_types`, `default_breed_types`, and `cows` tables
 - Farm-level species assignment (one species per farm)
@@ -32,6 +33,7 @@
 - Super-admin species management + species-aware farm creation
 
 **Out of scope:**
+
 - Wool/shearing records — separate production module, not needed for meat sheep MVP
 - Weight/growth records — future feature, not species-specific
 - Mixed-species farms — use separate farms + farm switcher instead
@@ -40,6 +42,7 @@
 - Poultry/pigs — fundamentally different production models, future phases
 
 **Assumptions:**
+
 - Meat sheep farmers track animals individually (stud + commercial)
 - Existing cattle farms continue working unchanged (100% backward compatible)
 - Sheep breeds: Dorper (~150d gestation, 17d heat cycle), Meatmaster, SA Mutton Merino, Dohne Merino
@@ -130,11 +133,15 @@
     ```json
     {
       "terminology": {
-        "singular": "Cow", "plural": "Cows",
-        "maleSingular": "Bull", "femaleSingular": "Cow",
-        "youngSingular": "Calf", "youngPlural": "Calves",
+        "singular": "Cow",
+        "plural": "Cows",
+        "maleSingular": "Bull",
+        "femaleSingular": "Cow",
+        "youngSingular": "Calf",
+        "youngPlural": "Calves",
         "collectiveNoun": "Herd",
-        "birthEvent": "Calving", "birthEventPast": "Calved",
+        "birthEvent": "Calving",
+        "birthEventPast": "Calved",
         "maleService": "Bull Service"
       },
       "emoji": { "female": "🐄", "male": "🐂", "young": "🐮" },
@@ -150,7 +157,16 @@
           { "code": "bull", "minMonths": 15 }
         ]
       },
-      "event_types": ["heat_observed", "ai_insemination", "bull_service", "preg_check_positive", "preg_check_negative", "calving", "abortion", "dry_off"],
+      "event_types": [
+        "heat_observed",
+        "ai_insemination",
+        "bull_service",
+        "preg_check_positive",
+        "preg_check_negative",
+        "calving",
+        "abortion",
+        "dry_off"
+      ],
       "typical_multiple_births": 1,
       "max_offspring": 2
     }
@@ -159,11 +175,15 @@
     ```json
     {
       "terminology": {
-        "singular": "Sheep", "plural": "Sheep",
-        "maleSingular": "Ram", "femaleSingular": "Ewe",
-        "youngSingular": "Lamb", "youngPlural": "Lambs",
+        "singular": "Sheep",
+        "plural": "Sheep",
+        "maleSingular": "Ram",
+        "femaleSingular": "Ewe",
+        "youngSingular": "Lamb",
+        "youngPlural": "Lambs",
         "collectiveNoun": "Flock",
-        "birthEvent": "Lambing", "birthEventPast": "Lambed",
+        "birthEvent": "Lambing",
+        "birthEventPast": "Lambed",
         "maleService": "Ram Service"
       },
       "emoji": { "female": "🐑", "male": "🐏", "young": "🐑" },
@@ -177,7 +197,15 @@
           { "code": "ram", "minMonths": 6 }
         ]
       },
-      "event_types": ["heat_observed", "ai_insemination", "ram_service", "preg_check_positive", "preg_check_negative", "lambing", "abortion"],
+      "event_types": [
+        "heat_observed",
+        "ai_insemination",
+        "ram_service",
+        "preg_check_positive",
+        "preg_check_negative",
+        "lambing",
+        "abortion"
+      ],
       "typical_multiple_births": 2,
       "max_offspring": 4
     }
@@ -540,35 +568,36 @@
 
 ## Test Matrix
 
-| Codepath / Flow | Happy path | Error path | Edge case | Test exists? |
-|---|---|---|---|---|
-| GET /api/species | Returns cattle + sheep | Empty DB | Inactive species filtered | [ ] |
-| GET /api/breed-types?species_id | Returns filtered breeds | Invalid species_id | No breeds for species | [ ] |
-| POST /api/cows (with species) | Auto-sets species_id | Missing breed_type | Breed type has no species | [ ] |
-| POST /api/cows (with birth_event_id) | Links to birth event | Invalid birth_event_id | birth_event from other farm | [ ] |
-| POST /api/breeding-events (lambing) | Creates lambing event | Invalid event type | Lambing on cattle farm | [ ] |
-| Birth event offspring_count | Count stored on event | Count = 0 rejected | Count > species max | [ ] |
-| Offspring registration (form loop) | 2 animals created + linked | Duplicate tag on 2nd | Skip all offspring | [ ] |
-| Incomplete offspring indicator | Shows "1 of 2 registered" | Birth event deleted | offspring_count = 0 | [ ] |
-| Farm creation with species | Seeds correct defaults | Invalid species_id | Species deactivated | [ ] |
-| Farm switcher — list farms | Returns assigned farms | No other farms | User deactivated on farm | [ ] |
-| Farm switcher — switch | New JWT issued | Unauthorized farm | Same farm (no-op) | [ ] |
-| computeLifePhase (sheep) | Returns lamb/ewe/ram | No species config | Missing dob | [ ] |
-| Species terminology in UI | Shows "Ewe" for sheep | Store not loaded yet | Cattle fallback | [ ] |
+| Codepath / Flow                      | Happy path                 | Error path             | Edge case                   | Test exists? |
+| ------------------------------------ | -------------------------- | ---------------------- | --------------------------- | ------------ |
+| GET /api/species                     | Returns cattle + sheep     | Empty DB               | Inactive species filtered   | [ ]          |
+| GET /api/breed-types?species_id      | Returns filtered breeds    | Invalid species_id     | No breeds for species       | [ ]          |
+| POST /api/cows (with species)        | Auto-sets species_id       | Missing breed_type     | Breed type has no species   | [ ]          |
+| POST /api/cows (with birth_event_id) | Links to birth event       | Invalid birth_event_id | birth_event from other farm | [ ]          |
+| POST /api/breeding-events (lambing)  | Creates lambing event      | Invalid event type     | Lambing on cattle farm      | [ ]          |
+| Birth event offspring_count          | Count stored on event      | Count = 0 rejected     | Count > species max         | [ ]          |
+| Offspring registration (form loop)   | 2 animals created + linked | Duplicate tag on 2nd   | Skip all offspring          | [ ]          |
+| Incomplete offspring indicator       | Shows "1 of 2 registered"  | Birth event deleted    | offspring_count = 0         | [ ]          |
+| Farm creation with species           | Seeds correct defaults     | Invalid species_id     | Species deactivated         | [ ]          |
+| Farm switcher — list farms           | Returns assigned farms     | No other farms         | User deactivated on farm    | [ ]          |
+| Farm switcher — switch               | New JWT issued             | Unauthorized farm      | Same farm (no-op)           | [ ]          |
+| computeLifePhase (sheep)             | Returns lamb/ewe/ram       | No species config      | Missing dob                 | [ ]          |
+| Species terminology in UI            | Shows "Ewe" for sheep      | Store not loaded yet   | Cattle fallback             | [ ]          |
 
 ## Failure Modes
 
-| Codepath | Failure scenario | Covered by test? | Error handling? | Silent failure? |
-|---|---|---|---|---|
-| species.config JSON parse | Malformed JSON in species config | No → add | Need try/catch | Yes → CRITICAL |
-| species_id null on old data | Pre-migration cows have no species | No → add | Fallback to cattle | Yes → CRITICAL |
-| Breed type without species | Admin creates breed type, no species set | No → add | Default to farm's species | No |
-| Offspring form refresh | User refreshes mid-loop (offspring 2 of 3) | No → add | Query params persist state | Yes → handle |
-| Offspring orphaned | Birth event deleted after offspring registered | No → add | birth_event_id dangling FK | No (animals exist) |
-| i18n vars not loaded | Species terms not fetched yet | No → add | Fallback to "Animal" | Yes → handle |
-| Farm switcher — stale JWT | Switch farm but old token cached | No → add | Force token refresh | Yes → CRITICAL |
+| Codepath                    | Failure scenario                               | Covered by test? | Error handling?            | Silent failure?    |
+| --------------------------- | ---------------------------------------------- | ---------------- | -------------------------- | ------------------ |
+| species.config JSON parse   | Malformed JSON in species config               | No → add         | Need try/catch             | Yes → CRITICAL     |
+| species_id null on old data | Pre-migration cows have no species             | No → add         | Fallback to cattle         | Yes → CRITICAL     |
+| Breed type without species  | Admin creates breed type, no species set       | No → add         | Default to farm's species  | No                 |
+| Offspring form refresh      | User refreshes mid-loop (offspring 2 of 3)     | No → add         | Query params persist state | Yes → handle       |
+| Offspring orphaned          | Birth event deleted after offspring registered | No → add         | birth_event_id dangling FK | No (animals exist) |
+| i18n vars not loaded        | Species terms not fetched yet                  | No → add         | Fallback to "Animal"       | Yes → handle       |
+| Farm switcher — stale JWT   | Switch farm but old token cached               | No → add         | Force token refresh        | Yes → CRITICAL     |
 
 **Critical gaps to address:**
+
 1. JSON.parse guard on species.config (try/catch, return cattle default)
 2. Null species_id fallback to cattle for backward compat
 3. i18n fallback when species store hasn't loaded yet
@@ -586,6 +615,7 @@
 ## Migration Summary
 
 **Migration 035: add_species**
+
 - CREATE `species` (id, code, name, config, is_active, sort_order, created_at, updated_at)
 - CREATE `farm_species` (farm_id FK, species_id FK, PRIMARY KEY)
 - ALTER `breed_types` ADD `species_id` (nullable FK → species)
@@ -602,23 +632,23 @@
 
 ## Sheep Breed Reference Data
 
-| Breed | Gestation | Heat Cycle | Preg Check | VWD | Dry Off | Young Max Mo | Female Min Mo | Male Min Mo |
-|---|---|---|---|---|---|---|---|---|
-| Dorper | 150 | 17 | 30 | 60 | 0 | 6 | 8 | 8 |
-| Meatmaster | 150 | 17 | 30 | 60 | 0 | 6 | 8 | 8 |
-| SA Mutton Merino | 150 | 17 | 30 | 60 | 0 | 6 | 8 | 8 |
-| Dohne Merino | 150 | 17 | 30 | 60 | 0 | 6 | 8 | 8 |
+| Breed            | Gestation | Heat Cycle | Preg Check | VWD | Dry Off | Young Max Mo | Female Min Mo | Male Min Mo |
+| ---------------- | --------- | ---------- | ---------- | --- | ------- | ------------ | ------------- | ----------- |
+| Dorper           | 150       | 17         | 30         | 60  | 0       | 6            | 8             | 8           |
+| Meatmaster       | 150       | 17         | 30         | 60  | 0       | 6            | 8             | 8           |
+| SA Mutton Merino | 150       | 17         | 30         | 60  | 0       | 6            | 8             | 8           |
+| Dohne Merino     | 150       | 17         | 30         | 60  | 0       | 6            | 8             | 8           |
 
 Note: `dry_off_days: 0` for meat sheep. Existing `heifer_min_months` / `young_bull_min_months` columns reused — same DB columns, species-aware labels.
 
 ## Estimated Effort
 
-| Phase | Tasks | New files | Modified files | Tests |
-|---|---|---|---|---|
-| 1: DB Foundation | 3 | 1 migration | 1 (farmSeedService) | migration test |
-| 2: Backend | 9 | 1 route (species) | 7 routes | ~35 new |
-| 3: Frontend Engine | 5 | 2 (store + composable) | 3 (i18n × 2, config) | ~15 new |
-| 4: Frontend UI | 10 | 0 | 12 views/components | ~25 updated |
-| 5: Farm Switcher + Admin | 5 | 1 view | 4 views/components | ~15 new |
-| 6: Testing | 6 | 2 test files | 8 test files | ~80 total |
-| **Total** | **38** | **7 new files** | **~35 modified** | **~80 new tests** |
+| Phase                    | Tasks  | New files              | Modified files       | Tests             |
+| ------------------------ | ------ | ---------------------- | -------------------- | ----------------- |
+| 1: DB Foundation         | 3      | 1 migration            | 1 (farmSeedService)  | migration test    |
+| 2: Backend               | 9      | 1 route (species)      | 7 routes             | ~35 new           |
+| 3: Frontend Engine       | 5      | 2 (store + composable) | 3 (i18n × 2, config) | ~15 new           |
+| 4: Frontend UI           | 10     | 0                      | 12 views/components  | ~25 updated       |
+| 5: Farm Switcher + Admin | 5      | 1 view                 | 4 views/components   | ~15 new           |
+| 6: Testing               | 6      | 2 test files           | 8 test files         | ~80 total         |
+| **Total**                | **38** | **7 new files**        | **~35 modified**     | **~80 new tests** |

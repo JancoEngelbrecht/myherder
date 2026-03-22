@@ -11,8 +11,12 @@ const {
 // ── Validation ──────────────────────────────────────────────
 
 const querySchema = Joi.object({
-  from: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).required(),
-  to: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).required(),
+  from: Joi.string()
+    .pattern(/^\d{4}-\d{2}-\d{2}$/)
+    .required(),
+  to: Joi.string()
+    .pattern(/^\d{4}-\d{2}-\d{2}$/)
+    .required(),
   format: Joi.string().valid('pdf', 'xlsx').default('pdf'),
 })
 
@@ -41,7 +45,14 @@ async function generateReport(req, res, next, { title, sheetName, slug, columns,
 
     if (format === 'xlsx') {
       const buffer = await createExcelReport({
-        title, sheetName, farmName, dateRange, generatedBy, columns, rows, summaryRow,
+        title,
+        sheetName,
+        farmName,
+        dateRange,
+        generatedBy,
+        columns,
+        rows,
+        summaryRow,
       })
       return sendFile(res, buffer, `${slug}-${from}-to-${to}`, 'xlsx')
     }

@@ -18,7 +18,20 @@ export const chartColors = {
   purpleLight: 'rgba(124, 58, 237, 0.15)',
 }
 
-const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const monthNames = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+]
 
 export function formatMonth(ym) {
   const [y, m] = ym.split('-')
@@ -55,7 +68,9 @@ export const TIME_RANGE_OPTIONS = [
   { value: 24, labelKey: 'analytics.timeRange.24m' },
 ]
 
-function pad(n) { return String(n).padStart(2, '0') }
+function pad(n) {
+  return String(n).padStart(2, '0')
+}
 
 export function useTimeRange(defaultMonths = 12) {
   const selectedRange = ref(defaultMonths)

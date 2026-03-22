@@ -48,9 +48,16 @@ vi.mock('vue-chartjs', () => ({
 
 vi.mock('chart.js', () => ({
   Chart: { register: vi.fn() },
-  CategoryScale: 'CS', LinearScale: 'LS', PointElement: 'PE',
-  LineElement: 'LE', BarElement: 'BE', ArcElement: 'AE',
-  Title: 'T', Tooltip: 'TT', Legend: 'L', Filler: 'F',
+  CategoryScale: 'CS',
+  LinearScale: 'LS',
+  PointElement: 'PE',
+  LineElement: 'LE',
+  BarElement: 'BE',
+  ArcElement: 'AE',
+  Title: 'T',
+  Tooltip: 'TT',
+  Legend: 'L',
+  Filler: 'F',
 }))
 
 vi.mock('chartjs-plugin-annotation', () => ({ default: {} }))
@@ -141,7 +148,13 @@ function mockAllApis() {
     if (url.includes('breeding-activity')) return Promise.resolve(ACTIVITY_RESPONSE)
     if (url.includes('feature-flags'))
       return Promise.resolve({
-        data: { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true },
+        data: {
+          breeding: true,
+          milkRecording: true,
+          healthIssues: true,
+          treatments: true,
+          analytics: true,
+        },
       })
     return Promise.resolve({ data: {} })
   })
@@ -166,12 +179,12 @@ describe('FertilityView', () => {
 
     const chips = wrapper.findAll('.stat-chip')
     expect(chips.length).toBe(6)
-    expect(wrapper.text()).toContain('5')      // pregnant
-    expect(wrapper.text()).toContain('12')     // not pregnant
-    expect(wrapper.text()).toContain('46%')   // conception rate (Math.round(45.5))
-    expect(wrapper.text()).toContain('1.5')    // services per conception
-    expect(wrapper.text()).toContain('19%')   // pregnancy rate (Math.round(18.5))
-    expect(wrapper.text()).toContain('1')      // abortion count (also matches other numbers, but stat chip has it)
+    expect(wrapper.text()).toContain('5') // pregnant
+    expect(wrapper.text()).toContain('12') // not pregnant
+    expect(wrapper.text()).toContain('46%') // conception rate (Math.round(45.5))
+    expect(wrapper.text()).toContain('1.5') // services per conception
+    expect(wrapper.text()).toContain('19%') // pregnancy rate (Math.round(18.5))
+    expect(wrapper.text()).toContain('1') // abortion count (also matches other numbers, but stat chip has it)
   })
 
   it('displays "Not Pregnant" label instead of "Open"', async () => {
@@ -234,22 +247,37 @@ describe('FertilityView', () => {
       if (url.includes('breeding-overview'))
         return Promise.resolve({
           data: {
-            pregnant_count: 0, not_pregnant_count: 0,
-            repro_status: { pregnant: 0, not_pregnant: 0, bred_awaiting_check: 0, dry: 0, heifer_not_bred: 0 },
-            abortion_count: 0, pregnancy_rate: null,
-            calvings_by_month: [], avg_services_per_conception: null,
+            pregnant_count: 0,
+            not_pregnant_count: 0,
+            repro_status: {
+              pregnant: 0,
+              not_pregnant: 0,
+              bred_awaiting_check: 0,
+              dry: 0,
+              heifer_not_bred: 0,
+            },
+            abortion_count: 0,
+            pregnancy_rate: null,
+            calvings_by_month: [],
+            avg_services_per_conception: null,
           },
         })
       if (url.includes('calving-interval'))
-        return Promise.resolve({ data: { avg_calving_interval_days: null, cow_count: 0, intervals: [] } })
+        return Promise.resolve({
+          data: { avg_calving_interval_days: null, cow_count: 0, intervals: [] },
+        })
       if (url.includes('days-open'))
         return Promise.resolve({ data: { avg_days_open: null, cow_count: 0, records: [] } })
       if (url.includes('conception-rate'))
         return Promise.resolve({
-          data: { first_service_rate: null, total_first_services: 0, first_service_conceptions: 0, by_month: [] },
+          data: {
+            first_service_rate: null,
+            total_first_services: 0,
+            first_service_conceptions: 0,
+            by_month: [],
+          },
         })
-      if (url.includes('breeding-activity'))
-        return Promise.resolve({ data: { months: [] } })
+      if (url.includes('breeding-activity')) return Promise.resolve({ data: { months: [] } })
       return Promise.resolve({ data: {} })
     })
 

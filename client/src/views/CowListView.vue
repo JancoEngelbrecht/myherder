@@ -35,15 +35,44 @@
       <div v-if="showAdvanced" class="advanced-filters">
         <!-- Herd group -->
         <div class="filter-group">
-          <span class="filter-group-title">{{ t('animals.filterGroupHerd', { collectiveNoun }) }}</span>
+          <span class="filter-group-title">{{
+            t('animals.filterGroupHerd', { collectiveNoun })
+          }}</span>
           <div class="filter-chips filter-chips-wrap">
-            <button class="chip" :class="{ active: sexFilter === '' }" :aria-pressed="sexFilter === ''" @click="setSexFilter('')">{{ t('animals.filterAll') }}</button>
-            <button class="chip" :class="{ active: sexFilter === 'female' }" :aria-pressed="sexFilter === 'female'" @click="setSexFilter('female')">{{ t('animals.filterFemale') }}</button>
-            <button class="chip" :class="{ active: sexFilter === 'male' }" :aria-pressed="sexFilter === 'male'" @click="setSexFilter('male')">{{ t('animals.filterMale') }}</button>
+            <button
+              class="chip"
+              :class="{ active: sexFilter === '' }"
+              :aria-pressed="sexFilter === ''"
+              @click="setSexFilter('')"
+            >
+              {{ t('animals.filterAll') }}
+            </button>
+            <button
+              class="chip"
+              :class="{ active: sexFilter === 'female' }"
+              :aria-pressed="sexFilter === 'female'"
+              @click="setSexFilter('female')"
+            >
+              {{ t('animals.filterFemale') }}
+            </button>
+            <button
+              class="chip"
+              :class="{ active: sexFilter === 'male' }"
+              :aria-pressed="sexFilter === 'male'"
+              @click="setSexFilter('male')"
+            >
+              {{ t('animals.filterMale') }}
+            </button>
           </div>
-          <select v-model="breedFilter" class="form-select filter-select" @change="onAdvancedChange">
+          <select
+            v-model="breedFilter"
+            class="form-select filter-select"
+            @change="onAdvancedChange"
+          >
             <option value="">{{ t('animals.filterAllBreeds') }}</option>
-            <option v-for="bt in breedTypesStore.activeTypes" :key="bt.id" :value="bt.id">{{ bt.name }}</option>
+            <option v-for="bt in breedTypesStore.activeTypes" :key="bt.id" :value="bt.id">
+              {{ bt.name }}
+            </option>
           </select>
           <div class="filter-chips filter-chips-wrap">
             <button
@@ -53,7 +82,9 @@
               :class="{ active: lifePhaseFilter === f.value }"
               :aria-pressed="lifePhaseFilter === f.value"
               @click="setLifePhaseFilter(f.value)"
-            >{{ t(f.labelKey) }}</button>
+            >
+              {{ t(f.labelKey) }}
+            </button>
           </div>
         </div>
 
@@ -63,12 +94,38 @@
         <div class="filter-group">
           <span class="filter-group-title">{{ t('animals.filterGroupBreeding') }}</span>
           <div class="filter-chips filter-chips-wrap">
-            <button class="chip" :class="{ active: pregnantFilter === '' }" :aria-pressed="pregnantFilter === ''" @click="setPregnantFilter('')">{{ t('animals.filterAll') }}</button>
-            <button class="chip" :class="{ active: pregnantFilter === 'true' }" :aria-pressed="pregnantFilter === 'true'" @click="setPregnantFilter('true')">{{ t('animals.filterPregnant') }}</button>
-            <button class="chip" :class="{ active: pregnantFilter === 'false' }" :aria-pressed="pregnantFilter === 'false'" @click="setPregnantFilter('false')">{{ t('animals.filterNotPregnant') }}</button>
+            <button
+              class="chip"
+              :class="{ active: pregnantFilter === '' }"
+              :aria-pressed="pregnantFilter === ''"
+              @click="setPregnantFilter('')"
+            >
+              {{ t('animals.filterAll') }}
+            </button>
+            <button
+              class="chip"
+              :class="{ active: pregnantFilter === 'true' }"
+              :aria-pressed="pregnantFilter === 'true'"
+              @click="setPregnantFilter('true')"
+            >
+              {{ t('animals.filterPregnant') }}
+            </button>
+            <button
+              class="chip"
+              :class="{ active: pregnantFilter === 'false' }"
+              :aria-pressed="pregnantFilter === 'false'"
+              @click="setPregnantFilter('false')"
+            >
+              {{ t('animals.filterNotPregnant') }}
+            </button>
           </div>
           <div>
-            <button class="chip chip-accent" :class="{ active: readyToBreed }" :aria-pressed="readyToBreed" @click="readyToBreed = !readyToBreed">
+            <button
+              class="chip chip-accent"
+              :class="{ active: readyToBreed }"
+              :aria-pressed="readyToBreed"
+              @click="readyToBreed = !readyToBreed"
+            >
               {{ t('animals.filterReadyToBreed') }}
             </button>
           </div>
@@ -82,25 +139,65 @@
           <div class="filter-range-row">
             <span class="filter-label">{{ t('animals.filterDIM') }}</span>
             <div class="filter-range-inputs">
-              <input v-model.number="dimMin" type="number" min="0" class="form-input filter-num-input" :placeholder="t('animals.filterYieldMin')" @change="onAdvancedChange" />
+              <input
+                v-model.number="dimMin"
+                type="number"
+                min="0"
+                class="form-input filter-num-input"
+                :placeholder="t('animals.filterYieldMin')"
+                @change="onAdvancedChange"
+              />
               <span class="filter-sep">–</span>
-              <input v-model.number="dimMax" type="number" min="0" class="form-input filter-num-input" :placeholder="t('animals.filterYieldMax')" @change="onAdvancedChange" />
+              <input
+                v-model.number="dimMax"
+                type="number"
+                min="0"
+                class="form-input filter-num-input"
+                :placeholder="t('animals.filterYieldMax')"
+                @change="onAdvancedChange"
+              />
             </div>
           </div>
           <div class="filter-range-row">
             <span class="filter-label">{{ t('animals.filterMilkYield') }}</span>
             <div class="filter-range-inputs">
-              <input v-model.number="yieldMin" type="number" min="0" step="0.5" class="form-input filter-num-input" :placeholder="t('animals.filterYieldMin')" @change="onAdvancedChange" />
+              <input
+                v-model.number="yieldMin"
+                type="number"
+                min="0"
+                step="0.5"
+                class="form-input filter-num-input"
+                :placeholder="t('animals.filterYieldMin')"
+                @change="onAdvancedChange"
+              />
               <span class="filter-sep">–</span>
-              <input v-model.number="yieldMax" type="number" min="0" step="0.5" class="form-input filter-num-input" :placeholder="t('animals.filterYieldMax')" @change="onAdvancedChange" />
+              <input
+                v-model.number="yieldMax"
+                type="number"
+                min="0"
+                step="0.5"
+                class="form-input filter-num-input"
+                :placeholder="t('animals.filterYieldMax')"
+                @change="onAdvancedChange"
+              />
             </div>
           </div>
           <div class="filter-range-row">
             <span class="filter-label">{{ t('animals.filterCalvingDate') }}</span>
             <div class="filter-range-inputs">
-              <input v-model="calvingAfter" type="date" class="form-input filter-date-input" @change="onAdvancedChange" />
+              <input
+                v-model="calvingAfter"
+                type="date"
+                class="form-input filter-date-input"
+                @change="onAdvancedChange"
+              />
               <span class="filter-sep">–</span>
-              <input v-model="calvingBefore" type="date" class="form-input filter-date-input" @change="onAdvancedChange" />
+              <input
+                v-model="calvingBefore"
+                type="date"
+                class="form-input filter-date-input"
+                @change="onAdvancedChange"
+              />
             </div>
           </div>
         </div>
@@ -114,20 +211,27 @@
       <!-- Error -->
       <div v-else-if="cowsStore.error" class="error-state">
         <p>{{ cowsStore.error }}</p>
-        <button class="btn-secondary" style="width:auto;margin-top:8px" @click="loadCows">{{ t('common.retry') }}</button>
+        <button class="btn-secondary" style="width: auto; margin-top: 8px" @click="loadCows">
+          {{ t('common.retry') }}
+        </button>
       </div>
 
       <!-- Empty state -->
       <div v-else-if="displayedCows.length === 0" class="empty-state">
         <div class="empty-state-icon">{{ speciesEmoji }}</div>
-        <div class="empty-state-title">{{ t('animals.emptyTitle', { speciesPlural: plural }) }}</div>
+        <div class="empty-state-title">
+          {{ t('animals.emptyTitle', { speciesPlural: plural }) }}
+        </div>
         <div class="empty-state-subtitle">{{ t('animals.emptySubtitle') }}</div>
       </div>
 
       <!-- List -->
       <div v-else data-tour="cow-cards" class="cow-list">
         <template v-if="readyToBreed">
-          <p class="ready-to-breed-note">{{ t('animals.readyToBreedNote') }} ({{ displayedCows.length }} / {{ cowsStore.cows.length }})</p>
+          <p class="ready-to-breed-note">
+            {{ t('animals.readyToBreedNote') }} ({{ displayedCows.length }} /
+            {{ cowsStore.cows.length }})
+          </p>
         </template>
         <CowCard v-for="cow in displayedCows" :key="cow.id" :cow="cow" />
       </div>
@@ -143,7 +247,13 @@
     </div>
 
     <!-- FAB -->
-    <button v-if="authStore.canManageCows" data-tour="cow-add" class="fab" :title="t('animals.addAnimal', { species: singular })" @click="router.push('/cows/new')">
+    <button
+      v-if="authStore.canManageCows"
+      data-tour="cow-add"
+      class="fab"
+      :title="t('animals.addAnimal', { species: singular })"
+      @click="router.push('/cows/new')"
+    >
       +
     </button>
 
@@ -174,7 +284,13 @@ const authStore = useAuthStore()
 const breedTypesStore = useBreedTypesStore()
 const featureFlagsStore = useFeatureFlagsStore()
 
-const { singular, plural, collectiveNoun, emoji: speciesEmojiConfig, lifePhasesConfig } = useSpeciesTerms()
+const {
+  singular,
+  plural,
+  collectiveNoun,
+  emoji: speciesEmojiConfig,
+  lifePhasesConfig,
+} = useSpeciesTerms()
 
 // Pick a single emoji for the animal list (prefer female)
 const speciesEmoji = computed(() => speciesEmojiConfig.value?.female ?? '🐄')
@@ -204,39 +320,39 @@ const { startTour } = useTour('cow-list', () => [
     popover: {
       title: t('tour.cowList.search.title'),
       description: t('tour.cowList.search.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="cow-filters"]',
     popover: {
       title: t('tour.cowList.filters.title'),
       description: t('tour.cowList.filters.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="cow-cards"]',
     popover: {
       title: t('tour.cowList.cowCard.title'),
       description: t('tour.cowList.cowCard.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="cow-add"]',
     popover: {
       title: t('tour.cowList.addBtn.title'),
       description: t('tour.cowList.addBtn.desc'),
-    }
+    },
   },
 ])
 
 const filters = [
-  { value: '',          labelKey: 'animals.filterAll' },
-  { value: 'active',    labelKey: 'animals.filterActive' },
-  { value: 'dry',       labelKey: 'animals.filterDry' },
-  { value: 'pregnant',  labelKey: 'animals.filterPregnant' },
-  { value: 'sick',      labelKey: 'animals.filterSick' },
-  { value: 'sold',      labelKey: 'animals.filterSold' },
-  { value: 'dead',      labelKey: 'animals.filterDead' },
+  { value: '', labelKey: 'animals.filterAll' },
+  { value: 'active', labelKey: 'animals.filterActive' },
+  { value: 'dry', labelKey: 'animals.filterDry' },
+  { value: 'pregnant', labelKey: 'animals.filterPregnant' },
+  { value: 'sick', labelKey: 'animals.filterSick' },
+  { value: 'sold', labelKey: 'animals.filterSold' },
+  { value: 'dead', labelKey: 'animals.filterDead' },
 ]
 
 // Life phase filter chips — built dynamically from species config
@@ -255,11 +371,11 @@ const lifePhaseFilters = computed(() => {
   } else {
     // Fallback: cattle phases
     filters.push(
-      { value: 'calf',       labelKey: 'lifePhase.calf' },
-      { value: 'heifer',     labelKey: 'lifePhase.heifer' },
-      { value: 'cow',        labelKey: 'lifePhase.cow' },
+      { value: 'calf', labelKey: 'lifePhase.calf' },
+      { value: 'heifer', labelKey: 'lifePhase.heifer' },
+      { value: 'cow', labelKey: 'lifePhase.cow' },
       { value: 'young_bull', labelKey: 'lifePhase.young_bull' },
-      { value: 'bull',       labelKey: 'lifePhase.bull' },
+      { value: 'bull', labelKey: 'lifePhase.bull' }
     )
   }
   return filters
@@ -268,8 +384,8 @@ const lifePhaseFilters = computed(() => {
 // Client-side filter for "Ready to Breed" — uses last_calving_date from API response
 const displayedCows = computed(() => {
   if (!readyToBreed.value) return cowsStore.cows
-  return cowsStore.cows.filter(cow => {
-    const breed = breedTypesStore.activeTypes.find(b => b.id === cow.breed_type_id) ?? null
+  return cowsStore.cows.filter((cow) => {
+    const breed = breedTypesStore.activeTypes.find((b) => b.id === cow.breed_type_id) ?? null
     return computeIsReadyToBreed(cow, breed, cow.last_calving_date ?? null)
   })
 })

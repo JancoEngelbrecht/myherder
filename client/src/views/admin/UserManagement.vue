@@ -5,7 +5,9 @@
     <div class="page-content um-content">
       <!-- Add / Edit form -->
       <div v-if="formMode" class="card form-card">
-        <h3 class="form-title">{{ formMode === 'add' ? t('users.addUser') : t('users.editUser') }}</h3>
+        <h3 class="form-title">
+          {{ formMode === 'add' ? t('users.addUser') : t('users.editUser') }}
+        </h3>
         <form @submit.prevent="save">
           <div class="form-group">
             <label for="um-username">{{ t('users.username') }} *</label>
@@ -70,7 +72,9 @@
               maxlength="128"
               :placeholder="t('users.passwordPlaceholder')"
             />
-            <p v-if="formMode === 'edit'" class="hint-text">{{ t('users.changeCredentialHint') }}</p>
+            <p v-if="formMode === 'edit'" class="hint-text">
+              {{ t('users.changeCredentialHint') }}
+            </p>
           </div>
 
           <div v-if="form.role === 'worker'" class="form-group">
@@ -89,13 +93,17 @@
               maxlength="4"
               :placeholder="t('users.pinPlaceholder')"
             />
-            <p v-if="formMode === 'edit'" class="hint-text">{{ t('users.changeCredentialHint') }}</p>
+            <p v-if="formMode === 'edit'" class="hint-text">
+              {{ t('users.changeCredentialHint') }}
+            </p>
           </div>
 
           <!-- Permissions -->
           <div class="form-group">
             <label>{{ t('users.permissions') }}</label>
-            <p v-if="form.role === 'admin'" class="hint-text">{{ t('users.adminAutoPermissions') }}</p>
+            <p v-if="form.role === 'admin'" class="hint-text">
+              {{ t('users.adminAutoPermissions') }}
+            </p>
             <div class="perm-grid">
               <div class="perm-group">
                 <span class="perm-group-label">{{ t('users.permissionGroups.logging') }}</span>
@@ -142,7 +150,9 @@
           <p v-if="formError" class="form-error">{{ formError }}</p>
 
           <div class="form-actions">
-            <button type="button" class="btn-secondary" @click="cancelForm">{{ t('common.cancel') }}</button>
+            <button type="button" class="btn-secondary" @click="cancelForm">
+              {{ t('common.cancel') }}
+            </button>
             <button type="submit" class="btn-primary" :disabled="saving">
               {{ saving ? t('common.saving') : t('common.save') }}
             </button>
@@ -160,7 +170,12 @@
         </div>
 
         <div v-else data-tour="um-list" class="user-list">
-          <div v-for="user in users" :key="user.id" class="card user-card" :class="{ inactive: !user.is_active }">
+          <div
+            v-for="user in users"
+            :key="user.id"
+            class="card user-card"
+            :class="{ inactive: !user.is_active }"
+          >
             <div class="user-header">
               <div class="user-info">
                 <span class="user-name">{{ user.full_name }}</span>
@@ -177,10 +192,16 @@
               </div>
             </div>
             <div class="user-meta mono">
-              {{ t('users.permCount', { count: Array.isArray(user.permissions) ? user.permissions.length : 0 }) }}
+              {{
+                t('users.permCount', {
+                  count: Array.isArray(user.permissions) ? user.permissions.length : 0,
+                })
+              }}
             </div>
             <div class="user-actions">
-              <button class="btn-secondary btn-sm" @click="openEdit(user)">{{ t('common.edit') }}</button>
+              <button class="btn-secondary btn-sm" @click="openEdit(user)">
+                {{ t('common.edit') }}
+              </button>
               <button
                 v-if="user.id !== currentUserId"
                 class="btn-sm"
@@ -207,7 +228,9 @@
           </div>
         </div>
 
-        <button data-tour="um-add" class="fab" :title="$t('users.addUser')" @click="openAdd">+</button>
+        <button data-tour="um-add" class="fab" :title="$t('users.addUser')" @click="openAdd">
+          +
+        </button>
       </template>
     </div>
 
@@ -261,29 +284,33 @@ const { t } = useI18n()
 const authStore = useAuthStore()
 const toast = useToast()
 
-const { startTour } = useTour('user-management', () => [
-  {
-    element: '[data-tour="um-list"]',
-    popover: {
-      title: t('tour.userManagement.list.title'),
-      description: t('tour.userManagement.list.desc'),
-    }
-  },
-  {
-    element: '[data-tour="um-badges"]',
-    popover: {
-      title: t('tour.userManagement.badges.title'),
-      description: t('tour.userManagement.badges.desc'),
-    }
-  },
-  {
-    element: '[data-tour="um-add"]',
-    popover: {
-      title: t('tour.userManagement.add.title'),
-      description: t('tour.userManagement.add.desc'),
-    }
-  },
-], { autoStart: false })
+const { startTour } = useTour(
+  'user-management',
+  () => [
+    {
+      element: '[data-tour="um-list"]',
+      popover: {
+        title: t('tour.userManagement.list.title'),
+        description: t('tour.userManagement.list.desc'),
+      },
+    },
+    {
+      element: '[data-tour="um-badges"]',
+      popover: {
+        title: t('tour.userManagement.badges.title'),
+        description: t('tour.userManagement.badges.desc'),
+      },
+    },
+    {
+      element: '[data-tour="um-add"]',
+      popover: {
+        title: t('tour.userManagement.add.title'),
+        description: t('tour.userManagement.add.desc'),
+      },
+    },
+  ],
+  { autoStart: false }
+)
 
 const currentUserId = computed(() => authStore.user?.id)
 
@@ -323,8 +350,8 @@ const defaultForm = {
 
 const form = ref({ ...defaultForm, permissions: [] })
 
-const isEditingSelf = computed(() =>
-  formMode.value === 'edit' && editingUser.value?.id === currentUserId.value,
+const isEditingSelf = computed(
+  () => formMode.value === 'edit' && editingUser.value?.id === currentUserId.value
 )
 
 onMounted(() => fetchUsers())

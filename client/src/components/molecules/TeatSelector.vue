@@ -51,7 +51,10 @@ function toggle(value) {
   if (props.readonly) return
   const current = props.modelValue ?? []
   if (current.includes(value)) {
-    emit('update:modelValue', current.filter((v) => v !== value))
+    emit(
+      'update:modelValue',
+      current.filter((v) => v !== value)
+    )
   } else {
     emit('update:modelValue', [...current, value])
   }
@@ -81,7 +84,9 @@ function toggle(value) {
   border-radius: var(--radius);
   background: var(--surface);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
   min-height: 64px;
 }
 

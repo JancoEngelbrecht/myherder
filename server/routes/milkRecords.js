@@ -6,7 +6,14 @@ const authenticate = require('../middleware/auth')
 const tenantScope = require('../middleware/tenantScope')
 const authorize = require('../middleware/authorize')
 const { requireAdmin } = authorize
-const { ISO_DATE_RE, MAX_SEARCH_LENGTH, MAX_PAGE_SIZE, joiMsg, validateBody, validateQuery } = require('../helpers/constants')
+const {
+  ISO_DATE_RE,
+  MAX_SEARCH_LENGTH,
+  MAX_PAGE_SIZE,
+  joiMsg,
+  validateBody,
+  validateQuery,
+} = require('../helpers/constants')
 const { logAudit } = require('../services/auditService')
 
 const router = express.Router()
@@ -36,10 +43,15 @@ const querySchema = Joi.object({
 
 const createSchema = Joi.object({
   cow_id: Joi.string().uuid().required(),
-  session: Joi.string().valid(...VALID_SESSIONS).required(),
+  session: Joi.string()
+    .valid(...VALID_SESSIONS)
+    .required(),
   litres: Joi.number().precision(2).min(0).max(999.99).required(),
   recording_date: Joi.string().isoDate().required(),
-  session_time: Joi.string().pattern(/^\d{2}:\d{2}$/).allow(null, '').default(null),
+  session_time: Joi.string()
+    .pattern(/^\d{2}:\d{2}$/)
+    .allow(null, '')
+    .default(null),
   milk_discarded: Joi.boolean().default(false),
   discard_reason: Joi.string().max(255).allow('', null),
   notes: Joi.string().max(2000).allow('', null),
@@ -63,7 +75,7 @@ function milkQuery(farmId) {
       'c.tag_number',
       'c.name as cow_name',
       'c.status as cow_status',
-      'u.full_name as recorded_by_name',
+      'u.full_name as recorded_by_name'
     )
 }
 
@@ -157,7 +169,8 @@ router.get('/summary', authorize('can_record_milk'), async (req, res, next) => {
   try {
     const { date } = req.query
     if (!date) return res.status(400).json({ error: 'date query param required' })
-    if (!ISO_DATE_RE.test(date)) return res.status(400).json({ error: 'Invalid date format — expected YYYY-MM-DD' })
+    if (!ISO_DATE_RE.test(date))
+      return res.status(400).json({ error: 'Invalid date format — expected YYYY-MM-DD' })
 
     const rows = await db('milk_records as mr')
       .where('mr.farm_id', req.farmId)
@@ -168,7 +181,7 @@ router.get('/summary', authorize('can_record_milk'), async (req, res, next) => {
         'mr.session',
         db.raw('SUM(mr.litres) as total'),
         db.raw('COUNT(*) as count'),
-        db.raw('SUM(CASE WHEN mr.milk_discarded = 1 THEN mr.litres ELSE 0 END) as discarded'),
+        db.raw('SUM(CASE WHEN mr.milk_discarded = 1 THEN mr.litres ELSE 0 END) as discarded')
       )
       .groupBy('mr.session')
 
@@ -212,9 +225,14 @@ router.post('/', authorize('can_record_milk'), async (req, res, next) => {
     const { error, value } = validateBody(createSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    const cow = await db('cows').where({ id: value.cow_id }).where('farm_id', req.farmId).whereNull('deleted_at').first()
+    const cow = await db('cows')
+      .where({ id: value.cow_id })
+      .where('farm_id', req.farmId)
+      .whereNull('deleted_at')
+      .first()
     if (!cow) return res.status(404).json({ error: 'Cow not found' })
-    if (cow.sex === 'male') return res.status(400).json({ error: 'Cannot record milk for a male animal' })
+    if (cow.sex === 'male')
+      return res.status(400).json({ error: 'Cannot record milk for a male animal' })
 
     // Check unique constraint before insert to return a clean 409
     const existing = await db('milk_records')
@@ -226,7 +244,8 @@ router.post('/', authorize('can_record_milk'), async (req, res, next) => {
         'milk_records.session': value.session,
         'milk_records.recording_date': value.recording_date,
         'milk_records.session_time': value.session_time,
-      }).first()
+      })
+      .first()
     if (existing) {
       return res.status(409).json({
         error: `Record already exists for this cow/session/date/time (recorded by ${existing.recorded_by_name || 'unknown'})`,
@@ -246,8 +265,9 @@ router.post('/', authorize('can_record_milk'), async (req, res, next) => {
         .first()
       if (withdrawal) {
         value.milk_discarded = true
-        value.discard_reason = value.discard_reason
-          || `Medication withdrawal until ${withdrawal.withdrawal_end_milk.slice(0, 10)}`
+        value.discard_reason =
+          value.discard_reason ||
+          `Medication withdrawal until ${withdrawal.withdrawal_end_milk.slice(0, 10)}`
       }
     }
 
@@ -270,7 +290,14 @@ router.post('/', authorize('can_record_milk'), async (req, res, next) => {
     })
 
     const created = await milkQuery(req.farmId).where('mr.id', id).first()
-    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'create', entityType: 'milk_record', entityId: id, newValues: created })
+    await logAudit({
+      farmId: req.user.farm_id,
+      userId: req.user.id,
+      action: 'create',
+      entityType: 'milk_record',
+      entityId: id,
+      newValues: created,
+    })
     res.status(201).json(created)
   } catch (err) {
     next(err)
@@ -283,7 +310,10 @@ router.put('/:id', authorize('can_record_milk'), async (req, res, next) => {
     const { error, value } = validateBody(updateSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    const existing = await db('milk_records').where({ id: req.params.id }).where('farm_id', req.farmId).first()
+    const existing = await db('milk_records')
+      .where({ id: req.params.id })
+      .where('farm_id', req.farmId)
+      .first()
     if (!existing) return res.status(404).json({ error: 'Milk record not found' })
 
     if (req.user.role !== 'admin' && existing.recorded_by !== req.user.id) {
@@ -300,8 +330,9 @@ router.put('/:id', authorize('can_record_milk'), async (req, res, next) => {
         .first()
       if (activeWithdrawal) {
         value.milk_discarded = true
-        value.discard_reason = value.discard_reason
-          || `Medication withdrawal until ${activeWithdrawal.withdrawal_end_milk.slice(0, 10)}`
+        value.discard_reason =
+          value.discard_reason ||
+          `Medication withdrawal until ${activeWithdrawal.withdrawal_end_milk.slice(0, 10)}`
       }
     }
 
@@ -309,13 +340,24 @@ router.put('/:id', authorize('can_record_milk'), async (req, res, next) => {
       value.litres = Math.round(Number(value.litres) * 100) / 100
     }
 
-    await db('milk_records').where({ id: req.params.id }).where('farm_id', req.farmId).update({
-      ...value,
-      updated_at: new Date().toISOString(),
-    })
+    await db('milk_records')
+      .where({ id: req.params.id })
+      .where('farm_id', req.farmId)
+      .update({
+        ...value,
+        updated_at: new Date().toISOString(),
+      })
 
     const updated = await milkQuery(req.farmId).where('mr.id', req.params.id).first()
-    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'update', entityType: 'milk_record', entityId: req.params.id, oldValues: existing, newValues: updated })
+    await logAudit({
+      farmId: req.user.farm_id,
+      userId: req.user.id,
+      action: 'update',
+      entityType: 'milk_record',
+      entityId: req.params.id,
+      oldValues: existing,
+      newValues: updated,
+    })
     res.json(updated)
   } catch (err) {
     next(err)
@@ -325,12 +367,21 @@ router.put('/:id', authorize('can_record_milk'), async (req, res, next) => {
 // DELETE /api/milk-records/:id — admin only
 router.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
-
-    const existing = await db('milk_records').where({ id: req.params.id }).where('farm_id', req.farmId).first()
+    const existing = await db('milk_records')
+      .where({ id: req.params.id })
+      .where('farm_id', req.farmId)
+      .first()
     if (!existing) return res.status(404).json({ error: 'Milk record not found' })
 
     await db('milk_records').where({ id: req.params.id }).where('farm_id', req.farmId).delete()
-    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'delete', entityType: 'milk_record', entityId: req.params.id, oldValues: existing })
+    await logAudit({
+      farmId: req.user.farm_id,
+      userId: req.user.id,
+      action: 'delete',
+      entityType: 'milk_record',
+      entityId: req.params.id,
+      oldValues: existing,
+    })
     res.json({ message: 'Milk record deleted' })
   } catch (err) {
     next(err)

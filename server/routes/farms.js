@@ -22,8 +22,12 @@ const BCRYPT_ROUNDS = 12
 
 const createSchema = Joi.object({
   name: Joi.string().min(2).max(100).required(),
-  code: Joi.string().pattern(/^[A-Z0-9]{3,10}$/).required()
-    .messages({ 'string.pattern.base': 'Farm code must be 3-10 uppercase alphanumeric characters' }),
+  code: Joi.string()
+    .pattern(/^[A-Z0-9]{3,10}$/)
+    .required()
+    .messages({
+      'string.pattern.base': 'Farm code must be 3-10 uppercase alphanumeric characters',
+    }),
   admin_username: Joi.string().max(50).required(),
   admin_password: Joi.string().min(6).max(128).required(),
   admin_full_name: Joi.string().max(100).required(),
@@ -32,8 +36,11 @@ const createSchema = Joi.object({
 
 const updateSchema = Joi.object({
   name: Joi.string().min(2).max(100),
-  code: Joi.string().pattern(/^[A-Z0-9]{3,10}$/)
-    .messages({ 'string.pattern.base': 'Farm code must be 3-10 uppercase alphanumeric characters' }),
+  code: Joi.string()
+    .pattern(/^[A-Z0-9]{3,10}$/)
+    .messages({
+      'string.pattern.base': 'Farm code must be 3-10 uppercase alphanumeric characters',
+    }),
   is_active: Joi.boolean().truthy(1).falsy(0),
 }).min(1)
 
@@ -48,7 +55,11 @@ function sanitizeUser(row) {
   const { password_hash: _pw, pin_hash: _pin, totp_secret: _ts, recovery_codes: _rc, ...rest } = row
   let permissions = rest.permissions
   if (typeof permissions === 'string') {
-    try { permissions = JSON.parse(permissions) } catch { permissions = [] }
+    try {
+      permissions = JSON.parse(permissions)
+    } catch {
+      permissions = []
+    }
   }
   return { ...rest, permissions }
 }
@@ -69,8 +80,12 @@ router.get('/', async (req, res, next) => {
         'sp.id as species_id',
         'sp.code as species_code',
         'sp.name as species_name',
-        db.raw('(SELECT COUNT(*) FROM users WHERE users.farm_id = farms.id AND users.is_active = 1 AND users.deleted_at IS NULL) as user_count'),
-        db.raw('(SELECT COUNT(*) FROM cows WHERE cows.farm_id = farms.id AND cows.deleted_at IS NULL) as cow_count')
+        db.raw(
+          '(SELECT COUNT(*) FROM users WHERE users.farm_id = farms.id AND users.is_active = 1 AND users.deleted_at IS NULL) as user_count'
+        ),
+        db.raw(
+          '(SELECT COUNT(*) FROM cows WHERE cows.farm_id = farms.id AND cows.deleted_at IS NULL) as cow_count'
+        )
       )
       .orderBy('farms.name')
 
@@ -78,22 +93,33 @@ router.get('/', async (req, res, next) => {
     else if (qValue.active === '0') query = query.where('farms.is_active', false)
 
     const farms = await query
-    res.json(farms.map((f) => {
-      const { species_id, species_code, species_name, ...rest } = f
-      return {
-        ...rest,
-        species: species_id ? { id: species_id, code: species_code, name: species_name } : null,
-        user_count: Number(f.user_count),
-        cow_count: Number(f.cow_count),
-      }
-    }))
+    res.json(
+      farms.map((f) => {
+        const { species_id, species_code, species_name, ...rest } = f
+        return {
+          ...rest,
+          species: species_id ? { id: species_id, code: species_code, name: species_name } : null,
+          user_count: Number(f.user_count),
+          cow_count: Number(f.cow_count),
+        }
+      })
+    )
   } catch (err) {
     next(err)
   }
 })
 
 // ── Export helpers ────────────────────────────────────────────
-const EXPORT_USER_FIELDS = ['id', 'username', 'full_name', 'role', 'permissions', 'language', 'is_active', 'created_at']
+const EXPORT_USER_FIELDS = [
+  'id',
+  'username',
+  'full_name',
+  'role',
+  'permissions',
+  'language',
+  'is_active',
+  'created_at',
+]
 
 function groupByFarm(rows) {
   const map = {}
@@ -108,22 +134,37 @@ router.get('/export', async (req, res, next) => {
   try {
     const farms = await db('farms').where('is_active', true).orderBy('name')
     const farmIds = farms.map((f) => f.id)
-    if (farmIds.length === 0) return res.json({ _meta: { exported_at: new Date().toISOString(), farm_count: 0, total_records: 0 }, farms: [] })
+    if (farmIds.length === 0)
+      return res.json({
+        _meta: { exported_at: new Date().toISOString(), farm_count: 0, total_records: 0 },
+        farms: [],
+      })
 
-    const [users, cows, healthIssues, treatments, medications, milkRecords, breedingEvents, breedTypes, issueTypes, appSettings, featureFlags] =
-      await Promise.all([
-        db('users').whereIn('farm_id', farmIds).select(EXPORT_USER_FIELDS),
-        db('cows').whereIn('farm_id', farmIds),
-        db('health_issues').whereIn('farm_id', farmIds),
-        db('treatments').whereIn('farm_id', farmIds),
-        db('medications').whereIn('farm_id', farmIds),
-        db('milk_records').whereIn('farm_id', farmIds),
-        db('breeding_events').whereIn('farm_id', farmIds),
-        db('breed_types').whereIn('farm_id', farmIds),
-        db('issue_type_definitions').whereIn('farm_id', farmIds),
-        db('app_settings').whereIn('farm_id', farmIds),
-        db('feature_flags').whereIn('farm_id', farmIds),
-      ])
+    const [
+      users,
+      cows,
+      healthIssues,
+      treatments,
+      medications,
+      milkRecords,
+      breedingEvents,
+      breedTypes,
+      issueTypes,
+      appSettings,
+      featureFlags,
+    ] = await Promise.all([
+      db('users').whereIn('farm_id', farmIds).select(EXPORT_USER_FIELDS),
+      db('cows').whereIn('farm_id', farmIds),
+      db('health_issues').whereIn('farm_id', farmIds),
+      db('treatments').whereIn('farm_id', farmIds),
+      db('medications').whereIn('farm_id', farmIds),
+      db('milk_records').whereIn('farm_id', farmIds),
+      db('breeding_events').whereIn('farm_id', farmIds),
+      db('breed_types').whereIn('farm_id', farmIds),
+      db('issue_type_definitions').whereIn('farm_id', farmIds),
+      db('app_settings').whereIn('farm_id', farmIds),
+      db('feature_flags').whereIn('farm_id', farmIds),
+    ])
 
     const grouped = {
       users: groupByFarm(users),
@@ -143,7 +184,11 @@ router.get('/export', async (req, res, next) => {
       const farmUsers = (grouped.users[farm.id] || []).map((u) => {
         let permissions = u.permissions
         if (typeof permissions === 'string') {
-          try { permissions = JSON.parse(permissions) } catch { permissions = [] }
+          try {
+            permissions = JSON.parse(permissions)
+          } catch {
+            permissions = []
+          }
         }
         return { ...u, permissions }
       })
@@ -170,8 +215,11 @@ router.get('/export', async (req, res, next) => {
       _meta: {
         exported_at: new Date().toISOString(),
         farm_count: farmData.length,
-        total_records: farmData.reduce((sum, f) =>
-          sum + Object.values(f).reduce((s, v) => s + (Array.isArray(v) ? v.length : 0), 0), 0),
+        total_records: farmData.reduce(
+          (sum, f) =>
+            sum + Object.values(f).reduce((s, v) => s + (Array.isArray(v) ? v.length : 0), 0),
+          0
+        ),
       },
       farms: farmData,
     })
@@ -222,7 +270,7 @@ const FLAG_KEY_MAP = {
   analytics: 'analytics',
 }
 const FLAG_REVERSE_MAP = Object.fromEntries(
-  Object.entries(FLAG_KEY_MAP).map(([dbKey, apiKey]) => [apiKey, dbKey]),
+  Object.entries(FLAG_KEY_MAP).map(([dbKey, apiKey]) => [apiKey, dbKey])
 )
 
 async function getFarmFlags(farmId) {
@@ -263,7 +311,12 @@ router.get('/:id', async (req, res, next) => {
         .first(),
     ])
 
-    res.json({ ...farm, species: farmSpecies || null, users: users.map(sanitizeUser), feature_flags: featureFlags })
+    res.json({
+      ...farm,
+      species: farmSpecies || null,
+      users: users.map(sanitizeUser),
+      feature_flags: featureFlags,
+    })
   } catch (err) {
     next(err)
   }
@@ -292,12 +345,12 @@ router.patch('/:id/feature-flags', async (req, res, next) => {
           if (isSqlite) {
             await trx.raw(
               'INSERT OR IGNORE INTO feature_flags (farm_id, key, enabled, updated_at) VALUES (?, ?, ?, ?)',
-              [farm.id, dbKey, enabled, now],
+              [farm.id, dbKey, enabled, now]
             )
           } else {
             await trx.raw(
               'INSERT INTO feature_flags (farm_id, `key`, enabled, updated_at) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE enabled = VALUES(enabled), updated_at = VALUES(updated_at)',
-              [farm.id, dbKey, enabled, now],
+              [farm.id, dbKey, enabled, now]
             )
           }
         }
@@ -331,7 +384,10 @@ router.post('/', async (req, res, next) => {
     if (existing) return res.status(409).json({ error: 'Farm code already exists' })
 
     // Look up species by code
-    const species = await db('species').where('code', value.species_code).where('is_active', true).first()
+    const species = await db('species')
+      .where('code', value.species_code)
+      .where('is_active', true)
+      .first()
     if (!species) return res.status(400).json({ error: `Unknown species: ${value.species_code}` })
 
     const farmId = uuidv4()
@@ -361,8 +417,13 @@ router.post('/', async (req, res, next) => {
         full_name: value.admin_full_name,
         role: 'admin',
         permissions: JSON.stringify([
-          'can_manage_cows', 'can_manage_medications', 'can_log_issues',
-          'can_log_treatments', 'can_log_breeding', 'can_record_milk', 'can_view_analytics',
+          'can_manage_cows',
+          'can_manage_medications',
+          'can_log_issues',
+          'can_log_treatments',
+          'can_log_breeding',
+          'can_record_milk',
+          'can_view_analytics',
         ]),
         language: 'en',
         is_active: true,
@@ -453,7 +514,10 @@ router.delete('/:id', async (req, res, next) => {
           .count('* as c')
           .first()
         if (Number(superAdminCount.c) > 0) {
-          throw Object.assign(new Error('Cannot delete farm with super-admin users. Reassign them first.'), { status: 409 })
+          throw Object.assign(
+            new Error('Cannot delete farm with super-admin users. Reassign them first.'),
+            { status: 409 }
+          )
         }
 
         // Collect user IDs for announcement_dismissals cleanup (inside transaction for atomicity)
@@ -508,7 +572,11 @@ router.post('/:id/enter', async (req, res, next) => {
 
     let permissions = user.permissions
     if (typeof permissions === 'string') {
-      try { permissions = JSON.parse(permissions) } catch { permissions = [] }
+      try {
+        permissions = JSON.parse(permissions)
+      } catch {
+        permissions = []
+      }
     }
 
     // Look up the farm's species

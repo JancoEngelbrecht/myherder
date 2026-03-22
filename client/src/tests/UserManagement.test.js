@@ -185,12 +185,15 @@ describe('UserManagement', () => {
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
-    expect(mockPost).toHaveBeenCalledWith('/users', expect.objectContaining({
-      username: 'new_worker',
-      full_name: 'New Worker',
-      role: 'worker',
-      pin: '5678',
-    }))
+    expect(mockPost).toHaveBeenCalledWith(
+      '/users',
+      expect.objectContaining({
+        username: 'new_worker',
+        full_name: 'New Worker',
+        role: 'worker',
+        pin: '5678',
+      })
+    )
   })
 
   it('shows deactivate button for other users but not self', async () => {
@@ -210,7 +213,9 @@ describe('UserManagement', () => {
     await flushPromises()
 
     // v-if="user.id !== currentUserId && user.is_active" — u1 + u2 active, u3 inactive
-    const revokeBtns = wrapper.findAll('.btn-sm').filter((b) => b.text().includes('users.revokeSessions'))
+    const revokeBtns = wrapper
+      .findAll('.btn-sm')
+      .filter((b) => b.text().includes('users.revokeSessions'))
     expect(revokeBtns).toHaveLength(2)
   })
 
@@ -221,12 +226,16 @@ describe('UserManagement', () => {
     await flushPromises()
 
     // Click "Revoke Sessions" on first active user
-    const revokeBtns = wrapper.findAll('.btn-sm').filter((b) => b.text().includes('users.revokeSessions'))
+    const revokeBtns = wrapper
+      .findAll('.btn-sm')
+      .filter((b) => b.text().includes('users.revokeSessions'))
     await revokeBtns[0].trigger('click')
 
     // ConfirmDialog should be visible
     const dialogs = wrapper.findAllComponents({ name: 'ConfirmDialog' })
-    const revokeDialog = dialogs.find((d) => d.props('confirmLabel')?.includes('users.revokeSessions'))
+    const revokeDialog = dialogs.find((d) =>
+      d.props('confirmLabel')?.includes('users.revokeSessions')
+    )
     expect(revokeDialog).toBeTruthy()
 
     // Confirm

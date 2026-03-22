@@ -5,11 +5,19 @@ import SyncPanel from '../components/molecules/SyncPanel.vue'
 vi.mock('../services/syncManager.js', () => {
   const { ref } = require('vue')
   return {
-    isOnline: ref(true), pendingCount: ref(0), isSyncing: ref(false),
-    lastSyncTime: ref(null), failedItems: ref([]), sync: vi.fn(),
-    initialSync: vi.fn(), getPending: vi.fn().mockResolvedValue([]),
-    init: vi.fn(), destroyListeners: vi.fn(),
-    isOfflineError: vi.fn().mockReturnValue(false), enqueue: vi.fn(), dequeueByEntityId: vi.fn(),
+    isOnline: ref(true),
+    pendingCount: ref(0),
+    isSyncing: ref(false),
+    lastSyncTime: ref(null),
+    failedItems: ref([]),
+    sync: vi.fn(),
+    initialSync: vi.fn(),
+    getPending: vi.fn().mockResolvedValue([]),
+    init: vi.fn(),
+    destroyListeners: vi.fn(),
+    isOfflineError: vi.fn().mockReturnValue(false),
+    enqueue: vi.fn(),
+    dequeueByEntityId: vi.fn(),
   }
 })
 

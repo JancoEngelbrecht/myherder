@@ -215,15 +215,20 @@ describe('syncManager — pushChanges', () => {
 
     await pushChanges()
 
-    expect(api.post).toHaveBeenCalledWith('/sync/push', expect.objectContaining({
-      deviceId: expect.any(String),
-      changes: [expect.objectContaining({
-        id: 'cow-1',
-        entityType: 'cows',
-        action: 'create',
-        updatedAt: '2026-01-01T00:00:00Z',
-      })],
-    }))
+    expect(api.post).toHaveBeenCalledWith(
+      '/sync/push',
+      expect.objectContaining({
+        deviceId: expect.any(String),
+        changes: [
+          expect.objectContaining({
+            id: 'cow-1',
+            entityType: 'cows',
+            action: 'create',
+            updatedAt: '2026-01-01T00:00:00Z',
+          }),
+        ],
+      })
+    )
   })
 
   it('does not call API when queue is empty', async () => {
@@ -250,12 +255,14 @@ describe('syncManager — pushChanges', () => {
 
     api.post.mockResolvedValue({
       data: {
-        results: [{
-          id: 'cow-1',
-          entityType: 'cows',
-          status: 'conflict',
-          serverData: serverCow,
-        }],
+        results: [
+          {
+            id: 'cow-1',
+            entityType: 'cows',
+            status: 'conflict',
+            serverData: serverCow,
+          },
+        ],
       },
     })
 
@@ -273,12 +280,14 @@ describe('syncManager — pushChanges', () => {
 
     api.post.mockResolvedValue({
       data: {
-        results: [{
-          id: 'cow-1',
-          entityType: 'cows',
-          status: 'error',
-          error: 'Validation failed',
-        }],
+        results: [
+          {
+            id: 'cow-1',
+            entityType: 'cows',
+            status: 'error',
+            error: 'Validation failed',
+          },
+        ],
       },
     })
 
@@ -293,9 +302,13 @@ describe('syncManager — pushChanges', () => {
   it('skips items with attempts >= 5', async () => {
     // Manually add a failed item
     await db.syncQueue.add({
-      id: 'cow-fail', entityType: 'cows', action: 'create',
-      data: { id: 'cow-fail' }, createdAt: '2026-01-01T00:00:00Z',
-      attempts: 5, lastError: 'Gave up',
+      id: 'cow-fail',
+      entityType: 'cows',
+      action: 'create',
+      data: { id: 'cow-fail' },
+      createdAt: '2026-01-01T00:00:00Z',
+      attempts: 5,
+      lastError: 'Gave up',
     })
     // Add a fresh item
     await enqueue('cows', 'create', 'cow-fresh', { id: 'cow-fresh' })
@@ -359,7 +372,9 @@ describe('syncManager — pullChanges', () => {
 
     await pullChanges()
 
-    expect(api.get).toHaveBeenCalledWith('/sync/pull', { params: { since: '2026-01-01T00:00:00Z' } })
+    expect(api.get).toHaveBeenCalledWith('/sync/pull', {
+      params: { since: '2026-01-01T00:00:00Z' },
+    })
   })
 
   it('uses full=1 when fullPull=true even if timestamp exists', async () => {
@@ -400,8 +415,14 @@ describe('syncManager — pullChanges', () => {
 
     api.get.mockResolvedValue({
       data: {
-        cows: [], medications: [], treatments: [], healthIssues: [],
-        milkRecords: [], breedingEvents: [], breedTypes: [], issueTypes: [],
+        cows: [],
+        medications: [],
+        treatments: [],
+        healthIssues: [],
+        milkRecords: [],
+        breedingEvents: [],
+        breedTypes: [],
+        issueTypes: [],
         deleted: [{ entityType: 'cows', id: 'cow-del' }],
         syncedAt: '2026-01-01T12:00:00Z',
       },
@@ -415,8 +436,14 @@ describe('syncManager — pullChanges', () => {
   it('updates lastPullTimestamp and lastSyncTime', async () => {
     api.get.mockResolvedValue({
       data: {
-        cows: [], medications: [], treatments: [], healthIssues: [],
-        milkRecords: [], breedingEvents: [], breedTypes: [], issueTypes: [],
+        cows: [],
+        medications: [],
+        treatments: [],
+        healthIssues: [],
+        milkRecords: [],
+        breedingEvents: [],
+        breedTypes: [],
+        issueTypes: [],
         syncedAt: '2026-02-01T08:00:00Z',
       },
     })
@@ -446,8 +473,14 @@ describe('syncManager — sync()', () => {
     })
     api.get.mockResolvedValue({
       data: {
-        cows: [], medications: [], treatments: [], healthIssues: [],
-        milkRecords: [], breedingEvents: [], breedTypes: [], issueTypes: [],
+        cows: [],
+        medications: [],
+        treatments: [],
+        healthIssues: [],
+        milkRecords: [],
+        breedingEvents: [],
+        breedTypes: [],
+        issueTypes: [],
         syncedAt: '2026-01-01T00:00:00Z',
       },
     })
@@ -462,13 +495,21 @@ describe('syncManager — sync()', () => {
 
   it('guards against re-entrancy', async () => {
     let resolveFirst
-    api.post.mockReturnValue(new Promise((resolve) => {
-      resolveFirst = () => resolve({ data: { results: [] } })
-    }))
+    api.post.mockReturnValue(
+      new Promise((resolve) => {
+        resolveFirst = () => resolve({ data: { results: [] } })
+      })
+    )
     api.get.mockResolvedValue({
       data: {
-        cows: [], medications: [], treatments: [], healthIssues: [],
-        milkRecords: [], breedingEvents: [], breedTypes: [], issueTypes: [],
+        cows: [],
+        medications: [],
+        treatments: [],
+        healthIssues: [],
+        milkRecords: [],
+        breedingEvents: [],
+        breedTypes: [],
+        issueTypes: [],
         syncedAt: '2026-01-01T00:00:00Z',
       },
     })
@@ -489,8 +530,14 @@ describe('syncManager — sync()', () => {
     isOnline.value = false
     api.get.mockResolvedValue({
       data: {
-        cows: [], medications: [], treatments: [], healthIssues: [],
-        milkRecords: [], breedingEvents: [], breedTypes: [], issueTypes: [],
+        cows: [],
+        medications: [],
+        treatments: [],
+        healthIssues: [],
+        milkRecords: [],
+        breedingEvents: [],
+        breedTypes: [],
+        issueTypes: [],
         syncedAt: '2026-01-01T00:00:00Z',
       },
     })
@@ -512,8 +559,14 @@ describe('syncManager — initialSync()', () => {
       progressSteps.push(initialSyncProgress.value)
       return {
         data: {
-          cows: [], medications: [], treatments: [], healthIssues: [],
-          milkRecords: [], breedingEvents: [], breedTypes: [], issueTypes: [],
+          cows: [],
+          medications: [],
+          treatments: [],
+          healthIssues: [],
+          milkRecords: [],
+          breedingEvents: [],
+          breedTypes: [],
+          issueTypes: [],
           syncedAt: '2026-01-01T00:00:00Z',
         },
       }
@@ -540,8 +593,14 @@ describe('syncManager — initialSync()', () => {
 
     api.get.mockResolvedValue({
       data: {
-        cows: [], medications: [], treatments: [], healthIssues: [],
-        milkRecords: [], breedingEvents: [], breedTypes: [], issueTypes: [],
+        cows: [],
+        medications: [],
+        treatments: [],
+        healthIssues: [],
+        milkRecords: [],
+        breedingEvents: [],
+        breedTypes: [],
+        issueTypes: [],
         syncedAt: '2026-01-02T00:00:00Z',
       },
     })
@@ -555,8 +614,14 @@ describe('syncManager — initialSync()', () => {
 describe('syncManager — visibility change', () => {
   const emptyPullResponse = {
     data: {
-      cows: [], medications: [], treatments: [], healthIssues: [],
-      milkRecords: [], breedingEvents: [], breedTypes: [], issueTypes: [],
+      cows: [],
+      medications: [],
+      treatments: [],
+      healthIssues: [],
+      milkRecords: [],
+      breedingEvents: [],
+      breedTypes: [],
+      issueTypes: [],
       syncedAt: '2026-01-01T00:00:00Z',
     },
   }
@@ -572,7 +637,11 @@ describe('syncManager — visibility change', () => {
     const originalNow = Date.now
     Date.now = () => originalNow() + 31_000
     try {
-      Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: true, configurable: true })
+      Object.defineProperty(document, 'visibilityState', {
+        value: 'visible',
+        writable: true,
+        configurable: true,
+      })
       document.dispatchEvent(new Event('visibilitychange'))
 
       await vi.waitFor(() => {
@@ -589,7 +658,11 @@ describe('syncManager — visibility change', () => {
     await init()
     api.get.mockClear()
 
-    Object.defineProperty(document, 'visibilityState', { value: 'hidden', writable: true, configurable: true })
+    Object.defineProperty(document, 'visibilityState', {
+      value: 'hidden',
+      writable: true,
+      configurable: true,
+    })
     document.dispatchEvent(new Event('visibilitychange'))
 
     await new Promise((r) => setTimeout(r, 50))
@@ -604,7 +677,11 @@ describe('syncManager — visibility change', () => {
     api.get.mockClear()
 
     // Don't advance time — lastPullMs was just set by startPolling() inside init()
-    Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: true, configurable: true })
+    Object.defineProperty(document, 'visibilityState', {
+      value: 'visible',
+      writable: true,
+      configurable: true,
+    })
     document.dispatchEvent(new Event('visibilitychange'))
 
     await new Promise((r) => setTimeout(r, 50))
@@ -615,8 +692,14 @@ describe('syncManager — visibility change', () => {
 describe('syncManager — periodic pull', () => {
   const emptyPullResponse = {
     data: {
-      cows: [], medications: [], treatments: [], healthIssues: [],
-      milkRecords: [], breedingEvents: [], breedTypes: [], issueTypes: [],
+      cows: [],
+      medications: [],
+      treatments: [],
+      healthIssues: [],
+      milkRecords: [],
+      breedingEvents: [],
+      breedTypes: [],
+      issueTypes: [],
       syncedAt: '2026-01-01T00:00:00Z',
     },
   }
@@ -649,7 +732,11 @@ describe('syncManager — periodic pull', () => {
     api.get.mockClear()
 
     // lastPullMs was just set by startPolling() — within debounce window
-    Object.defineProperty(document, 'visibilityState', { value: 'visible', writable: true, configurable: true })
+    Object.defineProperty(document, 'visibilityState', {
+      value: 'visible',
+      writable: true,
+      configurable: true,
+    })
     document.dispatchEvent(new Event('visibilitychange'))
 
     await new Promise((r) => setTimeout(r, 50))
@@ -668,8 +755,12 @@ describe('syncManager — init()', () => {
 
   it('refreshes pendingCount from queue', async () => {
     await db.syncQueue.add({
-      id: 'cow-1', entityType: 'cows', action: 'create',
-      data: {}, createdAt: '2026-01-01T00:00:00Z', attempts: 0,
+      id: 'cow-1',
+      entityType: 'cows',
+      action: 'create',
+      data: {},
+      createdAt: '2026-01-01T00:00:00Z',
+      attempts: 0,
     })
 
     pendingCount.value = 0 // reset

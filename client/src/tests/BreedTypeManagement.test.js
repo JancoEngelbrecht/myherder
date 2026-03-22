@@ -19,11 +19,19 @@ vi.mock('../services/api.js', () => ({
 vi.mock('../services/syncManager.js', () => {
   const { ref } = require('vue')
   return {
-    isOnline: ref(true), pendingCount: ref(0), isSyncing: ref(false),
-    lastSyncTime: ref(null), failedItems: ref([]), sync: vi.fn(),
-    initialSync: vi.fn(), getPending: vi.fn().mockResolvedValue([]),
-    init: vi.fn(), destroyListeners: vi.fn(),
-    isOfflineError: vi.fn().mockReturnValue(false), enqueue: vi.fn(), dequeueByEntityId: vi.fn(),
+    isOnline: ref(true),
+    pendingCount: ref(0),
+    isSyncing: ref(false),
+    lastSyncTime: ref(null),
+    failedItems: ref([]),
+    sync: vi.fn(),
+    initialSync: vi.fn(),
+    getPending: vi.fn().mockResolvedValue([]),
+    init: vi.fn(),
+    destroyListeners: vi.fn(),
+    isOfflineError: vi.fn().mockReturnValue(false),
+    enqueue: vi.fn(),
+    dequeueByEntityId: vi.fn(),
   }
 })
 
@@ -139,7 +147,19 @@ describe('BreedTypeManagement', () => {
   it('submits create via store.create when form saved in add mode', async () => {
     const api = (await import('../services/api.js')).default
     api.get.mockResolvedValue({ data: MOCK_BREED_TYPES })
-    api.post.mockResolvedValue({ data: { id: 'bt3', code: 'nguni', name: 'Nguni', gestation_days: 285, heat_cycle_days: 21, preg_check_days: 35, dry_off_days: 60, is_active: true, sort_order: 2 } })
+    api.post.mockResolvedValue({
+      data: {
+        id: 'bt3',
+        code: 'nguni',
+        name: 'Nguni',
+        gestation_days: 285,
+        heat_cycle_days: 21,
+        preg_check_days: 35,
+        dry_off_days: 60,
+        is_active: true,
+        sort_order: 2,
+      },
+    })
 
     const wrapper = mount(BreedTypeManagement, {
       global: { stubs, mocks: { $route: { path: '/admin/breed-types' } } },
@@ -152,7 +172,10 @@ describe('BreedTypeManagement', () => {
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
-    expect(api.post).toHaveBeenCalledWith('/breed-types', expect.objectContaining({ name: 'Nguni' }))
+    expect(api.post).toHaveBeenCalledWith(
+      '/breed-types',
+      expect.objectContaining({ name: 'Nguni' })
+    )
   })
 
   it('displays gestation days timing fields matching the rendered bt-cards', async () => {

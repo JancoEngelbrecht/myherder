@@ -20,11 +20,19 @@ vi.mock('../services/api.js', () => ({
 vi.mock('../services/syncManager.js', () => {
   const { ref } = require('vue')
   return {
-    isOnline: ref(true), pendingCount: ref(0), isSyncing: ref(false),
-    lastSyncTime: ref(null), failedItems: ref([]), sync: vi.fn(),
-    initialSync: vi.fn(), getPending: vi.fn().mockResolvedValue([]),
-    init: vi.fn(), destroyListeners: vi.fn(),
-    isOfflineError: vi.fn().mockReturnValue(false), enqueue: vi.fn(), dequeueByEntityId: vi.fn(),
+    isOnline: ref(true),
+    pendingCount: ref(0),
+    isSyncing: ref(false),
+    lastSyncTime: ref(null),
+    failedItems: ref([]),
+    sync: vi.fn(),
+    initialSync: vi.fn(),
+    getPending: vi.fn().mockResolvedValue([]),
+    init: vi.fn(),
+    destroyListeners: vi.fn(),
+    isOfflineError: vi.fn().mockReturnValue(false),
+    enqueue: vi.fn(),
+    dequeueByEntityId: vi.fn(),
   }
 })
 
@@ -170,9 +178,9 @@ describe('MedicationManagement', () => {
     await flushPromises()
 
     // The deactivate btn-danger btn-sm is on each active medication card
-    const deactivateBtns = wrapper.findAll('.btn-danger.btn-sm').filter((b) =>
-      b.text().includes('medications.deactivate'),
-    )
+    const deactivateBtns = wrapper
+      .findAll('.btn-danger.btn-sm')
+      .filter((b) => b.text().includes('medications.deactivate'))
     expect(deactivateBtns.length).toBeGreaterThan(0)
     await deactivateBtns[0].trigger('click')
 

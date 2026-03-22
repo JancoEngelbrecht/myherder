@@ -1,7 +1,18 @@
 <template>
   <Transition name="fade">
-    <div v-if="show" class="dialog-overlay" @click.self="$emit('cancel')" @keydown.escape="$emit('cancel')">
-      <div ref="dialogEl" class="dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-msg">
+    <div
+      v-if="show"
+      class="dialog-overlay"
+      @click.self="$emit('cancel')"
+      @keydown.escape="$emit('cancel')"
+    >
+      <div
+        ref="dialogEl"
+        class="dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-dialog-msg"
+      >
         <p id="confirm-dialog-msg" class="dialog-text">{{ message }}</p>
         <div class="dialog-actions">
           <button class="btn-danger" :disabled="loading" @click="$emit('confirm')">
@@ -35,12 +46,15 @@ const props = defineProps({
 defineEmits(['confirm', 'cancel'])
 
 // Auto-focus the cancel button when dialog opens
-watch(() => props.show, async (visible) => {
-  if (visible) {
-    await nextTick()
-    dialogEl.value?.querySelector('.btn-secondary')?.focus()
+watch(
+  () => props.show,
+  async (visible) => {
+    if (visible) {
+      await nextTick()
+      dialogEl.value?.querySelector('.btn-secondary')?.focus()
+    }
   }
-})
+)
 </script>
 
 <style scoped>
@@ -78,7 +92,11 @@ watch(() => props.show, async (visible) => {
 }
 
 .fade-enter-active,
-.fade-leave-active { transition: opacity 0.2s; }
+.fade-leave-active {
+  transition: opacity 0.2s;
+}
 .fade-enter-from,
-.fade-leave-to { opacity: 0; }
+.fade-leave-to {
+  opacity: 0;
+}
 </style>

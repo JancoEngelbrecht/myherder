@@ -26,7 +26,10 @@ describe('CowCard', () => {
   })
 
   it('shows em-dash when cow has no name', () => {
-    const wrapper = mount(CowCard, { props: { cow: { ...mockCow, name: null } }, global: { stubs } })
+    const wrapper = mount(CowCard, {
+      props: { cow: { ...mockCow, name: null } },
+      global: { stubs },
+    })
     expect(wrapper.text()).toContain('—')
   })
 

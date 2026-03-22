@@ -78,7 +78,11 @@
         </div>
 
         <button type="submit" class="btn-primary" :disabled="loading">
-          <span v-if="loading" class="spinner" style="width:18px;height:18px;border-width:2px" />
+          <span
+            v-if="loading"
+            class="spinner"
+            style="width: 18px; height: 18px; border-width: 2px"
+          />
           <span v-else>{{ t('login.loginBtn') }}</span>
         </button>
       </form>
@@ -101,7 +105,12 @@
         <div class="form-group">
           <label class="form-label">{{ t('login.pin') }}</label>
           <div class="pin-display">
-            <span v-for="i in 4" :key="i" class="pin-dot" :class="{ filled: workerForm.pin.length >= i }" />
+            <span
+              v-for="i in 4"
+              :key="i"
+              class="pin-dot"
+              :class="{ filled: workerForm.pin.length >= i }"
+            />
           </div>
         </div>
 
@@ -119,16 +128,24 @@
         </div>
 
         <button type="submit" class="btn-primary" :disabled="loading || workerForm.pin.length < 4">
-          <span v-if="loading" class="spinner" style="width:18px;height:18px;border-width:2px" />
+          <span
+            v-if="loading"
+            class="spinner"
+            style="width: 18px; height: 18px; border-width: 2px"
+          />
           <span v-else>{{ t('login.loginBtn') }}</span>
         </button>
       </form>
 
       <!-- Language toggle -->
       <div class="lang-row">
-        <button class="lang-btn" :class="{ active: locale === 'en' }" @click="setLocale('en')">EN</button>
+        <button class="lang-btn" :class="{ active: locale === 'en' }" @click="setLocale('en')">
+          EN
+        </button>
         <span class="lang-divider">|</span>
-        <button class="lang-btn" :class="{ active: locale === 'af' }" @click="setLocale('af')">AF</button>
+        <button class="lang-btn" :class="{ active: locale === 'af' }" @click="setLocale('af')">
+          AF
+        </button>
       </div>
     </div>
   </div>
@@ -157,7 +174,7 @@ watch(farmCode, (val) => {
 
 onMounted(async () => {
   try {
-    const { data } = await import('../services/api.js').then(m => m.default.get('/settings'))
+    const { data } = await import('../services/api.js').then((m) => m.default.get('/settings'))
     farmName.value = data.farm_name || ''
   } catch {
     // Silently ignore — farm name on login is optional
@@ -169,7 +186,7 @@ const errorMsg = ref('')
 const adminForm = reactive({ username: '', password: '' })
 const workerForm = reactive({ username: '', pin: '' })
 
-const keypadKeys = ['1','2','3','4','5','6','7','8','9','del','0']
+const keypadKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'del', '0']
 
 function handlePinKey(key) {
   if (key === 'del') {
@@ -223,13 +240,17 @@ async function handleLogin(loginFn, onError) {
 }
 
 function handleAdminLogin() {
-  handleLogin(() => authStore.login(adminForm.username, adminForm.password, farmCode.value || undefined))
+  handleLogin(() =>
+    authStore.login(adminForm.username, adminForm.password, farmCode.value || undefined)
+  )
 }
 
 function handlePinLogin() {
   handleLogin(
     () => authStore.loginPin(workerForm.username, workerForm.pin, farmCode.value),
-    () => { workerForm.pin = '' }
+    () => {
+      workerForm.pin = ''
+    }
   )
 }
 </script>
@@ -239,7 +260,12 @@ function handlePinLogin() {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(160deg, var(--primary-dark) 0%, var(--primary) 45%, var(--primary-light) 100%);
+  background: linear-gradient(
+    160deg,
+    var(--primary-dark) 0%,
+    var(--primary) 45%,
+    var(--primary-light) 100%
+  );
 }
 
 .login-hero {
@@ -259,23 +285,25 @@ function handlePinLogin() {
   right: 16px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
   text-decoration: none;
   padding: 4px 10px;
   border-radius: var(--radius-full);
-  border: 1px solid rgba(255,255,255,0.2);
-  transition: color 0.15s, border-color 0.15s;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition:
+    color 0.15s,
+    border-color 0.15s;
 }
 
 .sa-link:hover {
-  color: rgba(255,255,255,0.85);
-  border-color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .login-logo {
   font-size: 4rem;
   margin-bottom: 12px;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
 }
 
 .login-title {
@@ -287,14 +315,14 @@ function handlePinLogin() {
 
 .login-farm-name {
   font-size: 1rem;
-  color: rgba(255,255,255,0.9);
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
   margin-top: 4px;
 }
 
 .login-subtitle {
   font-size: 0.9375rem;
-  color: rgba(255,255,255,0.75);
+  color: rgba(255, 255, 255, 0.75);
   margin-top: 4px;
 }
 
@@ -302,7 +330,7 @@ function handlePinLogin() {
   background: var(--bg);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   padding: 24px 20px 32px;
-  box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
 }
 
 .farm-code-group {
@@ -335,7 +363,10 @@ function handlePinLogin() {
   font-size: 0.875rem;
   color: var(--text-muted);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    box-shadow 0.15s;
 }
 
 .login-tab.active {
@@ -349,7 +380,6 @@ function handlePinLogin() {
   flex-direction: column;
   gap: 16px;
 }
-
 
 /* PIN display */
 .pin-display {
@@ -365,7 +395,9 @@ function handlePinLogin() {
   border-radius: 50%;
   border: 2px solid var(--border-strong);
   background: transparent;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
 
 .pin-dot.filled {
@@ -390,7 +422,9 @@ function handlePinLogin() {
   font-weight: 600;
   color: var(--text);
   cursor: pointer;
-  transition: background 0.1s, transform 0.1s;
+  transition:
+    background 0.1s,
+    transform 0.1s;
   font-family: var(--font-mono);
 }
 
@@ -418,7 +452,10 @@ function handlePinLogin() {
   letter-spacing: 0.05em;
   color: var(--text-muted);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
 }
 
 .lang-btn.active {

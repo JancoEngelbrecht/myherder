@@ -21,10 +21,7 @@ export const useTreatmentsStore = defineStore('treatments', () => {
     error.value = null
     try {
       const { data } = await api.get('/treatments', { params: { cow_id: cowId } })
-      treatments.value = [
-        ...treatments.value.filter((t) => t.cow_id !== cowId),
-        ...data,
-      ]
+      treatments.value = [...treatments.value.filter((t) => t.cow_id !== cowId), ...data]
       await db.treatments.bulkPut(data)
       return data
     } catch (err) {
@@ -51,7 +48,7 @@ export const useTreatmentsStore = defineStore('treatments', () => {
       const active = all.filter(
         (t) =>
           (t.withdrawal_end_milk && t.withdrawal_end_milk > now) ||
-          (t.withdrawal_end_meat && t.withdrawal_end_meat > now),
+          (t.withdrawal_end_meat && t.withdrawal_end_meat > now)
       )
 
       const byCow = {}
@@ -61,12 +58,18 @@ export const useTreatmentsStore = defineStore('treatments', () => {
           byCow[t.cow_id] = { ...t }
           continue
         }
-        if (t.withdrawal_end_milk && (!existing.withdrawal_end_milk || t.withdrawal_end_milk > existing.withdrawal_end_milk)) {
+        if (
+          t.withdrawal_end_milk &&
+          (!existing.withdrawal_end_milk || t.withdrawal_end_milk > existing.withdrawal_end_milk)
+        ) {
           existing.withdrawal_end_milk = t.withdrawal_end_milk
           existing.medication_name = t.medication_name
           existing.treatment_date = t.treatment_date
         }
-        if (t.withdrawal_end_meat && (!existing.withdrawal_end_meat || t.withdrawal_end_meat > existing.withdrawal_end_meat)) {
+        if (
+          t.withdrawal_end_meat &&
+          (!existing.withdrawal_end_meat || t.withdrawal_end_meat > existing.withdrawal_end_meat)
+        ) {
           existing.withdrawal_end_meat = t.withdrawal_end_meat
         }
       }
@@ -75,7 +78,9 @@ export const useTreatmentsStore = defineStore('treatments', () => {
       if (cowIds.length > 0) {
         const cows = await db.cows.bulkGet(cowIds)
         // Try to fetch breed types for accurate life phase thresholds
-        const breedTypeIds = [...new Set(cows.filter(c => c?.breed_type_id).map(c => c.breed_type_id))]
+        const breedTypeIds = [
+          ...new Set(cows.filter((c) => c?.breed_type_id).map((c) => c.breed_type_id)),
+        ]
         const breedTypeMap = {}
         try {
           if (breedTypeIds.length) {
@@ -92,7 +97,10 @@ export const useTreatmentsStore = defineStore('treatments', () => {
             byCow[cow.id].sex = cow.sex
             byCow[cow.id].tag_number = byCow[cow.id].tag_number || cow.tag_number
             byCow[cow.id].cow_name = byCow[cow.id].cow_name || cow.name
-            byCow[cow.id].life_phase = computeLifePhase(cow, breedTypeMap[cow.breed_type_id] ?? null)
+            byCow[cow.id].life_phase = computeLifePhase(
+              cow,
+              breedTypeMap[cow.breed_type_id] ?? null
+            )
           }
         }
       }
@@ -106,8 +114,10 @@ export const useTreatmentsStore = defineStore('treatments', () => {
           entry.withdrawal_end_milk = null
         }
         // Drop entries with no remaining active withdrawal
-        const hasMilk = entry.withdrawal_end_milk && new Date(entry.withdrawal_end_milk).getTime() > nowMs
-        const hasMeat = entry.withdrawal_end_meat && new Date(entry.withdrawal_end_meat).getTime() > nowMs
+        const hasMilk =
+          entry.withdrawal_end_milk && new Date(entry.withdrawal_end_milk).getTime() > nowMs
+        const hasMeat =
+          entry.withdrawal_end_meat && new Date(entry.withdrawal_end_meat).getTime() > nowMs
         if (!hasMilk && !hasMeat) delete byCow[id]
       }
       withdrawalCows.value = Object.values(byCow)

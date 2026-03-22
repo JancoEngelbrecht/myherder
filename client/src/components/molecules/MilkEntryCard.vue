@@ -60,10 +60,14 @@ const focused = ref(false)
 // Sync the DOM input value from the record prop, but ONLY when the user
 // is not actively editing. This prevents Vue's DOM patching from resetting
 // the browser's number-input state and eating keystrokes.
-watch(() => props.record?.litres, (val) => {
-  if (focused.value || !inputRef.value) return
-  inputRef.value.value = val != null ? val : ''
-}, { immediate: false })
+watch(
+  () => props.record?.litres,
+  (val) => {
+    if (focused.value || !inputRef.value) return
+    inputRef.value.value = val != null ? val : ''
+  },
+  { immediate: false }
+)
 
 function onFocus() {
   focused.value = true
@@ -96,10 +100,14 @@ const formattedWithdrawalDate = computed(() => {
 
 const statusLabel = computed(() => {
   switch (props.syncStatus) {
-    case 'saving': return t('milkRecording.saving')
-    case 'saved': return t('milkRecording.saved')
-    case 'error': return t('milkRecording.syncError')
-    default: return ''
+    case 'saving':
+      return t('milkRecording.saving')
+    case 'saved':
+      return t('milkRecording.saved')
+    case 'error':
+      return t('milkRecording.syncError')
+    default:
+      return ''
   }
 })
 
@@ -147,8 +155,13 @@ function handleInput(event) {
 }
 
 @keyframes pulse-bg {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.8; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
 }
 
 .withdrawal-icon {

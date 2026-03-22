@@ -9,11 +9,16 @@
       </div>
 
       <div v-if="!offline" class="filter-chips">
-        <button v-for="opt in TIME_RANGE_OPTIONS" :key="opt.value"
-          class="chip" :class="{ active: selectedRange === opt.value }"
+        <button
+          v-for="opt in TIME_RANGE_OPTIONS"
+          :key="opt.value"
+          class="chip"
+          :class="{ active: selectedRange === opt.value }"
           :aria-pressed="selectedRange === opt.value"
           @click="selectedRange = opt.value"
-        >{{ t(opt.labelKey) }}</button>
+        >
+          {{ t(opt.labelKey) }}
+        </button>
       </div>
 
       <template v-if="!offline">
@@ -69,7 +74,9 @@
           <template v-else-if="wastedMilk.months && wastedMilk.months.length > 0">
             <p class="chart-subtitle mono">
               {{ t('analytics.discardedTotal') }}: {{ wastedMilk.total_discarded }} L
-              <template v-if="milkPrice > 0"> (R{{ Math.round(wastedMilk.total_discarded * milkPrice) }})</template>
+              <template v-if="milkPrice > 0">
+                (R{{ Math.round(wastedMilk.total_discarded * milkPrice) }})</template
+              >
             </p>
             <div class="chart-wrap">
               <Bar :data="wastedChart" :options="barChartOptions" />
@@ -140,9 +147,14 @@ import '../../assets/analytics.css'
 import api from '../../services/api.js'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import {
-  useAnalytics, chartColors, formatMonth,
-  lineChartOptions, barChartOptions, horizontalBarOptions,
-  useTimeRange, TIME_RANGE_OPTIONS,
+  useAnalytics,
+  chartColors,
+  formatMonth,
+  lineChartOptions,
+  barChartOptions,
+  horizontalBarOptions,
+  useTimeRange,
+  TIME_RANGE_OPTIONS,
 } from '../../composables/useAnalytics.js'
 
 const { offline, flags, handleError, t } = useAnalytics()
@@ -175,69 +187,81 @@ const herdSize = ref(1)
 // ── Chart data ────────────────────────────────────────
 
 const litresPerCowChart = computed(() => ({
-  labels: litresPerCow.value.map(m => formatMonth(m.month)),
-  datasets: [{
-    label: t('analytics.financial.litresPerCow'),
-    data: litresPerCow.value.map(m => m.avg_litres_per_cow_per_day),
-    borderColor: chartColors.primary,
-    backgroundColor: chartColors.primaryLight,
-    fill: true,
-    tension: 0.3,
-  }],
+  labels: litresPerCow.value.map((m) => formatMonth(m.month)),
+  datasets: [
+    {
+      label: t('analytics.financial.litresPerCow'),
+      data: litresPerCow.value.map((m) => m.avg_litres_per_cow_per_day),
+      borderColor: chartColors.primary,
+      backgroundColor: chartColors.primaryLight,
+      fill: true,
+      tension: 0.3,
+    },
+  ],
 }))
 
 const revenueChart = computed(() => ({
-  labels: milkTrends.value.map(m => formatMonth(m.month)),
-  datasets: [{
-    label: t('analytics.financial.revenue'),
-    data: milkTrends.value.map(m => Math.round(m.total_litres * milkPrice.value)),
-    backgroundColor: chartColors.primary,
-    borderRadius: 4,
-  }],
+  labels: milkTrends.value.map((m) => formatMonth(m.month)),
+  datasets: [
+    {
+      label: t('analytics.financial.revenue'),
+      data: milkTrends.value.map((m) => Math.round(m.total_litres * milkPrice.value)),
+      backgroundColor: chartColors.primary,
+      borderRadius: 4,
+    },
+  ],
 }))
 
 const costPerCowChart = computed(() => ({
-  labels: (treatmentCosts.value.months || []).map(m => formatMonth(m.month)),
-  datasets: [{
-    label: t('analytics.financial.treatmentCostPerCow'),
-    data: (treatmentCosts.value.months || []).map(m =>
-      Math.round((m.total_cost / Math.max(herdSize.value, 1)) * 100) / 100
-    ),
-    backgroundColor: chartColors.warning,
-    borderRadius: 4,
-  }],
+  labels: (treatmentCosts.value.months || []).map((m) => formatMonth(m.month)),
+  datasets: [
+    {
+      label: t('analytics.financial.treatmentCostPerCow'),
+      data: (treatmentCosts.value.months || []).map(
+        (m) => Math.round((m.total_cost / Math.max(herdSize.value, 1)) * 100) / 100
+      ),
+      backgroundColor: chartColors.warning,
+      borderRadius: 4,
+    },
+  ],
 }))
 
 const wastedChart = computed(() => ({
-  labels: (wastedMilk.value.months || []).map(m => formatMonth(m.month)),
-  datasets: [{
-    label: milkPrice.value > 0 ? 'R' : t('analytics.discardedLitres'),
-    data: (wastedMilk.value.months || []).map(m =>
-      milkPrice.value > 0 ? Math.round(m.discarded_litres * milkPrice.value) : m.discarded_litres
-    ),
-    backgroundColor: chartColors.danger,
-    borderRadius: 4,
-  }],
+  labels: (wastedMilk.value.months || []).map((m) => formatMonth(m.month)),
+  datasets: [
+    {
+      label: milkPrice.value > 0 ? 'R' : t('analytics.discardedLitres'),
+      data: (wastedMilk.value.months || []).map((m) =>
+        milkPrice.value > 0 ? Math.round(m.discarded_litres * milkPrice.value) : m.discarded_litres
+      ),
+      backgroundColor: chartColors.danger,
+      borderRadius: 4,
+    },
+  ],
 }))
 
 const topChart = computed(() => ({
-  labels: topProducers.value.map(c => c.tag_number),
-  datasets: [{
-    label: t('analytics.avgDaily'),
-    data: topProducers.value.map(c => c.avg_daily_litres),
-    backgroundColor: chartColors.primary,
-    borderRadius: 4,
-  }],
+  labels: topProducers.value.map((c) => c.tag_number),
+  datasets: [
+    {
+      label: t('analytics.avgDaily'),
+      data: topProducers.value.map((c) => c.avg_daily_litres),
+      backgroundColor: chartColors.primary,
+      borderRadius: 4,
+    },
+  ],
 }))
 
 const bottomChart = computed(() => ({
-  labels: bottomProducers.value.map(c => c.tag_number),
-  datasets: [{
-    label: t('analytics.avgDaily'),
-    data: bottomProducers.value.map(c => c.avg_daily_litres),
-    backgroundColor: chartColors.danger,
-    borderRadius: 4,
-  }],
+  labels: bottomProducers.value.map((c) => c.tag_number),
+  datasets: [
+    {
+      label: t('analytics.avgDaily'),
+      data: bottomProducers.value.map((c) => c.avg_daily_litres),
+      backgroundColor: chartColors.danger,
+      borderRadius: 4,
+    },
+  ],
 }))
 
 // ── Fetch data ────────────────────────────────────────
@@ -256,25 +280,45 @@ function loadData() {
     producersLoading.value = true
     bottomLoading.value = true
 
-    api.get(`/analytics/litres-per-cow${params}`)
-      .then(r => { litresPerCow.value = r.data.months || [] })
+    api
+      .get(`/analytics/litres-per-cow${params}`)
+      .then((r) => {
+        litresPerCow.value = r.data.months || []
+      })
       .catch(handleError)
-      .finally(() => { litresLoading.value = false })
+      .finally(() => {
+        litresLoading.value = false
+      })
 
-    api.get(`/analytics/milk-trends${params}`)
-      .then(r => { milkTrends.value = r.data.months || [] })
+    api
+      .get(`/analytics/milk-trends${params}`)
+      .then((r) => {
+        milkTrends.value = r.data.months || []
+      })
       .catch(handleError)
-      .finally(() => { milkLoading.value = false })
+      .finally(() => {
+        milkLoading.value = false
+      })
 
-    api.get(`/analytics/top-producers${params}`)
-      .then(r => { topProducers.value = r.data || [] })
+    api
+      .get(`/analytics/top-producers${params}`)
+      .then((r) => {
+        topProducers.value = r.data || []
+      })
       .catch(handleError)
-      .finally(() => { producersLoading.value = false })
+      .finally(() => {
+        producersLoading.value = false
+      })
 
-    api.get(`/analytics/bottom-producers${params}`)
-      .then(r => { bottomProducers.value = r.data || [] })
+    api
+      .get(`/analytics/bottom-producers${params}`)
+      .then((r) => {
+        bottomProducers.value = r.data || []
+      })
       .catch(handleError)
-      .finally(() => { bottomLoading.value = false })
+      .finally(() => {
+        bottomLoading.value = false
+      })
   } else {
     litresLoading.value = false
     milkLoading.value = false
@@ -284,20 +328,30 @@ function loadData() {
 
   if (flags.value.milkRecording && flags.value.treatments) {
     wastedLoading.value = true
-    api.get(`/analytics/wasted-milk${params}`)
-      .then(r => { wastedMilk.value = r.data || { months: [], total_discarded: 0 } })
+    api
+      .get(`/analytics/wasted-milk${params}`)
+      .then((r) => {
+        wastedMilk.value = r.data || { months: [], total_discarded: 0 }
+      })
       .catch(handleError)
-      .finally(() => { wastedLoading.value = false })
+      .finally(() => {
+        wastedLoading.value = false
+      })
   } else {
     wastedLoading.value = false
   }
 
   if (flags.value.treatments) {
     costLoading.value = true
-    api.get(`/analytics/treatment-costs${params}`)
-      .then(r => { treatmentCosts.value = r.data || { months: [], grand_total: 0 } })
+    api
+      .get(`/analytics/treatment-costs${params}`)
+      .then((r) => {
+        treatmentCosts.value = r.data || { months: [], grand_total: 0 }
+      })
       .catch(handleError)
-      .finally(() => { costLoading.value = false })
+      .finally(() => {
+        costLoading.value = false
+      })
   } else {
     costLoading.value = false
   }
@@ -305,12 +359,20 @@ function loadData() {
 
 onMounted(() => {
   // Snapshot endpoints — fetch once, not affected by time range
-  api.get('/settings')
-    .then(r => { milkPrice.value = parseFloat(r.data.milk_price_per_litre) || 0 })
-    .catch(() => { /* ignore */ })
+  api
+    .get('/settings')
+    .then((r) => {
+      milkPrice.value = parseFloat(r.data.milk_price_per_litre) || 0
+    })
+    .catch(() => {
+      /* ignore */
+    })
 
-  api.get('/analytics/herd-summary')
-    .then(r => { herdSize.value = r.data.total || 1 })
+  api
+    .get('/analytics/herd-summary')
+    .then((r) => {
+      herdSize.value = r.data.total || 1
+    })
     .catch(handleError)
 
   // Time-sensitive endpoints — initial load

@@ -23,7 +23,9 @@ function toMySQLDate(iso) {
 const VALID_TYPES = ['info', 'warning', 'maintenance']
 
 const createSchema = Joi.object({
-  type: Joi.string().valid(...VALID_TYPES).default('info'),
+  type: Joi.string()
+    .valid(...VALID_TYPES)
+    .default('info'),
   title: Joi.string().min(1).max(255).required(),
   message: Joi.string().max(2000).allow('', null),
   starts_at: Joi.string().isoDate().allow(null),
@@ -146,14 +148,22 @@ router.post('/:id/permanent', authenticate, requireSuperAdmin, async (req, res, 
     const existing = await db('system_announcements').where('id', req.params.id).first()
     if (!existing) return res.status(404).json({ error: 'Announcement not found' })
     const isExpired = existing.expires_at && new Date(existing.expires_at) < new Date()
-    if (existing.is_active && !isExpired) return res.status(400).json({ error: 'Deactivate announcement before deleting permanently' })
+    if (existing.is_active && !isExpired)
+      return res.status(400).json({ error: 'Deactivate announcement before deleting permanently' })
 
     await db.transaction(async (trx) => {
       await trx('announcement_dismissals').where('announcement_id', existing.id).del()
       await trx('system_announcements').where('id', existing.id).del()
     })
 
-    await logAudit({ farmId: null, userId: req.user.id, action: 'delete', entityType: 'announcement', entityId: existing.id, oldValues: existing })
+    await logAudit({
+      farmId: null,
+      userId: req.user.id,
+      action: 'delete',
+      entityType: 'announcement',
+      entityId: existing.id,
+      oldValues: existing,
+    })
 
     res.json({ deleted: true })
   } catch (err) {

@@ -10,6 +10,7 @@ Transform the super-admin experience from a bare "farm list" into a proper contr
 ## Scope
 
 ### In scope
+
 - **Global Defaults Management** — CRUD for default medications, issue types, breed types that seed new farms; ability to push new defaults to existing farms
 - **Cross-Farm Export** — super-admin can export all farms' data (or selected farms) without entering each one
 - **System Stats Dashboard** — aggregate stats across all farms on the super-admin home screen
@@ -17,6 +18,7 @@ Transform the super-admin experience from a bare "farm list" into a proper contr
 - **System Announcements** — super-admin can broadcast messages (e.g. planned maintenance, new features) that appear as banners/toasts for all farm users
 
 ### Out of scope (future)
+
 - Cross-farm audit log viewer
 - Global feature flag overrides
 - Billing / subscription management
@@ -27,9 +29,11 @@ Transform the super-admin experience from a bare "farm list" into a proper contr
 ## Design Decisions
 
 ### DD-1: Global defaults storage
+
 **Decision needed:** Separate `global_default_*` tables vs a single `system_defaults` JSON table?
 
 **Recommendation:** Three new tables mirroring the per-farm tables but without `farm_id`:
+
 - `default_medications` — columns: `id`, `name`, `active_ingredient`, `withdrawal_milk_hours`, `withdrawal_milk_days`, `withdrawal_meat_hours`, `withdrawal_meat_days`, `default_dosage` (string 100), `unit`, `notes`, `is_active`, `created_at`, `updated_at` (13 cols — mirrors `medications` minus `farm_id`; note: `default_dosage` is string in DB despite Joi schema accepting number — match DB column type)
 - `default_issue_types` — columns: `id`, `code`, `name`, `emoji`, `requires_teat_selection`, `is_active`, `sort_order`, `created_at`, `updated_at` (9 cols — mirrors `issue_type_definitions` minus `farm_id`)
 - `default_breed_types` — columns: `id`, `code`, `name`, `heat_cycle_days`, `gestation_days`, `preg_check_days`, `voluntary_waiting_days`, `dry_off_days`, `calf_max_months`, `heifer_min_months`, `young_bull_min_months`, `is_active`, `sort_order`, `created_at`, `updated_at` (15 cols — mirrors `breed_types` minus `farm_id`)
@@ -37,17 +41,21 @@ Transform the super-admin experience from a bare "farm list" into a proper contr
 **Rationale:** Typed columns enable validation. Matches existing admin CRUD patterns. `farmSeedService.js` reads from these tables (via `trx` — must use the same transaction object it already receives) instead of hardcoded arrays, with hardcoded fallback if tables are empty (safety net).
 
 ### DD-2: "Push to farms" behavior
+
 **Decision needed:** When the super-admin adds a new default medication and pushes it to existing farms, what happens if a farm already has a medication with the same name?
 
 **Recommendation:** Skip farms that already have a row with the same `code` (for issue/breed types) or `name` (for medications). Return a summary: `{ pushed: 5, skipped: 2, errors: 0 }`. This is additive-only — never overwrites farm customizations.
 
 ### DD-3: Cross-farm export format
+
 **Decision needed:** Single JSON file with all farms, or ZIP with one file per farm?
 
 **Recommendation:** Single JSON with `{ _meta, farms: { [farmId]: { name, code, tables: {...} } } }`. Simpler, and the file size for a handful of farms is manageable. The filename includes `all-farms` to distinguish from single-farm exports.
 
 ### DD-4: Announcement delivery mechanism
+
 **Decision needed:** How do farm users see announcements? Options:
+
 1. **Poll-based banner** — frontend polls `GET /api/announcements/active` on app load (or every N minutes). Active announcements render as a dismissible banner at the top of the page. Dismissed state stored in localStorage per announcement ID.
 2. **WebSocket push** — real-time delivery via socket.io. More complex, requires new dependency + server infrastructure.
 3. **Service worker push notification** — browser push notifications. Requires VAPID keys, notification permission, push subscription management.
@@ -55,6 +63,7 @@ Transform the super-admin experience from a bare "farm list" into a proper contr
 **Recommendation:** Option 1 (poll-based banner). Simplest, no new dependencies, works offline (cached response), fits the existing architecture. The app already makes API calls on load — one more lightweight GET is negligible. Announcements are not time-critical (maintenance windows are planned hours/days ahead), so polling on app load is sufficient.
 
 **Announcement model:**
+
 - `type`: `info` | `warning` | `maintenance` — controls banner color/icon
 - `title`: short headline (e.g. "Planned Maintenance")
 - `message`: detail text (e.g. "The app will be offline on Saturday 10:00-12:00")
@@ -67,16 +76,17 @@ Transform the super-admin experience from a bare "farm list" into a proper contr
 ## Phases
 
 ### Phase 1: Migration + Global Defaults Backend (L)
+
 **Migration 033** — create three `default_*` tables + `announcements` table, pre-populate defaults from current `farmSeedService.js` hardcoded arrays.
 
-| Task | Size | Files |
-|------|------|-------|
-| 1A. Create migration 033 with `default_medications`, `default_issue_types`, `default_breed_types`, and `announcements` tables (see column lists in DD-1 and below) | M | `server/migrations/033_create_global_defaults.js` |
-| 1B. Seed default tables from existing hardcoded defaults in migration | S | (same file) |
-| 1C. Update `farmSeedService.js` to read from `default_*` tables via `trx` (same transaction passed by `farms.js`), fallback to hardcoded arrays if DB tables empty | M | `server/services/farmSeedService.js` |
-| 1D. Create `server/routes/globalDefaults.js` — CRUD for all three default types, `requireSuperAdmin` gated. Mount in `app.js` after `/api/farms` (line 41): `app.use('/api/global-defaults', require('./routes/globalDefaults'))` | L | `server/routes/globalDefaults.js`, `server/app.js` |
-| 1E. Add "push to farms" endpoint: `POST /api/global-defaults/:type/push` | M | `server/routes/globalDefaults.js` |
-| 1F. Backend tests | M | `server/tests/globalDefaults.test.js` |
+| Task                                                                                                                                                                                                                              | Size | Files                                              |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------------- |
+| 1A. Create migration 033 with `default_medications`, `default_issue_types`, `default_breed_types`, and `announcements` tables (see column lists in DD-1 and below)                                                                | M    | `server/migrations/033_create_global_defaults.js`  |
+| 1B. Seed default tables from existing hardcoded defaults in migration                                                                                                                                                             | S    | (same file)                                        |
+| 1C. Update `farmSeedService.js` to read from `default_*` tables via `trx` (same transaction passed by `farms.js`), fallback to hardcoded arrays if DB tables empty                                                                | M    | `server/services/farmSeedService.js`               |
+| 1D. Create `server/routes/globalDefaults.js` — CRUD for all three default types, `requireSuperAdmin` gated. Mount in `app.js` after `/api/farms` (line 41): `app.use('/api/global-defaults', require('./routes/globalDefaults'))` | L    | `server/routes/globalDefaults.js`, `server/app.js` |
+| 1E. Add "push to farms" endpoint: `POST /api/global-defaults/:type/push`                                                                                                                                                          | M    | `server/routes/globalDefaults.js`                  |
+| 1F. Backend tests                                                                                                                                                                                                                 | M    | `server/tests/globalDefaults.test.js`              |
 
 > **Seed data note:** `farmSeedService.js` only populates `withdrawal_milk_hours` and `withdrawal_meat_days` for medications (the other two — `withdrawal_milk_days` and `withdrawal_meat_hours` — default to 0). The `default_medications` seed data should match this pattern.
 
@@ -86,12 +96,14 @@ Transform the super-admin experience from a bare "farm list" into a proper contr
 > No `farm_id` — announcements are global (not tenant-scoped).
 
 **Acceptance criteria:**
+
 - `GET/POST/PATCH/DELETE /api/global-defaults/medications` works (same for issue-types, breed-types)
 - `POST /api/global-defaults/medications/push` inserts into all active farms that don't already have matching name/code
 - `farmSeedService.js` reads from `default_*` tables; new farm gets DB-driven defaults
 - All existing farm creation tests still pass
 
 **API surface:**
+
 ```
 GET    /api/global-defaults/medications         — list all default medications
 POST   /api/global-defaults/medications         — create a default medication
@@ -106,16 +118,17 @@ POST   /api/global-defaults/medications/push    — push to all active farms
 
 ### Phase 2: Global Defaults Frontend (L)
 
-| Task | Size | Files |
-|------|------|-------|
-| 2A. Create `DefaultMedicationsView.vue` — list + add/edit/delete + push button | L | `client/src/views/super/DefaultMedicationsView.vue` |
-| 2B. Create `DefaultIssueTypesView.vue` — same pattern | M | `client/src/views/super/DefaultIssueTypesView.vue` |
-| 2C. Create `DefaultBreedTypesView.vue` — same pattern | M | `client/src/views/super/DefaultBreedTypesView.vue` |
-| 2D. Add 3 routes to `router/index.js` with `requiresSuperAdmin` guard (follow pattern at lines 253-269), add 3 action cards to DashboardView super-admin section (lines 15-19) | S | `client/src/router/index.js`, `client/src/views/DashboardView.vue` |
-| 2E. i18n keys for both locales | S | `client/src/i18n/en.json`, `client/src/i18n/af.json` |
-| 2F. Frontend tests | M | `client/src/tests/DefaultMedicationsView.test.js`, etc. |
+| Task                                                                                                                                                                           | Size | Files                                                              |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | ------------------------------------------------------------------ |
+| 2A. Create `DefaultMedicationsView.vue` — list + add/edit/delete + push button                                                                                                 | L    | `client/src/views/super/DefaultMedicationsView.vue`                |
+| 2B. Create `DefaultIssueTypesView.vue` — same pattern                                                                                                                          | M    | `client/src/views/super/DefaultIssueTypesView.vue`                 |
+| 2C. Create `DefaultBreedTypesView.vue` — same pattern                                                                                                                          | M    | `client/src/views/super/DefaultBreedTypesView.vue`                 |
+| 2D. Add 3 routes to `router/index.js` with `requiresSuperAdmin` guard (follow pattern at lines 253-269), add 3 action cards to DashboardView super-admin section (lines 15-19) | S    | `client/src/router/index.js`, `client/src/views/DashboardView.vue` |
+| 2E. i18n keys for both locales                                                                                                                                                 | S    | `client/src/i18n/en.json`, `client/src/i18n/af.json`               |
+| 2F. Frontend tests                                                                                                                                                             | M    | `client/src/tests/DefaultMedicationsView.test.js`, etc.            |
 
 **Acceptance criteria:**
+
 - Super-admin dashboard shows "Default Medications", "Default Issue Types", "Default Breed Types" cards
 - Each view allows full CRUD on global defaults
 - "Push to All Farms" button shows confirmation dialog, then calls push endpoint, shows result summary
@@ -125,21 +138,23 @@ POST   /api/global-defaults/medications/push    — push to all active farms
 
 ### Phase 3: Cross-Farm Export (M)
 
-| Task | Size | Files |
-|------|------|-------|
-| 3A. Add `GET /api/farms/export` — super-admin endpoint, exports all active farms' data | M | `server/routes/farms.js` |
-| 3B. Add export button to super-admin dashboard or farm list | S | `client/src/views/DashboardView.vue` or `client/src/views/super/FarmListView.vue` |
-| 3C. Backend test | S | `server/tests/farms.test.js` |
+| Task                                                                                   | Size | Files                                                                             |
+| -------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------- |
+| 3A. Add `GET /api/farms/export` — super-admin endpoint, exports all active farms' data | M    | `server/routes/farms.js`                                                          |
+| 3B. Add export button to super-admin dashboard or farm list                            | S    | `client/src/views/DashboardView.vue` or `client/src/views/super/FarmListView.vue` |
+| 3C. Backend test                                                                       | S    | `server/tests/farms.test.js`                                                      |
 
 > **Route ordering note:** `GET /export` and `GET /stats` (Phase 4) MUST be defined **before** `GET /:id` in `farms.js`, otherwise Express matches `:id` first (treating "export"/"stats" as an ID). Current route order in `farms.js` is: `GET /` → `GET /:id` → `POST /` → `PATCH /:id` → `DELETE /:id` → `POST /:id/enter` → `POST /:id/revoke-all-sessions`. Insert `GET /export` and `GET /stats` between `GET /` and `GET /:id`.
 
 **Acceptance criteria:**
+
 - `GET /api/farms/export` returns JSON with all farms' data (same 11 tables as single-farm `export.js`: users, cows, health_issues, treatments, medications, milk_records, breeding_events, breed_types, issue_type_definitions, app_settings, feature_flags)
 - Response includes `_meta` with farm count and total records
 - Users/passwords are sanitized — use same destructuring pattern as `export.js` `sanitizeUsers()` (line 14): strip `password_hash`, `pin_hash`, `totp_secret`, `recovery_codes`
 - Super-admin dashboard has a "Export All Farms" button that triggers download
 
 **API surface:**
+
 ```
 GET /api/farms/export  — super-admin only; returns all farms' data as JSON download
 ```
@@ -148,14 +163,15 @@ GET /api/farms/export  — super-admin only; returns all farms' data as JSON dow
 
 ### Phase 4: System Stats Dashboard (M)
 
-| Task | Size | Files |
-|------|------|-------|
-| 4A. Add `GET /api/farms/stats` — aggregate counts across all farms (route must be placed before `/:id`) | S | `server/routes/farms.js` |
-| 4B. Update DashboardView super-admin section with stat chips + action cards | M | `client/src/views/DashboardView.vue` |
-| 4C. i18n keys | S | `client/src/i18n/en.json`, `client/src/i18n/af.json` |
-| 4D. Backend test | S | `server/tests/farms.test.js` |
+| Task                                                                                                    | Size | Files                                                |
+| ------------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------- |
+| 4A. Add `GET /api/farms/stats` — aggregate counts across all farms (route must be placed before `/:id`) | S    | `server/routes/farms.js`                             |
+| 4B. Update DashboardView super-admin section with stat chips + action cards                             | M    | `client/src/views/DashboardView.vue`                 |
+| 4C. i18n keys                                                                                           | S    | `client/src/i18n/en.json`, `client/src/i18n/af.json` |
+| 4D. Backend test                                                                                        | S    | `server/tests/farms.test.js`                         |
 
 **Acceptance criteria:**
+
 - `GET /api/farms/stats` returns `{ total_farms, active_farms, total_users, total_cows }`
 - Super-admin dashboard shows stat chips (farms, users, cows) above action cards
 - Dashboard action grid includes: Farms, Default Medications, Default Issue Types, Default Breed Types, Export All, Announcements
@@ -163,6 +179,7 @@ GET /api/farms/export  — super-admin only; returns all farms' data as JSON dow
 > **Note:** `requireSuperAdmin` middleware (line 6 of `server/middleware/requireSuperAdmin.js`) rejects requests when `req.user.farm_id` is set (i.e., in farm context). So `/api/farms/stats` and `/api/farms/export` are only callable from the super-admin dashboard, not while viewing a farm. This is correct behavior — the frontend buttons only appear in the super-admin-no-farm-context `<template>` block of DashboardView (line 12-22).
 
 **API surface:**
+
 ```
 GET /api/farms/stats  — super-admin only; aggregate stats
 ```
@@ -171,15 +188,16 @@ GET /api/farms/stats  — super-admin only; aggregate stats
 
 ### Phase 5: Profile Cleanup (S)
 
-| Task | Size | Files |
-|------|------|-------|
-| 5A. ProfileView: hide "Settings" link when super-admin without farm context | S | `client/src/views/ProfileView.vue` |
-| 5B. ProfileView: show "Super Admin" role badge distinct from "Admin" | S | `client/src/views/ProfileView.vue` |
-| 5C. i18n keys for super-admin role label | S | `client/src/i18n/en.json`, `client/src/i18n/af.json` |
+| Task                                                                        | Size | Files                                                |
+| --------------------------------------------------------------------------- | ---- | ---------------------------------------------------- |
+| 5A. ProfileView: hide "Settings" link when super-admin without farm context | S    | `client/src/views/ProfileView.vue`                   |
+| 5B. ProfileView: show "Super Admin" role badge distinct from "Admin"        | S    | `client/src/views/ProfileView.vue`                   |
+| 5C. i18n keys for super-admin role label                                    | S    | `client/src/i18n/en.json`, `client/src/i18n/af.json` |
 
 > **Current state:** ProfileView (line 16) shows Settings link when `authStore.isAdmin` — but `isAdmin` returns `true` for `super_admin` role (auth store line 21: `user.value?.role === 'admin' || user.value?.role === 'super_admin'`). Must change condition to `authStore.isAdmin && authStore.user?.farm_id` (settings require farm context). Role badge (line 10-12) currently uses binary `isAdmin` check — needs a third state for `isSuperAdmin`.
 
 **Acceptance criteria:**
+
 - Super-admin outside farm context: profile shows username, "Super Admin" badge, help, logout — NO settings link
 - Super-admin inside farm context: profile shows settings link (for that farm), "Super Admin" badge
 - Regular admin/worker: unchanged behavior
@@ -188,15 +206,15 @@ GET /api/farms/stats  — super-admin only; aggregate stats
 
 ### Phase 6: System Announcements (M)
 
-| Task | Size | Files |
-|------|------|-------|
-| 6A. Create `server/routes/announcements.js` — public `GET /active` (no auth) + CRUD with per-route `authenticate` + `requireSuperAdmin` middleware (not router-level, since `/active` is public). Mount in `app.js` after `/api/farms` (line 41) | M | `server/routes/announcements.js`, `server/app.js` |
-| 6B. Create `AnnouncementsView.vue` — super-admin management (list, create, edit, deactivate) | M | `client/src/views/super/AnnouncementsView.vue` |
-| 6C. Add route to `router/index.js` — `/super/announcements` with `requiresSuperAdmin` guard (follow existing super-admin route pattern at lines 253-269) | S | `client/src/router/index.js` |
-| 6D. Create `AnnouncementBanner.vue` molecule — dismissible banner, fetches active announcements on mount | M | `client/src/components/molecules/AnnouncementBanner.vue` |
-| 6E. Mount banner in `App.vue` (above router-view, below farm context banner) | S | `client/src/App.vue` |
-| 6F. i18n keys for both locales | S | `client/src/i18n/en.json`, `client/src/i18n/af.json` |
-| 6G. Backend tests | S | `server/tests/announcements.test.js` |
+| Task                                                                                                                                                                                                                                             | Size | Files                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | -------------------------------------------------------- |
+| 6A. Create `server/routes/announcements.js` — public `GET /active` (no auth) + CRUD with per-route `authenticate` + `requireSuperAdmin` middleware (not router-level, since `/active` is public). Mount in `app.js` after `/api/farms` (line 41) | M    | `server/routes/announcements.js`, `server/app.js`        |
+| 6B. Create `AnnouncementsView.vue` — super-admin management (list, create, edit, deactivate)                                                                                                                                                     | M    | `client/src/views/super/AnnouncementsView.vue`           |
+| 6C. Add route to `router/index.js` — `/super/announcements` with `requiresSuperAdmin` guard (follow existing super-admin route pattern at lines 253-269)                                                                                         | S    | `client/src/router/index.js`                             |
+| 6D. Create `AnnouncementBanner.vue` molecule — dismissible banner, fetches active announcements on mount                                                                                                                                         | M    | `client/src/components/molecules/AnnouncementBanner.vue` |
+| 6E. Mount banner in `App.vue` (above router-view, below farm context banner)                                                                                                                                                                     | S    | `client/src/App.vue`                                     |
+| 6F. i18n keys for both locales                                                                                                                                                                                                                   | S    | `client/src/i18n/en.json`, `client/src/i18n/af.json`     |
+| 6G. Backend tests                                                                                                                                                                                                                                | S    | `server/tests/announcements.test.js`                     |
 
 > **Migration note:** The `announcements` table is created in migration 033 (Phase 1). No separate migration needed here.
 
@@ -205,6 +223,7 @@ GET /api/farms/stats  — super-admin only; aggregate stats
 > **App.vue banner placement:** Current banner order (lines 4-26): offline → stale → queue overflow → DB recovery → farm context. The announcement banner should go after the farm context banner (line 26) and before `<RouterView>` (line 28).
 
 **Acceptance criteria:**
+
 - Super-admin can create announcements with type (info/warning/maintenance), title, message, optional start/expiry dates
 - `GET /api/announcements/active` returns only currently active, non-expired announcements (public — no auth required, so it works even on login page)
 - Farm users see a colored banner at the top of the app (blue=info, orange=warning, red=maintenance)
@@ -213,6 +232,7 @@ GET /api/farms/stats  — super-admin only; aggregate stats
 - Super-admin dashboard shows "Announcements" card in the action grid
 
 **API surface:**
+
 ```
 GET    /api/announcements/active   — public; returns active, non-expired announcements (MUST be before /:id routes)
 GET    /api/announcements          — super-admin only; all announcements (paginated)
@@ -238,10 +258,10 @@ Phase 1 must go first (migration creates all 4 tables). Phases 2-6 are independe
 
 ## Risk Assessment
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| `farmSeedService` DB read fails (empty tables) | Low | High — new farms get no defaults | Hardcoded fallback array if DB query returns empty |
-| Push-to-farms creates duplicates | Medium | Low — just extra rows | Match by `code` or `name` before inserting, skip existing |
-| Cross-farm export too large | Low | Medium — timeout | Stream JSON response; add optional `?farm_ids=` filter param |
-| Migration on production MySQL | Low | Low | Standard additive migration, no ALTER on existing tables |
-| Announcement polling overhead | Low | Low — single lightweight GET | Only fetch on app load, cache in localStorage, short-circuit if dismissed |
+| Risk                                           | Likelihood | Impact                           | Mitigation                                                                |
+| ---------------------------------------------- | ---------- | -------------------------------- | ------------------------------------------------------------------------- |
+| `farmSeedService` DB read fails (empty tables) | Low        | High — new farms get no defaults | Hardcoded fallback array if DB query returns empty                        |
+| Push-to-farms creates duplicates               | Medium     | Low — just extra rows            | Match by `code` or `name` before inserting, skip existing                 |
+| Cross-farm export too large                    | Low        | Medium — timeout                 | Stream JSON response; add optional `?farm_ids=` filter param              |
+| Migration on production MySQL                  | Low        | Low                              | Standard additive migration, no ALTER on existing tables                  |
+| Announcement polling overhead                  | Low        | Low — single lightweight GET     | Only fetch on app load, cache in localStorage, short-circuit if dismissed |

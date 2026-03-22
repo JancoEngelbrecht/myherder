@@ -53,13 +53,35 @@ const stubs = {
 }
 
 const MOCK_FARMS = [
-  { id: 'f1', name: 'Farm Alpha', code: 'ALPHA', is_active: true, user_count: 3, cow_count: 50, created_at: '2025-01-01T00:00:00Z' },
-  { id: 'f2', name: 'Farm Beta', code: 'BETA', is_active: false, user_count: 1, cow_count: 10, created_at: '2025-06-01T00:00:00Z' },
+  {
+    id: 'f1',
+    name: 'Farm Alpha',
+    code: 'ALPHA',
+    is_active: true,
+    user_count: 3,
+    cow_count: 50,
+    created_at: '2025-01-01T00:00:00Z',
+  },
+  {
+    id: 'f2',
+    name: 'Farm Beta',
+    code: 'BETA',
+    is_active: false,
+    user_count: 1,
+    cow_count: 10,
+    created_at: '2025-06-01T00:00:00Z',
+  },
 ]
 
 function setSuperAdmin() {
   const auth = useAuthStore()
-  auth.user = { full_name: 'Super Admin', username: 'super', role: 'super_admin', permissions: [], farm_id: null }
+  auth.user = {
+    full_name: 'Super Admin',
+    username: 'super',
+    role: 'super_admin',
+    permissions: [],
+    farm_id: null,
+  }
   auth.token = 'test-token'
 }
 

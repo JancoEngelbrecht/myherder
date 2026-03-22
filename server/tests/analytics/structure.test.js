@@ -64,7 +64,7 @@ describe('GET /api/analytics/age-distribution', () => {
       .get('/api/analytics/age-distribution')
       .set('Authorization', adminToken())
 
-    const unknown = res.body.brackets.find(b => b.label === 'Unknown')
+    const unknown = res.body.brackets.find((b) => b.label === 'Unknown')
     expect(unknown).toBeDefined()
     expect(unknown.count).toBeGreaterThanOrEqual(1)
   })
@@ -107,7 +107,7 @@ describe('GET /api/analytics/breed-composition', () => {
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const unassigned = res.body.breeds.find(b => b.name === 'Unassigned')
+    const unassigned = res.body.breeds.find((b) => b.name === 'Unassigned')
     expect(unassigned).toBeDefined()
     expect(unassigned.count).toBeGreaterThanOrEqual(1)
     expect(unassigned.code).toBeNull()

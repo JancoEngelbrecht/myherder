@@ -12,7 +12,9 @@ router.use(tenantScope)
 // ── Helpers ──────────────────────────────────────────────────
 
 function sanitizeUsers(rows) {
-  return rows.map(({ password_hash: _pw, pin_hash: _pin, totp_secret: _ts, recovery_codes: _rc, ...rest }) => rest)
+  return rows.map(
+    ({ password_hash: _pw, pin_hash: _pin, totp_secret: _ts, recovery_codes: _rc, ...rest }) => rest
+  )
 }
 
 // ── Routes ───────────────────────────────────────────────────
@@ -64,7 +66,10 @@ router.get('/', async (req, res, next) => {
 
     const _meta = {
       exportedAt: new Date().toISOString(),
-      totalRecords: Object.values(tables).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0),
+      totalRecords: Object.values(tables).reduce(
+        (sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0),
+        0
+      ),
     }
 
     res.set('Content-Type', 'application/json')

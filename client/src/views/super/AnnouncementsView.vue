@@ -5,7 +5,9 @@
     <div class="page-content ann-content">
       <!-- Add / Edit Form -->
       <div v-if="showForm" class="card form-card">
-        <h3 class="form-title">{{ editing ? $t('announcements.edit') : $t('announcements.create') }}</h3>
+        <h3 class="form-title">
+          {{ editing ? $t('announcements.edit') : $t('announcements.create') }}
+        </h3>
         <form @submit.prevent="save">
           <div class="form-group">
             <label for="ann-title">{{ $t('announcements.announcementTitle') }} *</label>
@@ -27,25 +29,39 @@
                 class="chip"
                 :class="{ active: form.type === s, [`chip-${s}`]: true }"
                 @click="form.type = s"
-              >{{ $t(`announcements.${s}`) }}</button>
+              >
+                {{ $t(`announcements.${s}`) }}
+              </button>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label for="ann-starts">{{ $t('announcements.startsAt') }}</label>
-              <input id="ann-starts" v-model="form.starts_at" type="datetime-local" class="form-input" />
+              <input
+                id="ann-starts"
+                v-model="form.starts_at"
+                type="datetime-local"
+                class="form-input"
+              />
             </div>
             <div class="form-group">
               <label for="ann-expires">{{ $t('announcements.expiresAt') }}</label>
-              <input id="ann-expires" v-model="form.expires_at" type="datetime-local" class="form-input" />
+              <input
+                id="ann-expires"
+                v-model="form.expires_at"
+                type="datetime-local"
+                class="form-input"
+              />
             </div>
           </div>
 
           <p v-if="formError" class="form-error">{{ formError }}</p>
 
           <div class="form-actions">
-            <button type="button" class="btn-secondary" @click="showForm = false">{{ $t('common.cancel') }}</button>
+            <button type="button" class="btn-secondary" @click="showForm = false">
+              {{ $t('common.cancel') }}
+            </button>
             <button type="submit" class="btn-primary" :disabled="saving">
               {{ saving ? $t('common.saving') : $t('common.save') }}
             </button>
@@ -63,10 +79,17 @@
         </div>
 
         <div v-else class="ann-list">
-          <div v-for="ann in items" :key="ann.id" class="card ann-card" :class="{ inactive: !ann.is_active }">
+          <div
+            v-for="ann in items"
+            :key="ann.id"
+            class="card ann-card"
+            :class="{ inactive: !ann.is_active }"
+          >
             <div class="ann-header">
               <div>
-                <span class="ann-type-badge" :class="`type-${ann.type}`">{{ $t(`announcements.${ann.type}`) }}</span>
+                <span class="ann-type-badge" :class="`type-${ann.type}`">{{
+                  $t(`announcements.${ann.type}`)
+                }}</span>
                 <span class="ann-title-text">{{ ann.title }}</span>
               </div>
               <span class="badge" :class="statusClass(ann)">{{ statusLabel(ann) }}</span>
@@ -75,21 +98,37 @@
             <p v-if="ann.message" class="ann-message">{{ ann.message }}</p>
 
             <div class="ann-meta">
-              <span v-if="ann.starts_at">{{ $t('announcements.startsAt') }}: {{ formatDate(ann.starts_at) }}</span>
-              <span v-if="ann.expires_at">{{ $t('announcements.expiresAt') }}: {{ formatDate(ann.expires_at) }}</span>
+              <span v-if="ann.starts_at"
+                >{{ $t('announcements.startsAt') }}: {{ formatDate(ann.starts_at) }}</span
+              >
+              <span v-if="ann.expires_at"
+                >{{ $t('announcements.expiresAt') }}: {{ formatDate(ann.expires_at) }}</span
+              >
             </div>
 
             <div class="defaults-actions">
-              <button class="btn-secondary btn-sm" @click="openEdit(ann)">{{ $t('common.edit') }}</button>
-              <button v-if="ann.is_active && !canDelete(ann)" class="btn-danger btn-sm" @click="confirmDeactivate(ann)">{{ $t('announcements.deactivate') }}</button>
-              <button v-if="canDelete(ann)" class="btn-danger btn-sm" @click="confirmDelete(ann)">{{ $t('common.delete') }}</button>
+              <button class="btn-secondary btn-sm" @click="openEdit(ann)">
+                {{ $t('common.edit') }}
+              </button>
+              <button
+                v-if="ann.is_active && !canDelete(ann)"
+                class="btn-danger btn-sm"
+                @click="confirmDeactivate(ann)"
+              >
+                {{ $t('announcements.deactivate') }}
+              </button>
+              <button v-if="canDelete(ann)" class="btn-danger btn-sm" @click="confirmDelete(ann)">
+                {{ $t('common.delete') }}
+              </button>
             </div>
           </div>
         </div>
       </template>
     </div>
 
-    <button v-if="!showForm" class="fab" :title="t('announcements.create')" @click="openAdd">+</button>
+    <button v-if="!showForm" class="fab" :title="t('announcements.create')" @click="openAdd">
+      +
+    </button>
 
     <ConfirmDialog
       :show="!!deactivateTarget"
@@ -157,7 +196,13 @@ onMounted(load)
 
 function formatDate(iso) {
   if (!iso) return ''
-  return new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return new Date(iso).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 function statusClass(ann) {
@@ -237,7 +282,9 @@ async function save() {
   }
 }
 
-function confirmDeactivate(ann) { deactivateTarget.value = ann }
+function confirmDeactivate(ann) {
+  deactivateTarget.value = ann
+}
 
 async function doDeactivate() {
   deactivating.value = true
@@ -253,7 +300,9 @@ async function doDeactivate() {
   }
 }
 
-function confirmDelete(ann) { deleteTarget.value = ann }
+function confirmDelete(ann) {
+  deleteTarget.value = ann
+}
 
 async function doDelete() {
   deleting.value = true
@@ -271,34 +320,140 @@ async function doDelete() {
 </script>
 
 <style scoped>
-.ann-content { padding-bottom: 100px; }
-.form-card { margin: 0 auto 20px; padding: 20px; max-width: 600px; }
-.form-title { margin: 0 0 16px; font-size: 1rem; font-weight: 600; }
-.form-row { display: grid; grid-template-columns: 1fr; gap: 12px; }
-@media (min-width: 480px) { .form-row { grid-template-columns: 1fr 1fr; } }
-.chip-row { display: flex; gap: 8px; }
-.chip { padding: 8px 16px; border-radius: var(--radius-full); border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 0.85rem; }
-.chip.active { color: white; border-color: transparent; }
-.chip-info.active { background: var(--info); }
-.chip-warning.active { background: var(--warning); }
-.chip-maintenance.active { background: var(--danger); }
-.form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; }
-.form-actions .btn-primary, .form-actions .btn-secondary { width: auto; padding: 10px 20px; }
-.spinner-wrap { display: flex; justify-content: center; padding: 40px; }
-.ann-list { display: flex; flex-direction: column; gap: 12px; }
-.ann-card { padding: 16px; }
-.ann-card.inactive { opacity: 0.6; }
-.ann-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.ann-type-badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: var(--radius-full); margin-right: 8px; }
-.type-info { background: var(--announce-info-bg); color: var(--announce-info-text); }
-.type-warning { background: var(--announce-warning-bg); color: var(--announce-warning-text); }
-.type-maintenance { background: var(--announce-maintenance-bg); color: var(--announce-maintenance-text); }
-.ann-title-text { font-weight: 600; }
-.ann-message { font-size: 0.85rem; color: var(--text-secondary); margin: 0 0 8px; }
-.ann-meta { display: flex; gap: 16px; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px; }
-.defaults-actions { display: flex; gap: 8px; }
-.badge-active { background: var(--success-light); color: var(--primary-dark); }
-.badge-inactive { background: var(--border); color: var(--text-secondary); }
-.badge-expired { background: var(--danger-light); color: var(--danger); }
-.badge-scheduled { background: var(--announce-info-bg); color: var(--announce-info-text); }
+.ann-content {
+  padding-bottom: 100px;
+}
+.form-card {
+  margin: 0 auto 20px;
+  padding: 20px;
+  max-width: 600px;
+}
+.form-title {
+  margin: 0 0 16px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.chip-row {
+  display: flex;
+  gap: 8px;
+}
+.chip {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.chip.active {
+  color: white;
+  border-color: transparent;
+}
+.chip-info.active {
+  background: var(--info);
+}
+.chip-warning.active {
+  background: var(--warning);
+}
+.chip-maintenance.active {
+  background: var(--danger);
+}
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+.form-actions .btn-primary,
+.form-actions .btn-secondary {
+  width: auto;
+  padding: 10px 20px;
+}
+.spinner-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+.ann-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ann-card {
+  padding: 16px;
+}
+.ann-card.inactive {
+  opacity: 0.6;
+}
+.ann-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+.ann-type-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  margin-right: 8px;
+}
+.type-info {
+  background: var(--announce-info-bg);
+  color: var(--announce-info-text);
+}
+.type-warning {
+  background: var(--announce-warning-bg);
+  color: var(--announce-warning-text);
+}
+.type-maintenance {
+  background: var(--announce-maintenance-bg);
+  color: var(--announce-maintenance-text);
+}
+.ann-title-text {
+  font-weight: 600;
+}
+.ann-message {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0 0 8px;
+}
+.ann-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.defaults-actions {
+  display: flex;
+  gap: 8px;
+}
+.badge-active {
+  background: var(--success-light);
+  color: var(--primary-dark);
+}
+.badge-inactive {
+  background: var(--border);
+  color: var(--text-secondary);
+}
+.badge-expired {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+.badge-scheduled {
+  background: var(--announce-info-bg);
+  color: var(--announce-info-text);
+}
 </style>

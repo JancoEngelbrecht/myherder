@@ -6,7 +6,7 @@ const { calcDates } = require('../helpers/breedingCalc')
 // local timezone. In production, the server timezone should be set to match
 // the farm's timezone for correct date computation.
 
-const BASE_DATE = '2026-03-15'  // Use mid-month to avoid timezone boundary ambiguity
+const BASE_DATE = '2026-03-15' // Use mid-month to avoid timezone boundary ambiguity
 
 describe('calcDates', () => {
   // Compute expected dates once from the actual function for reference
@@ -48,11 +48,11 @@ describe('calcDates', () => {
     // Verify day offsets (allow ±1 for timezone)
     const dayDiff = (a, b) => Math.round((a - b) / (1000 * 60 * 60 * 24))
     expect(dayDiff(heat, base)).toBeGreaterThanOrEqual(20)
-    expect(dayDiff(heat, base)).toBeLessThanOrEqual(22)      // ~21 days
+    expect(dayDiff(heat, base)).toBeLessThanOrEqual(22) // ~21 days
     expect(dayDiff(preg, base)).toBeGreaterThanOrEqual(34)
-    expect(dayDiff(preg, base)).toBeLessThanOrEqual(36)      // ~35 days
+    expect(dayDiff(preg, base)).toBeLessThanOrEqual(36) // ~35 days
     expect(dayDiff(calving, base)).toBeGreaterThanOrEqual(282)
-    expect(dayDiff(calving, base)).toBeLessThanOrEqual(284)  // ~283 days
+    expect(dayDiff(calving, base)).toBeLessThanOrEqual(284) // ~283 days
     // dry_off is calving - 60 days
     expect(dayDiff(calving, dryOff)).toBeGreaterThanOrEqual(59)
     expect(dayDiff(calving, dryOff)).toBeLessThanOrEqual(61) // ~60 days
@@ -84,7 +84,7 @@ describe('calcDates', () => {
   })
 
   it('uses defaults for missing fields in partial breedTimings', () => {
-    const partial = { heat_cycle_days: 18 }  // only heat cycle overridden
+    const partial = { heat_cycle_days: 18 } // only heat cycle overridden
     const result = calcDates('ai_insemination', BASE_DATE, partial)
 
     // Heat should differ from default (18 vs 21)

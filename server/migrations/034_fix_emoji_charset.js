@@ -21,7 +21,7 @@ exports.up = async function (knex) {
     "ALTER TABLE `issue_type_definitions` MODIFY COLUMN `emoji` VARCHAR(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '❓'"
   )
   await knex.raw(
-    "ALTER TABLE `default_issue_types` MODIFY COLUMN `emoji` VARCHAR(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+    'ALTER TABLE `default_issue_types` MODIFY COLUMN `emoji` VARCHAR(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'
   )
 }
 
@@ -32,7 +32,5 @@ exports.down = async function (knex) {
   await knex.raw(
     "ALTER TABLE `issue_type_definitions` MODIFY COLUMN `emoji` VARCHAR(10) NOT NULL DEFAULT '❓'"
   )
-  await knex.raw(
-    "ALTER TABLE `default_issue_types` MODIFY COLUMN `emoji` VARCHAR(10)"
-  )
+  await knex.raw('ALTER TABLE `default_issue_types` MODIFY COLUMN `emoji` VARCHAR(10)')
 }

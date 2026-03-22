@@ -11,6 +11,7 @@
 **Files:** New migration `server/migrations/026_add_missing_indexes.js`
 
 **Tasks:**
+
 1. Create migration 026 with the following indexes:
    - `milk_records.recording_date` — used by all milk analytics + history view
    - `milk_records.milk_discarded` — used by wasted-milk analytics + withdrawal report
@@ -34,6 +35,7 @@
 **Files:** `server/routes/analytics/health.js` (or `fertility.js` — locate the `seasonal-prediction` handler)
 
 **Tasks:**
+
 1. Add a 3-year lookback filter: `WHERE observed_at >= <3 years ago>`
 2. Update the `years_of_data` response field to reflect actual data range (cap at 3)
 3. Add a test: seasonal-prediction with large dataset returns results efficiently
@@ -49,6 +51,7 @@
 **Files:** `server/routes/treatments.js`
 
 **Tasks:**
+
 1. Collect all `medication_id` values from `value.medications`
 2. Batch-fetch with `db('medications').whereIn('id', medIds).where('is_active', true)`
 3. Build a lookup map and validate all IDs exist in one check
@@ -66,6 +69,7 @@
 **Files:** `server/routes/treatments.js`
 
 **Tasks:**
+
 1. Add optional `page`/`limit` query params (Joi validated)
 2. When `page`/`limit` provided: return `{ data: [...], total: N }` (same pattern as milkRecords, healthIssues)
 3. When omitted: return plain array (backward compatible with per-cow repro views)
@@ -82,10 +86,12 @@
 **Problem:** Four analytics endpoints return raw SQLite `COUNT()`/`SUM()` strings instead of numbers.
 
 **Files:**
+
 - `server/routes/analytics/fertility.js` — `calvings_by_month` count (line ~136)
 - `server/routes/analytics/financial.js` — `record_count` (line ~26), `discard_count` (line ~90), `treatment_count` (line ~117)
 
 **Tasks:**
+
 1. Wrap each raw count/sum with `Number()`:
    - `fertility.js`: `count: Number(r.count)` in calvings_by_month mapping
    - `financial.js`: `record_count: Number(row.record_count)` in milk-trends
@@ -105,6 +111,7 @@
 **Files:** `server/routes/users.js`
 
 **Tasks:**
+
 1. Add `.whereNull('deleted_at')` to the `GET /:id` query (~line 93)
 2. Add `.whereNull('deleted_at')` to the `PATCH /:id` query (~line 146)
 3. Add 2 tests: GET deleted user → 404; PATCH deleted user → 404
@@ -116,6 +123,7 @@
 ## Verification
 
 After all 13B steps:
+
 - [ ] Run `npm run migrate` — migration 026 succeeds
 - [ ] Run full backend test suite: `npm test` (all pass, including new tests)
 - [ ] Run full frontend test suite: `cd client && npm run test:run` (all pass)

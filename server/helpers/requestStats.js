@@ -43,9 +43,8 @@ function getStats() {
     p95Ms = Math.round(p95Ms)
   }
 
-  const errorRate5xx = stats.totalRequests > 0
-    ? Number(((stats.errors5xx / stats.totalRequests) * 100).toFixed(2))
-    : 0
+  const errorRate5xx =
+    stats.totalRequests > 0 ? Number(((stats.errors5xx / stats.totalRequests) * 100).toFixed(2)) : 0
 
   return {
     started_at: stats.startedAt,
@@ -102,4 +101,11 @@ function resetStats() {
   stats = createFreshStats()
 }
 
-module.exports = { recordRequest, recordError, getStats, getRecentErrors, requestStatsMiddleware, resetStats }
+module.exports = {
+  recordRequest,
+  recordError,
+  getStats,
+  getRecentErrors,
+  requestStatsMiddleware,
+  resetStats,
+}

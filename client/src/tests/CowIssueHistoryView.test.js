@@ -48,36 +48,70 @@ vi.mock('../services/syncManager.js', () => {
 vi.mock('../db/indexedDB.js', () => ({
   default: {
     cows: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      orderBy: vi.fn().mockReturnValue({ reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      orderBy: vi
+        .fn()
+        .mockReturnValue({
+          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     treatments: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     healthIssues: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     breedingEvents: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
-      orderBy: vi.fn().mockReturnValue({ reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
+      orderBy: vi
+        .fn()
+        .mockReturnValue({
+          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     issueTypes: {
-      bulkPut: vi.fn(), put: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
     },
     breedTypes: {
-      bulkPut: vi.fn(), put: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
     },
     medications: {
-      bulkPut: vi.fn(), put: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
     },
     featureFlags: {
@@ -175,9 +209,8 @@ describe('CowIssueHistoryView', () => {
     await flushPromises()
     // RouterLink stubs render as <a> elements; check href attributes or text
     const links = wrapper.findAll('a')
-    const issueLinks = links.filter(a =>
-      a.attributes('href')?.includes('/issues/') ||
-      a.attributes('to')?.includes('/issues/')
+    const issueLinks = links.filter(
+      (a) => a.attributes('href')?.includes('/issues/') || a.attributes('to')?.includes('/issues/')
     )
     expect(issueLinks.length).toBeGreaterThan(0)
   })
@@ -189,7 +222,8 @@ describe('CowIssueHistoryView', () => {
     await flushPromises()
     const html = wrapper.html()
     // Empty state element or text should be present
-    const hasEmpty = wrapper.find('.empty-state').exists() ||
+    const hasEmpty =
+      wrapper.find('.empty-state').exists() ||
       html.toLowerCase().includes('no issue') ||
       html.toLowerCase().includes('geen')
     expect(hasEmpty).toBe(true)

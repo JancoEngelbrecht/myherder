@@ -45,21 +45,43 @@ vi.mock('../db/indexedDB.js', () => ({
   },
 }))
 
-const stubs = { SyncIndicator: true, SyncPanel: true, RouterLink: { template: '<a v-bind="$attrs"><slot /></a>' } }
+const stubs = {
+  SyncIndicator: true,
+  SyncPanel: true,
+  RouterLink: { template: '<a v-bind="$attrs"><slot /></a>' },
+}
 
 function setAdmin() {
   const auth = useAuthStore()
-  auth.user = { full_name: 'Farm Admin', username: 'admin', role: 'admin', permissions: [], farm_id: 'farm-1' }
+  auth.user = {
+    full_name: 'Farm Admin',
+    username: 'admin',
+    role: 'admin',
+    permissions: [],
+    farm_id: 'farm-1',
+  }
 }
 
 function setWorker(permissions = []) {
   const auth = useAuthStore()
-  auth.user = { full_name: 'Sipho', username: 'sipho', role: 'worker', permissions, farm_id: 'farm-1' }
+  auth.user = {
+    full_name: 'Sipho',
+    username: 'sipho',
+    role: 'worker',
+    permissions,
+    farm_id: 'farm-1',
+  }
 }
 
 function setAllFlags() {
   const store = useFeatureFlagsStore()
-  store.flags = { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true }
+  store.flags = {
+    breeding: true,
+    milkRecording: true,
+    healthIssues: true,
+    treatments: true,
+    analytics: true,
+  }
 }
 
 describe('DashboardView', () => {
@@ -105,9 +127,9 @@ describe('DashboardView', () => {
     const counts = wrapper.findAll('.stat-count')
     expect(counts).toHaveLength(4)
     expect(counts[0].text()).toBe('10') // active
-    expect(counts[1].text()).toBe('3')  // dry
-    expect(counts[2].text()).toBe('5')  // pregnant
-    expect(counts[3].text()).toBe('2')  // sick
+    expect(counts[1].text()).toBe('3') // dry
+    expect(counts[2].text()).toBe('5') // pregnant
+    expect(counts[3].text()).toBe('2') // sick
   })
 
   it('shows dash placeholders when summary API fails', async () => {
@@ -154,7 +176,13 @@ describe('DashboardView', () => {
   it('hides action cards when feature flags are disabled', async () => {
     setAdmin()
     const store = useFeatureFlagsStore()
-    store.flags = { breeding: false, milkRecording: false, healthIssues: false, treatments: false, analytics: false }
+    store.flags = {
+      breeding: false,
+      milkRecording: false,
+      healthIssues: false,
+      treatments: false,
+      analytics: false,
+    }
 
     const wrapper = mount(DashboardView, { global: { stubs } })
     await flushPromises()

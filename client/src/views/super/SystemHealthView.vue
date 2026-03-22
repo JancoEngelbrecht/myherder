@@ -46,13 +46,21 @@
             <div class="bar-group">
               <div class="bar-label">
                 <span>{{ t('systemHealth.heapUsed') }}</span>
-                <span class="mono">{{ health.memory.heap_used_mb }} / {{ health.memory.heap_total_mb }} MB</span>
+                <span class="mono"
+                  >{{ health.memory.heap_used_mb }} / {{ health.memory.heap_total_mb }} MB</span
+                >
               </div>
               <div class="bar-track">
                 <div
                   class="bar-fill"
                   :class="`bar-${heapStatus}`"
-                  :style="{ width: Math.min((health.memory.heap_used_mb / health.memory.heap_total_mb) * 100, 100) + '%' }"
+                  :style="{
+                    width:
+                      Math.min(
+                        (health.memory.heap_used_mb / health.memory.heap_total_mb) * 100,
+                        100
+                      ) + '%',
+                  }"
                 />
               </div>
             </div>
@@ -97,7 +105,9 @@
               <div v-for="table in health.database.tables" :key="table.name" class="table-row">
                 <span class="mono table-name">{{ table.name }}</span>
                 <span class="table-stats">
-                  <span class="mono">{{ table.rows.toLocaleString() }} {{ t('systemHealth.rows') }}</span>
+                  <span class="mono"
+                    >{{ table.rows.toLocaleString() }} {{ t('systemHealth.rows') }}</span
+                  >
                   <span class="mono">{{ table.size_mb }} MB</span>
                 </span>
               </div>

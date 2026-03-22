@@ -2,7 +2,13 @@ const { randomUUID } = require('crypto')
 const request = require('supertest')
 const app = require('../app')
 const db = require('../config/database')
-const { WORKER_ID, DEFAULT_FARM_ID, seedUsers, seedFarmUser, tokenForFarm } = require('./helpers/setup')
+const {
+  WORKER_ID,
+  DEFAULT_FARM_ID,
+  seedUsers,
+  seedFarmUser,
+  tokenForFarm,
+} = require('./helpers/setup')
 const { adminToken, workerToken, workerTokenWith } = require('./helpers/tokens')
 
 // Second worker for ownership tests
@@ -14,9 +20,14 @@ beforeAll(async () => {
   await seedUsers(db)
   // Create second worker for ownership tests
   WORKER_B_ID = await seedFarmUser(db, DEFAULT_FARM_ID, {
-    username: 'worker_b', pin: '5678', role: 'worker',
+    username: 'worker_b',
+    pin: '5678',
+    role: 'worker',
   })
-  workerBToken = tokenForFarm(DEFAULT_FARM_ID, WORKER_B_ID, { role: 'worker', username: 'worker_b' })
+  workerBToken = tokenForFarm(DEFAULT_FARM_ID, WORKER_B_ID, {
+    role: 'worker',
+    username: 'worker_b',
+  })
 })
 
 afterAll(() => db.destroy())
@@ -237,7 +248,10 @@ describe('POST /api/sync/push', () => {
       id: randomUUID(),
       farm_id: DEFAULT_FARM_ID,
       tag_number: 'DUP-TAG-SYNC',
-      sex: 'female', status: 'active', created_at: now, updated_at: now,
+      sex: 'female',
+      status: 'active',
+      created_at: now,
+      updated_at: now,
     })
 
     const res = await request(app)
@@ -245,13 +259,15 @@ describe('POST /api/sync/push', () => {
       .set('Authorization', adminToken())
       .send({
         deviceId: randomUUID(),
-        changes: [{
-          entityType: 'cows',
-          action: 'create',
-          id,
-          data: { tag_number: 'DUP-TAG-SYNC', name: 'Dup Cow', sex: 'female', status: 'active' },
-          updatedAt: now,
-        }],
+        changes: [
+          {
+            entityType: 'cows',
+            action: 'create',
+            id,
+            data: { tag_number: 'DUP-TAG-SYNC', name: 'Dup Cow', sex: 'female', status: 'active' },
+            updatedAt: now,
+          },
+        ],
       })
 
     expect(res.status).toBe(200)
@@ -378,8 +394,14 @@ describe('POST /api/sync/push — permission checks', () => {
     const cowId = randomUUID()
     const now = new Date().toISOString()
     await db('cows').insert({
-      id: cowId, farm_id: DEFAULT_FARM_ID, tag_number: `PERM-${cowId.slice(0, 6)}`, name: 'Perm Cow',
-      sex: 'female', status: 'active', created_at: now, updated_at: now,
+      id: cowId,
+      farm_id: DEFAULT_FARM_ID,
+      tag_number: `PERM-${cowId.slice(0, 6)}`,
+      name: 'Perm Cow',
+      sex: 'female',
+      status: 'active',
+      created_at: now,
+      updated_at: now,
     })
 
     const recordId = randomUUID()
@@ -485,9 +507,7 @@ describe('GET /api/sync/pull', () => {
   })
 
   it('returns all entity types in response', async () => {
-    const res = await request(app)
-      .get('/api/sync/pull')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/sync/pull').set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
     expect(res.body).toHaveProperty('cows')
@@ -576,23 +596,25 @@ describe('POST /api/sync/push — ownership enforcement', () => {
       recording_date: '2026-03-01',
       session: 'morning',
       litres: 5,
-      recorded_by: WORKER_ID,  // Worker A owns this
+      recorded_by: WORKER_ID, // Worker A owns this
       created_at: now,
       updated_at: now,
     })
 
     const res = await request(app)
       .post('/api/sync/push')
-      .set('Authorization', workerBToken)  // Worker B tries to update
+      .set('Authorization', workerBToken) // Worker B tries to update
       .send({
         deviceId: randomUUID(),
-        changes: [{
-          entityType: 'milkRecords',
-          action: 'update',
-          id: recordId,
-          data: { litres: 10 },
-          updatedAt: new Date().toISOString(),
-        }],
+        changes: [
+          {
+            entityType: 'milkRecords',
+            action: 'update',
+            id: recordId,
+            data: { litres: 10 },
+            updatedAt: new Date().toISOString(),
+          },
+        ],
       })
 
     expect(res.status).toBe(200)
@@ -626,12 +648,14 @@ describe('POST /api/sync/push — ownership enforcement', () => {
       .set('Authorization', workerBToken)
       .send({
         deviceId: randomUUID(),
-        changes: [{
-          entityType: 'milkRecords',
-          action: 'delete',
-          id: recordId,
-          updatedAt: new Date().toISOString(),
-        }],
+        changes: [
+          {
+            entityType: 'milkRecords',
+            action: 'delete',
+            id: recordId,
+            updatedAt: new Date().toISOString(),
+          },
+        ],
       })
 
     expect(res.status).toBe(200)
@@ -665,13 +689,15 @@ describe('POST /api/sync/push — ownership enforcement', () => {
       .set('Authorization', adminToken())
       .send({
         deviceId: randomUUID(),
-        changes: [{
-          entityType: 'milkRecords',
-          action: 'update',
-          id: recordId,
-          data: { litres: 15 },
-          updatedAt: new Date().toISOString(),
-        }],
+        changes: [
+          {
+            entityType: 'milkRecords',
+            action: 'update',
+            id: recordId,
+            data: { litres: 15 },
+            updatedAt: new Date().toISOString(),
+          },
+        ],
       })
 
     expect(res.status).toBe(200)
@@ -700,13 +726,15 @@ describe('POST /api/sync/push — ownership enforcement', () => {
       .set('Authorization', workerToken())
       .send({
         deviceId: randomUUID(),
-        changes: [{
-          entityType: 'milkRecords',
-          action: 'update',
-          id: recordId,
-          data: { litres: 8 },
-          updatedAt: new Date().toISOString(),
-        }],
+        changes: [
+          {
+            entityType: 'milkRecords',
+            action: 'update',
+            id: recordId,
+            data: { litres: 8 },
+            updatedAt: new Date().toISOString(),
+          },
+        ],
       })
 
     expect(res.status).toBe(200)
@@ -719,9 +747,7 @@ describe('POST /api/sync/push — ownership enforcement', () => {
 describe('GET /api/sync/pull permission filtering', () => {
   it('returns only permitted entities for worker with can_record_milk only', async () => {
     const token = workerTokenWith(['can_record_milk'])
-    const res = await request(app)
-      .get('/api/sync/pull?full=1')
-      .set('Authorization', token)
+    const res = await request(app).get('/api/sync/pull?full=1').set('Authorization', token)
 
     expect(res.status).toBe(200)
     // Reference data always included
@@ -738,9 +764,7 @@ describe('GET /api/sync/pull permission filtering', () => {
   })
 
   it('returns all entities for admin', async () => {
-    const res = await request(app)
-      .get('/api/sync/pull?full=1')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/sync/pull?full=1').set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
     expect(res.body).toHaveProperty('cows')
@@ -755,9 +779,7 @@ describe('GET /api/sync/pull permission filtering', () => {
 
   it('returns only reference data for worker with no permissions', async () => {
     const token = workerTokenWith([])
-    const res = await request(app)
-      .get('/api/sync/pull?full=1')
-      .set('Authorization', token)
+    const res = await request(app).get('/api/sync/pull?full=1').set('Authorization', token)
 
     expect(res.status).toBe(200)
     expect(res.body).toHaveProperty('cows')

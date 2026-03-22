@@ -17,7 +17,11 @@
       </div>
 
       <!-- Advanced filters toggle -->
-      <button data-tour="audit-advanced" class="advanced-toggle" @click="showAdvanced = !showAdvanced">
+      <button
+        data-tour="audit-advanced"
+        class="advanced-toggle"
+        @click="showAdvanced = !showAdvanced"
+      >
         {{ t('audit.advancedFilters') }}
         <span v-if="advancedFilterCount > 0" class="filter-badge">{{ advancedFilterCount }}</span>
         <span class="toggle-arrow" :class="{ open: showAdvanced }">&#9662;</span>
@@ -27,7 +31,11 @@
         <!-- Action filter -->
         <div class="filter-group">
           <span class="filter-group-title">{{ t('audit.filterAction') }}</span>
-          <select v-model="actionFilter" class="form-select filter-select" @change="onAdvancedChange">
+          <select
+            v-model="actionFilter"
+            class="form-select filter-select"
+            @change="onAdvancedChange"
+          >
             <option value="">{{ t('audit.allActions') }}</option>
             <option v-for="a in actionOptions" :key="a" :value="a">
               {{ t(`audit.${a}`) }}
@@ -55,15 +63,31 @@
           <span class="filter-group-title">{{ t('audit.filterDateRange') }}</span>
           <div class="filter-range-row">
             <div class="filter-range-inputs">
-              <input v-model="dateFrom" type="date" class="form-input filter-date-input" :placeholder="t('audit.filterFrom')" @change="onAdvancedChange" />
+              <input
+                v-model="dateFrom"
+                type="date"
+                class="form-input filter-date-input"
+                :placeholder="t('audit.filterFrom')"
+                @change="onAdvancedChange"
+              />
               <span class="filter-sep">–</span>
-              <input v-model="dateTo" type="date" class="form-input filter-date-input" :placeholder="t('audit.filterTo')" @change="onAdvancedChange" />
+              <input
+                v-model="dateTo"
+                type="date"
+                class="form-input filter-date-input"
+                :placeholder="t('audit.filterTo')"
+                @change="onAdvancedChange"
+              />
             </div>
           </div>
         </div>
 
         <!-- Clear all button -->
-        <button v-if="advancedFilterCount > 0" class="btn-secondary btn-sm clear-btn" @click="clearAdvanced">
+        <button
+          v-if="advancedFilterCount > 0"
+          class="btn-secondary btn-sm clear-btn"
+          @click="clearAdvanced"
+        >
           {{ t('audit.clearFilters') }}
         </button>
       </div>
@@ -134,29 +158,33 @@ import { useTour } from '../../composables/useTour'
 
 const { t } = useI18n()
 
-const { startTour } = useTour('audit-log', () => [
-  {
-    element: '[data-tour="audit-filters"]',
-    popover: {
-      title: t('tour.auditLog.filters.title'),
-      description: t('tour.auditLog.filters.desc'),
-    }
-  },
-  {
-    element: '[data-tour="audit-advanced"]',
-    popover: {
-      title: t('tour.auditLog.advanced.title'),
-      description: t('tour.auditLog.advanced.desc'),
-    }
-  },
-  {
-    element: '[data-tour="audit-entries"]',
-    popover: {
-      title: t('tour.auditLog.entries.title'),
-      description: t('tour.auditLog.entries.desc'),
-    }
-  },
-], { autoStart: false })
+const { startTour } = useTour(
+  'audit-log',
+  () => [
+    {
+      element: '[data-tour="audit-filters"]',
+      popover: {
+        title: t('tour.auditLog.filters.title'),
+        description: t('tour.auditLog.filters.desc'),
+      },
+    },
+    {
+      element: '[data-tour="audit-advanced"]',
+      popover: {
+        title: t('tour.auditLog.advanced.title'),
+        description: t('tour.auditLog.advanced.desc'),
+      },
+    },
+    {
+      element: '[data-tour="audit-entries"]',
+      popover: {
+        title: t('tour.auditLog.entries.title'),
+        description: t('tour.auditLog.entries.desc'),
+      },
+    },
+  ],
+  { autoStart: false }
+)
 
 const entries = ref([])
 const total = ref(0)
@@ -174,7 +202,17 @@ const dateFrom = ref('')
 const dateTo = ref('')
 const users = ref([])
 
-const entityTypeFilters = ['all', 'user', 'cow', 'setting', 'health_issue', 'treatment', 'milk_record', 'breeding_event', 'medication']
+const entityTypeFilters = [
+  'all',
+  'user',
+  'cow',
+  'setting',
+  'health_issue',
+  'treatment',
+  'milk_record',
+  'breeding_event',
+  'medication',
+]
 const actionOptions = ['create', 'update', 'delete', 'status_change', 'dismiss', 'deactivate']
 
 const advancedFilterCount = computed(() => {

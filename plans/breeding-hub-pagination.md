@@ -1,9 +1,11 @@
 # Breeding Hub Pagination Sub-Plan
 
 ## Goal
+
 Add server-side pagination to the Recent Events list in `BreedingHubView.vue`, matching the `CowListView` PaginationBar pattern. Add a collapsible "show more" pattern for upcoming alert categories to prevent unbounded growth on large herds.
 
 ## Pattern References
+
 - Backend pagination: `server/routes/cows.js` (page/limit/offset + total count)
 - Frontend pagination: `client/src/views/CowListView.vue` + `client/src/components/atoms/PaginationBar.vue`
 - Store pattern: `client/src/stores/cows.js` (total ref, fetchAll with params)
@@ -23,6 +25,7 @@ Add server-side pagination to the Recent Events list in `BreedingHubView.vue`, m
 - Keep `event_type` filter working alongside pagination
 
 **Response shape change:**
+
 - Before: `GET /api/breeding-events` → `[...events]`
 - After: `GET /api/breeding-events` (no cow_id) → `{ data: [...events], total: N }`
 - Unchanged: `GET /api/breeding-events?cow_id=X` → `[...events]` (plain array, same as before)
@@ -59,6 +62,7 @@ Add server-side pagination to the Recent Events list in `BreedingHubView.vue`, m
 **Important:** The filter chips currently filter client-side across a hard-sliced set. With server pagination, filter chips should trigger a new server fetch with the `event_type` param rather than filtering client-side. This gives accurate counts across all pages.
 
 Updated filter chip logic:
+
 - `eventFilter` ref stays, but clicking a chip calls `fetchEvents()` (new helper) instead of just setting the ref
 - `fetchEvents()` calls `breedingStore.fetchAll({ page: page.value, limit: limit.value, event_type: eventFilter.value || undefined })`
 - `filteredEvents` computed just returns `breedingStore.events` directly (no client-side slicing)
@@ -78,6 +82,7 @@ For the Upcoming Alerts section (heats, calvings, pregChecks, dryOffs), these ar
 - No backend changes — data is already fully loaded by `fetchUpcoming()`
 
 **i18n keys to add** (both `en.json` and `af.json`):
+
 - `breeding.showAll` → "Show all ({count})" / "Wys almal ({count})"
 - `breeding.showLess` → "Show less" / "Wys minder"
 
@@ -86,6 +91,7 @@ For the Upcoming Alerts section (heats, calvings, pregChecks, dryOffs), these ar
 ## Step 5 — Update CLAUDE.md API docs
 
 Update the breeding events API doc entry:
+
 ```
 - `GET /api/breeding-events?cow_id=X` → plain array (unchanged)
 - `GET /api/breeding-events?page=N&limit=N&event_type=X` → `{ data: [...], total: N }`

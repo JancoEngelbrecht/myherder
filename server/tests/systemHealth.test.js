@@ -49,42 +49,38 @@ describe('GET /api/system/health', () => {
   })
 
   it('returns 403 for admin users', async () => {
-    const res = await request(app)
-      .get('/api/system/health')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/system/health').set('Authorization', adminToken())
     expect(res.status).toBe(403)
   })
 
   it('returns 403 for worker users', async () => {
-    const res = await request(app)
-      .get('/api/system/health')
-      .set('Authorization', workerToken())
+    const res = await request(app).get('/api/system/health').set('Authorization', workerToken())
     expect(res.status).toBe(403)
   })
 
   it('returns 403 for super-admin in farm context', async () => {
     // Super-admin who has entered a farm gets a JWT with farm_id set
-    const farmContextToken = `Bearer ${jwt.sign({
-      id: SUPER_ADMIN_ID,
-      farm_id: DEFAULT_FARM_ID,
-      username: 'super_admin',
-      full_name: 'Super Admin',
-      role: 'super_admin',
-      permissions: [],
-      language: 'en',
-      token_version: 0,
-    }, jwtSecret, { expiresIn: '1h' })}`
+    const farmContextToken = `Bearer ${jwt.sign(
+      {
+        id: SUPER_ADMIN_ID,
+        farm_id: DEFAULT_FARM_ID,
+        username: 'super_admin',
+        full_name: 'Super Admin',
+        role: 'super_admin',
+        permissions: [],
+        language: 'en',
+        token_version: 0,
+      },
+      jwtSecret,
+      { expiresIn: '1h' }
+    )}`
 
-    const res = await request(app)
-      .get('/api/system/health')
-      .set('Authorization', farmContextToken)
+    const res = await request(app).get('/api/system/health').set('Authorization', farmContextToken)
     expect(res.status).toBe(403)
   })
 
   it('returns health metrics for super-admin', async () => {
-    const res = await request(app)
-      .get('/api/system/health')
-      .set('Authorization', superAdminToken())
+    const res = await request(app).get('/api/system/health').set('Authorization', superAdminToken())
     expect(res.status).toBe(200)
 
     const body = res.body
@@ -124,9 +120,7 @@ describe('GET /api/system/health', () => {
   })
 
   it('returns disk as null on non-Linux platforms', async () => {
-    const res = await request(app)
-      .get('/api/system/health')
-      .set('Authorization', superAdminToken())
+    const res = await request(app).get('/api/system/health').set('Authorization', superAdminToken())
     expect(res.status).toBe(200)
     // disk is null on Windows/unsupported, object on Linux
     if (res.body.disk === null) {
@@ -138,9 +132,7 @@ describe('GET /api/system/health', () => {
   })
 
   it('returns database info for SQLite test environment', async () => {
-    const res = await request(app)
-      .get('/api/system/health')
-      .set('Authorization', superAdminToken())
+    const res = await request(app).get('/api/system/health').set('Authorization', superAdminToken())
     expect(res.status).toBe(200)
     // In-memory SQLite (test config) returns size_mb: 0, empty tables
     expect(res.body.database.size_mb).toBeGreaterThanOrEqual(0)
@@ -152,9 +144,7 @@ describe('GET /api/system/health', () => {
     await request(app).get('/api/system/health') // 401
     await request(app).get('/api/system/health') // 401
 
-    const res = await request(app)
-      .get('/api/system/health')
-      .set('Authorization', superAdminToken())
+    const res = await request(app).get('/api/system/health').set('Authorization', superAdminToken())
     expect(res.status).toBe(200)
     // The two 401s are recorded on finish before this request starts.
     // The current (3rd) request hasn't finished yet when getStats() runs.
@@ -163,17 +153,13 @@ describe('GET /api/system/health', () => {
   })
 
   it('includes error_rate_5xx_pct field', async () => {
-    const res = await request(app)
-      .get('/api/system/health')
-      .set('Authorization', superAdminToken())
+    const res = await request(app).get('/api/system/health').set('Authorization', superAdminToken())
     expect(res.status).toBe(200)
     expect(typeof res.body.requests.error_rate_5xx_pct).toBe('number')
   })
 
   it('includes recent_errors array in response', async () => {
-    const res = await request(app)
-      .get('/api/system/health')
-      .set('Authorization', superAdminToken())
+    const res = await request(app).get('/api/system/health').set('Authorization', superAdminToken())
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body.recent_errors)).toBe(true)
   })
@@ -182,9 +168,7 @@ describe('GET /api/system/health', () => {
     recordError('GET', '/api/cows', 500, 'Something broke')
     recordError('POST', '/api/milk-records', 500, 'DB connection lost')
 
-    const res = await request(app)
-      .get('/api/system/health')
-      .set('Authorization', superAdminToken())
+    const res = await request(app).get('/api/system/health').set('Authorization', superAdminToken())
     expect(res.status).toBe(200)
     expect(res.body.recent_errors.length).toBe(2)
     // Newest first

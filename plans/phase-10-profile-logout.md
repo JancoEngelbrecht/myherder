@@ -1,6 +1,7 @@
 # Phase 10: Profile Page & Logout
 
 ## Goal
+
 Add a user profile page with logout functionality, accessible via an avatar circle (user initials) in the AppHeader.
 
 ---
@@ -33,6 +34,7 @@ Add a user profile page with logout functionality, accessible via an avatar circ
 **i18n keys** (`client/src/i18n/en.json` + `af.json`):
 
 New `profile` namespace:
+
 ```json
 // en.json
 "profile": {
@@ -44,6 +46,7 @@ New `profile` namespace:
   "roleWorker": "Worker"
 }
 ```
+
 ```json
 // af.json
 "profile": {
@@ -59,9 +62,11 @@ New `profile` namespace:
 ## Step 3: Route registration + wire avatar
 
 **File:** `client/src/router/index.js`
+
 - Add route: `{ path: '/profile', name: 'profile', component: () => import('../views/ProfileView.vue'), meta: { requiresAuth: true } }`
 
 **File:** `client/src/views/DashboardView.vue`
+
 - Add `show-avatar` prop to the `<AppHeader>` component
 
 Other views that use AppHeader with default right slot will NOT show the avatar — it's dashboard-only (home screen). Users can always navigate home via bottom nav to reach their profile.
@@ -73,6 +78,7 @@ Other views that use AppHeader with default right slot will NOT show the avatar 
 **New file:** `client/src/tests/ProfileView.test.js`
 
 Test cases:
+
 1. Renders user full name and username
 2. Shows "Admin" role badge for admin users
 3. Shows "Worker" role badge for worker users
@@ -83,6 +89,7 @@ Test cases:
 8. Cancels logout when dialog dismissed
 
 **File:** `client/src/tests/AppHeader.test.js`
+
 - Add test: renders avatar initials when `showAvatar` is true
 - Add test: hides avatar when `showAvatar` is false (default)
 
@@ -101,17 +108,19 @@ Test cases:
 ---
 
 ## Files Modified
-| File | Change |
-|------|--------|
+
+| File                                            | Change                                |
+| ----------------------------------------------- | ------------------------------------- |
 | `client/src/components/organisms/AppHeader.vue` | Add avatar circle + `showAvatar` prop |
-| `client/src/views/DashboardView.vue` | Pass `show-avatar` to AppHeader |
-| `client/src/router/index.js` | Add `/profile` route |
-| `client/src/i18n/en.json` | Add `profile.*` keys |
-| `client/src/i18n/af.json` | Add `profile.*` keys |
-| `client/src/tests/AppHeader.test.js` | Add avatar tests |
+| `client/src/views/DashboardView.vue`            | Pass `show-avatar` to AppHeader       |
+| `client/src/router/index.js`                    | Add `/profile` route                  |
+| `client/src/i18n/en.json`                       | Add `profile.*` keys                  |
+| `client/src/i18n/af.json`                       | Add `profile.*` keys                  |
+| `client/src/tests/AppHeader.test.js`            | Add avatar tests                      |
 
 ## New Files
-| File | Purpose |
-|------|---------|
-| `client/src/views/ProfileView.vue` | Profile page with user info + logout |
+
+| File                                   | Purpose                                           |
+| -------------------------------------- | ------------------------------------------------- |
+| `client/src/views/ProfileView.vue`     | Profile page with user info + logout              |
 | `client/src/tests/ProfileView.test.js` | ~8 tests covering profile rendering + logout flow |

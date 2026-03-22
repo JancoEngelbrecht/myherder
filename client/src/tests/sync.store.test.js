@@ -94,9 +94,13 @@ describe('sync store — retryFailed', () => {
   it('resets attempts to 0 on failed items', async () => {
     // Seed a failed queue entry
     await db.syncQueue.add({
-      id: 'cow-1', entityType: 'cows', action: 'create',
-      data: { id: 'cow-1' }, createdAt: '2026-01-01T00:00:00Z',
-      attempts: 5, lastError: 'Server error',
+      id: 'cow-1',
+      entityType: 'cows',
+      action: 'create',
+      data: { id: 'cow-1' },
+      createdAt: '2026-01-01T00:00:00Z',
+      attempts: 5,
+      lastError: 'Server error',
     })
 
     const store = useSyncStore()
@@ -112,14 +116,22 @@ describe('sync store — retryFailed', () => {
 describe('sync store — clearFailed', () => {
   it('removes items with attempts >= 5', async () => {
     await db.syncQueue.add({
-      id: 'cow-fail', entityType: 'cows', action: 'create',
-      data: {}, createdAt: '2026-01-01T00:00:00Z',
-      attempts: 5, lastError: 'Gave up',
+      id: 'cow-fail',
+      entityType: 'cows',
+      action: 'create',
+      data: {},
+      createdAt: '2026-01-01T00:00:00Z',
+      attempts: 5,
+      lastError: 'Gave up',
     })
     await db.syncQueue.add({
-      id: 'cow-ok', entityType: 'cows', action: 'create',
-      data: {}, createdAt: '2026-01-01T00:01:00Z',
-      attempts: 2, lastError: null,
+      id: 'cow-ok',
+      entityType: 'cows',
+      action: 'create',
+      data: {},
+      createdAt: '2026-01-01T00:01:00Z',
+      attempts: 2,
+      lastError: null,
     })
 
     const store = useSyncStore()
@@ -134,16 +146,28 @@ describe('sync store — clearFailed', () => {
 describe('sync store — getPendingByType', () => {
   it('groups pending items by entityType', async () => {
     await db.syncQueue.add({
-      id: 'cow-1', entityType: 'cows', action: 'create',
-      data: {}, createdAt: '2026-01-01T00:00:00Z', attempts: 0,
+      id: 'cow-1',
+      entityType: 'cows',
+      action: 'create',
+      data: {},
+      createdAt: '2026-01-01T00:00:00Z',
+      attempts: 0,
     })
     await db.syncQueue.add({
-      id: 'cow-2', entityType: 'cows', action: 'update',
-      data: {}, createdAt: '2026-01-01T00:01:00Z', attempts: 0,
+      id: 'cow-2',
+      entityType: 'cows',
+      action: 'update',
+      data: {},
+      createdAt: '2026-01-01T00:01:00Z',
+      attempts: 0,
     })
     await db.syncQueue.add({
-      id: 'treat-1', entityType: 'treatments', action: 'create',
-      data: {}, createdAt: '2026-01-01T00:02:00Z', attempts: 0,
+      id: 'treat-1',
+      entityType: 'treatments',
+      action: 'create',
+      data: {},
+      createdAt: '2026-01-01T00:02:00Z',
+      attempts: 0,
     })
 
     const store = useSyncStore()

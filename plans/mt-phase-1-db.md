@@ -2,10 +2,10 @@
 
 Phase 1 adds multi-tenancy schema to the database. Split into two sub-phases:
 
-| Sub-phase | File | Scope | Produces |
-|-----------|------|-------|----------|
-| **1A** | [mt-phase-1a-migration.md](mt-phase-1a-migration.md) | Migration 030 -- farms table, farm_id columns, table recreations, indexes, CHECK constraints, rollback | `server/migrations/030_add_multi_tenancy.js` |
-| **1B** | [mt-phase-1b-seed-tests.md](mt-phase-1b-seed-tests.md) | Seed file + test infrastructure -- farm_id in all inserts, updated tokens | `server/seeds/001_initial_data.js`, `server/tests/helpers/*`, 26 test files |
+| Sub-phase | File                                                   | Scope                                                                                                  | Produces                                                                    |
+| --------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| **1A**    | [mt-phase-1a-migration.md](mt-phase-1a-migration.md)   | Migration 030 -- farms table, farm_id columns, table recreations, indexes, CHECK constraints, rollback | `server/migrations/030_add_multi_tenancy.js`                                |
+| **1B**    | [mt-phase-1b-seed-tests.md](mt-phase-1b-seed-tests.md) | Seed file + test infrastructure -- farm_id in all inserts, updated tokens                              | `server/seeds/001_initial_data.js`, `server/tests/helpers/*`, 26 test files |
 
 **Order:** 1A then 1B (1B depends on 1A's schema being in place).
 

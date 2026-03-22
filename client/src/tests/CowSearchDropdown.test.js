@@ -109,9 +109,7 @@ describe('CowSearchDropdown', () => {
   })
 
   it('passes sexFilter to API as server-side filter', async () => {
-    const females = [
-      { id: 'c2', tag_number: 'F-001', name: 'Cow', sex: 'female' },
-    ]
+    const females = [{ id: 'c2', tag_number: 'F-001', name: 'Cow', sex: 'female' }]
     api.get.mockResolvedValue({ data: females })
     const wrapper = mount(CowSearchDropdown, { props: { sexFilter: 'female' } })
     await wrapper.find('input').setValue('00')
@@ -195,7 +193,13 @@ describe('CowSearchDropdown', () => {
   })
 
   it('does not load soft-deleted cow by ID from IndexedDB', async () => {
-    const deletedCow = { id: 'cow-del', tag_number: 'DEL-001', name: 'Gone', sex: 'female', deleted_at: '2026-01-01' }
+    const deletedCow = {
+      id: 'cow-del',
+      tag_number: 'DEL-001',
+      name: 'Gone',
+      sex: 'female',
+      deleted_at: '2026-01-01',
+    }
     api.get.mockRejectedValue(new Error('Network Error'))
     db.cows.get.mockResolvedValue(deletedCow)
 

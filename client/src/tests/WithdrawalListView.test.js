@@ -33,9 +33,16 @@ vi.mock('../services/syncManager.js', () => {
 vi.mock('../db/indexedDB.js', () => ({
   default: {
     treatments: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     syncQueue: {
       where: vi.fn().mockReturnValue({
@@ -49,16 +56,26 @@ vi.mock('../db/indexedDB.js', () => ({
 const futureDate = new Date(Date.now() + 86400000 * 3).toISOString()
 
 const MOCK_MILK_COW = {
-  id: 'w1', cow_id: 'c1', tag_number: '001', cow_name: 'Bessie', sex: 'female',
+  id: 'w1',
+  cow_id: 'c1',
+  tag_number: '001',
+  cow_name: 'Bessie',
+  sex: 'female',
   medication_name: 'Pen-Strep',
-  withdrawal_end_milk: futureDate, withdrawal_end_meat: futureDate,
+  withdrawal_end_milk: futureDate,
+  withdrawal_end_meat: futureDate,
   treatment_date: '2024-01-15T10:00:00Z',
 }
 
 const MOCK_MEAT_ONLY_COW = {
-  id: 'w2', cow_id: 'c2', tag_number: '002', cow_name: 'Bruno', sex: 'male',
+  id: 'w2',
+  cow_id: 'c2',
+  tag_number: '002',
+  cow_name: 'Bruno',
+  sex: 'male',
   medication_name: 'Ivermectin',
-  withdrawal_end_milk: null, withdrawal_end_meat: futureDate,
+  withdrawal_end_milk: null,
+  withdrawal_end_meat: futureDate,
   treatment_date: '2024-01-15T10:00:00Z',
 }
 
@@ -166,9 +183,15 @@ describe('WithdrawalListView', () => {
 
   it('excludes heifer from milk tab but shows in meat tab', async () => {
     const heiferCow = {
-      id: 'w-heifer', cow_id: 'c-heifer', tag_number: '099', cow_name: 'Young Daisy',
-      sex: 'female', life_phase: 'heifer', medication_name: 'Pen-Strep',
-      withdrawal_end_milk: futureDate, withdrawal_end_meat: futureDate,
+      id: 'w-heifer',
+      cow_id: 'c-heifer',
+      tag_number: '099',
+      cow_name: 'Young Daisy',
+      sex: 'female',
+      life_phase: 'heifer',
+      medication_name: 'Pen-Strep',
+      withdrawal_end_milk: futureDate,
+      withdrawal_end_meat: futureDate,
       treatment_date: '2024-01-15T10:00:00Z',
     }
     const store = useTreatmentsStore()
@@ -191,9 +214,15 @@ describe('WithdrawalListView', () => {
 
   it('excludes calf from milk tab', async () => {
     const calfCow = {
-      id: 'w-calf', cow_id: 'c-calf', tag_number: '088', cow_name: 'Baby',
-      sex: 'female', life_phase: 'calf', medication_name: 'Antibiotic',
-      withdrawal_end_milk: futureDate, withdrawal_end_meat: futureDate,
+      id: 'w-calf',
+      cow_id: 'c-calf',
+      tag_number: '088',
+      cow_name: 'Baby',
+      sex: 'female',
+      life_phase: 'calf',
+      medication_name: 'Antibiotic',
+      withdrawal_end_milk: futureDate,
+      withdrawal_end_meat: futureDate,
       treatment_date: '2024-01-15T10:00:00Z',
     }
     const store = useTreatmentsStore()

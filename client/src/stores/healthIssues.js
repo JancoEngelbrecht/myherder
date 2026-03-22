@@ -21,10 +21,7 @@ export const useHealthIssuesStore = defineStore('healthIssues', () => {
     error.value = null
     try {
       const { data } = await api.get('/health-issues', { params: { cow_id: cowId } })
-      issues.value = [
-        ...issues.value.filter((i) => i.cow_id !== cowId),
-        ...data,
-      ]
+      issues.value = [...issues.value.filter((i) => i.cow_id !== cowId), ...data]
       await db.healthIssues.bulkPut(data)
       return data
     } catch (err) {
@@ -59,7 +56,13 @@ export const useHealthIssuesStore = defineStore('healthIssues', () => {
   async function create(data) {
     const now = new Date().toISOString()
     const plain = JSON.parse(JSON.stringify(data))
-    const localIssue = { id: uuidv4(), ...plain, status: plain.status || 'open', updated_at: now, created_at: now }
+    const localIssue = {
+      id: uuidv4(),
+      ...plain,
+      status: plain.status || 'open',
+      updated_at: now,
+      created_at: now,
+    }
 
     try {
       await db.healthIssues.put(localIssue)

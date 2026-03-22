@@ -8,5 +8,5 @@ process.env.LOGIN_RATE_LIMIT_WINDOW = '1'
 // Suppress dotenv's tip logs and the errorHandler's console.error for intentional
 // error-path tests (e.g. duplicate key → 409, not-found → 404).
 process.env.DOTENV_QUIET = 'true'
- 
+
 console.error = () => {}

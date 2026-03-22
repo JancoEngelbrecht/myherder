@@ -22,7 +22,9 @@
           @click="setFilter(f.value)"
         >
           {{ t(f.label) }}
-          <span v-if="activeFilter === f.value" class="tab-count">{{ healthIssuesStore.allIssuesTotal }}</span>
+          <span v-if="activeFilter === f.value" class="tab-count">{{
+            healthIssuesStore.allIssuesTotal
+          }}</span>
         </button>
       </div>
 
@@ -32,7 +34,7 @@
 
       <div v-else-if="error" class="error-state">
         <p>{{ error }}</p>
-        <button class="btn-secondary" style="width:auto;margin-top:8px" @click="load">
+        <button class="btn-secondary" style="width: auto; margin-top: 8px" @click="load">
           {{ t('common.retry') }}
         </button>
       </div>
@@ -50,17 +52,32 @@
             class="issue-item"
           >
             <div class="issue-top">
-              <span class="issue-icon">{{ (issue.issue_types || []).map(c => issueTypesStore.getByCode(c)?.emoji || '❓').join(' ') }}</span>
+              <span class="issue-icon">{{
+                (issue.issue_types || [])
+                  .map((c) => issueTypesStore.getByCode(c)?.emoji || '❓')
+                  .join(' ')
+              }}</span>
               <div class="issue-main">
-                <span class="issue-type-label">{{ (issue.issue_types || []).map(c => issueTypesStore.getByCode(c)?.name || c).join(' + ') }}</span>
-                <span class="issue-cow">{{ issue.tag_number }}<template v-if="issue.cow_name"> · {{ issue.cow_name }}</template></span>
+                <span class="issue-type-label">{{
+                  (issue.issue_types || [])
+                    .map((c) => issueTypesStore.getByCode(c)?.name || c)
+                    .join(' + ')
+                }}</span>
+                <span class="issue-cow"
+                  >{{ issue.tag_number
+                  }}<template v-if="issue.cow_name"> · {{ issue.cow_name }}</template></span
+                >
               </div>
               <span class="issue-date mono">{{ formatDate(issue.observed_at) }}</span>
               <span class="issue-chevron">›</span>
             </div>
             <div class="issue-bottom">
-              <span class="badge" :class="`issue-sev-${issue.severity}`">{{ $t(`healthIssues.${issue.severity}`) }}</span>
-              <span class="badge" :class="`issue-status-${issue.status}`">{{ $t(`healthIssues.${issue.status}`) }}</span>
+              <span class="badge" :class="`issue-sev-${issue.severity}`">{{
+                $t(`healthIssues.${issue.severity}`)
+              }}</span>
+              <span class="badge" :class="`issue-status-${issue.status}`">{{
+                $t(`healthIssues.${issue.status}`)
+              }}</span>
             </div>
           </RouterLink>
         </div>
@@ -180,7 +197,10 @@ onMounted(() => {
   font-weight: 600;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -291,13 +311,37 @@ onMounted(() => {
   margin-left: 32px;
 }
 
-.issue-sev-low { background: var(--primary-bg); color: var(--primary-dark); border-color: var(--primary-light); }
-.issue-sev-medium { background: var(--warning-light); color: var(--warning); border-color: rgba(217, 119, 6, 0.3); }
-.issue-sev-high { background: var(--danger-light); color: var(--danger); border-color: rgba(220, 38, 38, 0.3); }
+.issue-sev-low {
+  background: var(--primary-bg);
+  color: var(--primary-dark);
+  border-color: var(--primary-light);
+}
+.issue-sev-medium {
+  background: var(--warning-light);
+  color: var(--warning);
+  border-color: rgba(217, 119, 6, 0.3);
+}
+.issue-sev-high {
+  background: var(--danger-light);
+  color: var(--danger);
+  border-color: rgba(220, 38, 38, 0.3);
+}
 
-.issue-status-open { background: var(--warning-light); color: var(--warning); border-color: rgba(217, 119, 6, 0.3); }
-.issue-status-treating { background: var(--info-light); color: var(--info); border-color: rgba(37, 99, 235, 0.3); }
-.issue-status-resolved { background: var(--primary-bg); color: var(--primary-dark); border-color: var(--primary-light); }
+.issue-status-open {
+  background: var(--warning-light);
+  color: var(--warning);
+  border-color: rgba(217, 119, 6, 0.3);
+}
+.issue-status-treating {
+  background: var(--info-light);
+  color: var(--info);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+.issue-status-resolved {
+  background: var(--primary-bg);
+  color: var(--primary-dark);
+  border-color: var(--primary-light);
+}
 
 .badge {
   border: 1px solid transparent;

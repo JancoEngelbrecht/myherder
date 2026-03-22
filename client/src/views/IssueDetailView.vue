@@ -9,7 +9,9 @@
 
       <div v-else-if="error" class="error-state">
         <p>{{ error }}</p>
-        <button class="btn-secondary" style="width:auto;margin-top:8px" @click="load">{{ t('common.retry') }}</button>
+        <button class="btn-secondary" style="width: auto; margin-top: 8px" @click="load">
+          {{ t('common.retry') }}
+        </button>
       </div>
 
       <template v-else-if="issue">
@@ -29,12 +31,22 @@
         <!-- Issue type + severity -->
         <div class="card">
           <div class="issue-type-row">
-            <span class="type-emoji">{{ issueTypesStore.getByCode(issue.issue_types?.[0])?.emoji || '❓' }}</span>
+            <span class="type-emoji">{{
+              issueTypesStore.getByCode(issue.issue_types?.[0])?.emoji || '❓'
+            }}</span>
             <div class="type-info">
-              <span class="type-name">{{ (issue.issue_types || []).map(c => issueTypesStore.getByCode(c)?.name || c).join(' · ') }}</span>
-              <span class="badge" :class="`issue-sev-${issue.severity}`">{{ $t(`healthIssues.${issue.severity}`) }}</span>
+              <span class="type-name">{{
+                (issue.issue_types || [])
+                  .map((c) => issueTypesStore.getByCode(c)?.name || c)
+                  .join(' · ')
+              }}</span>
+              <span class="badge" :class="`issue-sev-${issue.severity}`">{{
+                $t(`healthIssues.${issue.severity}`)
+              }}</span>
             </div>
-            <span class="badge" :class="`issue-status-${issue.status}`">{{ $t(`healthIssues.${issue.status}`) }}</span>
+            <span class="badge" :class="`issue-status-${issue.status}`">{{
+              $t(`healthIssues.${issue.status}`)
+            }}</span>
           </div>
         </div>
 
@@ -76,7 +88,9 @@
           <div v-if="loadingComments" class="comments-spinner">
             <div class="spinner" />
           </div>
-          <p v-else-if="!commentsList.length" class="no-comments">{{ t('healthIssues.noComments') }}</p>
+          <p v-else-if="!commentsList.length" class="no-comments">
+            {{ t('healthIssues.noComments') }}
+          </p>
           <div v-else class="comment-list">
             <div v-for="c in commentsList" :key="c.id" class="comment-item">
               <div class="comment-meta">
@@ -87,7 +101,9 @@
                   class="comment-delete-btn"
                   :aria-label="t('healthIssues.deleteComment')"
                   @click="deleteCommentId = c.id"
-                >×</button>
+                >
+                  ×
+                </button>
               </div>
               <p class="comment-text">{{ c.comment }}</p>
             </div>
@@ -135,7 +151,11 @@
               💊 {{ t('healthIssues.logTreatment') }}
             </RouterLink>
           </template>
-          <button v-if="authStore.isAdmin" class="btn-danger action-btn" @click="showDeleteDialog = true">
+          <button
+            v-if="authStore.isAdmin"
+            class="btn-danger action-btn"
+            @click="showDeleteDialog = true"
+          >
             🗑 {{ t('common.delete') }}
           </button>
         </div>
@@ -200,7 +220,11 @@ const affectedTeats = computed(() => {
   const teats = issue.value?.affected_teats
   if (!teats) return []
   if (Array.isArray(teats)) return teats
-  try { return JSON.parse(teats) } catch { return [] }
+  try {
+    return JSON.parse(teats)
+  } catch {
+    return []
+  }
 })
 
 async function load() {
@@ -303,7 +327,9 @@ async function handleDelete() {
   color: var(--text);
 }
 
-.cow-emoji { font-size: 1.25rem; }
+.cow-emoji {
+  font-size: 1.25rem;
+}
 
 .cow-info {
   display: flex;
@@ -363,13 +389,37 @@ async function handleDelete() {
   display: inline-block;
 }
 
-.issue-sev-low { background: var(--primary-bg); color: var(--primary-dark); border-color: var(--primary-light); }
-.issue-sev-medium { background: var(--warning-light); color: var(--warning); border-color: rgba(217, 119, 6, 0.3); }
-.issue-sev-high { background: var(--danger-light); color: var(--danger); border-color: rgba(220, 38, 38, 0.3); }
+.issue-sev-low {
+  background: var(--primary-bg);
+  color: var(--primary-dark);
+  border-color: var(--primary-light);
+}
+.issue-sev-medium {
+  background: var(--warning-light);
+  color: var(--warning);
+  border-color: rgba(217, 119, 6, 0.3);
+}
+.issue-sev-high {
+  background: var(--danger-light);
+  color: var(--danger);
+  border-color: rgba(220, 38, 38, 0.3);
+}
 
-.issue-status-open { background: var(--warning-light); color: var(--warning); border-color: rgba(217, 119, 6, 0.3); }
-.issue-status-treating { background: var(--info-light); color: var(--info); border-color: rgba(37, 99, 235, 0.3); }
-.issue-status-resolved { background: var(--primary-bg); color: var(--primary-dark); border-color: var(--primary-light); }
+.issue-status-open {
+  background: var(--warning-light);
+  color: var(--warning);
+  border-color: rgba(217, 119, 6, 0.3);
+}
+.issue-status-treating {
+  background: var(--info-light);
+  color: var(--info);
+  border-color: rgba(37, 99, 235, 0.3);
+}
+.issue-status-resolved {
+  background: var(--primary-bg);
+  color: var(--primary-dark);
+  border-color: var(--primary-light);
+}
 
 .section-label {
   display: block;

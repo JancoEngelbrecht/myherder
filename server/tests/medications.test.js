@@ -48,9 +48,7 @@ describe('GET /api/medications', () => {
   it('returns all medications when ?all=1', async () => {
     const inactiveId = await createMedication({ is_active: false })
 
-    const res = await request(app)
-      .get('/api/medications?all=1')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/medications?all=1').set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
     expect(res.body.some((m) => m.id === inactiveId)).toBe(true)
@@ -117,9 +115,15 @@ describe('POST /api/medications', () => {
     const { jwtSecret } = require('../config/env')
     const { WORKER_ID, DEFAULT_FARM_ID } = require('./helpers/setup')
     const noPermToken = `Bearer ${jwt.sign(
-      { id: WORKER_ID, farm_id: DEFAULT_FARM_ID, role: 'worker', permissions: [], token_version: 0 },
+      {
+        id: WORKER_ID,
+        farm_id: DEFAULT_FARM_ID,
+        role: 'worker',
+        permissions: [],
+        token_version: 0,
+      },
       jwtSecret,
-      { expiresIn: '1h' },
+      { expiresIn: '1h' }
     )}`
 
     const res = await request(app)

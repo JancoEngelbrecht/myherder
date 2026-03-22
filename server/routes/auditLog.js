@@ -4,7 +4,13 @@ const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const { requireAdmin } = require('../middleware/authorize')
 const tenantScope = require('../middleware/tenantScope')
-const { ISO_DATE_RE, MAX_PAGE_SIZE, parsePagination, joiMsg, validateQuery } = require('../helpers/constants')
+const {
+  ISO_DATE_RE,
+  MAX_PAGE_SIZE,
+  parsePagination,
+  joiMsg,
+  validateQuery,
+} = require('../helpers/constants')
 
 const router = express.Router()
 router.use(authenticate)
@@ -37,11 +43,7 @@ router.get('/', async (req, res, next) => {
     const query = db('audit_log')
       .where('audit_log.farm_id', req.farmId)
       .leftJoin('users', 'audit_log.user_id', 'users.id')
-      .select(
-        'audit_log.*',
-        'users.username as user_username',
-        'users.full_name as user_full_name',
-      )
+      .select('audit_log.*', 'users.username as user_username', 'users.full_name as user_full_name')
 
     // Filters from validated query value
     if (q.entity_type) {
@@ -71,7 +73,11 @@ router.get('/', async (req, res, next) => {
 
     // Parse JSON fields
     const safeJsonParse = (str) => {
-      try { return JSON.parse(str) } catch { return null }
+      try {
+        return JSON.parse(str)
+      } catch {
+        return null
+      }
     }
     const data = rows.map((row) => ({
       ...row,

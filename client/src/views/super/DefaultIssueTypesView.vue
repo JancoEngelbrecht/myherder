@@ -18,7 +18,13 @@
             </div>
             <div class="form-group">
               <label for="it-sort">{{ $t('globalDefaults.sortOrder') }}</label>
-              <input id="it-sort" v-model.number="form.sort_order" type="number" min="0" class="form-input" />
+              <input
+                id="it-sort"
+                v-model.number="form.sort_order"
+                type="number"
+                min="0"
+                class="form-input"
+              />
             </div>
           </div>
           <div class="form-group">
@@ -31,7 +37,9 @@
           <p v-if="formError" class="form-error">{{ formError }}</p>
 
           <div class="form-actions">
-            <button type="button" class="btn-secondary" @click="showForm = false">{{ $t('common.cancel') }}</button>
+            <button type="button" class="btn-secondary" @click="showForm = false">
+              {{ $t('common.cancel') }}
+            </button>
             <button type="submit" class="btn-primary" :disabled="saving">
               {{ saving ? $t('common.saving') : $t('common.save') }}
             </button>
@@ -49,7 +57,12 @@
         </div>
 
         <div v-else class="defaults-list">
-          <div v-for="it in items" :key="it.id" class="card defaults-card" :class="{ inactive: !it.is_active }">
+          <div
+            v-for="it in items"
+            :key="it.id"
+            class="card defaults-card"
+            :class="{ inactive: !it.is_active }"
+          >
             <div class="defaults-header">
               <div>
                 <span class="defaults-name">{{ it.emoji }} {{ it.name }}</span>
@@ -60,14 +73,28 @@
               </span>
             </div>
 
-            <div v-if="it.requires_teat_selection" class="detail-pill">{{ $t('issueTypes.requiresTeat') }}</div>
+            <div v-if="it.requires_teat_selection" class="detail-pill">
+              {{ $t('issueTypes.requiresTeat') }}
+            </div>
 
             <div class="defaults-actions">
-              <button class="btn-secondary btn-sm" @click="openEdit(it)">{{ $t('common.edit') }}</button>
-              <button v-if="it.is_active" class="btn-danger btn-sm" @click="confirmDeactivate(it)">{{ $t('common.deactivate') }}</button>
+              <button class="btn-secondary btn-sm" @click="openEdit(it)">
+                {{ $t('common.edit') }}
+              </button>
+              <button v-if="it.is_active" class="btn-danger btn-sm" @click="confirmDeactivate(it)">
+                {{ $t('common.deactivate') }}
+              </button>
               <template v-else>
-                <button class="btn-primary btn-sm" :disabled="activating === it.id" @click="doActivate(it)">{{ $t('common.activate') }}</button>
-                <button class="btn-danger btn-sm" @click="confirmDelete(it)">{{ $t('common.delete') }}</button>
+                <button
+                  class="btn-primary btn-sm"
+                  :disabled="activating === it.id"
+                  @click="doActivate(it)"
+                >
+                  {{ $t('common.activate') }}
+                </button>
+                <button class="btn-danger btn-sm" @click="confirmDelete(it)">
+                  {{ $t('common.delete') }}
+                </button>
               </template>
             </div>
           </div>
@@ -79,7 +106,11 @@
 
     <ConfirmDialog
       :show="!!deactivateTarget"
-      :message="deactivateTarget ? $t('globalDefaults.deactivateConfirm', { name: deactivateTarget.name }) : ''"
+      :message="
+        deactivateTarget
+          ? $t('globalDefaults.deactivateConfirm', { name: deactivateTarget.name })
+          : ''
+      "
       :confirm-label="$t('common.deactivate')"
       :cancel-label="$t('common.cancel')"
       :loading="deactivating"
@@ -149,7 +180,12 @@ function openAdd() {
 
 function openEdit(it) {
   editing.value = it
-  form.value = { name: it.name, emoji: it.emoji || '', requires_teat_selection: !!it.requires_teat_selection, sort_order: it.sort_order ?? 0 }
+  form.value = {
+    name: it.name,
+    emoji: it.emoji || '',
+    requires_teat_selection: !!it.requires_teat_selection,
+    sort_order: it.sort_order ?? 0,
+  }
   formError.value = ''
   showForm.value = true
 }
@@ -178,7 +214,9 @@ async function save() {
   }
 }
 
-function confirmDeactivate(it) { deactivateTarget.value = it }
+function confirmDeactivate(it) {
+  deactivateTarget.value = it
+}
 
 async function doActivate(it) {
   activating.value = it.id
@@ -205,7 +243,9 @@ async function doDeactivate() {
   }
 }
 
-function confirmDelete(it) { deleteTarget.value = it }
+function confirmDelete(it) {
+  deleteTarget.value = it
+}
 
 async function doDelete() {
   deleting.value = true
@@ -222,22 +262,94 @@ async function doDelete() {
 </script>
 
 <style scoped>
-.defaults-content { padding-bottom: 100px; }
-.form-card { margin: 0 auto 20px; padding: 20px; max-width: 600px; }
-.form-title { margin: 0 0 16px; font-size: 1rem; font-weight: 600; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; }
-.form-actions .btn-primary, .form-actions .btn-secondary { width: auto; padding: 10px 20px; }
-.checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-.spinner-wrap { display: flex; justify-content: center; padding: 40px; }
-.defaults-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
-.defaults-card { padding: 16px; display: flex; flex-direction: column; }
-.defaults-card.inactive { opacity: 0.6; }
-.defaults-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-.defaults-name { font-weight: 600; font-size: 1rem; display: block; }
-.defaults-sub { font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 2px; }
-.detail-pill { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px; }
-.defaults-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
-.badge-active { background: var(--success-light); color: var(--primary-dark); }
-.badge-inactive { background: var(--border); color: var(--text-secondary); }
+.defaults-content {
+  padding-bottom: 100px;
+}
+.form-card {
+  margin: 0 auto 20px;
+  padding: 20px;
+  max-width: 600px;
+}
+.form-title {
+  margin: 0 0 16px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+.form-actions .btn-primary,
+.form-actions .btn-secondary {
+  width: auto;
+  padding: 10px 20px;
+}
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.spinner-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+.defaults-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+.defaults-card {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+.defaults-card.inactive {
+  opacity: 0.6;
+}
+.defaults-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.defaults-name {
+  font-weight: 600;
+  font-size: 1rem;
+  display: block;
+}
+.defaults-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 2px;
+}
+.detail-pill {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+.defaults-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.badge-active {
+  background: var(--success-light);
+  color: var(--primary-dark);
+}
+.badge-inactive {
+  background: var(--border);
+  color: var(--text-secondary);
+}
 </style>

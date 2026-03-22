@@ -31,7 +31,11 @@ api.interceptors.response.use(
       localStorage.removeItem('super_admin_token')
       localStorage.removeItem('active_farm_name')
       // Also clear IndexedDB so hydrate() won't restore the invalid session
-      try { await db.auth.delete('session') } catch { /* ignore */ }
+      try {
+        await db.auth.delete('session')
+      } catch {
+        /* ignore */
+      }
       closeDb()
       if (window.location.pathname !== '/login') {
         window.location.href = '/login'

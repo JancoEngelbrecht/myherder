@@ -47,9 +47,16 @@ vi.mock('vue-chartjs', () => ({
 
 vi.mock('chart.js', () => ({
   Chart: { register: vi.fn() },
-  CategoryScale: 'CS', LinearScale: 'LS', PointElement: 'PE',
-  LineElement: 'LE', BarElement: 'BE', ArcElement: 'AE',
-  Title: 'T', Tooltip: 'TT', Legend: 'L', Filler: 'F',
+  CategoryScale: 'CS',
+  LinearScale: 'LS',
+  PointElement: 'PE',
+  LineElement: 'LE',
+  BarElement: 'BE',
+  ArcElement: 'AE',
+  Title: 'T',
+  Tooltip: 'TT',
+  Legend: 'L',
+  Filler: 'F',
 }))
 
 import FinancialView from '../../views/analytics/FinancialView.vue'
@@ -64,12 +71,48 @@ const stubs = {
 
 const SETTINGS_RESPONSE = { data: { milk_price_per_litre: '8.50' } }
 const HERD_RESPONSE = { data: { total: 50, by_status: [{ status: 'active', count: 40 }] } }
-const LITRES_RESPONSE = { data: { months: [{ month: '2026-01', avg_litres_per_cow_per_day: 18.5, cow_count: 42 }] } }
-const MILK_TRENDS_RESPONSE = { data: { months: [{ month: '2026-01', total_litres: 500, record_count: 30, avg_per_cow: 16.67 }] } }
-const TOP_RESPONSE = { data: [{ id: 'c1', tag_number: 'MH-001', name: 'Bessie', total_litres: 300, days_recorded: 20, avg_daily_litres: 15 }] }
-const BOTTOM_RESPONSE = { data: [{ id: 'c2', tag_number: 'MH-010', name: 'Lazy', total_litres: 40, days_recorded: 20, avg_daily_litres: 2 }] }
-const WASTED_RESPONSE = { data: { months: [{ month: '2026-01', discarded_litres: 50, discard_count: 5 }], total_discarded: 50 } }
-const COSTS_RESPONSE = { data: { months: [{ month: '2026-01', total_cost: 1500, treatment_count: 10 }], grand_total: 1500 } }
+const LITRES_RESPONSE = {
+  data: { months: [{ month: '2026-01', avg_litres_per_cow_per_day: 18.5, cow_count: 42 }] },
+}
+const MILK_TRENDS_RESPONSE = {
+  data: { months: [{ month: '2026-01', total_litres: 500, record_count: 30, avg_per_cow: 16.67 }] },
+}
+const TOP_RESPONSE = {
+  data: [
+    {
+      id: 'c1',
+      tag_number: 'MH-001',
+      name: 'Bessie',
+      total_litres: 300,
+      days_recorded: 20,
+      avg_daily_litres: 15,
+    },
+  ],
+}
+const BOTTOM_RESPONSE = {
+  data: [
+    {
+      id: 'c2',
+      tag_number: 'MH-010',
+      name: 'Lazy',
+      total_litres: 40,
+      days_recorded: 20,
+      avg_daily_litres: 2,
+    },
+  ],
+}
+const WASTED_RESPONSE = {
+  data: {
+    months: [{ month: '2026-01', discarded_litres: 50, discard_count: 5 }],
+    total_discarded: 50,
+  },
+}
+const COSTS_RESPONSE = {
+  data: {
+    months: [{ month: '2026-01', total_cost: 1500, treatment_count: 10 }],
+    grand_total: 1500,
+  },
+}
 
 function mockAllApis() {
   api.get.mockImplementation((url) => {
@@ -83,7 +126,13 @@ function mockAllApis() {
     if (url.includes('treatment-costs')) return Promise.resolve(COSTS_RESPONSE)
     if (url.includes('feature-flags'))
       return Promise.resolve({
-        data: { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true },
+        data: {
+          breeding: true,
+          milkRecording: true,
+          healthIssues: true,
+          treatments: true,
+          analytics: true,
+        },
       })
     return Promise.resolve({ data: {} })
   })

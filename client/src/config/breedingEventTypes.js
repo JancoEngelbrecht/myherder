@@ -27,7 +27,7 @@ export function getEventType(code) {
  * @returns {Array} filtered event types sorted by sort order
  */
 export function getEventTypesForSpecies(speciesCode) {
-  return BREEDING_EVENT_TYPES
-    .filter((t) => t.species === null || t.species.includes(speciesCode))
-    .sort((a, b) => a.sort - b.sort)
+  return BREEDING_EVENT_TYPES.filter(
+    (t) => t.species === null || t.species.includes(speciesCode)
+  ).sort((a, b) => a.sort - b.sort)
 }

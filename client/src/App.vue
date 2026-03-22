@@ -1,17 +1,26 @@
 <template>
   <template v-if="authStore.hydrated">
     <!-- Offline mode banner -->
-    <div v-if="authStore.isAuthenticated && authStore.isOfflineMode" class="app-banner banner-warning">
+    <div
+      v-if="authStore.isAuthenticated && authStore.isOfflineMode"
+      class="app-banner banner-warning"
+    >
       {{ t('sync.offlineBanner') }}
     </div>
 
     <!-- Stale data warning -->
-    <div v-else-if="authStore.isAuthenticated && syncStore.isStaleData && !syncStore.isSyncing" class="app-banner banner-info">
+    <div
+      v-else-if="authStore.isAuthenticated && syncStore.isStaleData && !syncStore.isSyncing"
+      class="app-banner banner-info"
+    >
       {{ t('sync.staleWarning') }}
     </div>
 
     <!-- Queue overflow warning -->
-    <div v-else-if="authStore.isAuthenticated && syncStore.queueOverflow" class="app-banner banner-warning">
+    <div
+      v-else-if="authStore.isAuthenticated && syncStore.queueOverflow"
+      class="app-banner banner-warning"
+    >
       {{ t('sync.queueOverflow') }}
     </div>
 
@@ -22,7 +31,8 @@
 
     <!-- Farm context banner for super-admin -->
     <div v-if="authStore.isInFarmContext" class="app-banner banner-farm" @click="handleExitFarm">
-      {{ t('superAdmin.viewingFarm', { name: authStore.activeFarmName || '' }) }} — {{ t('superAdmin.exitFarm') }}
+      {{ t('superAdmin.viewingFarm', { name: authStore.activeFarmName || '' }) }} —
+      {{ t('superAdmin.exitFarm') }}
     </div>
 
     <!-- System announcements -->
@@ -80,7 +90,7 @@ watch(
       syncInitialized = false
     }
   },
-  { immediate: true },
+  { immediate: true }
 )
 
 onUnmounted(() => {
@@ -115,7 +125,7 @@ onUnmounted(() => {
 
 .banner-farm {
   background: rgba(79, 70, 229, 0.12);
-  color: #4F46E5;
+  color: #4f46e5;
   border-bottom: 1px solid rgba(79, 70, 229, 0.25);
   cursor: pointer;
 }

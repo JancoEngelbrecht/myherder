@@ -30,9 +30,7 @@ const KEY_MAP = {
   treatments: 'treatments',
   analytics: 'analytics',
 }
-const REVERSE_MAP = Object.fromEntries(
-  Object.entries(KEY_MAP).map(([db, api]) => [api, db]),
-)
+const REVERSE_MAP = Object.fromEntries(Object.entries(KEY_MAP).map(([db, api]) => [api, db]))
 
 async function getAllFlags(farmId) {
   const rows = await db('feature_flags').where('farm_id', farmId).select('key', 'enabled')
@@ -64,12 +62,16 @@ router.patch('/', requireAdmin, async (req, res, next) => {
 
     const now = new Date().toISOString()
     await db.transaction(async (trx) => {
-      await Promise.all(Object.entries(value).map(([apiKey, enabled]) => {
-        const dbKey = REVERSE_MAP[apiKey]
-        if (dbKey) {
-          return trx('feature_flags').where({ key: dbKey, farm_id: req.farmId }).update({ enabled, updated_at: now })
-        }
-      }))
+      await Promise.all(
+        Object.entries(value).map(([apiKey, enabled]) => {
+          const dbKey = REVERSE_MAP[apiKey]
+          if (dbKey) {
+            return trx('feature_flags')
+              .where({ key: dbKey, farm_id: req.farmId })
+              .update({ enabled, updated_at: now })
+          }
+        })
+      )
     })
 
     const flags = await getAllFlags(req.farmId)

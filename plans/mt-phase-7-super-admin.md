@@ -1,9 +1,11 @@
 # MT Phase 7: Super-Admin Panel
 
 ## Goal
+
 Build the super-admin management interface: farm CRUD API, farm seeding service, "Enter Farm" functionality, and management views.
 
 ## Prerequisites
+
 - Phases 1-6 complete (full backend + frontend multi-tenancy)
 - Read `server/routes/users.js` for CRUD pattern reference
 - Read `client/src/views/admin/` for admin view patterns
@@ -17,10 +19,10 @@ Build the super-admin management interface: farm CRUD API, farm seeding service,
 // server/middleware/requireSuperAdmin.js
 module.exports = function requireSuperAdmin(req, res, next) {
   if (req.user.role !== 'super_admin') {
-    return res.status(403).json({ error: 'Super admin access required' });
+    return res.status(403).json({ error: 'Super admin access required' })
   }
-  next();
-};
+  next()
+}
 ```
 
 ## Step 7.2 -- Create farm seed service
@@ -73,15 +75,18 @@ Extract seed data constants from `server/seeds/001_initial_data.js` into a share
 All endpoints require `super_admin` role.
 
 ### `GET /api/farms`
+
 - List all farms with stats
 - Join to get user_count, cow_count per farm
 - Returns: `[{ id, name, code, slug, is_active, user_count, cow_count, created_at }]`
 
 ### `GET /api/farms/:id`
+
 - Farm detail with user list
 - Returns: `{ ...farm, users: [{ id, username, full_name, role, is_active }] }`
 
 ### `POST /api/farms`
+
 - Body: `{ name, code, admin_username, admin_password, admin_full_name }`
 - Validate: code is unique, uppercase, 3-10 chars alphanumeric
 - Generate slug from code (lowercase)
@@ -91,30 +96,35 @@ All endpoints require `super_admin` role.
 - Return: `{ farm, admin_user }`
 
 ### `PATCH /api/farms/:id`
+
 - Body: `{ name?, code?, is_active? }`
 - Validate: if code changed, new code is unique
 - Update farm
 
 ### `DELETE /api/farms/:id`
+
 - Soft deactivate: `is_active = false`
 - Does NOT delete data
 - Deactivated farm users cannot log in (checked in auth)
 
 ### Mount in `server/app.js`:
+
 ```js
-const farmsRoutes = require('./routes/farms');
-app.use('/api/farms', authenticate, requireSuperAdmin, farmsRoutes);
+const farmsRoutes = require('./routes/farms')
+app.use('/api/farms', authenticate, requireSuperAdmin, farmsRoutes)
 ```
 
 ## Step 7.4 -- "Enter Farm" functionality
 
 ### Backend: `POST /api/farms/:id/enter`
+
 - Super-admin only
 - Find farm by ID, verify it's active
 - Issue new JWT with `farm_id` set to that farm's ID, role stays `super_admin`
 - Return: `{ token }`
 
 ### Frontend auth store:
+
 - `enterFarm(farmId)` action:
   - Save current token as `localStorage('super_admin_token')`
   - Call `POST /api/farms/${farmId}/enter`
@@ -132,6 +142,7 @@ app.use('/api/farms', authenticate, requireSuperAdmin, farmsRoutes);
 ## Step 7.5 -- Super-admin views
 
 ### `client/src/views/super/FarmListView.vue`
+
 - Route: `/super/farms`
 - Table: Name, Code, Status (active/inactive badge), Users, Cows, Created
 - Actions per row: View, Enter Farm
@@ -139,6 +150,7 @@ app.use('/api/farms', authenticate, requireSuperAdmin, farmsRoutes);
 - Back button: `back-to="/"`
 
 ### `client/src/views/super/FarmDetailView.vue`
+
 - Route: `/super/farms/:id`
 - Farm info: name, code, status, created date
 - Edit inline (name, code, is_active toggle)
@@ -148,6 +160,7 @@ app.use('/api/farms', authenticate, requireSuperAdmin, farmsRoutes);
 - Back button: `back-to="/super/farms"`
 
 ### `client/src/views/super/CreateFarmView.vue`
+
 - Route: `/super/farms/new`
 - Form: Farm name, Farm code (auto-generated from name, editable, uppercase), Admin username, Admin password, Admin full name
 - Submit -> `POST /api/farms`
@@ -181,13 +194,16 @@ Router guard: if `requiresSuperAdmin` and `authStore.user.role !== 'super_admin'
 ## Step 7.7 -- Navigation updates
 
 ### DashboardView
+
 - When `user.role === 'super_admin' && !farmId`: show "Farms" card linking to `/super/farms`, hide farm-specific cards (Cows, Milking, etc.)
 - When `user.role === 'super_admin' && farmId` (entered a farm): show normal dashboard + "Exit Farm" banner at top
 
 ### BottomNav
+
 - Hide when super-admin has no farm context (`role === 'super_admin' && !farm_id`)
 
 ### App.vue
+
 - When `authStore.isInFarmContext`: show a top banner "Viewing: [Farm Name] -- [Exit]"
 
 ## Step 7.8 -- i18n keys

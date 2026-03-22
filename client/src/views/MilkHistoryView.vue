@@ -91,9 +91,15 @@
         <!-- Recorded by -->
         <div class="filter-group">
           <span class="filter-group-title">{{ t('milkHistory.filterRecordedBy') }}</span>
-          <select v-model="recorderFilter" class="form-select filter-select" @change="resetAndFetch">
+          <select
+            v-model="recorderFilter"
+            class="form-select filter-select"
+            @change="resetAndFetch"
+          >
             <option value="">{{ t('milkHistory.filterAllRecorders') }}</option>
-            <option v-for="rec in recorders" :key="rec.id" :value="rec.id">{{ rec.full_name }}</option>
+            <option v-for="rec in recorders" :key="rec.id" :value="rec.id">
+              {{ rec.full_name }}
+            </option>
           </select>
         </div>
       </div>
@@ -117,11 +123,7 @@
 
       <!-- Record list -->
       <div v-else data-tour="history-records" class="record-list">
-        <MilkRecordCard
-          v-for="rec in records"
-          :key="rec.id"
-          :record="rec"
-        />
+        <MilkRecordCard v-for="rec in records" :key="rec.id" :record="rec" />
       </div>
 
       <!-- Pagination -->
@@ -239,7 +241,9 @@ async function fetchRecords() {
         const missing = unsyncedLocal.filter((r) => !serverIds.has(r.id))
         if (missing.length > 0) {
           serverRecords = [...missing, ...serverRecords]
-          serverRecords.sort((a, b) => (b.recording_date || '').localeCompare(a.recording_date || ''))
+          serverRecords.sort((a, b) =>
+            (b.recording_date || '').localeCompare(a.recording_date || '')
+          )
         }
         records.value = serverRecords
         total.value = serverTotal + missing.length
@@ -295,10 +299,11 @@ async function getLocalRecords() {
   if (recorderFilter.value) local = local.filter((r) => r.recorded_by === recorderFilter.value)
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
-    local = local.filter((r) =>
-      (r.tag_number || '').toLowerCase().includes(q) ||
-      (r.cow_name || '').toLowerCase().includes(q) ||
-      (r.recorded_by_name || '').toLowerCase().includes(q),
+    local = local.filter(
+      (r) =>
+        (r.tag_number || '').toLowerCase().includes(q) ||
+        (r.cow_name || '').toLowerCase().includes(q) ||
+        (r.recorded_by_name || '').toLowerCase().includes(q)
     )
   }
   local.sort((a, b) => (b.recording_date || '').localeCompare(a.recording_date || ''))
@@ -344,28 +349,28 @@ const { startTour } = useTour('milk-history', () => [
     popover: {
       title: t('tour.milkHistory.filters.title'),
       description: t('tour.milkHistory.filters.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="history-search"]',
     popover: {
       title: t('tour.milkHistory.search.title'),
       description: t('tour.milkHistory.search.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="history-records"]',
     popover: {
       title: t('tour.milkHistory.records.title'),
       description: t('tour.milkHistory.records.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="history-pagination"]',
     popover: {
       title: t('tour.milkHistory.pagination.title'),
       description: t('tour.milkHistory.pagination.desc'),
-    }
+    },
   },
 ])
 </script>

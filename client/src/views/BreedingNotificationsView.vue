@@ -79,8 +79,16 @@
               <span class="spacer" />
               <span class="alert-badge heat">{{ alertLabel(ev.expected_next_heat) }}</span>
             </div>
-            <button v-if="timeFilteredHeats.length > ALERT_PREVIEW" class="show-more-btn" @click="showAll.heats = !showAll.heats">
-              {{ showAll.heats ? t('breeding.showLess') : t('breeding.showAll', { count: timeFilteredHeats.length }) }}
+            <button
+              v-if="timeFilteredHeats.length > ALERT_PREVIEW"
+              class="show-more-btn"
+              @click="showAll.heats = !showAll.heats"
+            >
+              {{
+                showAll.heats
+                  ? t('breeding.showLess')
+                  : t('breeding.showAll', { count: timeFilteredHeats.length })
+              }}
             </button>
           </div>
         </section>
@@ -88,7 +96,9 @@
         <!-- Upcoming calvings -->
         <section v-if="timeFilteredCalvings.length" class="section">
           <div class="alert-group">
-            <h3 class="group-label">{{ speciesEmoji.female }} {{ t('breeding.upcoming.calvings') }}</h3>
+            <h3 class="group-label">
+              {{ speciesEmoji.female }} {{ t('breeding.upcoming.calvings') }}
+            </h3>
             <div
               v-for="ev in visibleCalvings"
               :key="ev.id"
@@ -100,8 +110,16 @@
               <span class="spacer" />
               <span class="alert-badge calving">{{ alertLabel(ev.expected_calving) }}</span>
             </div>
-            <button v-if="timeFilteredCalvings.length > ALERT_PREVIEW" class="show-more-btn" @click="showAll.calvings = !showAll.calvings">
-              {{ showAll.calvings ? t('breeding.showLess') : t('breeding.showAll', { count: timeFilteredCalvings.length }) }}
+            <button
+              v-if="timeFilteredCalvings.length > ALERT_PREVIEW"
+              class="show-more-btn"
+              @click="showAll.calvings = !showAll.calvings"
+            >
+              {{
+                showAll.calvings
+                  ? t('breeding.showLess')
+                  : t('breeding.showAll', { count: timeFilteredCalvings.length })
+              }}
             </button>
           </div>
         </section>
@@ -121,8 +139,16 @@
               <span class="spacer" />
               <span class="alert-badge check">{{ alertLabel(ev.expected_preg_check) }}</span>
             </div>
-            <button v-if="timeFilteredPregChecks.length > ALERT_PREVIEW" class="show-more-btn" @click="showAll.pregChecks = !showAll.pregChecks">
-              {{ showAll.pregChecks ? t('breeding.showLess') : t('breeding.showAll', { count: timeFilteredPregChecks.length }) }}
+            <button
+              v-if="timeFilteredPregChecks.length > ALERT_PREVIEW"
+              class="show-more-btn"
+              @click="showAll.pregChecks = !showAll.pregChecks"
+            >
+              {{
+                showAll.pregChecks
+                  ? t('breeding.showLess')
+                  : t('breeding.showAll', { count: timeFilteredPregChecks.length })
+              }}
             </button>
           </div>
         </section>
@@ -131,11 +157,7 @@
         <section v-if="timeFilteredDryOffs.length" class="section">
           <div class="alert-group">
             <h3 class="group-label">🌿 {{ t('breeding.upcoming.dryOffs') }}</h3>
-            <div
-              v-for="ev in visibleDryOffs"
-              :key="ev.id"
-              class="card dryoff-card"
-            >
+            <div v-for="ev in visibleDryOffs" :key="ev.id" class="card dryoff-card">
               <div class="alert-row" @click="goToRepro(ev.cow_id)">
                 <span class="alert-cow mono">{{ ev.tag_number }}</span>
                 <span v-if="ev.cow_name" class="alert-name">{{ ev.cow_name }}</span>
@@ -151,8 +173,16 @@
                 </button>
               </div>
             </div>
-            <button v-if="timeFilteredDryOffs.length > ALERT_PREVIEW" class="show-more-btn" @click="showAll.dryOffs = !showAll.dryOffs">
-              {{ showAll.dryOffs ? t('breeding.showLess') : t('breeding.showAll', { count: timeFilteredDryOffs.length }) }}
+            <button
+              v-if="timeFilteredDryOffs.length > ALERT_PREVIEW"
+              class="show-more-btn"
+              @click="showAll.dryOffs = !showAll.dryOffs"
+            >
+              {{
+                showAll.dryOffs
+                  ? t('breeding.showLess')
+                  : t('breeding.showAll', { count: timeFilteredDryOffs.length })
+              }}
             </button>
           </div>
         </section>
@@ -197,7 +227,11 @@
                 <span class="spacer" />
                 <span class="alert-badge" :class="item._badgeClass">{{ item._label }}</span>
               </div>
-              <button v-if="item._isOverdue" class="btn-secondary btn-sm-dismiss" @click.stop="openDismiss(item)">
+              <button
+                v-if="item._isOverdue"
+                class="btn-secondary btn-sm-dismiss"
+                @click.stop="openDismiss(item)"
+              >
                 {{ t('breeding.dismiss') }}
               </button>
             </template>
@@ -260,7 +294,12 @@ const ALERT_PREVIEW = 5
 const showAll = reactive({ heats: false, calvings: false, pregChecks: false, dryOffs: false })
 
 // ── Time filter helper ───────────────────────────────────────────────────────
-const attentionDateField = { heat: 'expected_next_heat', preg_check: 'expected_preg_check', calving: 'expected_calving', dry_off: 'expected_dry_off' }
+const attentionDateField = {
+  heat: 'expected_next_heat',
+  preg_check: 'expected_preg_check',
+  calving: 'expected_calving',
+  dry_off: 'expected_dry_off',
+}
 
 function matchesTimeRange(dateStr, range) {
   if (range === 'anytime') return true
@@ -271,11 +310,16 @@ function matchesTimeRange(dateStr, range) {
   d.setHours(0, 0, 0, 0)
   const diff = Math.round((d - today) / 86400000)
   switch (range) {
-    case 'today': return diff <= 0
-    case 'tomorrow': return diff === 1
-    case 'week': return diff >= 0 && diff <= 7
-    case 'nextWeek': return diff >= 0 && diff <= 14
-    default: return true
+    case 'today':
+      return diff <= 0
+    case 'tomorrow':
+      return diff === 1
+    case 'week':
+      return diff >= 0 && diff <= 7
+    case 'nextWeek':
+      return diff >= 0 && diff <= 14
+    default:
+      return true
   }
 }
 
@@ -284,11 +328,23 @@ function isInTimeRange(dateStr) {
 }
 
 // ── Time-filtered lists ─────────────────────────────────────────────────────
-const timeFilteredAttention  = computed(() => breedingStore.upcoming.needsAttention.filter((i) => isInTimeRange(i[attentionDateField[i.alert_type]])))
-const timeFilteredHeats      = computed(() => breedingStore.upcoming.heats.filter((i) => isInTimeRange(i.expected_next_heat)))
-const timeFilteredCalvings   = computed(() => breedingStore.upcoming.calvings.filter((i) => isInTimeRange(i.expected_calving)))
-const timeFilteredPregChecks = computed(() => breedingStore.upcoming.pregChecks.filter((i) => isInTimeRange(i.expected_preg_check)))
-const timeFilteredDryOffs    = computed(() => breedingStore.upcoming.dryOffs.filter((i) => isInTimeRange(i.expected_dry_off)))
+const timeFilteredAttention = computed(() =>
+  breedingStore.upcoming.needsAttention.filter((i) =>
+    isInTimeRange(i[attentionDateField[i.alert_type]])
+  )
+)
+const timeFilteredHeats = computed(() =>
+  breedingStore.upcoming.heats.filter((i) => isInTimeRange(i.expected_next_heat))
+)
+const timeFilteredCalvings = computed(() =>
+  breedingStore.upcoming.calvings.filter((i) => isInTimeRange(i.expected_calving))
+)
+const timeFilteredPregChecks = computed(() =>
+  breedingStore.upcoming.pregChecks.filter((i) => isInTimeRange(i.expected_preg_check))
+)
+const timeFilteredDryOffs = computed(() =>
+  breedingStore.upcoming.dryOffs.filter((i) => isInTimeRange(i.expected_dry_off))
+)
 
 // ── Counts (reflect active time filter) ─────────────────────────────────────
 function countOverdueByType(alertType) {
@@ -296,10 +352,23 @@ function countOverdueByType(alertType) {
 }
 
 const heatsCount = computed(() => timeFilteredHeats.value.length + countOverdueByType('heat'))
-const calvingsCount = computed(() => timeFilteredCalvings.value.length + countOverdueByType('calving'))
-const pregChecksCount = computed(() => timeFilteredPregChecks.value.length + countOverdueByType('preg_check'))
-const dryOffsCount = computed(() => timeFilteredDryOffs.value.length + countOverdueByType('dry_off'))
-const totalCount = computed(() => timeFilteredAttention.value.length + timeFilteredHeats.value.length + timeFilteredCalvings.value.length + timeFilteredPregChecks.value.length + timeFilteredDryOffs.value.length)
+const calvingsCount = computed(
+  () => timeFilteredCalvings.value.length + countOverdueByType('calving')
+)
+const pregChecksCount = computed(
+  () => timeFilteredPregChecks.value.length + countOverdueByType('preg_check')
+)
+const dryOffsCount = computed(
+  () => timeFilteredDryOffs.value.length + countOverdueByType('dry_off')
+)
+const totalCount = computed(
+  () =>
+    timeFilteredAttention.value.length +
+    timeFilteredHeats.value.length +
+    timeFilteredCalvings.value.length +
+    timeFilteredPregChecks.value.length +
+    timeFilteredDryOffs.value.length
+)
 const filteredTotalCount = totalCount
 
 const filters = computed(() => [
@@ -312,7 +381,9 @@ const filters = computed(() => [
 
 function countForTimeRange(range) {
   const u = breedingStore.upcoming
-  const att = u.needsAttention.filter((i) => matchesTimeRange(i[attentionDateField[i.alert_type]], range)).length
+  const att = u.needsAttention.filter((i) =>
+    matchesTimeRange(i[attentionDateField[i.alert_type]], range)
+  ).length
   const h = u.heats.filter((i) => matchesTimeRange(i.expected_next_heat, range)).length
   const c = u.calvings.filter((i) => matchesTimeRange(i.expected_calving, range)).length
   const p = u.pregChecks.filter((i) => matchesTimeRange(i.expected_preg_check, range)).length
@@ -329,17 +400,47 @@ const timeFilters = computed(() => [
 ])
 
 // ── Visible items (All view — sliced) ────────────────────────────────────────
-const visibleHeats      = computed(() => showAll.heats      ? timeFilteredHeats.value      : timeFilteredHeats.value.slice(0, ALERT_PREVIEW))
-const visibleCalvings   = computed(() => showAll.calvings   ? timeFilteredCalvings.value   : timeFilteredCalvings.value.slice(0, ALERT_PREVIEW))
-const visiblePregChecks = computed(() => showAll.pregChecks ? timeFilteredPregChecks.value : timeFilteredPregChecks.value.slice(0, ALERT_PREVIEW))
-const visibleDryOffs    = computed(() => showAll.dryOffs    ? timeFilteredDryOffs.value    : timeFilteredDryOffs.value.slice(0, ALERT_PREVIEW))
+const visibleHeats = computed(() =>
+  showAll.heats ? timeFilteredHeats.value : timeFilteredHeats.value.slice(0, ALERT_PREVIEW)
+)
+const visibleCalvings = computed(() =>
+  showAll.calvings ? timeFilteredCalvings.value : timeFilteredCalvings.value.slice(0, ALERT_PREVIEW)
+)
+const visiblePregChecks = computed(() =>
+  showAll.pregChecks
+    ? timeFilteredPregChecks.value
+    : timeFilteredPregChecks.value.slice(0, ALERT_PREVIEW)
+)
+const visibleDryOffs = computed(() =>
+  showAll.dryOffs ? timeFilteredDryOffs.value : timeFilteredDryOffs.value.slice(0, ALERT_PREVIEW)
+)
 
 // ── Category filter — flat list ──────────────────────────────────────────────
 const categoryConfig = {
-  heats: { dateField: 'expected_next_heat', alertType: 'heat', badgeClass: 'heat', isDryOff: false },
-  calvings: { dateField: 'expected_calving', alertType: 'calving', badgeClass: 'calving', isDryOff: false },
-  pregChecks: { dateField: 'expected_preg_check', alertType: 'preg_check', badgeClass: 'check', isDryOff: false },
-  dryOffs: { dateField: 'expected_dry_off', alertType: 'dry_off', badgeClass: 'dryoff', isDryOff: true },
+  heats: {
+    dateField: 'expected_next_heat',
+    alertType: 'heat',
+    badgeClass: 'heat',
+    isDryOff: false,
+  },
+  calvings: {
+    dateField: 'expected_calving',
+    alertType: 'calving',
+    badgeClass: 'calving',
+    isDryOff: false,
+  },
+  pregChecks: {
+    dateField: 'expected_preg_check',
+    alertType: 'preg_check',
+    badgeClass: 'check',
+    isDryOff: false,
+  },
+  dryOffs: {
+    dateField: 'expected_dry_off',
+    alertType: 'dry_off',
+    badgeClass: 'dryoff',
+    isDryOff: true,
+  },
 }
 
 const filteredItems = computed(() => {
@@ -347,12 +448,26 @@ const filteredItems = computed(() => {
   if (!cfg) return []
 
   const overdue = breedingStore.upcoming.needsAttention
-    .filter((i) => i.alert_type === cfg.alertType && isInTimeRange(i[attentionDateField[i.alert_type]]))
-    .map((i) => ({ ...i, _isOverdue: true, _badgeClass: 'overdue', _label: overdueLabel(i.alert_type), _isDryOff: cfg.isDryOff }))
+    .filter(
+      (i) => i.alert_type === cfg.alertType && isInTimeRange(i[attentionDateField[i.alert_type]])
+    )
+    .map((i) => ({
+      ...i,
+      _isOverdue: true,
+      _badgeClass: 'overdue',
+      _label: overdueLabel(i.alert_type),
+      _isDryOff: cfg.isDryOff,
+    }))
 
   const upcoming = breedingStore.upcoming[activeFilter.value]
     .filter((i) => isInTimeRange(i[cfg.dateField]))
-    .map((i) => ({ ...i, _isOverdue: false, _badgeClass: cfg.badgeClass, _label: alertLabel(i[cfg.dateField]), _isDryOff: cfg.isDryOff }))
+    .map((i) => ({
+      ...i,
+      _isOverdue: false,
+      _badgeClass: cfg.badgeClass,
+      _label: alertLabel(i[cfg.dateField]),
+      _isDryOff: cfg.isDryOff,
+    }))
     .sort((a, b) => (a[cfg.dateField] || '').localeCompare(b[cfg.dateField] || ''))
 
   return [...overdue, ...upcoming]
@@ -513,7 +628,9 @@ onMounted(() => {
   color: var(--text-secondary);
 }
 
-.spacer { flex: 1; }
+.spacer {
+  flex: 1;
+}
 
 .alert-badge {
   font-size: 0.75rem;

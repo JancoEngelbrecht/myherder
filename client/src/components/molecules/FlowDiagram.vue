@@ -1,10 +1,6 @@
 <template>
   <div class="flow-diagram" :class="{ 'flow-horizontal': direction === 'horizontal' }">
-    <div
-      v-for="(step, idx) in steps"
-      :key="step.id || idx"
-      class="flow-step"
-    >
+    <div v-for="(step, idx) in steps" :key="step.id || idx" class="flow-step">
       <div class="flow-node" :class="`flow-node--${step.type || 'action'}`">
         <span v-if="step.icon" class="flow-node-icon">{{ step.icon }}</span>
         <span class="flow-node-label">{{ step.label }}</span>
@@ -12,12 +8,11 @@
 
       <!-- Branch (decision) -->
       <div v-if="step.branches" class="flow-branches">
-        <div
-          v-for="(branch, bIdx) in step.branches"
-          :key="bIdx"
-          class="flow-branch"
-        >
-          <div class="flow-branch-label" :class="branch.type === 'yes' ? 'branch-yes' : 'branch-no'">
+        <div v-for="(branch, bIdx) in step.branches" :key="bIdx" class="flow-branch">
+          <div
+            class="flow-branch-label"
+            :class="branch.type === 'yes' ? 'branch-yes' : 'branch-no'"
+          >
             {{ branch.label }}
           </div>
           <div class="flow-branch-arrow">↓</div>

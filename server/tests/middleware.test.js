@@ -25,7 +25,13 @@ function mockRes() {
 
 describe('auth middleware', () => {
   it('sets req.user and calls next() with valid Bearer token', async () => {
-    const payload = { id: 'u1', username: 'admin', role: 'admin', permissions: [], token_version: 0 }
+    const payload = {
+      id: 'u1',
+      username: 'admin',
+      role: 'admin',
+      permissions: [],
+      token_version: 0,
+    }
     const token = jwt.sign(payload, JWT_SECRET)
     const req = { headers: { authorization: `Bearer ${token}` } }
     const res = mockRes()

@@ -111,9 +111,7 @@ describe('GET /api/analytics/breeding-overview', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.calvings_by_month.length).toBeGreaterThanOrEqual(1)
-    const monthEntry = res.body.calvings_by_month.find(
-      (m) => m.month === expected.slice(0, 7)
-    )
+    const monthEntry = res.body.calvings_by_month.find((m) => m.month === expected.slice(0, 7))
     expect(monthEntry).toBeDefined()
     expect(monthEntry.count).toBeGreaterThanOrEqual(1)
   })
@@ -201,7 +199,7 @@ describe('GET /api/analytics/breeding-activity', () => {
     expect(res.body).toHaveProperty('months')
     expect(Array.isArray(res.body.months)).toBe(true)
 
-    const aug = res.body.months.find(m => m.month === '2025-08')
+    const aug = res.body.months.find((m) => m.month === '2025-08')
     expect(aug).toBeDefined()
     expect(aug.inseminations).toBeGreaterThanOrEqual(1)
     expect(aug.conceptions).toBeGreaterThanOrEqual(1)
@@ -228,7 +226,7 @@ describe('GET /api/analytics/breeding-activity', () => {
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const sep = res.body.months.find(m => m.month === '2020-09')
+    const sep = res.body.months.find((m) => m.month === '2020-09')
     expect(sep).toBeDefined()
     expect(sep.inseminations).toBeGreaterThanOrEqual(1)
   })
@@ -356,7 +354,10 @@ describe('GET /api/analytics/days-open', () => {
   it('respects from/to date range', async () => {
     const cowId = await createCow()
     await createBreedingEvent(cowId, { event_type: 'calving', event_date: '2020-02-01' })
-    await createBreedingEvent(cowId, { event_type: 'preg_check_positive', event_date: '2020-05-01' })
+    await createBreedingEvent(cowId, {
+      event_type: 'preg_check_positive',
+      event_date: '2020-05-01',
+    })
 
     const res = await request(app)
       .get('/api/analytics/days-open?from=2020-01-01&to=2020-12-31')
@@ -444,7 +445,10 @@ describe('GET /api/analytics/conception-rate', () => {
     const cowId = await createCow()
     await createBreedingEvent(cowId, { event_type: 'calving', event_date: '2020-01-01' })
     await createBreedingEvent(cowId, { event_type: 'ai_insemination', event_date: '2020-03-01' })
-    await createBreedingEvent(cowId, { event_type: 'preg_check_positive', event_date: '2020-04-15' })
+    await createBreedingEvent(cowId, {
+      event_type: 'preg_check_positive',
+      event_date: '2020-04-15',
+    })
 
     const res = await request(app)
       .get('/api/analytics/conception-rate?from=2020-01-01&to=2020-12-31')
@@ -471,7 +475,10 @@ describe('GET /api/analytics/conception-rate', () => {
     const cowId = await createCow()
     await createBreedingEvent(cowId, { event_type: 'calving', event_date: '2020-01-01' })
     await createBreedingEvent(cowId, { event_type: 'ai_insemination', event_date: '2020-04-01' })
-    await createBreedingEvent(cowId, { event_type: 'preg_check_positive', event_date: '2020-04-20' })
+    await createBreedingEvent(cowId, {
+      event_type: 'preg_check_positive',
+      event_date: '2020-04-20',
+    })
 
     const res = await request(app)
       .get('/api/analytics/conception-rate?from=2020-01-01&to=2020-12-31')
@@ -479,7 +486,7 @@ describe('GET /api/analytics/conception-rate', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.by_month.length).toBeGreaterThanOrEqual(1)
-    const apr = res.body.by_month.find(m => m.month === '2020-04')
+    const apr = res.body.by_month.find((m) => m.month === '2020-04')
     expect(apr).toBeDefined()
     expect(apr).toHaveProperty('rate')
     expect(apr).toHaveProperty('total')

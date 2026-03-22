@@ -94,7 +94,7 @@ exports.up = async function (knex) {
       is_active: true,
       created_at: now,
       updated_at: now,
-    })),
+    }))
   )
 }
 

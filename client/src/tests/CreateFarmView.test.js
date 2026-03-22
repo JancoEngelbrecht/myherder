@@ -55,7 +55,13 @@ vi.mock('vue-router', () => ({
 
 function setSuperAdmin() {
   const auth = useAuthStore()
-  auth.user = { full_name: 'Super Admin', username: 'super', role: 'super_admin', permissions: [], farm_id: null }
+  auth.user = {
+    full_name: 'Super Admin',
+    username: 'super',
+    role: 'super_admin',
+    permissions: [],
+    farm_id: null,
+  }
   auth.token = 'test-token'
 }
 
@@ -100,12 +106,16 @@ describe('CreateFarmView', () => {
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
-    expect(mockPost).toHaveBeenCalledWith('/farms', expect.objectContaining({
-      name: 'Test Farm',
-      code: 'TESTFARM',
-      admin_username: 'admin',
-      admin_full_name: 'Admin User',
-    }), { timeout: 30000 })
+    expect(mockPost).toHaveBeenCalledWith(
+      '/farms',
+      expect.objectContaining({
+        name: 'Test Farm',
+        code: 'TESTFARM',
+        admin_username: 'admin',
+        admin_full_name: 'Admin User',
+      }),
+      { timeout: 30000 }
+    )
   })
 
   it('shows error on API failure with JSON error field', async () => {

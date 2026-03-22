@@ -77,7 +77,7 @@ describe('useIssueTypesStore', () => {
       api.get.mockReturnValue(
         new Promise((resolve) => {
           resolveRequest = () => resolve({ data: [], headers: { 'x-total-count': '0' } })
-        }),
+        })
       )
 
       const store = useIssueTypesStore()

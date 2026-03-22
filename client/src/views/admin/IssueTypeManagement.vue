@@ -5,7 +5,9 @@
     <div class="page-content it-content">
       <!-- Add / Edit Form -->
       <div v-if="showForm" class="card form-card">
-        <h3 class="form-title">{{ editing ? $t('issueTypes.editTitle') : $t('issueTypes.addTitle') }}</h3>
+        <h3 class="form-title">
+          {{ editing ? $t('issueTypes.editTitle') : $t('issueTypes.addTitle') }}
+        </h3>
         <form @submit.prevent="save">
           <div class="form-row-2">
             <div class="form-group">
@@ -18,7 +20,9 @@
                   @click="emojiPickerOpen = !emojiPickerOpen"
                 >
                   <span v-if="form.emoji" class="emoji-trigger-selected">{{ form.emoji }}</span>
-                  <span v-else class="emoji-trigger-placeholder">{{ $t('issueTypes.emojiPlaceholder') }}</span>
+                  <span v-else class="emoji-trigger-placeholder">{{
+                    $t('issueTypes.emojiPlaceholder')
+                  }}</span>
                 </button>
                 <div v-if="emojiPickerOpen" class="emoji-grid">
                   <button
@@ -28,7 +32,9 @@
                     class="emoji-option"
                     :class="{ selected: form.emoji === e }"
                     @click="selectEmoji(e)"
-                  >{{ e }}</button>
+                  >
+                    {{ e }}
+                  </button>
                 </div>
               </div>
             </div>
@@ -71,7 +77,9 @@
           <p v-if="formError" class="form-error">{{ formError }}</p>
 
           <div class="form-actions">
-            <button type="button" class="btn-secondary" @click="cancelForm">{{ $t('common.cancel') }}</button>
+            <button type="button" class="btn-secondary" @click="cancelForm">
+              {{ $t('common.cancel') }}
+            </button>
             <button type="submit" class="btn-primary" :disabled="saving">
               {{ saving ? $t('common.saving') : $t('common.save') }}
             </button>
@@ -121,23 +129,31 @@
           </div>
 
           <div class="it-meta">
-            <span v-if="type.requires_teat_selection" class="meta-pill teat">🧬 {{ $t('issueTypes.requiresTeatSelection') }}</span>
-            <span v-if="type.sort_order != null" class="meta-pill order">#{{ type.sort_order }}</span>
+            <span v-if="type.requires_teat_selection" class="meta-pill teat"
+              >🧬 {{ $t('issueTypes.requiresTeatSelection') }}</span
+            >
+            <span v-if="type.sort_order != null" class="meta-pill order"
+              >#{{ type.sort_order }}</span
+            >
           </div>
 
           <div class="it-actions">
-            <button class="btn-secondary btn-sm" @click="openEdit(type)">{{ $t('common.edit') }}</button>
+            <button class="btn-secondary btn-sm" @click="openEdit(type)">
+              {{ $t('common.edit') }}
+            </button>
             <button
               v-if="type.is_active"
               class="btn-danger btn-sm"
               @click="confirmDeactivate(type)"
-            >{{ $t('issueTypes.deactivate') }}</button>
-            <button
-              v-else
-              class="btn-secondary btn-sm"
-              @click="doActivate(type)"
-            >{{ $t('issueTypes.activate') }}</button>
-            <button class="btn-danger btn-sm" @click="confirmDelete(type)">{{ $t('common.delete') }}</button>
+            >
+              {{ $t('issueTypes.deactivate') }}
+            </button>
+            <button v-else class="btn-secondary btn-sm" @click="doActivate(type)">
+              {{ $t('issueTypes.activate') }}
+            </button>
+            <button class="btn-danger btn-sm" @click="confirmDelete(type)">
+              {{ $t('common.delete') }}
+            </button>
           </div>
         </div>
       </div>
@@ -154,7 +170,15 @@
     </div>
 
     <!-- FAB -->
-    <button v-if="!showForm" data-tour="it-add" class="fab" :title="$t('issueTypes.addTitle')" @click="openAdd">+</button>
+    <button
+      v-if="!showForm"
+      data-tour="it-add"
+      class="fab"
+      :title="$t('issueTypes.addTitle')"
+      @click="openAdd"
+    >
+      +
+    </button>
 
     <TourButton above-fab @start-tour="startTour" />
 
@@ -172,7 +196,9 @@
     <!-- Deactivate ConfirmDialog -->
     <ConfirmDialog
       :show="!!deactivateTarget"
-      :message="deactivateTarget ? $t('issueTypes.deactivateConfirm', { name: deactivateTarget.name }) : ''"
+      :message="
+        deactivateTarget ? $t('issueTypes.deactivateConfirm', { name: deactivateTarget.name }) : ''
+      "
       :confirm-label="$t('issueTypes.deactivate')"
       :cancel-label="$t('common.cancel')"
       :loading="deactivating"
@@ -199,36 +225,44 @@ const { t } = useI18n()
 const store = useIssueTypesStore()
 const toast = useToast()
 
-const { startTour } = useTour('issue-type-management', () => [
-  {
-    element: '[data-tour="it-search"]',
-    popover: {
-      title: t('tour.issueTypeManagement.search.title'),
-      description: t('tour.issueTypeManagement.search.desc'),
-    }
-  },
-  {
-    element: '[data-tour="it-list"]',
-    popover: {
-      title: t('tour.issueTypeManagement.list.title'),
-      description: t('tour.issueTypeManagement.list.desc'),
-    }
-  },
-  {
-    element: '[data-tour="it-add"]',
-    popover: {
-      title: t('tour.issueTypeManagement.add.title'),
-      description: t('tour.issueTypeManagement.add.desc'),
-    }
-  },
-], { autoStart: false })
+const { startTour } = useTour(
+  'issue-type-management',
+  () => [
+    {
+      element: '[data-tour="it-search"]',
+      popover: {
+        title: t('tour.issueTypeManagement.search.title'),
+        description: t('tour.issueTypeManagement.search.desc'),
+      },
+    },
+    {
+      element: '[data-tour="it-list"]',
+      popover: {
+        title: t('tour.issueTypeManagement.list.title'),
+        description: t('tour.issueTypeManagement.list.desc'),
+      },
+    },
+    {
+      element: '[data-tour="it-add"]',
+      popover: {
+        title: t('tour.issueTypeManagement.add.title'),
+        description: t('tour.issueTypeManagement.add.desc'),
+      },
+    },
+  ],
+  { autoStart: false }
+)
 
 const searchQuery = ref('')
 const page = ref(1)
 const limit = ref(20)
 
 function loadTypes() {
-  store.fetchAll(true, { search: searchQuery.value || undefined, page: page.value, limit: limit.value })
+  store.fetchAll(true, {
+    search: searchQuery.value || undefined,
+    page: page.value,
+    limit: limit.value,
+  })
 }
 
 function onSearch() {
@@ -248,11 +282,42 @@ function onLimitChange(l) {
 }
 
 const HEALTH_EMOJIS = [
-  '🩺','💊','🌡️','💉','🩹','🩸','🧪','🦠',
-  '🤒','😷','🤕','🥵','🥶','😵',
-  '👁️','🦷','🫁','🫀','🦶','🐾','🧬',
-  '⚠️','🔴','🟠','🟡','🟢','🔵','❌','✅',
-  '🐄','🥛','🌿','🌾','🚿','🔥','❄️',
+  '🩺',
+  '💊',
+  '🌡️',
+  '💉',
+  '🩹',
+  '🩸',
+  '🧪',
+  '🦠',
+  '🤒',
+  '😷',
+  '🤕',
+  '🥵',
+  '🥶',
+  '😵',
+  '👁️',
+  '🦷',
+  '🫁',
+  '🫀',
+  '🦶',
+  '🐾',
+  '🧬',
+  '⚠️',
+  '🔴',
+  '🟠',
+  '🟡',
+  '🟢',
+  '🔵',
+  '❌',
+  '✅',
+  '🐄',
+  '🥛',
+  '🌿',
+  '🌾',
+  '🚿',
+  '🔥',
+  '❄️',
 ]
 
 const emojiPickerOpen = ref(false)
@@ -457,7 +522,7 @@ async function doDelete() {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   gap: 4px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   width: max-content;
   max-width: 320px;
 }
@@ -473,7 +538,9 @@ async function doDelete() {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.1s, border-color 0.1s;
+  transition:
+    background 0.1s,
+    border-color 0.1s;
 }
 
 .emoji-option:hover {

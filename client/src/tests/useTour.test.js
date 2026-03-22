@@ -48,9 +48,7 @@ describe('useTour', () => {
   })
 
   it('auto-starts tour on first visit when autoStart is true', async () => {
-    const steps = [
-      { popover: { title: 'Welcome', description: 'Hello' } },
-    ]
+    const steps = [{ popover: { title: 'Welcome', description: 'Hello' } }]
     const wrapper = mount(createTestComponent('test-tour', steps))
     await nextTick()
     vi.advanceTimersByTime(400)
@@ -65,9 +63,7 @@ describe('useTour', () => {
 
   it('does not auto-start if already completed', async () => {
     localStorage.setItem('tour_completed_test-tour_user-1_farm-1', '1')
-    const steps = [
-      { popover: { title: 'Welcome', description: 'Hello' } },
-    ]
+    const steps = [{ popover: { title: 'Welcome', description: 'Hello' } }]
     const wrapper = mount(createTestComponent('test-tour', steps))
     await nextTick()
     vi.advanceTimersByTime(400)
@@ -77,9 +73,7 @@ describe('useTour', () => {
   })
 
   it('does not auto-start when autoStart is false', async () => {
-    const steps = [
-      { popover: { title: 'Welcome', description: 'Hello' } },
-    ]
+    const steps = [{ popover: { title: 'Welcome', description: 'Hello' } }]
     const wrapper = mount(createTestComponent('test-tour', steps, { autoStart: false }))
     await nextTick()
     vi.advanceTimersByTime(400)
@@ -90,9 +84,7 @@ describe('useTour', () => {
 
   it('resetTour clears localStorage', async () => {
     localStorage.setItem('tour_completed_test-tour_user-1_farm-1', '1')
-    const steps = [
-      { popover: { title: 'Welcome', description: 'Hello' } },
-    ]
+    const steps = [{ popover: { title: 'Welcome', description: 'Hello' } }]
     const wrapper = mount(createTestComponent('test-tour', steps, { autoStart: false }))
     await nextTick()
 
@@ -104,9 +96,7 @@ describe('useTour', () => {
   })
 
   it('hasCompleted is reactive', async () => {
-    const steps = [
-      { popover: { title: 'Welcome', description: 'Hello' } },
-    ]
+    const steps = [{ popover: { title: 'Welcome', description: 'Hello' } }]
     const wrapper = mount(createTestComponent('test-tour', steps, { autoStart: false }))
     await nextTick()
 
@@ -116,9 +106,7 @@ describe('useTour', () => {
 
   it('uses farm_id and user id in storage key', async () => {
     localStorage.setItem('farm_id', 'farm-99')
-    const steps = [
-      { popover: { title: 'Welcome', description: 'Hello' } },
-    ]
+    const steps = [{ popover: { title: 'Welcome', description: 'Hello' } }]
     const wrapper = mount(createTestComponent('my-tour', steps, { autoStart: false }))
     await nextTick()
 

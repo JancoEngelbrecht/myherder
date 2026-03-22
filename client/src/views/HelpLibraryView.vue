@@ -85,7 +85,7 @@ const categories = [
 ]
 
 const visibleCategories = computed(() =>
-  categories.filter(cat => !cat.adminOnly || authStore.isAdmin)
+  categories.filter((cat) => !cat.adminOnly || authStore.isAdmin)
 )
 </script>
 

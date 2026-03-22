@@ -48,9 +48,16 @@ vi.mock('vue-chartjs', () => ({
 
 vi.mock('chart.js', () => ({
   Chart: { register: vi.fn() },
-  CategoryScale: 'CS', LinearScale: 'LS', PointElement: 'PE',
-  LineElement: 'LE', BarElement: 'BE', ArcElement: 'AE',
-  Title: 'T', Tooltip: 'TT', Legend: 'L', Filler: 'F',
+  CategoryScale: 'CS',
+  LinearScale: 'LS',
+  PointElement: 'PE',
+  LineElement: 'LE',
+  BarElement: 'BE',
+  ArcElement: 'AE',
+  Title: 'T',
+  Tooltip: 'TT',
+  Legend: 'L',
+  Filler: 'F',
 }))
 
 import StructureView from '../../views/analytics/StructureView.vue'
@@ -66,7 +73,13 @@ const stubs = {
 const HERD_SUMMARY_RESPONSE = {
   data: {
     total: 52,
-    by_status: [{ status: 'active', count: 30 }, { status: 'pregnant', count: 12 }, { status: 'dry', count: 5 }, { status: 'sold', count: 3 }, { status: 'dead', count: 2 }],
+    by_status: [
+      { status: 'active', count: 30 },
+      { status: 'pregnant', count: 12 },
+      { status: 'dry', count: 5 },
+      { status: 'sold', count: 3 },
+      { status: 'dead', count: 2 },
+    ],
     milking_count: 30,
     dry_count: 5,
     heifer_count: 8,
@@ -141,7 +154,13 @@ function mockAllApis() {
     if (url.includes('herd-size-trend')) return Promise.resolve(TREND_RESPONSE)
     if (url.includes('feature-flags'))
       return Promise.resolve({
-        data: { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true },
+        data: {
+          breeding: true,
+          milkRecording: true,
+          healthIssues: true,
+          treatments: true,
+          analytics: true,
+        },
       })
     return Promise.resolve({ data: {} })
   })
@@ -168,11 +187,11 @@ describe('StructureView', () => {
     expect(chips.length).toBe(7)
 
     const text = wrapper.text()
-    expect(text).toContain('52')      // total herd
-    expect(text).toContain('30')      // milking cows
-    expect(text).toContain('5')       // dry cows
-    expect(text).toContain('8')       // heifers
-    expect(text).toContain('26.67%')  // replacement rate
+    expect(text).toContain('52') // total herd
+    expect(text).toContain('30') // milking cows
+    expect(text).toContain('5') // dry cows
+    expect(text).toContain('8') // heifers
+    expect(text).toContain('26.67%') // replacement rate
   })
 
   it('shows replacement rate with warn class when < 25%', async () => {
@@ -181,7 +200,7 @@ describe('StructureView', () => {
         return Promise.resolve({
           data: { ...HERD_SUMMARY_RESPONSE.data, replacement_rate: 20 },
         })
-      return mockAllApis(), api.get(url)
+      return (mockAllApis(), api.get(url))
     })
     // Re-mock properly
     const warnSummary = { ...HERD_SUMMARY_RESPONSE.data, replacement_rate: 20 }
@@ -193,7 +212,15 @@ describe('StructureView', () => {
       if (url.includes('mortality-rate')) return Promise.resolve(MORTALITY_RESPONSE)
       if (url.includes('herd-size-trend')) return Promise.resolve(TREND_RESPONSE)
       if (url.includes('feature-flags'))
-        return Promise.resolve({ data: { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true } })
+        return Promise.resolve({
+          data: {
+            breeding: true,
+            milkRecording: true,
+            healthIssues: true,
+            treatments: true,
+            analytics: true,
+          },
+        })
       return Promise.resolve({ data: {} })
     })
 
@@ -202,7 +229,7 @@ describe('StructureView', () => {
 
     const warnChips = wrapper.findAll('.stat-value.warn')
     expect(warnChips.length).toBeGreaterThanOrEqual(1)
-    expect(warnChips.some(c => c.text().includes('20%'))).toBe(true)
+    expect(warnChips.some((c) => c.text().includes('20%'))).toBe(true)
   })
 
   it('shows replacement rate with danger class when < 15%', async () => {
@@ -215,7 +242,15 @@ describe('StructureView', () => {
       if (url.includes('mortality-rate')) return Promise.resolve(MORTALITY_RESPONSE)
       if (url.includes('herd-size-trend')) return Promise.resolve(TREND_RESPONSE)
       if (url.includes('feature-flags'))
-        return Promise.resolve({ data: { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true } })
+        return Promise.resolve({
+          data: {
+            breeding: true,
+            milkRecording: true,
+            healthIssues: true,
+            treatments: true,
+            analytics: true,
+          },
+        })
       return Promise.resolve({ data: {} })
     })
 
@@ -224,7 +259,7 @@ describe('StructureView', () => {
 
     const dangerChips = wrapper.findAll('.stat-value.danger')
     expect(dangerChips.length).toBeGreaterThanOrEqual(1)
-    expect(dangerChips.some(c => c.text().includes('10%'))).toBe(true)
+    expect(dangerChips.some((c) => c.text().includes('10%'))).toBe(true)
   })
 
   it('shows turnover rate with warn class when > 5%', async () => {
@@ -238,7 +273,15 @@ describe('StructureView', () => {
       if (url.includes('mortality-rate')) return Promise.resolve(MORTALITY_RESPONSE)
       if (url.includes('herd-size-trend')) return Promise.resolve(TREND_RESPONSE)
       if (url.includes('feature-flags'))
-        return Promise.resolve({ data: { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true } })
+        return Promise.resolve({
+          data: {
+            breeding: true,
+            milkRecording: true,
+            healthIssues: true,
+            treatments: true,
+            analytics: true,
+          },
+        })
       return Promise.resolve({ data: {} })
     })
 
@@ -279,8 +322,8 @@ describe('StructureView', () => {
     await flushPromises()
 
     const text = wrapper.text()
-    expect(text).toContain('5')  // total_additions
-    expect(text).toContain('1')  // total_removals
+    expect(text).toContain('5') // total_additions
+    expect(text).toContain('1') // total_removals
 
     // Should have bar charts (age, turnover, mortality = 3)
     const bars = wrapper.findAll('[data-testid="bar-chart"]')
@@ -292,7 +335,7 @@ describe('StructureView', () => {
     await flushPromises()
 
     const text = wrapper.text()
-    expect(text).toContain('2')  // total_lost
+    expect(text).toContain('2') // total_lost
 
     // Should have 3 bar charts: age, turnover, mortality
     const bars = wrapper.findAll('[data-testid="bar-chart"]')
@@ -310,7 +353,18 @@ describe('StructureView', () => {
   it('shows empty state when no data', async () => {
     api.get.mockImplementation((url) => {
       if (url.includes('herd-summary'))
-        return Promise.resolve({ data: { total: 0, by_status: [], milking_count: 0, dry_count: 0, heifer_count: 0, males: 0, females: 0, replacement_rate: 0 } })
+        return Promise.resolve({
+          data: {
+            total: 0,
+            by_status: [],
+            milking_count: 0,
+            dry_count: 0,
+            heifer_count: 0,
+            males: 0,
+            females: 0,
+            replacement_rate: 0,
+          },
+        })
       if (url.includes('age-distribution'))
         return Promise.resolve({ data: { brackets: [], total: 0, males: 0, females: 0 } })
       if (url.includes('breed-composition'))
@@ -319,8 +373,7 @@ describe('StructureView', () => {
         return Promise.resolve({ data: { months: [], total_additions: 0, total_removals: 0 } })
       if (url.includes('mortality-rate'))
         return Promise.resolve({ data: { months: [], total_lost: 0, avg_rate_pct: 0 } })
-      if (url.includes('herd-size-trend'))
-        return Promise.resolve({ data: { months: [] } })
+      if (url.includes('herd-size-trend')) return Promise.resolve({ data: { months: [] } })
       return Promise.resolve({ data: {} })
     })
 

@@ -18,7 +18,13 @@ function latestPerCow(arr, field) {
 export const useBreedingEventsStore = defineStore('breedingEvents', () => {
   const events = ref([])
   const total = ref(0)
-  const upcoming = reactive({ heats: [], calvings: [], pregChecks: [], dryOffs: [], needsAttention: [] })
+  const upcoming = reactive({
+    heats: [],
+    calvings: [],
+    pregChecks: [],
+    dryOffs: [],
+    needsAttention: [],
+  })
   const loading = ref(false)
   const error = ref(null)
 
@@ -75,7 +81,7 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
     } catch {
       // Offline: derive from cached events
       const today = new Date().toISOString().slice(0, 10)
-      const in7  = new Date(Date.now() + 7  * 86400000).toISOString().slice(0, 10)
+      const in7 = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10)
       const in14 = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10)
 
       const all = await db.breedingEvents.toArray()
@@ -83,15 +89,15 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
 
       upcoming.heats = latestPerCow(
         all.filter((e) => inRange(e.expected_next_heat, today, in7)),
-        'expected_next_heat',
+        'expected_next_heat'
       )
       upcoming.calvings = latestPerCow(
         all.filter((e) => inRange(e.expected_calving, today, in14)),
-        'expected_calving',
+        'expected_calving'
       )
       upcoming.pregChecks = latestPerCow(
         all.filter((e) => inRange(e.expected_preg_check, today, in7)),
-        'expected_preg_check',
+        'expected_preg_check'
       )
     }
   }
@@ -157,7 +163,13 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
   async function dismissEvent(id, reason = '') {
     const now = new Date().toISOString()
     const existing = await db.breedingEvents.get(id)
-    const localEvent = { ...existing, id, dismissed_at: now, dismiss_reason: reason, updated_at: now }
+    const localEvent = {
+      ...existing,
+      id,
+      dismissed_at: now,
+      dismiss_reason: reason,
+      updated_at: now,
+    }
 
     await db.breedingEvents.put(localEvent)
     await enqueue('breedingEvents', 'update', id, localEvent)
@@ -187,7 +199,12 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
     // Snapshot for rollback (bulk read)
     const existing = await db.breedingEvents.bulkGet(ids)
     const snapshots = existing.filter(Boolean).map((e) => ({ ...e }))
-    const updated = snapshots.map((e) => ({ ...e, dismissed_at: now, dismiss_reason: reason, updated_at: now }))
+    const updated = snapshots.map((e) => ({
+      ...e,
+      dismissed_at: now,
+      dismiss_reason: reason,
+      updated_at: now,
+    }))
     if (updated.length) await db.breedingEvents.bulkPut(updated)
 
     try {
@@ -229,15 +246,22 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
   // ── Computed ─────────────────────────────────────────────────────────────────
 
   const upcomingCount = computed(
-    () => upcoming.heats.length + upcoming.calvings.length + upcoming.pregChecks.length + upcoming.dryOffs.length + upcoming.needsAttention.length,
+    () =>
+      upcoming.heats.length +
+      upcoming.calvings.length +
+      upcoming.pregChecks.length +
+      upcoming.dryOffs.length +
+      upcoming.needsAttention.length
   )
 
   // Latest event per cow — used in CowDetailView repro summary
   function latestForCow(cowId, eventsArr) {
     const arr = (eventsArr || events.value).filter((e) => e.cow_id === cowId)
     if (arr.length === 0) return null
-    return arr.reduce((latest, e) =>
-      !latest || e.event_date > latest.event_date ? e : latest, null)
+    return arr.reduce(
+      (latest, e) => (!latest || e.event_date > latest.event_date ? e : latest),
+      null
+    )
   }
 
   // Gestation progress for a pregnant cow: 0–100

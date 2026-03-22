@@ -40,7 +40,11 @@ vi.mock('../db/indexedDB.js', () => ({
   default: {
     auth: { get: vi.fn().mockResolvedValue(null), put: vi.fn(), delete: vi.fn() },
     syncQueue: {
-      where: vi.fn().mockReturnValue({ aboveOrEqual: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          aboveOrEqual: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
       bulkDelete: vi.fn(),
     },
   },
@@ -107,13 +111,17 @@ describe('ProfileView', () => {
 
   it('shows settings link for admin users', () => {
     const wrapper = mountComponent({ role: 'admin' })
-    const settingsLink = wrapper.findAll('.router-link').find(el => el.attributes('href') === '/settings')
+    const settingsLink = wrapper
+      .findAll('.router-link')
+      .find((el) => el.attributes('href') === '/settings')
     expect(settingsLink).toBeTruthy()
   })
 
   it('hides settings link for worker users', () => {
     const wrapper = mountComponent({ role: 'worker' })
-    const settingsLink = wrapper.findAll('.router-link').find(el => el.attributes('href') === '/settings')
+    const settingsLink = wrapper
+      .findAll('.router-link')
+      .find((el) => el.attributes('href') === '/settings')
     expect(settingsLink).toBeUndefined()
   })
 

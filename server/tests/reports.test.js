@@ -105,7 +105,9 @@ async function seedMilkRecord(cowId, overrides = {}) {
 
 describe('Reports API — Auth & Validation', () => {
   it('returns 401 without token', async () => {
-    const res = await request(app).get('/api/reports/treatment-history?from=2025-01-01&to=2025-12-31')
+    const res = await request(app).get(
+      '/api/reports/treatment-history?from=2025-01-01&to=2025-12-31'
+    )
     expect(res.status).toBe(401)
   })
 
@@ -141,7 +143,7 @@ describe('GET /api/reports/treatment-history', () => {
     medId2 = await seedMedication({ name: 'Oxytetracycline', active_ingredient: 'OTC' })
     await seedTreatment(cowId2, medId2, {
       treatment_date: '2025-03-10',
-      cost: 150.50,
+      cost: 150.5,
       is_vet_visit: true,
       vet_name: 'Dr. Smith',
       notes: 'Mastitis treatment',
@@ -301,7 +303,11 @@ describe('GET /api/reports/milk-production', () => {
   beforeAll(async () => {
     cowProd = await seedCow({ tag_number: 'MP001', name: 'Milky' })
     await seedMilkRecord(cowProd, { recording_date: '2025-04-01', session: 'morning', litres: 15 })
-    await seedMilkRecord(cowProd, { recording_date: '2025-04-01', session: 'afternoon', litres: 12 })
+    await seedMilkRecord(cowProd, {
+      recording_date: '2025-04-01',
+      session: 'afternoon',
+      litres: 12,
+    })
     await seedMilkRecord(cowProd, { recording_date: '2025-04-02', session: 'morning', litres: 14 })
   })
 

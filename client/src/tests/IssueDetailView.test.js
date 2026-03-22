@@ -49,36 +49,70 @@ vi.mock('../services/syncManager.js', () => {
 vi.mock('../db/indexedDB.js', () => ({
   default: {
     cows: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      orderBy: vi.fn().mockReturnValue({ reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      orderBy: vi
+        .fn()
+        .mockReturnValue({
+          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     treatments: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     healthIssues: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     breedingEvents: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
-      orderBy: vi.fn().mockReturnValue({ reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
+      orderBy: vi
+        .fn()
+        .mockReturnValue({
+          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     issueTypes: {
-      bulkPut: vi.fn(), put: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
     },
     breedTypes: {
-      bulkPut: vi.fn(), put: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
     },
     medications: {
-      bulkPut: vi.fn(), put: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
     },
     featureFlags: {
@@ -171,7 +205,11 @@ describe('IssueDetailView', () => {
     const html = wrapper.html()
     expect(html).toBeTruthy()
     // The teat selector stub should be rendered since we have affected teats
-    expect(wrapper.findComponent({ name: 'TeatSelector' }).exists() || wrapper.find('teat-selector-stub').exists() || html.includes('teat')).toBeTruthy()
+    expect(
+      wrapper.findComponent({ name: 'TeatSelector' }).exists() ||
+        wrapper.find('teat-selector-stub').exists() ||
+        html.includes('teat')
+    ).toBeTruthy()
   })
 
   it('shows status change buttons when status is open', async () => {
@@ -190,9 +228,16 @@ describe('IssueDetailView', () => {
     healthIssuesStore.fetchComments = vi.fn().mockResolvedValue([])
     // Set comments state directly so getComments() returns the comment
     // The view renders c.comment (not c.content) per IssueDetailView template
-    healthIssuesStore.comments = { 'issue-1': [
-      { id: 'c-1', comment: 'Improving', created_at: '2024-01-16T08:00:00Z', author_name: 'Admin' },
-    ] }
+    healthIssuesStore.comments = {
+      'issue-1': [
+        {
+          id: 'c-1',
+          comment: 'Improving',
+          created_at: '2024-01-16T08:00:00Z',
+          author_name: 'Admin',
+        },
+      ],
+    }
     const wrapper = mount(IssueDetailView, { global: { stubs } })
     await flushPromises()
     expect(wrapper.text()).toContain('Improving')
@@ -205,11 +250,15 @@ describe('IssueDetailView', () => {
     await flushPromises()
     const html = wrapper.html()
     // Delete button or danger button should be present for admin
-    const deleteButtons = wrapper.findAll('button').filter(b =>
-      b.text().toLowerCase().includes('delete') ||
-      b.classes().some(c => c.includes('danger'))
-    )
-    expect(deleteButtons.length + (html.includes('delete') || html.includes('Delete') ? 1 : 0)).toBeGreaterThan(0)
+    const deleteButtons = wrapper
+      .findAll('button')
+      .filter(
+        (b) =>
+          b.text().toLowerCase().includes('delete') || b.classes().some((c) => c.includes('danger'))
+      )
+    expect(
+      deleteButtons.length + (html.includes('delete') || html.includes('Delete') ? 1 : 0)
+    ).toBeGreaterThan(0)
   })
 
   it('shows error state on fetchOne failure', async () => {

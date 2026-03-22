@@ -1,9 +1,11 @@
 # MT Phase 2C: Analytics Routes
 
 ## Goal
+
 Apply tenant scoping to all analytics route files. 6 files, 50 query locations total.
 
 ## Prerequisites
+
 - Phase 2A complete (tenantScope middleware exists)
 - Phase 2B complete (reference routes scoped)
 - Read `server/routes/analytics/index.js` for how analytics router is mounted
@@ -12,11 +14,14 @@ Apply tenant scoping to all analytics route files. 6 files, 50 query locations t
 ## File-by-File Breakdown
 
 ### `server/routes/analytics/index.js`
+
 - This is the router mount point. Add `tenantScope` middleware here (applies to all analytics sub-routes):
+
 ```js
-const tenantScope = require('../../middleware/tenantScope');
-router.use(tenantScope);
+const tenantScope = require('../../middleware/tenantScope')
+router.use(tenantScope)
 ```
+
 - No direct queries in this file.
 
 ### `server/routes/analytics/helpers.js` (3 queries)
@@ -24,6 +29,7 @@ router.use(tenantScope);
 Contains `getIssueTypeDefMap()` -- a cached lookup of issue type definitions.
 
 **Critical change**: This cache is currently global (all issue types). With multi-tenancy, it must be farm-scoped:
+
 - Option A: Accept `farmId` param, cache per farm: `cache[farmId] = { data, expiry }`
 - Option B: Remove cache entirely (simplest, slight perf cost)
 - Option C: Accept `farmId`, no cache (since <10 farms, cache benefit is minimal)
@@ -37,6 +43,7 @@ Also scope any other shared helper that queries a table.
 `GET /api/analytics/daily-kpis` -- multiple independent queries for today's stats.
 
 Each query (litres today, cows milked, active issues, breeding actions) needs:
+
 - `db('milk_records')` -> `.where('milk_records.farm_id', req.farmId)`
 - `db('cows')` -> `.where('cows.farm_id', req.farmId)`
 - `db('health_issues')` -> `.where('health_issues.farm_id', req.farmId)`
@@ -55,6 +62,7 @@ Each query on `milk_records`, `treatments`, `cows` needs farm scoping. Watch for
 Endpoints: breeding-overview, breeding-activity, conception-rate, calving-interval, days-open.
 
 This is the most query-heavy analytics file. Key concerns:
+
 - `breeding-overview` has multiple parallel queries -- scope each one
 - `conception-rate` uses `countServicesForPregCheck` helper -- verify it's farm-scoped or receives farm-scoped data
 - `calving-interval` and `days-open` query breeding events by cow -- the cow filter implicitly scopes (cows are farm-scoped), but add explicit `farm_id` for safety
@@ -87,7 +95,7 @@ db('breeding_events')
 
 // After
 db('breeding_events')
-  .where('breeding_events.farm_id', req.farmId)  // scope primary table
+  .where('breeding_events.farm_id', req.farmId) // scope primary table
   .join('cows', 'cows.id', 'breeding_events.cow_id')
   .where('breeding_events.event_date', '>=', from)
 ```

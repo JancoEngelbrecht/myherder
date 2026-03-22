@@ -167,13 +167,13 @@ describe('GET /api/analytics/issue-frequency', () => {
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const mastitis = res.body.by_type.find(t => t.code === 'mastitis')
+    const mastitis = res.body.by_type.find((t) => t.code === 'mastitis')
     expect(mastitis).toBeDefined()
     expect(mastitis.count).toBeGreaterThanOrEqual(1)
     expect(mastitis).toHaveProperty('name')
     expect(mastitis).toHaveProperty('emoji')
 
-    const fever = res.body.by_type.find(t => t.code === 'fever')
+    const fever = res.body.by_type.find((t) => t.code === 'fever')
     expect(fever).toBeDefined()
     expect(fever.count).toBeGreaterThanOrEqual(1)
   })
@@ -190,7 +190,7 @@ describe('GET /api/analytics/issue-frequency', () => {
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const aug = res.body.by_month.find(m => m.month === '2020-08')
+    const aug = res.body.by_month.find((m) => m.month === '2020-08')
     expect(aug).toBeDefined()
     expect(aug.counts).toHaveProperty('lameness')
     expect(aug.counts.lameness).toBeGreaterThanOrEqual(1)
@@ -234,7 +234,7 @@ describe('GET /api/analytics/mastitis-rate', () => {
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const sep = res.body.months.find(m => m.month === '2020-09')
+    const sep = res.body.months.find((m) => m.month === '2020-09')
     expect(sep).toBeDefined()
     expect(sep.cases).toBeGreaterThanOrEqual(1)
     expect(sep).toHaveProperty('rate')
@@ -273,7 +273,7 @@ describe('GET /api/analytics/withdrawal-days', () => {
     const medId = await createMedication()
     await createTreatment(cowId, medId, {
       treatment_date: '2020-10-01T10:00:00.000Z',
-      withdrawal_end_milk: '2020-10-06T10:00:00.000Z',  // 5 days
+      withdrawal_end_milk: '2020-10-06T10:00:00.000Z', // 5 days
       cost: 100,
     })
 
@@ -282,7 +282,7 @@ describe('GET /api/analytics/withdrawal-days', () => {
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const oct = res.body.months.find(m => m.month === '2020-10')
+    const oct = res.body.months.find((m) => m.month === '2020-10')
     expect(oct).toBeDefined()
     expect(oct.total_withdrawal_days).toBeGreaterThanOrEqual(5)
     expect(oct.cows_affected).toBeGreaterThanOrEqual(1)
@@ -327,7 +327,11 @@ describe('GET /api/analytics/health-resolution-stats', () => {
     const observed = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString()
     const resolved = now.toISOString()
 
-    await createHealthIssue(cowId, { status: 'resolved', observed_at: observed, resolved_at: resolved })
+    await createHealthIssue(cowId, {
+      status: 'resolved',
+      observed_at: observed,
+      resolved_at: resolved,
+    })
     await createHealthIssue(cowId, { status: 'open', observed_at: observed })
 
     const res = await request(app)
@@ -402,7 +406,7 @@ describe('GET /api/analytics/health-resolution-by-type', () => {
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const lameness = res.body.by_type.find(t => t.code === 'lameness')
+    const lameness = res.body.by_type.find((t) => t.code === 'lameness')
     if (lameness) {
       expect(lameness.avg_days).toBeGreaterThan(0)
       expect(lameness.count).toBeGreaterThanOrEqual(1)
@@ -463,7 +467,7 @@ describe('GET /api/analytics/health-recurrence', () => {
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const mastitis = res.body.by_type.find(t => t.code === 'mastitis')
+    const mastitis = res.body.by_type.find((t) => t.code === 'mastitis')
     if (mastitis) {
       expect(mastitis.recurred_count).toBeGreaterThanOrEqual(1)
       expect(mastitis.rate).toBeGreaterThan(0)
@@ -502,7 +506,11 @@ describe('GET /api/analytics/health-cure-rate-trend', () => {
     const observed = '2026-01-15T00:00:00.000Z'
     const resolved = '2026-01-20T00:00:00.000Z'
 
-    await createHealthIssue(cowId, { status: 'resolved', observed_at: observed, resolved_at: resolved })
+    await createHealthIssue(cowId, {
+      status: 'resolved',
+      observed_at: observed,
+      resolved_at: resolved,
+    })
     await createHealthIssue(cowId, { status: 'open', observed_at: '2026-01-18T00:00:00.000Z' })
 
     const res = await request(app)
@@ -510,7 +518,7 @@ describe('GET /api/analytics/health-cure-rate-trend', () => {
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const jan = res.body.months.find(m => m.month === '2026-01')
+    const jan = res.body.months.find((m) => m.month === '2026-01')
     if (jan) {
       expect(jan.total).toBeGreaterThanOrEqual(2)
       expect(jan.resolved).toBeGreaterThanOrEqual(1)
@@ -569,8 +577,8 @@ describe('GET /api/analytics/slowest-to-resolve', () => {
 
     expect(res.status).toBe(200)
     if (res.body.length >= 2) {
-      const slow = res.body.find(c => c.name === 'SlowCow')
-      const fast = res.body.find(c => c.name === 'FastCow')
+      const slow = res.body.find((c) => c.name === 'SlowCow')
+      const fast = res.body.find((c) => c.name === 'FastCow')
       if (slow && fast) {
         expect(slow.avg_days).toBeGreaterThan(fast.avg_days)
       }
@@ -590,7 +598,7 @@ describe('GET /api/analytics/slowest-to-resolve', () => {
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const cow = res.body.find(c => c.name === 'TestResolve')
+    const cow = res.body.find((c) => c.name === 'TestResolve')
     if (cow) {
       expect(cow).toHaveProperty('id')
       expect(cow).toHaveProperty('tag_number')

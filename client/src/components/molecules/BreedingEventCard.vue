@@ -19,13 +19,16 @@
       <!-- Auto-calculated dates -->
       <div v-if="hasAutoDates" class="auto-dates">
         <span v-if="event.expected_next_heat" class="date-chip">
-          🔥 {{ t('breeding.dates.nextHeat') }}: <span class="mono">{{ formatDate(event.expected_next_heat) }}</span>
+          🔥 {{ t('breeding.dates.nextHeat') }}:
+          <span class="mono">{{ formatDate(event.expected_next_heat) }}</span>
         </span>
         <span v-if="event.expected_preg_check" class="date-chip">
-          🩺 {{ t('breeding.dates.pregCheck') }}: <span class="mono">{{ formatDate(event.expected_preg_check) }}</span>
+          🩺 {{ t('breeding.dates.pregCheck') }}:
+          <span class="mono">{{ formatDate(event.expected_preg_check) }}</span>
         </span>
         <span v-if="event.expected_calving" class="date-chip">
-          🐮 {{ t('breeding.dates.calving') }}: <span class="mono">{{ formatDate(event.expected_calving) }}</span>
+          🐮 {{ t('breeding.dates.calving') }}:
+          <span class="mono">{{ formatDate(event.expected_calving) }}</span>
         </span>
       </div>
 
@@ -34,7 +37,9 @@
 
       <div v-if="showDelete" class="card-actions" @click.stop>
         <button class="btn-edit" @click="$emit('edit', event.id)">{{ t('common.edit') }}</button>
-        <button class="btn-delete" @click="$emit('delete', event.id)">{{ t('common.delete') }}</button>
+        <button class="btn-delete" @click="$emit('delete', event.id)">
+          {{ t('common.delete') }}
+        </button>
       </div>
     </div>
 
@@ -72,9 +77,10 @@ const eventCategory = computed(() => {
   return 'default'
 })
 
-const hasInsemDetails = computed(() =>
-  ['ai_insemination', 'bull_service'].includes(props.event.event_type) &&
-  (props.event.sire_name || props.event.semen_id || props.event.inseminator),
+const hasInsemDetails = computed(
+  () =>
+    ['ai_insemination', 'bull_service'].includes(props.event.event_type) &&
+    (props.event.sire_name || props.event.semen_id || props.event.inseminator)
 )
 
 const calvingDetails = computed(() => {
@@ -82,7 +88,11 @@ const calvingDetails = computed(() => {
   const d = props.event.calving_details
   if (!d) return null
   if (typeof d !== 'string') return d
-  try { return JSON.parse(d) } catch { return null }
+  try {
+    return JSON.parse(d)
+  } catch {
+    return null
+  }
 })
 
 const metaText = computed(() => {
@@ -96,7 +106,9 @@ const metaText = computed(() => {
   if (calvingDetails.value) {
     const parts = []
     if (calvingDetails.value.calf_sex) {
-      parts.push(`${calvingDetails.value.calf_sex === 'male' ? '🐂' : '🐄'} ${t(`sex.${calvingDetails.value.calf_sex}`)}`)
+      parts.push(
+        `${calvingDetails.value.calf_sex === 'male' ? '🐂' : '🐄'} ${t(`sex.${calvingDetails.value.calf_sex}`)}`
+      )
     }
     if (calvingDetails.value.calf_tag_number) parts.push(calvingDetails.value.calf_tag_number)
     if (parts.length) return parts.join(' · ')
@@ -106,13 +118,20 @@ const metaText = computed(() => {
 
 const hasMetaText = computed(() => metaText.value.length > 0)
 
-const hasAutoDates = computed(() =>
-  props.event.expected_next_heat || props.event.expected_preg_check || props.event.expected_calving,
+const hasAutoDates = computed(
+  () =>
+    props.event.expected_next_heat ||
+    props.event.expected_preg_check ||
+    props.event.expected_calving
 )
 
 function formatDate(iso) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+  return new Date(iso).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
 }
 
 function navigateToEvent() {
@@ -129,7 +148,9 @@ function navigateToEvent() {
   gap: 10px;
   padding: 10px 12px;
   cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.1s;
+  transition:
+    transform 0.1s,
+    box-shadow 0.1s;
   overflow: hidden;
 }
 
@@ -149,14 +170,30 @@ function navigateToEvent() {
   flex-shrink: 0;
 }
 
-.event-heat { background: #FFF0F0; }
-.event-insem { background: #EFF0FF; }
-.event-preg-pos { background: #EEFBF0; }
-.event-preg-neg { background: #FFF0F0; }
-.event-calving { background: #FFF8EC; }
-.event-dry-off { background: #F0FBF4; }
-.event-abort { background: #FFF0F0; }
-.event-default { background: var(--bg); }
+.event-heat {
+  background: #fff0f0;
+}
+.event-insem {
+  background: #eff0ff;
+}
+.event-preg-pos {
+  background: #eefbf0;
+}
+.event-preg-neg {
+  background: #fff0f0;
+}
+.event-calving {
+  background: #fff8ec;
+}
+.event-dry-off {
+  background: #f0fbf4;
+}
+.event-abort {
+  background: #fff0f0;
+}
+.event-default {
+  background: var(--bg);
+}
 
 .event-info {
   flex: 1;
@@ -178,14 +215,38 @@ function navigateToEvent() {
   white-space: nowrap;
 }
 
-.badge-event-heat { background: #FECACA; color: #991B1B; }
-.badge-event-insem { background: #DBEAFE; color: #1E40AF; }
-.badge-event-preg-pos { background: #D1FAE5; color: #065F46; }
-.badge-event-preg-neg { background: #FECACA; color: #991B1B; }
-.badge-event-calving { background: #FEF3C7; color: #92400E; }
-.badge-event-dry-off { background: #D1FAE5; color: #065F46; }
-.badge-event-abort { background: #FECACA; color: #991B1B; }
-.badge-event-default { background: var(--bg); color: var(--text-secondary); }
+.badge-event-heat {
+  background: #fecaca;
+  color: #991b1b;
+}
+.badge-event-insem {
+  background: #dbeafe;
+  color: #1e40af;
+}
+.badge-event-preg-pos {
+  background: #d1fae5;
+  color: #065f46;
+}
+.badge-event-preg-neg {
+  background: #fecaca;
+  color: #991b1b;
+}
+.badge-event-calving {
+  background: #fef3c7;
+  color: #92400e;
+}
+.badge-event-dry-off {
+  background: #d1fae5;
+  color: #065f46;
+}
+.badge-event-abort {
+  background: #fecaca;
+  color: #991b1b;
+}
+.badge-event-default {
+  background: var(--bg);
+  color: var(--text-secondary);
+}
 
 .event-cow-name {
   font-weight: 600;

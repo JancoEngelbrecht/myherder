@@ -1,10 +1,12 @@
 # Breeding Hub Redesign — Sub-Plan
 
 ## Goal
+
 Simplify the Breeding Hub into a clean dashboard with 2 navigation cards + stats + FAB.
 Move all notification/alert content to a new dedicated Notifications page with category filter chips.
 
 ## Current State
+
 - `BreedingHubView.vue` — monolithic page showing: Needs Attention, Stats, Upcoming (4 groups), Recent Events, FAB
 - `BreedingEventsView.vue` — paginated event history with type filter chips + advanced filters
 - `/api/breeding-events/upcoming` — returns `{ heats, calvings, pregChecks, dryOffs, needsAttention }`
@@ -13,6 +15,7 @@ Move all notification/alert content to a new dedicated Notifications page with c
 ## Design
 
 ### Breeding Hub (`/breed`) — simplified dashboard
+
 ```
 [ Stats Row: Pregnant | Open | Due Soon ]
 
@@ -26,6 +29,7 @@ Move all notification/alert content to a new dedicated Notifications page with c
 ```
 
 ### Notifications Page (`/breed/notifications`) — new page
+
 ```
 [ ← Notifications ]
 
@@ -42,6 +46,7 @@ C013 Hettie     5d
 ```
 
 **Filter behavior:**
+
 - **All** (default): grouped layout — Needs Attention header, then each upcoming category with its own header
 - **Category filter** (e.g. Heats): flat list, overdue items first (red badge), then upcoming sorted by date ascending. No sub-headers needed since it's all one type
 - Each chip shows count: `Heats (3)`
@@ -52,9 +57,11 @@ C013 Hettie     5d
 ## Phases
 
 ### Phase 1: Create Notifications View + Route
+
 **Files:** new `client/src/views/BreedingNotificationsView.vue`, `client/src/router/index.js`, `client/src/i18n/en.json`, `client/src/i18n/af.json`
 
 1. Add i18n keys needed for this view:
+
    ```
    breeding.notificationsTitle     — "Notifications" / "Kennisgewings"
    breeding.filterAll              — "All" / "Alles"
@@ -78,27 +85,26 @@ C013 Hettie     5d
 
 4. Add route `/breed/notifications` → `BreedingNotificationsView` (name: `breed-notifications`, requiresAuth)
 
-**Tests:**
-5. Create `client/src/tests/BreedingNotificationsView.test.js`:
-   - Renders filter chips with correct counts
-   - "All" filter shows grouped layout (needs attention header + category headers)
-   - Category filter shows flat list (overdue first, then upcoming by date)
-   - Dismiss action calls store's `dismissEvent()`
-   - Dry-off accept/reject actions work
-   - Empty state shown when no notifications
-   - Clicking an alert row navigates to cow repro view
+**Tests:** 5. Create `client/src/tests/BreedingNotificationsView.test.js`:
 
-**Cleanup:**
-6. Run `npm run lint:fix`
-7. Run `npm run knip` — check for any dead exports introduced
-8. Review: does any logic extracted from the hub into this view have refactor opportunities? (e.g., duplicated date formatting, repeated alert-card rendering that could become a shared molecule)
+- Renders filter chips with correct counts
+- "All" filter shows grouped layout (needs attention header + category headers)
+- Category filter shows flat list (overdue first, then upcoming by date)
+- Dismiss action calls store's `dismissEvent()`
+- Dry-off accept/reject actions work
+- Empty state shown when no notifications
+- Clicking an alert row navigates to cow repro view
+
+**Cleanup:** 6. Run `npm run lint:fix` 7. Run `npm run knip` — check for any dead exports introduced 8. Review: does any logic extracted from the hub into this view have refactor opportunities? (e.g., duplicated date formatting, repeated alert-card rendering that could become a shared molecule)
 
 ---
 
 ### Phase 2: Redesign Breeding Hub
+
 **Files:** `client/src/views/BreedingHubView.vue`, `client/src/i18n/en.json`, `client/src/i18n/af.json`
 
 1. Add i18n keys needed for this phase:
+
    ```
    breeding.notificationsCard      — "Notifications" / "Kennisgewings"
    breeding.recentEventsCard       — "Recent Events" / "Onlangse Geleenthede"
@@ -122,54 +128,34 @@ C013 Hettie     5d
 8. Keep FAB (+) button
 9. Keep loading state and error banner
 
-**Tests:**
-10. Create `client/src/tests/BreedingHubView.test.js`:
-    - Stats row renders Pregnant / Open / Due Soon counts
-    - Notifications card shows combined count badge
-    - Notifications card subtitle shows "X overdue · Y upcoming"
-    - Clicking Notifications card navigates to `/breed/notifications`
-    - Recent Events card shows latest event preview
-    - Clicking Recent Events card navigates to `/breed/events`
-    - FAB renders and navigates to log breeding view
-    - Loading state shown while fetching
+**Tests:** 10. Create `client/src/tests/BreedingHubView.test.js`: - Stats row renders Pregnant / Open / Due Soon counts - Notifications card shows combined count badge - Notifications card subtitle shows "X overdue · Y upcoming" - Clicking Notifications card navigates to `/breed/notifications` - Recent Events card shows latest event preview - Clicking Recent Events card navigates to `/breed/events` - FAB renders and navigates to log breeding view - Loading state shown while fetching
 
-**Cleanup:**
-11. Run `npm run lint:fix`
-12. Run `npm run knip` — specifically check for:
-    - Dead CSS classes that belonged to removed alert sections (`.alert-*`, `.needs-attention-*`, show-more styles, etc.)
-    - Unused JS imports (ConfirmDialog if no longer used here, alert helper functions)
-    - Unused computed properties and reactive state
-    - Unused i18n keys that were only used in the old hub layout
-13. Remove all identified dead code
-14. Review refactor opportunities:
-    - Are the stats row and nav cards simple enough, or should nav cards become a reusable molecule?
-    - Is the `upcomingCount` computed still in the right place (store vs. view)?
+**Cleanup:** 11. Run `npm run lint:fix` 12. Run `npm run knip` — specifically check for: - Dead CSS classes that belonged to removed alert sections (`.alert-*`, `.needs-attention-*`, show-more styles, etc.) - Unused JS imports (ConfirmDialog if no longer used here, alert helper functions) - Unused computed properties and reactive state - Unused i18n keys that were only used in the old hub layout 13. Remove all identified dead code 14. Review refactor opportunities: - Are the stats row and nav cards simple enough, or should nav cards become a reusable molecule? - Is the `upcomingCount` computed still in the right place (store vs. view)?
 
 ---
 
 ### Phase 3: Shared Component Extraction (if needed)
+
 **Files:** TBD based on Phase 1–2 findings
 
 This phase exists to act on refactor opportunities identified in Phases 1 and 2. Skip if none are found.
 
 Candidates to evaluate:
+
 1. **Alert/notification item rendering** — if BreedingNotificationsView duplicates significant rendering logic from the old hub, extract a `BreedingAlertItem.vue` molecule
 2. **Nav card component** — if the hub's two nav cards share significant structure and the pattern is likely to repeat elsewhere, extract a `NavCard.vue` molecule
 3. **Date-relative helpers** — if "X days ago" / "in X days" formatting is duplicated, extract to a shared util
 
 **Decision rule:** Only extract if the duplication is 15+ lines or the pattern is used 3+ times. Do not over-abstract.
 
-**Tests:**
-4. If components are extracted, move/write tests for the extracted components
-5. Verify existing tests still pass: `cd client && npm run test:run`
+**Tests:** 4. If components are extracted, move/write tests for the extracted components 5. Verify existing tests still pass: `cd client && npm run test:run`
 
-**Cleanup:**
-6. Run `npm run lint:fix`
-7. Run `npm run knip`
+**Cleanup:** 6. Run `npm run lint:fix` 7. Run `npm run knip`
 
 ---
 
 ### Phase 4: Integration Verification
+
 Manual and automated verification that everything works end-to-end.
 
 1. Verify all functionality preserved:
@@ -189,6 +175,7 @@ Manual and automated verification that everything works end-to-end.
 ---
 
 ### Phase 5: Final Cleanup & Dead Code Sweep
+
 Comprehensive cleanup pass across all files touched.
 
 1. **Dead CSS sweep:**
@@ -221,18 +208,20 @@ Comprehensive cleanup pass across all files touched.
 ---
 
 ## Files Changed Summary
-| File | Action |
-|------|--------|
-| `client/src/views/BreedingNotificationsView.vue` | **NEW** — notifications page with filter chips |
-| `client/src/tests/BreedingNotificationsView.test.js` | **NEW** — tests for notifications view |
-| `client/src/tests/BreedingHubView.test.js` | **NEW** — tests for redesigned hub |
-| `client/src/views/BreedingHubView.vue` | **MODIFY** — simplify to dashboard with nav cards |
-| `client/src/router/index.js` | **MODIFY** — add notifications route |
-| `client/src/i18n/en.json` | **MODIFY** — add new keys (per phase) |
-| `client/src/i18n/af.json` | **MODIFY** — add new keys (per phase) |
-| TBD: shared molecules | **NEW/MODIFY** — only if Phase 3 identifies extraction candidates |
+
+| File                                                 | Action                                                            |
+| ---------------------------------------------------- | ----------------------------------------------------------------- |
+| `client/src/views/BreedingNotificationsView.vue`     | **NEW** — notifications page with filter chips                    |
+| `client/src/tests/BreedingNotificationsView.test.js` | **NEW** — tests for notifications view                            |
+| `client/src/tests/BreedingHubView.test.js`           | **NEW** — tests for redesigned hub                                |
+| `client/src/views/BreedingHubView.vue`               | **MODIFY** — simplify to dashboard with nav cards                 |
+| `client/src/router/index.js`                         | **MODIFY** — add notifications route                              |
+| `client/src/i18n/en.json`                            | **MODIFY** — add new keys (per phase)                             |
+| `client/src/i18n/af.json`                            | **MODIFY** — add new keys (per phase)                             |
+| TBD: shared molecules                                | **NEW/MODIFY** — only if Phase 3 identifies extraction candidates |
 
 ## Notes
+
 - No backend changes needed — all data comes from existing `/api/breeding-events/upcoming` endpoint
 - No store changes needed — `fetchUpcoming()` already provides all the data
 - Filter state is local to the Notifications view (not persisted in URL or store)

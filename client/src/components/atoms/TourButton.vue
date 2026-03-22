@@ -1,5 +1,10 @@
 <template>
-  <button class="tour-btn" :class="{ 'tour-btn--above-fab': aboveFab }" :title="t('tour.startTour')" @click="$emit('start-tour')">
+  <button
+    class="tour-btn"
+    :class="{ 'tour-btn--above-fab': aboveFab }"
+    :title="t('tour.startTour')"
+    @click="$emit('start-tour')"
+  >
     <span class="tour-btn-icon">?</span>
   </button>
 </template>
@@ -31,7 +36,9 @@ const { t } = useI18n()
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow);
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
 }
 
 .tour-btn--above-fab {

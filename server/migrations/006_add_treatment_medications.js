@@ -3,7 +3,11 @@ const { randomUUID } = require('crypto')
 exports.up = async function (knex) {
   await knex.schema.createTable('treatment_medications', (t) => {
     t.string('id', 36).primary()
-    t.string('treatment_id', 36).notNullable().references('id').inTable('treatments').onDelete('CASCADE')
+    t.string('treatment_id', 36)
+      .notNullable()
+      .references('id')
+      .inTable('treatments')
+      .onDelete('CASCADE')
     t.string('medication_id', 36).notNullable().references('id').inTable('medications')
     t.string('dosage', 50).nullable()
   })

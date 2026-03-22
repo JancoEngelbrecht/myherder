@@ -1,9 +1,11 @@
 # MT Phase 8: Production Migration & Deployment
 
 ## Goal
+
 Define the zero-downtime migration strategy, rollback plan, super-admin provisioning, and post-deploy verification for the cPanel MySQL production environment.
 
 ## Prerequisites
+
 - Phases 1-7 complete and tested locally
 - Access to cPanel hosting with MySQL
 - Current production database backed up
@@ -11,17 +13,22 @@ Define the zero-downtime migration strategy, rollback plan, super-admin provisio
 ## Step 8.1 -- Pre-deployment preparation
 
 ### Backup
+
 1. Full MySQL dump: `mysqldump -u user -p myherder > backup_pre_mt_$(date +%Y%m%d).sql`
 2. Store backup in a safe location outside the deployment directory
 3. Verify backup can be restored to a test database
 
 ### Environment variables
+
 Add to `.env` (or cPanel environment config):
+
 - `JWT_SECRET` -- must be >= 32 characters (enforced since Phase 13)
 - Existing DB vars remain unchanged
 
 ### Super-admin credentials
+
 Prepare super-admin credentials (will be created via CLI or seed script):
+
 - Username: chosen by you
 - Password: strong password
 - TOTP will be set up on first login
@@ -45,18 +52,18 @@ Since this is cPanel (single server), the deployment is:
 ### Create `scripts/create-super-admin.js`
 
 ```js
-const db = require('../server/config/database');
-const bcrypt = require('bcryptjs');
-const { v4: uuid } = require('uuid');
+const db = require('../server/config/database')
+const bcrypt = require('bcryptjs')
+const { v4: uuid } = require('uuid')
 
 async function createSuperAdmin(username, password) {
-  const existing = await db('users').where('role', 'super_admin').first();
+  const existing = await db('users').where('role', 'super_admin').first()
   if (existing) {
-    console.log('Super admin already exists:', existing.username);
-    process.exit(0);
+    console.log('Super admin already exists:', existing.username)
+    process.exit(0)
   }
 
-  const id = uuid();
+  const id = uuid()
   await db('users').insert({
     id,
     username,
@@ -65,26 +72,26 @@ async function createSuperAdmin(username, password) {
     password_hash: await bcrypt.hash(password, 10),
     permissions: JSON.stringify([]),
     is_active: true,
-    farm_id: null,  // super-admin has no farm
-    token_version: 0
-  });
+    farm_id: null, // super-admin has no farm
+    token_version: 0,
+  })
 
-  console.log('Super admin created:', username);
-  console.log('Log in without a farm code to set up 2FA.');
-  await db.destroy();
+  console.log('Super admin created:', username)
+  console.log('Log in without a farm code to set up 2FA.')
+  await db.destroy()
 }
 
 // Parse args
-const args = process.argv.slice(2);
-const username = args[args.indexOf('--username') + 1];
-const password = args[args.indexOf('--password') + 1];
+const args = process.argv.slice(2)
+const username = args[args.indexOf('--username') + 1]
+const password = args[args.indexOf('--password') + 1]
 
 if (!username || !password) {
-  console.error('Usage: node create-super-admin.js --username <user> --password <pass>');
-  process.exit(1);
+  console.error('Usage: node create-super-admin.js --username <user> --password <pass>')
+  process.exit(1)
 }
 
-createSuperAdmin(username, password);
+createSuperAdmin(username, password)
 ```
 
 ## Step 8.3 -- Session transition
@@ -92,6 +99,7 @@ createSuperAdmin(username, password);
 Existing user sessions (JWTs) will NOT have `farm_id` or `token_version` claims. These old tokens will fail the new auth middleware.
 
 Options:
+
 1. **Natural expiry**: Admin tokens expire in 24h, worker tokens in 7d. Users re-login naturally.
 2. **Force logout**: Acceptable for <10 farms. Users simply need to log in again.
 3. **Backward compat**: Accept tokens without `farm_id` and treat them as default farm. **Not recommended** -- cleaner to force re-login.
@@ -126,6 +134,7 @@ SHOW INDEX FROM milk_records WHERE Key_name LIKE '%farm%';
 ```
 
 ### Functional checks:
+
 - [ ] Existing admin can log in with farm code `DEFAULT`
 - [ ] Super-admin can log in without farm code, completes 2FA setup
 - [ ] Super-admin can see farm list, enter a farm, exit
@@ -150,6 +159,7 @@ Migration 030 `down()` should also work: `npm run migrate:rollback` -- but the f
 ## Step 8.6 -- Post-deploy cleanup
 
 After confirming everything works:
+
 - Change the default farm code from `DEFAULT` to something meaningful (e.g., your farm's actual name)
 - Update the farm name in settings
 - Consider renaming the default farm slug
@@ -158,6 +168,7 @@ After confirming everything works:
 ## Step 8.7 -- Creating additional farms
 
 Once deployed, creating a new farm is done through the super-admin panel:
+
 1. Login as super-admin (no farm code)
 2. Complete 2FA
 3. Navigate to Farms -> Create Farm

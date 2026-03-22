@@ -9,8 +9,12 @@ const { calcDates, getBreedTimings } = require('../helpers/breedingCalc')
 const { joiMsg, MS_PER_DAY, validateBody, validateQuery } = require('../helpers/constants')
 const { logAudit } = require('../services/auditService')
 const {
-  STATUS_TRANSITIONS, VALID_EVENT_TYPES, BIRTH_EVENT_TYPES,
-  createSchema, updateSchema, breedingQuerySchema,
+  STATUS_TRANSITIONS,
+  VALID_EVENT_TYPES,
+  BIRTH_EVENT_TYPES,
+  createSchema,
+  updateSchema,
+  breedingQuerySchema,
 } = require('../helpers/breedingSchemas')
 
 const dismissBatchSchema = Joi.object({
@@ -50,17 +54,25 @@ function breedingQuery(farmId) {
       'c.status as cow_status',
       'sire.tag_number as sire_tag',
       'sire.name as sire_name',
-      'u.full_name as recorded_by_name',
+      'u.full_name as recorded_by_name'
     )
 }
 
 function parseJsonFields(row) {
   if (!row) return row
   if (row.heat_signs && typeof row.heat_signs === 'string') {
-    try { row.heat_signs = JSON.parse(row.heat_signs) } catch { row.heat_signs = null }
+    try {
+      row.heat_signs = JSON.parse(row.heat_signs)
+    } catch {
+      row.heat_signs = null
+    }
   }
   if (row.calving_details && typeof row.calving_details === 'string') {
-    try { row.calving_details = JSON.parse(row.calving_details) } catch { row.calving_details = null }
+    try {
+      row.calving_details = JSON.parse(row.calving_details)
+    } catch {
+      row.calving_details = null
+    }
   }
   return row
 }
@@ -76,9 +88,15 @@ router.get('/upcoming', authorize('can_log_breeding'), async (req, res, next) =>
   try {
     const today = new Date().toISOString().slice(0, 10)
     const yesterday = new Date(Date.now() - MS_PER_DAY).toISOString().slice(0, 10)
-    const heatDeadline    = new Date(Date.now() + UPCOMING_HEAT_DAYS    * MS_PER_DAY).toISOString().slice(0, 10)
-    const calvingDeadline = new Date(Date.now() + UPCOMING_CALVING_DAYS * MS_PER_DAY).toISOString().slice(0, 10)
-    const overdueCutoff   = new Date(Date.now() - OVERDUE_LOOKBACK_DAYS * MS_PER_DAY).toISOString().slice(0, 10)
+    const heatDeadline = new Date(Date.now() + UPCOMING_HEAT_DAYS * MS_PER_DAY)
+      .toISOString()
+      .slice(0, 10)
+    const calvingDeadline = new Date(Date.now() + UPCOMING_CALVING_DAYS * MS_PER_DAY)
+      .toISOString()
+      .slice(0, 10)
+    const overdueCutoff = new Date(Date.now() - OVERDUE_LOOKBACK_DAYS * MS_PER_DAY)
+      .toISOString()
+      .slice(0, 10)
 
     // Base query: join cow+sire+user, exclude dismissed events
     const baseQuery = () => breedingQuery(req.farmId).whereNull('be.dismissed_at')
@@ -100,8 +118,14 @@ router.get('/upcoming', authorize('can_log_breeding'), async (req, res, next) =>
 
     // Fetch upcoming + overdue for all categories in parallel
     const [
-      heatsRaw, calvingsRaw, pregChecksRaw, dryOffsRaw,
-      overdueHeats, overdueCalvings, overduePregChecks, overdueDryOffs,
+      heatsRaw,
+      calvingsRaw,
+      pregChecksRaw,
+      dryOffsRaw,
+      overdueHeats,
+      overdueCalvings,
+      overduePregChecks,
+      overdueDryOffs,
     ] = await Promise.all([
       // Upcoming
       dateRangeQuery('expected_next_heat', today, heatDeadline),
@@ -123,7 +147,9 @@ router.get('/upcoming', authorize('can_log_breeding'), async (req, res, next) =>
           map[row.cow_id] = row
         }
       }
-      return Object.values(map).sort((a, b) => String(a[dateField] ?? '').localeCompare(String(b[dateField] ?? '')))
+      return Object.values(map).sort((a, b) =>
+        String(a[dateField] ?? '').localeCompare(String(b[dateField] ?? ''))
+      )
     }
 
     // Build needs-attention list: overdue items with alert metadata
@@ -177,7 +203,9 @@ router.get('/', authorize('can_log_breeding'), async (req, res, next) => {
       }
     }
 
-    const applyTypeFilter = (q) => { if (types) q.whereIn('be.event_type', types) }
+    const applyTypeFilter = (q) => {
+      if (types) q.whereIn('be.event_type', types)
+    }
 
     const applyFilters = (q) => {
       applyTypeFilter(q)
@@ -190,14 +218,16 @@ router.get('/', authorize('can_log_breeding'), async (req, res, next) => {
 
     // Per-cow query without pagination: plain array (used by CowReproView)
     if (cow_id && !qValue.page && !qValue.limit) {
-      const query = breedingQuery(req.farmId).orderBy('be.event_date', 'desc').where('be.cow_id', cow_id)
+      const query = breedingQuery(req.farmId)
+        .orderBy('be.event_date', 'desc')
+        .where('be.cow_id', cow_id)
       applyFilters(query)
       const rows = await query
       return res.json(rows.map(parseJsonFields))
     }
 
     // Paginated list (global or per-cow with page/limit)
-    const page  = Math.max(1, Number(qValue.page)  || 1)
+    const page = Math.max(1, Number(qValue.page) || 1)
     const limit = Math.min(100, Math.max(1, Number(qValue.limit) || 20))
     const offset = (page - 1) * limit
 
@@ -207,7 +237,11 @@ router.get('/', authorize('can_log_breeding'), async (req, res, next) => {
     }
 
     const [rows, [{ count }]] = await Promise.all([
-      breedingQuery(req.farmId).modify(applyAllFilters).orderBy('be.event_date', 'desc').limit(limit).offset(offset),
+      breedingQuery(req.farmId)
+        .modify(applyAllFilters)
+        .orderBy('be.event_date', 'desc')
+        .limit(limit)
+        .offset(offset),
       db('breeding_events as be')
         .where('be.farm_id', req.farmId)
         .join('cows as c', 'be.cow_id', 'c.id')
@@ -252,12 +286,21 @@ router.post('/', authorize('can_log_breeding'), async (req, res, next) => {
     const { error, value } = validateBody(createSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    const cow = await db('cows').where({ id: value.cow_id }).where('farm_id', req.farmId).whereNull('deleted_at').first()
+    const cow = await db('cows')
+      .where({ id: value.cow_id })
+      .where('farm_id', req.farmId)
+      .whereNull('deleted_at')
+      .first()
     if (!cow) return res.status(404).json({ error: 'Cow not found' })
-    if (cow.sex === 'male') return res.status(400).json({ error: 'Cannot log breeding events for a male animal' })
+    if (cow.sex === 'male')
+      return res.status(400).json({ error: 'Cannot log breeding events for a male animal' })
 
     if (value.sire_id) {
-      const sire = await db('cows').where({ id: value.sire_id }).where('farm_id', req.farmId).whereNull('deleted_at').first()
+      const sire = await db('cows')
+        .where({ id: value.sire_id })
+        .where('farm_id', req.farmId)
+        .whereNull('deleted_at')
+        .first()
       if (!sire) return res.status(404).json({ error: 'Sire not found' })
       if (sire.sex !== 'male') return res.status(400).json({ error: 'Sire must be a male animal' })
     }
@@ -319,7 +362,14 @@ router.post('/', authorize('can_log_breeding'), async (req, res, next) => {
     }
 
     const created = await breedingQuery(req.farmId).where('be.id', id).first()
-    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'create', entityType: 'breeding_event', entityId: id, newValues: created })
+    await logAudit({
+      farmId: req.user.farm_id,
+      userId: req.user.id,
+      action: 'create',
+      entityType: 'breeding_event',
+      entityId: id,
+      newValues: created,
+    })
     res.status(201).json(parseJsonFields(created))
   } catch (err) {
     next(err)
@@ -346,7 +396,14 @@ router.patch('/dismiss-batch', authorize('can_log_breeding'), async (req, res, n
         updated_at: now,
       })
 
-    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'dismiss', entityType: 'breeding_event', entityId: ids[0], newValues: { ids, reason: reason || null, dismissed_count: dismissed } })
+    await logAudit({
+      farmId: req.user.farm_id,
+      userId: req.user.id,
+      action: 'dismiss',
+      entityType: 'breeding_event',
+      entityId: ids[0],
+      newValues: { ids, reason: reason || null, dismissed_count: dismissed },
+    })
     res.json({ dismissed })
   } catch (err) {
     next(err)
@@ -356,7 +413,10 @@ router.patch('/dismiss-batch', authorize('can_log_breeding'), async (req, res, n
 // PATCH /api/breeding-events/:id — admin only
 router.patch('/:id', requireAdmin, async (req, res, next) => {
   try {
-    const existing = await db('breeding_events').where({ id: req.params.id }).where('farm_id', req.farmId).first()
+    const existing = await db('breeding_events')
+      .where({ id: req.params.id })
+      .where('farm_id', req.farmId)
+      .first()
     if (!existing) return res.status(404).json({ error: 'Breeding event not found' })
 
     const { error, value } = validateBody(updateSchema, req.body)
@@ -377,25 +437,40 @@ router.patch('/:id', requireAdmin, async (req, res, next) => {
     if ('semen_id' in value) updates.semen_id = value.semen_id || null
     if ('inseminator' in value) updates.inseminator = value.inseminator || null
     if ('preg_check_method' in value) updates.preg_check_method = value.preg_check_method || null
-    if ('calving_details' in value) updates.calving_details = value.calving_details ? JSON.stringify(value.calving_details) : null
+    if ('calving_details' in value)
+      updates.calving_details = value.calving_details ? JSON.stringify(value.calving_details) : null
     if ('cost' in value) updates.cost = value.cost ?? null
     if ('notes' in value) updates.notes = value.notes || null
     if ('expected_calving' in value) updates.expected_calving = value.expected_calving || null
     if ('expected_dry_off' in value) updates.expected_dry_off = value.expected_dry_off || null
     if ('offspring_count' in value) updates.offspring_count = value.offspring_count
 
-    await db('breeding_events').where({ id: req.params.id }).where('farm_id', req.farmId).update(updates)
+    await db('breeding_events')
+      .where({ id: req.params.id })
+      .where('farm_id', req.farmId)
+      .update(updates)
 
     // Re-apply status transition if event_type changed
     if (value.event_type) {
       const newStatus = STATUS_TRANSITIONS[value.event_type]
       if (newStatus) {
-        await db('cows').where({ id: existing.cow_id }).where('farm_id', req.farmId).update({ status: newStatus, updated_at: now })
+        await db('cows')
+          .where({ id: existing.cow_id })
+          .where('farm_id', req.farmId)
+          .update({ status: newStatus, updated_at: now })
       }
     }
 
     const updated = await breedingQuery(req.farmId).where('be.id', req.params.id).first()
-    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'update', entityType: 'breeding_event', entityId: req.params.id, oldValues: existing, newValues: updated })
+    await logAudit({
+      farmId: req.user.farm_id,
+      userId: req.user.id,
+      action: 'update',
+      entityType: 'breeding_event',
+      entityId: req.params.id,
+      oldValues: existing,
+      newValues: updated,
+    })
     res.json(parseJsonFields(updated))
   } catch (err) {
     next(err)
@@ -408,19 +483,33 @@ router.patch('/:id/dismiss', authorize('can_log_breeding'), async (req, res, nex
     const { error: dError, value: dValue } = validateBody(dismissSchema, req.body)
     if (dError) return res.status(400).json({ error: joiMsg(dError) })
 
-    const existing = await db('breeding_events').where({ id: req.params.id }).where('farm_id', req.farmId).first()
+    const existing = await db('breeding_events')
+      .where({ id: req.params.id })
+      .where('farm_id', req.farmId)
+      .first()
     if (!existing) return res.status(404).json({ error: 'Breeding event not found' })
 
     const now = new Date().toISOString()
-    await db('breeding_events').where({ id: req.params.id }).where('farm_id', req.farmId).update({
-      dismissed_at: now,
-      dismissed_by: req.user.id,
-      dismiss_reason: dValue.reason || null,
-      updated_at: now,
-    })
+    await db('breeding_events')
+      .where({ id: req.params.id })
+      .where('farm_id', req.farmId)
+      .update({
+        dismissed_at: now,
+        dismissed_by: req.user.id,
+        dismiss_reason: dValue.reason || null,
+        updated_at: now,
+      })
 
     const updated = await breedingQuery(req.farmId).where('be.id', req.params.id).first()
-    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'dismiss', entityType: 'breeding_event', entityId: req.params.id, oldValues: { dismissed_at: existing.dismissed_at }, newValues: { dismissed_at: now, reason: dValue.reason || null } })
+    await logAudit({
+      farmId: req.user.farm_id,
+      userId: req.user.id,
+      action: 'dismiss',
+      entityType: 'breeding_event',
+      entityId: req.params.id,
+      oldValues: { dismissed_at: existing.dismissed_at },
+      newValues: { dismissed_at: now, reason: dValue.reason || null },
+    })
     res.json(parseJsonFields(updated))
   } catch (err) {
     next(err)
@@ -430,11 +519,21 @@ router.patch('/:id/dismiss', authorize('can_log_breeding'), async (req, res, nex
 // DELETE /api/breeding-events/:id — admin only
 router.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
-    const existing = await db('breeding_events').where({ id: req.params.id }).where('farm_id', req.farmId).first()
+    const existing = await db('breeding_events')
+      .where({ id: req.params.id })
+      .where('farm_id', req.farmId)
+      .first()
     if (!existing) return res.status(404).json({ error: 'Breeding event not found' })
 
     await db('breeding_events').where({ id: req.params.id }).where('farm_id', req.farmId).delete()
-    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'delete', entityType: 'breeding_event', entityId: req.params.id, oldValues: existing })
+    await logAudit({
+      farmId: req.user.farm_id,
+      userId: req.user.id,
+      action: 'delete',
+      entityType: 'breeding_event',
+      entityId: req.params.id,
+      oldValues: existing,
+    })
     res.json({ message: 'Breeding event deleted' })
   } catch (err) {
     next(err)

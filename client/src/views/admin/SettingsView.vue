@@ -15,7 +15,12 @@
             <span class="settings-arrow">›</span>
           </RouterLink>
 
-          <RouterLink v-if="flags.treatments" data-tour="settings-types" to="/admin/medications" class="settings-item">
+          <RouterLink
+            v-if="flags.treatments"
+            data-tour="settings-types"
+            to="/admin/medications"
+            class="settings-item"
+          >
             <span class="settings-icon">💊</span>
             <div class="settings-info">
               <span class="settings-name">{{ t('medications.title') }}</span>
@@ -81,10 +86,17 @@
           </div>
           <div class="settings-item app-setting-row">
             <div class="settings-info">
-              <label for="default-lang" class="settings-name">{{ t('settings.defaultLanguage') }}</label>
+              <label for="default-lang" class="settings-name">{{
+                t('settings.defaultLanguage')
+              }}</label>
               <span class="settings-desc">{{ t('settings.defaultLanguageDesc') }}</span>
             </div>
-            <select id="default-lang" v-model="defaultLang" class="form-input inline-input" @change="saveAppSettings">
+            <select
+              id="default-lang"
+              v-model="defaultLang"
+              class="form-input inline-input"
+              @change="saveAppSettings"
+            >
               <option value="en">English</option>
               <option value="af">Afrikaans</option>
             </select>
@@ -189,35 +201,35 @@ const { startTour } = useTour('settings', () => [
     popover: {
       title: t('tour.settings.users.title'),
       description: t('tour.settings.users.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="settings-types"]',
     popover: {
       title: t('tour.settings.types.title'),
       description: t('tour.settings.types.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="settings-flags"]',
     popover: {
       title: t('tour.settings.featureFlags.title'),
       description: t('tour.settings.featureFlags.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="settings-reports"]',
     popover: {
       title: t('tour.settings.reports.title'),
       description: t('tour.settings.reports.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="settings-audit"]',
     popover: {
       title: t('tour.settings.auditLog.title'),
       description: t('tour.settings.auditLog.desc'),
-    }
+    },
   },
 ])
 
@@ -272,7 +284,9 @@ async function saveAppSettings() {
     await api.patch('/settings', payload)
     settingsSaved.value = true
     clearTimeout(saveTimeout)
-    saveTimeout = setTimeout(() => { settingsSaved.value = false }, 2000)
+    saveTimeout = setTimeout(() => {
+      settingsSaved.value = false
+    }, 2000)
   } catch {
     toast.show(t('common.error'), 'error')
   }

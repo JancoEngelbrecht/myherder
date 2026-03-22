@@ -104,9 +104,7 @@ describe('errorHandler', () => {
     errorHandler(err, mockReq(), res, noop)
 
     expect(res.status).toHaveBeenCalledWith(500)
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ code: 'SQLITE_CONSTRAINT' }),
-    )
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'SQLITE_CONSTRAINT' }))
     process.env.NODE_ENV = prev
   })
 

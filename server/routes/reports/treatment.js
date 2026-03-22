@@ -32,24 +32,45 @@ async function getTreatmentHistoryData(from, to, farmId) {
     .where('t.treatment_date', '>=', from)
     .where('t.treatment_date', '<=', `${to} 23:59:59`)
     .select(
-      't.id', 't.treatment_date', 't.dosage', 't.cost',
-      't.is_vet_visit', 't.vet_name', 't.notes', 't.health_issue_id',
-      'c.tag_number', 'c.name as cow_name',
-      'u.full_name as administered_by_name',
+      't.id',
+      't.treatment_date',
+      't.dosage',
+      't.cost',
+      't.is_vet_visit',
+      't.vet_name',
+      't.notes',
+      't.health_issue_id',
+      'c.tag_number',
+      'c.name as cow_name',
+      'u.full_name as administered_by_name'
     )
     .orderBy('t.treatment_date', 'asc')
 
   if (!treatments.length) {
-    return { rows: [], summaryRow: { tag_number: 'TOTAL', medications: '0 treatments', cost: 'R 0.00', vet_visit: '0 visits' } }
+    return {
+      rows: [],
+      summaryRow: {
+        tag_number: 'TOTAL',
+        medications: '0 treatments',
+        cost: 'R 0.00',
+        vet_visit: '0 visits',
+      },
+    }
   }
 
-  const medsMap = await batchMedications(treatments.map((t) => t.id), farmId)
+  const medsMap = await batchMedications(
+    treatments.map((t) => t.id),
+    farmId
+  )
 
   const issueIds = treatments.map((t) => t.health_issue_id).filter(Boolean)
   const issueMap = {}
   if (issueIds.length) {
     const issueTypeMap = await getIssueTypeMap(farmId)
-    const issues = await db('health_issues').where('farm_id', farmId).whereIn('id', issueIds).select('id', 'issue_types')
+    const issues = await db('health_issues')
+      .where('farm_id', farmId)
+      .whereIn('id', issueIds)
+      .select('id', 'issue_types')
     for (const issue of issues) {
       const codes = parseJsonColumn(issue.issue_types)
       issueMap[issue.id] = codes.map((c) => issueTypeMap[c] || c).join(', ')
@@ -70,13 +91,23 @@ async function getTreatmentHistoryData(from, to, farmId) {
       cow_name: t.cow_name || '—',
       treatment_date: formatDate(t.treatment_date),
       medications: meds.map((m) => m.name).join(', ') || '—',
-      active_ingredients: meds.map((m) => m.active_ingredient).filter(Boolean).join(', ') || '—',
-      dosage: meds.map((m) => m.dosage).filter(Boolean).join(', ') || t.dosage || '—',
+      active_ingredients:
+        meds
+          .map((m) => m.active_ingredient)
+          .filter(Boolean)
+          .join(', ') || '—',
+      dosage:
+        meds
+          .map((m) => m.dosage)
+          .filter(Boolean)
+          .join(', ') ||
+        t.dosage ||
+        '—',
       cost: cost ? `R ${cost.toFixed(2)}` : '—',
       vet_visit: t.is_vet_visit ? 'Yes' : 'No',
       vet_name: t.vet_name || '—',
       administered_by: t.administered_by_name,
-      health_issue: t.health_issue_id ? (issueMap[t.health_issue_id] || '—') : '—',
+      health_issue: t.health_issue_id ? issueMap[t.health_issue_id] || '—' : '—',
       notes: t.notes || '—',
     }
   })

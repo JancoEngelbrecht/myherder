@@ -42,7 +42,11 @@
         </div>
 
         <button type="submit" class="btn-primary" :disabled="loading">
-          <span v-if="loading" class="spinner" style="width:18px;height:18px;border-width:2px" />
+          <span
+            v-if="loading"
+            class="spinner"
+            style="width: 18px; height: 18px; border-width: 2px"
+          />
           <span v-else>{{ t('login.loginBtn') }}</span>
         </button>
       </form>
@@ -56,9 +60,13 @@
 
       <!-- Language toggle -->
       <div class="lang-row">
-        <button class="lang-btn" :class="{ active: locale === 'en' }" @click="setLocale('en')">EN</button>
+        <button class="lang-btn" :class="{ active: locale === 'en' }" @click="setLocale('en')">
+          EN
+        </button>
         <span class="lang-divider">|</span>
-        <button class="lang-btn" :class="{ active: locale === 'af' }" @click="setLocale('af')">AF</button>
+        <button class="lang-btn" :class="{ active: locale === 'af' }" @click="setLocale('af')">
+          AF
+        </button>
       </div>
     </div>
   </div>
@@ -136,7 +144,7 @@ async function handleLogin() {
 .login-logo {
   font-size: 4rem;
   margin-bottom: 12px;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
 }
 
 .login-title {
@@ -148,7 +156,7 @@ async function handleLogin() {
 
 .login-subtitle {
   font-size: 0.9375rem;
-  color: rgba(255,255,255,0.75);
+  color: rgba(255, 255, 255, 0.75);
   margin-top: 4px;
 }
 
@@ -156,7 +164,7 @@ async function handleLogin() {
   background: var(--bg);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   padding: 24px 20px 32px;
-  box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
 }
 
 .sa-heading {
@@ -208,7 +216,10 @@ async function handleLogin() {
   letter-spacing: 0.05em;
   color: var(--text-muted);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
 }
 
 .lang-btn.active {

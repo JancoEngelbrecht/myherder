@@ -47,9 +47,16 @@ vi.mock('vue-chartjs', () => ({
 
 vi.mock('chart.js', () => ({
   Chart: { register: vi.fn() },
-  CategoryScale: 'CS', LinearScale: 'LS', PointElement: 'PE',
-  LineElement: 'LE', BarElement: 'BE', ArcElement: 'AE',
-  Title: 'T', Tooltip: 'TT', Legend: 'L', Filler: 'F',
+  CategoryScale: 'CS',
+  LinearScale: 'LS',
+  PointElement: 'PE',
+  LineElement: 'LE',
+  BarElement: 'BE',
+  ArcElement: 'AE',
+  Title: 'T',
+  Tooltip: 'TT',
+  Legend: 'L',
+  Filler: 'F',
 }))
 
 import HealthView from '../../views/analytics/HealthView.vue'
@@ -64,8 +71,10 @@ const stubs = {
 
 const KPIS_RESPONSE = {
   data: {
-    litres_today: 200, litres_7day_avg: 190,
-    cows_milked_today: 40, cows_expected: 45,
+    litres_today: 200,
+    litres_7day_avg: 190,
+    cows_milked_today: 40,
+    cows_expected: 45,
     active_health_issues: 7,
     breeding_actions_due: 2,
   },
@@ -120,8 +129,22 @@ const CURE_RATE_TREND_RESPONSE = {
 const RECURRENCE_RESPONSE = {
   data: {
     by_type: [
-      { code: 'mastitis', name: 'Mastitis', emoji: '🦠', rate: 22, resolved_count: 50, recurred_count: 11 },
-      { code: 'lameness', name: 'Lameness', emoji: '🦿', rate: 8, resolved_count: 25, recurred_count: 2 },
+      {
+        code: 'mastitis',
+        name: 'Mastitis',
+        emoji: '🦠',
+        rate: 22,
+        resolved_count: 50,
+        recurred_count: 11,
+      },
+      {
+        code: 'lameness',
+        name: 'Lameness',
+        emoji: '🦿',
+        rate: 8,
+        resolved_count: 25,
+        recurred_count: 2,
+      },
     ],
   },
 }
@@ -155,7 +178,8 @@ const PREDICTION_RESPONSE = {
   data: {
     predictions: [
       {
-        month: '2026-04', month_name: 'April',
+        month: '2026-04',
+        month_name: 'April',
         issues: [{ type: 'Mastitis', code: 'mastitis', emoji: '🦠', historical_avg: 2.5 }],
       },
     ],
@@ -167,7 +191,8 @@ function mockAllApis() {
   api.get.mockImplementation((url) => {
     if (url.includes('daily-kpis')) return Promise.resolve(KPIS_RESPONSE)
     if (url.includes('health-resolution-stats')) return Promise.resolve(RESOLUTION_STATS_RESPONSE)
-    if (url.includes('health-resolution-by-type')) return Promise.resolve(RESOLUTION_BY_TYPE_RESPONSE)
+    if (url.includes('health-resolution-by-type'))
+      return Promise.resolve(RESOLUTION_BY_TYPE_RESPONSE)
     if (url.includes('health-cure-rate-trend')) return Promise.resolve(CURE_RATE_TREND_RESPONSE)
     if (url.includes('health-recurrence')) return Promise.resolve(RECURRENCE_RESPONSE)
     if (url.includes('issue-frequency')) return Promise.resolve(FREQUENCY_RESPONSE)
@@ -178,7 +203,13 @@ function mockAllApis() {
     if (url.includes('seasonal-prediction')) return Promise.resolve(PREDICTION_RESPONSE)
     if (url.includes('feature-flags'))
       return Promise.resolve({
-        data: { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true },
+        data: {
+          breeding: true,
+          milkRecording: true,
+          healthIssues: true,
+          treatments: true,
+          analytics: true,
+        },
       })
     return Promise.resolve({ data: {} })
   })
@@ -205,10 +236,10 @@ describe('HealthView', () => {
     expect(chips.length).toBeGreaterThanOrEqual(4)
 
     const text = wrapper.text()
-    expect(text).toContain('7')     // active issues
-    expect(text).toContain('75%')   // cure rate
-    expect(text).toContain('8d')    // avg days to resolve (Math.round(8.2))
-    expect(text).toContain('18%')   // recurrence rate
+    expect(text).toContain('7') // active issues
+    expect(text).toContain('75%') // cure rate
+    expect(text).toContain('8d') // avg days to resolve (Math.round(8.2))
+    expect(text).toContain('18%') // recurrence rate
   })
 
   it('renders top 3 incidence sub-panel', async () => {
@@ -217,9 +248,9 @@ describe('HealthView', () => {
 
     expect(wrapper.find('.incidence-panel').exists()).toBe(true)
     const incidenceText = wrapper.find('.incidence-panel').text()
-    expect(incidenceText).toContain('10')   // mastitis rate (Math.round(9.6))
-    expect(incidenceText).toContain('5')    // lameness rate (Math.round(5.1))
-    expect(incidenceText).toContain('3')    // respiratory rate (Math.round(2.8))
+    expect(incidenceText).toContain('10') // mastitis rate (Math.round(9.6))
+    expect(incidenceText).toContain('5') // lameness rate (Math.round(5.1))
+    expect(incidenceText).toContain('3') // respiratory rate (Math.round(2.8))
   })
 
   it('applies warn class when avg_days > 7', async () => {
@@ -296,7 +327,7 @@ describe('HealthView', () => {
 
     expect(wrapper.find('.cow-item').exists()).toBe(true)
     expect(wrapper.text()).toContain('MH-001')
-    expect(wrapper.text()).toContain('5')  // issue count
+    expect(wrapper.text()).toContain('5') // issue count
   })
 
   it('renders seasonal prediction cards', async () => {
@@ -383,7 +414,7 @@ describe('HealthView', () => {
     const calls = api.get.mock.calls.map((c) => c[0])
     // Time-sensitive endpoints should be re-fetched with params
     const timeSensitive = calls.filter((c) => c.includes('from=') && c.includes('to='))
-    expect(timeSensitive.length).toBeGreaterThanOrEqual(8)  // 7 health + 1 treatment-costs
+    expect(timeSensitive.length).toBeGreaterThanOrEqual(8) // 7 health + 1 treatment-costs
     // Snapshot endpoints should NOT be re-fetched
     expect(calls).not.toContainEqual('/analytics/daily-kpis')
     expect(calls).not.toContainEqual('/analytics/seasonal-prediction')

@@ -7,17 +7,21 @@
  * @param {number} withdrawalMeatDays
  * @returns {{ withdrawalEndMilk: Date|null, withdrawalEndMeat: Date|null }}
  */
-function calcWithdrawalDates(treatmentDate, withdrawalMilkHours, withdrawalMilkDays, withdrawalMeatHours, withdrawalMeatDays) {
+function calcWithdrawalDates(
+  treatmentDate,
+  withdrawalMilkHours,
+  withdrawalMilkDays,
+  withdrawalMeatHours,
+  withdrawalMeatDays
+) {
   const base = new Date(treatmentDate)
   const totalMilkHours = (withdrawalMilkHours || 0) + (withdrawalMilkDays || 0) * 24
   const totalMeatHours = (withdrawalMeatHours || 0) + (withdrawalMeatDays || 0) * 24
   return {
-    withdrawalEndMilk: totalMilkHours > 0
-      ? new Date(base.getTime() + totalMilkHours * 60 * 60 * 1000)
-      : null,
-    withdrawalEndMeat: totalMeatHours > 0
-      ? new Date(base.getTime() + totalMeatHours * 60 * 60 * 1000)
-      : null,
+    withdrawalEndMilk:
+      totalMilkHours > 0 ? new Date(base.getTime() + totalMilkHours * 60 * 60 * 1000) : null,
+    withdrawalEndMeat:
+      totalMeatHours > 0 ? new Date(base.getTime() + totalMeatHours * 60 * 60 * 1000) : null,
   }
 }
 

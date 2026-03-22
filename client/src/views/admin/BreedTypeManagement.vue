@@ -5,7 +5,9 @@
     <div class="page-content bt-content">
       <!-- Add / Edit form -->
       <div v-if="formMode" class="card form-card">
-        <h3 class="form-title">{{ formMode === 'add' ? t('breedTypes.addTitle') : t('breedTypes.editTitle') }}</h3>
+        <h3 class="form-title">
+          {{ formMode === 'add' ? t('breedTypes.addTitle') : t('breedTypes.editTitle') }}
+        </h3>
         <form @submit.prevent="save">
           <div class="form-group">
             <label for="bt-name">{{ t('breedTypes.name') }} *</label>
@@ -29,42 +31,104 @@
           <div class="timing-grid">
             <div class="form-group">
               <label for="bt-heat">{{ t('breedTypes.heatCycleDays') }}</label>
-              <input id="bt-heat" v-model.number="form.heat_cycle_days" type="number" min="1" max="60" class="form-input" />
+              <input
+                id="bt-heat"
+                v-model.number="form.heat_cycle_days"
+                type="number"
+                min="1"
+                max="60"
+                class="form-input"
+              />
             </div>
             <div class="form-group">
               <label for="bt-gestation">{{ t('breedTypes.gestationDays') }}</label>
-              <input id="bt-gestation" v-model.number="form.gestation_days" type="number" min="200" max="400" class="form-input" />
+              <input
+                id="bt-gestation"
+                v-model.number="form.gestation_days"
+                type="number"
+                min="200"
+                max="400"
+                class="form-input"
+              />
             </div>
             <div class="form-group">
               <label for="bt-preg">{{ t('breedTypes.pregCheckDays') }}</label>
-              <input id="bt-preg" v-model.number="form.preg_check_days" type="number" min="14" max="90" class="form-input" />
+              <input
+                id="bt-preg"
+                v-model.number="form.preg_check_days"
+                type="number"
+                min="14"
+                max="90"
+                class="form-input"
+              />
             </div>
             <div class="form-group">
               <label for="bt-vwd">{{ t('breedTypes.voluntaryWaitingDays') }}</label>
-              <input id="bt-vwd" v-model.number="form.voluntary_waiting_days" type="number" min="0" max="120" class="form-input" />
+              <input
+                id="bt-vwd"
+                v-model.number="form.voluntary_waiting_days"
+                type="number"
+                min="0"
+                max="120"
+                class="form-input"
+              />
             </div>
             <div class="form-group">
               <label for="bt-dry">{{ t('breedTypes.dryOffDays') }}</label>
-              <input id="bt-dry" v-model.number="form.dry_off_days" type="number" min="0" max="120" class="form-input" />
+              <input
+                id="bt-dry"
+                v-model.number="form.dry_off_days"
+                type="number"
+                min="0"
+                max="120"
+                class="form-input"
+              />
             </div>
             <div class="form-group">
               <label for="bt-calf">{{ t('breedTypes.calfMaxMonths') }}</label>
-              <input id="bt-calf" v-model.number="form.calf_max_months" type="number" min="1" max="24" class="form-input" />
+              <input
+                id="bt-calf"
+                v-model.number="form.calf_max_months"
+                type="number"
+                min="1"
+                max="24"
+                class="form-input"
+              />
             </div>
             <div class="form-group">
               <label for="bt-heifer">{{ t('breedTypes.heiferMinMonths') }}</label>
-              <input id="bt-heifer" v-model.number="form.heifer_min_months" type="number" min="6" max="48" class="form-input" />
+              <input
+                id="bt-heifer"
+                v-model.number="form.heifer_min_months"
+                type="number"
+                min="6"
+                max="48"
+                class="form-input"
+              />
             </div>
             <div class="form-group">
               <label for="bt-ybull">{{ t('breedTypes.youngBullMinMonths') }}</label>
-              <input id="bt-ybull" v-model.number="form.young_bull_min_months" type="number" min="6" max="48" class="form-input" />
+              <input
+                id="bt-ybull"
+                v-model.number="form.young_bull_min_months"
+                type="number"
+                min="6"
+                max="48"
+                class="form-input"
+              />
             </div>
           </div>
 
           <div class="form-row-inline">
             <div class="form-group">
               <label for="bt-order">{{ t('breedTypes.sortOrder') }}</label>
-              <input id="bt-order" v-model.number="form.sort_order" type="number" min="0" class="form-input sort-input" />
+              <input
+                id="bt-order"
+                v-model.number="form.sort_order"
+                type="number"
+                min="0"
+                class="form-input sort-input"
+              />
             </div>
             <div class="form-group">
               <label class="checkbox-label">
@@ -77,7 +141,9 @@
           <p v-if="formError" class="form-error">{{ formError }}</p>
 
           <div class="form-actions">
-            <button type="button" class="btn-secondary" @click="cancelForm">{{ t('common.cancel') }}</button>
+            <button type="button" class="btn-secondary" @click="cancelForm">
+              {{ t('common.cancel') }}
+            </button>
             <button type="submit" class="btn-primary" :disabled="saving">
               {{ saving ? t('common.saving') : t('common.save') }}
             </button>
@@ -113,14 +179,20 @@
               <span>{{ bt.dry_off_days }}d dry</span>
             </div>
             <div class="bt-actions">
-              <button class="btn-secondary btn-sm" @click="openEdit(bt)">{{ t('common.edit') }}</button>
-              <button class="btn-danger btn-sm" @click="confirmDelete(bt)">{{ t('common.delete') }}</button>
+              <button class="btn-secondary btn-sm" @click="openEdit(bt)">
+                {{ t('common.edit') }}
+              </button>
+              <button class="btn-danger btn-sm" @click="confirmDelete(bt)">
+                {{ t('common.delete') }}
+              </button>
             </div>
           </div>
         </div>
 
         <!-- FAB to add -->
-        <button data-tour="bt-add" class="fab" :title="$t('breedTypes.addTitle')" @click="openAdd">+</button>
+        <button data-tour="bt-add" class="fab" :title="$t('breedTypes.addTitle')" @click="openAdd">
+          +
+        </button>
       </template>
     </div>
 
@@ -151,29 +223,33 @@ import { useTour } from '../../composables/useTour'
 const { t } = useI18n()
 const store = useBreedTypesStore()
 
-const { startTour } = useTour('breed-type-management', () => [
-  {
-    element: '[data-tour="bt-list"]',
-    popover: {
-      title: t('tour.breedTypeManagement.list.title'),
-      description: t('tour.breedTypeManagement.list.desc'),
-    }
-  },
-  {
-    element: '[data-tour="bt-timing"]',
-    popover: {
-      title: t('tour.breedTypeManagement.timing.title'),
-      description: t('tour.breedTypeManagement.timing.desc'),
-    }
-  },
-  {
-    element: '[data-tour="bt-add"]',
-    popover: {
-      title: t('tour.breedTypeManagement.add.title'),
-      description: t('tour.breedTypeManagement.add.desc'),
-    }
-  },
-], { autoStart: false })
+const { startTour } = useTour(
+  'breed-type-management',
+  () => [
+    {
+      element: '[data-tour="bt-list"]',
+      popover: {
+        title: t('tour.breedTypeManagement.list.title'),
+        description: t('tour.breedTypeManagement.list.desc'),
+      },
+    },
+    {
+      element: '[data-tour="bt-timing"]',
+      popover: {
+        title: t('tour.breedTypeManagement.timing.title'),
+        description: t('tour.breedTypeManagement.timing.desc'),
+      },
+    },
+    {
+      element: '[data-tour="bt-add"]',
+      popover: {
+        title: t('tour.breedTypeManagement.add.title'),
+        description: t('tour.breedTypeManagement.add.desc'),
+      },
+    },
+  ],
+  { autoStart: false }
+)
 
 const formMode = ref(null) // null | 'add' | 'edit'
 const editing = ref(null)

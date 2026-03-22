@@ -25,7 +25,7 @@ const schema = Joi.object({
       Joi.object({
         medication_id: Joi.string().uuid().required(),
         dosage: Joi.string().max(50).allow('', null),
-      }),
+      })
     )
     .min(1)
     .required(),
@@ -54,7 +54,7 @@ function treatmentQuery(farmId) {
       'c.tag_number',
       'c.name as cow_name',
       'c.sex',
-      'u.full_name as administered_by_name',
+      'u.full_name as administered_by_name'
     )
 }
 
@@ -87,7 +87,9 @@ async function enrichWithMedications(rows, farmId) {
     return {
       ...row,
       medications: meds,
-      medication_name: meds.length ? meds.map((m) => m.medication_name).join(', ') : row.medication_name,
+      medication_name: meds.length
+        ? meds.map((m) => m.medication_name).join(', ')
+        : row.medication_name,
     }
   })
 }
@@ -134,7 +136,10 @@ router.get('/', authorize('can_log_treatments'), async (req, res, next) => {
         .whereNull('c.deleted_at')
       if (q.cow_id) countQuery.where('t.cow_id', q.cow_id)
 
-      const dataQuery = treatmentQuery(req.farmId).orderBy(orderCol, sortDir).limit(limit).offset(offset)
+      const dataQuery = treatmentQuery(req.farmId)
+        .orderBy(orderCol, sortDir)
+        .limit(limit)
+        .offset(offset)
       if (q.cow_id) dataQuery.where('t.cow_id', q.cow_id)
 
       const [[{ total }], rawRows] = await Promise.all([
@@ -163,10 +168,20 @@ router.get('/withdrawal', authorize('can_log_treatments'), async (req, res, next
     // Inline join breed_types for life phase computation (not in treatmentQuery to keep it lean)
     const rows = await treatmentQuery(req.farmId)
       .leftJoin('breed_types as bt', 'c.breed_type_id', 'bt.id')
-      .select('c.status', 'c.dob', 'c.life_phase_override', 'bt.calf_max_months', 'bt.heifer_min_months', 'bt.young_bull_min_months')
+      .select(
+        'c.status',
+        'c.dob',
+        'c.life_phase_override',
+        'bt.calf_max_months',
+        'bt.heifer_min_months',
+        'bt.young_bull_min_months'
+      )
       .where(function () {
-        this.where('t.withdrawal_end_milk', '>', nowStr)
-          .orWhere('t.withdrawal_end_meat', '>', nowStr)
+        this.where('t.withdrawal_end_milk', '>', nowStr).orWhere(
+          't.withdrawal_end_meat',
+          '>',
+          nowStr
+        )
       })
 
     // Exclude sold/dead cows and null out milk withdrawal for non-milking life phases
@@ -179,8 +194,10 @@ router.get('/withdrawal', authorize('can_log_treatments'), async (req, res, next
         row.withdrawal_end_milk = null
       }
       // After nulling milk, check if this row still has any active withdrawal
-      if ((row.withdrawal_end_milk && new Date(row.withdrawal_end_milk).getTime() > nowMs) ||
-          (row.withdrawal_end_meat && new Date(row.withdrawal_end_meat).getTime() > nowMs)) {
+      if (
+        (row.withdrawal_end_milk && new Date(row.withdrawal_end_milk).getTime() > nowMs) ||
+        (row.withdrawal_end_meat && new Date(row.withdrawal_end_meat).getTime() > nowMs)
+      ) {
         filtered.push(row)
       }
     }
@@ -194,13 +211,19 @@ router.get('/withdrawal', authorize('can_log_treatments'), async (req, res, next
         continue
       }
       // Keep the latest milk withdrawal end
-      if (row.withdrawal_end_milk && (!existing.withdrawal_end_milk || row.withdrawal_end_milk > existing.withdrawal_end_milk)) {
+      if (
+        row.withdrawal_end_milk &&
+        (!existing.withdrawal_end_milk || row.withdrawal_end_milk > existing.withdrawal_end_milk)
+      ) {
         existing.withdrawal_end_milk = row.withdrawal_end_milk
         existing.medication_name = row.medication_name
         existing.treatment_date = row.treatment_date
       }
       // Keep the latest meat withdrawal end
-      if (row.withdrawal_end_meat && (!existing.withdrawal_end_meat || row.withdrawal_end_meat > existing.withdrawal_end_meat)) {
+      if (
+        row.withdrawal_end_meat &&
+        (!existing.withdrawal_end_meat || row.withdrawal_end_meat > existing.withdrawal_end_meat)
+      ) {
         existing.withdrawal_end_meat = row.withdrawal_end_meat
       }
     }
@@ -236,7 +259,11 @@ router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
     const { error, value } = validateBody(schema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    const cow = await db('cows').where({ id: value.cow_id }).where('farm_id', req.farmId).whereNull('deleted_at').first()
+    const cow = await db('cows')
+      .where({ id: value.cow_id })
+      .where('farm_id', req.farmId)
+      .whereNull('deleted_at')
+      .first()
     if (!cow) return res.status(404).json({ error: 'Cow not found' })
 
     const isMale = cow.sex === 'male'
@@ -249,13 +276,18 @@ router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
 
     // Batch-fetch all medications in a single query and build a lookup map
     const medIds = value.medications.map((item) => item.medication_id)
-    const medRows = await db('medications').where('farm_id', req.farmId).whereIn('id', medIds).where('is_active', true)
+    const medRows = await db('medications')
+      .where('farm_id', req.farmId)
+      .whereIn('id', medIds)
+      .where('is_active', true)
     const medMap = new Map(medRows.map((m) => [m.id, m]))
 
     // Validate all IDs exist before inserting anything
     for (const item of value.medications) {
       if (!medMap.has(item.medication_id)) {
-        return res.status(404).json({ error: `Medication not found or inactive: ${item.medication_id}` })
+        return res
+          .status(404)
+          .json({ error: `Medication not found or inactive: ${item.medication_id}` })
       }
     }
 
@@ -272,10 +304,12 @@ router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
         med.withdrawal_milk_hours,
         med.withdrawal_milk_days,
         med.withdrawal_meat_hours,
-        med.withdrawal_meat_days,
+        med.withdrawal_meat_days
       )
-      if (!skipMilkWithdrawal && withdrawalEndMilk && (!maxMilk || withdrawalEndMilk > maxMilk)) maxMilk = withdrawalEndMilk
-      if (withdrawalEndMeat && (!maxMeat || withdrawalEndMeat > maxMeat)) maxMeat = withdrawalEndMeat
+      if (!skipMilkWithdrawal && withdrawalEndMilk && (!maxMilk || withdrawalEndMilk > maxMilk))
+        maxMilk = withdrawalEndMilk
+      if (withdrawalEndMeat && (!maxMeat || withdrawalEndMeat > maxMeat))
+        maxMeat = withdrawalEndMeat
 
       medRecords.push({ med, dosage: item.dosage || null })
     }
@@ -318,7 +352,14 @@ router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
 
     const created = await treatmentQuery(req.farmId).where('t.id', id).first()
     const [enriched] = await enrichWithMedications([created], req.farmId)
-    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'create', entityType: 'treatment', entityId: id, newValues: created })
+    await logAudit({
+      farmId: req.user.farm_id,
+      userId: req.user.id,
+      action: 'create',
+      entityType: 'treatment',
+      entityId: id,
+      newValues: created,
+    })
     res.status(201).json(enriched)
   } catch (err) {
     next(err)
@@ -328,15 +369,24 @@ router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
 // DELETE /api/treatments/:id — admin only
 router.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
-
-    const existing = await db('treatments').where({ id: req.params.id }).where('farm_id', req.farmId).first()
+    const existing = await db('treatments')
+      .where({ id: req.params.id })
+      .where('farm_id', req.farmId)
+      .first()
     if (!existing) return res.status(404).json({ error: 'Treatment not found' })
 
     await db.transaction(async (trx) => {
       await trx('treatment_medications').where({ treatment_id: req.params.id }).delete()
       await trx('treatments').where({ id: req.params.id }).where('farm_id', req.farmId).delete()
     })
-    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'delete', entityType: 'treatment', entityId: req.params.id, oldValues: existing })
+    await logAudit({
+      farmId: req.user.farm_id,
+      userId: req.user.id,
+      action: 'delete',
+      entityType: 'treatment',
+      entityId: req.params.id,
+      oldValues: existing,
+    })
     res.json({ message: 'Treatment deleted' })
   } catch (err) {
     next(err)

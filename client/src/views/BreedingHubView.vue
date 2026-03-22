@@ -36,12 +36,18 @@
         <!-- Nav cards -->
         <section class="section nav-cards">
           <!-- Notifications card -->
-          <div data-tour="breed-notifications" class="nav-card card" @click="goTo('/breed/notifications')">
+          <div
+            data-tour="breed-notifications"
+            class="nav-card card"
+            @click="goTo('/breed/notifications')"
+          >
             <div class="nav-card-icon">🔔</div>
             <div class="nav-card-body">
               <div class="nav-card-header">
                 <span class="nav-card-title">{{ t('breeding.notificationsCard') }}</span>
-                <span v-if="notificationCount > 0" class="nav-card-badge">{{ notificationCount }}</span>
+                <span v-if="notificationCount > 0" class="nav-card-badge">{{
+                  notificationCount
+                }}</span>
               </div>
               <span class="nav-card-subtitle">{{ notificationSubtitle }}</span>
             </div>
@@ -54,7 +60,9 @@
             <div class="nav-card-body">
               <div class="nav-card-header">
                 <span class="nav-card-title">{{ t('breeding.recentEventsCard') }}</span>
-                <span v-if="breedingStore.total > 0" class="nav-card-badge secondary">{{ breedingStore.total }}</span>
+                <span v-if="breedingStore.total > 0" class="nav-card-badge secondary">{{
+                  breedingStore.total
+                }}</span>
               </div>
               <span class="nav-card-subtitle">{{ latestEventLabel }}</span>
             </div>
@@ -65,7 +73,9 @@
     </div>
 
     <!-- FAB -->
-    <RouterLink data-tour="breed-log" to="/breed/log" class="fab" :title="t('breeding.logEvent')">+</RouterLink>
+    <RouterLink data-tour="breed-log" to="/breed/log" class="fab" :title="t('breeding.logEvent')"
+      >+</RouterLink
+    >
 
     <TourButton above-fab @start-tour="startTour" />
   </div>
@@ -93,28 +103,28 @@ const { startTour } = useTour('breeding-hub', () => [
     popover: {
       title: t('tour.breedingHub.stats.title'),
       description: t('tour.breedingHub.stats.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="breed-notifications"]',
     popover: {
       title: t('tour.breedingHub.notifications.title'),
       description: t('tour.breedingHub.notifications.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="breed-events"]',
     popover: {
       title: t('tour.breedingHub.events.title'),
       description: t('tour.breedingHub.events.desc'),
-    }
+    },
   },
   {
     element: '[data-tour="breed-log"]',
     popover: {
       title: t('tour.breedingHub.logEvent.title'),
       description: t('tour.breedingHub.logEvent.desc'),
-    }
+    },
   },
 ])
 
@@ -123,12 +133,16 @@ function goTo(path) {
 }
 
 // ── Stats ────────────────────────────────────────────────────────────────────
-const pregnantCount = computed(() =>
-  cowsStore.cows.filter((c) => c.sex !== 'male' && c.status === 'pregnant').length,
+const pregnantCount = computed(
+  () => cowsStore.cows.filter((c) => c.sex !== 'male' && c.status === 'pregnant').length
 )
 
-const openCount = computed(() =>
-  cowsStore.cows.filter((c) => c.sex !== 'male' && c.status !== 'pregnant' && c.status !== 'sold' && c.status !== 'dead').length,
+const openCount = computed(
+  () =>
+    cowsStore.cows.filter(
+      (c) =>
+        c.sex !== 'male' && c.status !== 'pregnant' && c.status !== 'sold' && c.status !== 'dead'
+    ).length
 )
 
 const dueSoonCount = computed(() => breedingStore.upcoming.calvings.length)
@@ -137,15 +151,19 @@ const dueSoonCount = computed(() => breedingStore.upcoming.calvings.length)
 const notificationCount = computed(() => breedingStore.upcomingCount)
 
 const overdueCount = computed(() => breedingStore.upcoming.needsAttention.length)
-const upcomingOnlyCount = computed(() =>
-  breedingStore.upcoming.heats.length + breedingStore.upcoming.calvings.length +
-  breedingStore.upcoming.pregChecks.length + breedingStore.upcoming.dryOffs.length,
+const upcomingOnlyCount = computed(
+  () =>
+    breedingStore.upcoming.heats.length +
+    breedingStore.upcoming.calvings.length +
+    breedingStore.upcoming.pregChecks.length +
+    breedingStore.upcoming.dryOffs.length
 )
 
 const notificationSubtitle = computed(() => {
   const parts = []
   if (overdueCount.value > 0) parts.push(t('breeding.overdueCount', { count: overdueCount.value }))
-  if (upcomingOnlyCount.value > 0) parts.push(t('breeding.upcomingCount', { count: upcomingOnlyCount.value }))
+  if (upcomingOnlyCount.value > 0)
+    parts.push(t('breeding.upcomingCount', { count: upcomingOnlyCount.value }))
   return parts.join(' · ') || t('breeding.upcoming.none')
 })
 
@@ -215,10 +233,18 @@ onMounted(async () => {
   color: var(--text-secondary);
 }
 
-.stat-pregnant .stat-num { color: #7b5ea7; }
-.stat-open .stat-num { color: var(--text-secondary); }
-.stat-due .stat-num { color: var(--text-secondary); }
-.stat-due.has-alerts .stat-num { color: var(--warning); }
+.stat-pregnant .stat-num {
+  color: #7b5ea7;
+}
+.stat-open .stat-num {
+  color: var(--text-secondary);
+}
+.stat-due .stat-num {
+  color: var(--text-secondary);
+}
+.stat-due.has-alerts .stat-num {
+  color: var(--warning);
+}
 
 /* ── Nav cards ── */
 .nav-cards {

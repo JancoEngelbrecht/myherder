@@ -36,8 +36,14 @@
           <!-- Failed items -->
           <div v-if="syncStore.hasFailedItems" class="section section-danger">
             <h4 class="section-title">{{ t('sync.failedItems') }}</h4>
-            <div v-for="item in syncStore.failedItems.slice(0, 5)" :key="item.autoId" class="failed-row">
-              <span class="failed-type">{{ t(`sync.entity.${item.entityType}`, item.entityType) }}</span>
+            <div
+              v-for="item in syncStore.failedItems.slice(0, 5)"
+              :key="item.autoId"
+              class="failed-row"
+            >
+              <span class="failed-type">{{
+                t(`sync.entity.${item.entityType}`, item.entityType)
+              }}</span>
               <span class="failed-error">{{ item.lastError }}</span>
             </div>
             <p v-if="syncStore.failedItems.length > 5" class="more-text">
@@ -53,7 +59,11 @@
 
         <div class="panel-actions">
           <button class="btn-primary" :disabled="syncStore.isSyncing" @click="handleSync">
-            <span v-if="syncStore.isSyncing" class="spinner" style="width:16px;height:16px;border-width:2px" />
+            <span
+              v-if="syncStore.isSyncing"
+              class="spinner"
+              style="width: 16px; height: 16px; border-width: 2px"
+            />
             <span v-else>{{ t('sync.syncNow') }}</span>
           </button>
 
@@ -61,7 +71,11 @@
             {{ t('sync.retryFailed') }}
           </button>
 
-          <button v-if="syncStore.hasFailedItems" class="btn-danger btn-sm-text" @click="handleClearFailed">
+          <button
+            v-if="syncStore.hasFailedItems"
+            class="btn-danger btn-sm-text"
+            @click="handleClearFailed"
+          >
             {{ t('sync.clearFailed') }}
           </button>
         </div>
@@ -91,10 +105,16 @@ watch(
       pendingByType.value = await syncStore.getPendingByType()
     }
   },
-  { immediate: true },
+  { immediate: true }
 )
 
-const DOT_MAP = { synced: 'synced', syncing: 'syncing', pending: 'pending', offline: 'offline', 'offline-pending': 'offline' }
+const DOT_MAP = {
+  synced: 'synced',
+  syncing: 'syncing',
+  pending: 'pending',
+  offline: 'offline',
+  'offline-pending': 'offline',
+}
 const dotClass = computed(() => DOT_MAP[syncStore.syncStatus] || 'synced')
 
 const statusText = computed(() => {
@@ -190,10 +210,19 @@ async function handleClearFailed() {
   border-radius: 50%;
 }
 
-.status-dot.synced { background: var(--synced); }
-.status-dot.syncing { background: var(--warning); animation: pulse 1s infinite; }
-.status-dot.pending { background: var(--warning); }
-.status-dot.offline { background: var(--danger); }
+.status-dot.synced {
+  background: var(--synced);
+}
+.status-dot.syncing {
+  background: var(--warning);
+  animation: pulse 1s infinite;
+}
+.status-dot.pending {
+  background: var(--warning);
+}
+.status-dot.offline {
+  background: var(--danger);
+}
 
 .status-label {
   font-weight: 600;
@@ -232,7 +261,8 @@ async function handleClearFailed() {
   color: var(--danger);
 }
 
-.pending-row, .failed-row {
+.pending-row,
+.failed-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -321,7 +351,12 @@ async function handleClearFailed() {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 </style>

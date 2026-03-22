@@ -6,7 +6,15 @@ const authenticate = require('../middleware/auth')
 const tenantScope = require('../middleware/tenantScope')
 const authorize = require('../middleware/authorize')
 const { requireAdmin } = authorize
-const { MAX_SEARCH_LENGTH, MAX_PAGE_SIZE, DEFAULT_PAGE_SIZE, parsePagination, joiMsg, validateBody, validateQuery } = require('../helpers/constants')
+const {
+  MAX_SEARCH_LENGTH,
+  MAX_PAGE_SIZE,
+  DEFAULT_PAGE_SIZE,
+  parsePagination,
+  joiMsg,
+  validateBody,
+  validateQuery,
+} = require('../helpers/constants')
 const { logAudit } = require('../services/auditService')
 
 const router = express.Router()
@@ -19,7 +27,9 @@ const createSchema = Joi.object({
   cow_id: Joi.string().uuid().required(),
   issue_types: Joi.array().items(Joi.string().min(1).max(50)).min(1).required(),
   severity: Joi.string().valid('low', 'medium', 'high').default('medium'),
-  affected_teats: Joi.array().items(Joi.string().valid(...TEAT_POSITIONS)).allow(null),
+  affected_teats: Joi.array()
+    .items(Joi.string().valid(...TEAT_POSITIONS))
+    .allow(null),
   description: Joi.string().max(2000).allow('', null),
   observed_at: Joi.string().isoDate().required(),
 })
@@ -35,22 +45,25 @@ function issueQuery(farmId) {
     .join('cows as c', 'h.cow_id', 'c.id')
     .join('users as u', 'h.reported_by', 'u.id')
     .whereNull('c.deleted_at')
-    .select(
-      'h.*',
-      'c.tag_number',
-      'c.name as cow_name',
-      'u.full_name as reported_by_name',
-    )
+    .select('h.*', 'c.tag_number', 'c.name as cow_name', 'u.full_name as reported_by_name')
 }
 
 // Parse JSON columns from string (SQLite stores JSON as text)
 function parseRow(row) {
   if (!row) return row
   if (typeof row.affected_teats === 'string') {
-    try { row.affected_teats = JSON.parse(row.affected_teats) } catch { row.affected_teats = [] }
+    try {
+      row.affected_teats = JSON.parse(row.affected_teats)
+    } catch {
+      row.affected_teats = []
+    }
   }
   if (typeof row.issue_types === 'string') {
-    try { row.issue_types = JSON.parse(row.issue_types) } catch { row.issue_types = [] }
+    try {
+      row.issue_types = JSON.parse(row.issue_types)
+    } catch {
+      row.issue_types = []
+    }
   }
   return row
 }
@@ -116,7 +129,11 @@ router.post('/', authorize('can_log_issues'), async (req, res, next) => {
     const { error, value } = validateBody(createSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    const cow = await db('cows').where({ id: value.cow_id }).where('farm_id', req.farmId).whereNull('deleted_at').first()
+    const cow = await db('cows')
+      .where({ id: value.cow_id })
+      .where('farm_id', req.farmId)
+      .whereNull('deleted_at')
+      .first()
     if (!cow) return res.status(404).json({ error: 'Cow not found' })
 
     const id = uuidv4()
@@ -138,7 +155,14 @@ router.post('/', authorize('can_log_issues'), async (req, res, next) => {
     })
 
     const created = await issueQuery(req.farmId).where('h.id', id).first()
-    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'create', entityType: 'health_issue', entityId: id, newValues: created })
+    await logAudit({
+      farmId: req.user.farm_id,
+      userId: req.user.id,
+      action: 'create',
+      entityType: 'health_issue',
+      entityId: id,
+      newValues: created,
+    })
     res.status(201).json(parseRow(created))
   } catch (err) {
     next(err)
@@ -151,7 +175,10 @@ router.patch('/:id/status', authorize('can_log_issues'), async (req, res, next) 
     const { error, value } = validateBody(statusSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    const existing = await db('health_issues').where({ id: req.params.id }).where('farm_id', req.farmId).first()
+    const existing = await db('health_issues')
+      .where({ id: req.params.id })
+      .where('farm_id', req.farmId)
+      .first()
     if (!existing) return res.status(404).json({ error: 'Health issue not found' })
 
     const now = new Date().toISOString()
@@ -160,10 +187,21 @@ router.patch('/:id/status', authorize('can_log_issues'), async (req, res, next) 
       update.resolved_at = now
     }
 
-    await db('health_issues').where({ id: req.params.id }).where('farm_id', req.farmId).update(update)
+    await db('health_issues')
+      .where({ id: req.params.id })
+      .where('farm_id', req.farmId)
+      .update(update)
 
     const updated = await issueQuery(req.farmId).where('h.id', req.params.id).first()
-    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'status_change', entityType: 'health_issue', entityId: req.params.id, oldValues: { status: existing.status }, newValues: { status: value.status } })
+    await logAudit({
+      farmId: req.user.farm_id,
+      userId: req.user.id,
+      action: 'status_change',
+      entityType: 'health_issue',
+      entityId: req.params.id,
+      oldValues: { status: existing.status },
+      newValues: { status: value.status },
+    })
     res.json(parseRow(updated))
   } catch (err) {
     next(err)
@@ -173,10 +211,17 @@ router.patch('/:id/status', authorize('can_log_issues'), async (req, res, next) 
 // DELETE /api/health-issues/:id — admin only
 router.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
-    const existing = await db('health_issues').where({ id: req.params.id }).where('farm_id', req.farmId).first()
+    const existing = await db('health_issues')
+      .where({ id: req.params.id })
+      .where('farm_id', req.farmId)
+      .first()
     if (!existing) return res.status(404).json({ error: 'Health issue not found' })
 
-    const linked = await db('treatments').where('farm_id', req.farmId).where('health_issue_id', req.params.id).count('* as count').first()
+    const linked = await db('treatments')
+      .where('farm_id', req.farmId)
+      .where('health_issue_id', req.params.id)
+      .count('* as count')
+      .first()
     if (Number(linked.count) > 0) {
       return res.status(409).json({ error: 'Cannot delete: issue has linked treatments' })
     }
@@ -185,7 +230,14 @@ router.delete('/:id', requireAdmin, async (req, res, next) => {
       await trx('health_issue_comments').where({ health_issue_id: req.params.id }).delete()
       await trx('health_issues').where({ id: req.params.id }).where('farm_id', req.farmId).delete()
     })
-    await logAudit({ farmId: req.user.farm_id, userId: req.user.id, action: 'delete', entityType: 'health_issue', entityId: req.params.id, oldValues: existing })
+    await logAudit({
+      farmId: req.user.farm_id,
+      userId: req.user.id,
+      action: 'delete',
+      entityType: 'health_issue',
+      entityId: req.params.id,
+      oldValues: existing,
+    })
     res.json({ message: 'Health issue deleted' })
   } catch (err) {
     next(err)
@@ -219,7 +271,10 @@ router.post('/:id/comments', authorize('can_log_issues'), async (req, res, next)
     const { error, value } = validateBody(commentSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    const issue = await db('health_issues').where({ id: req.params.id }).where('farm_id', req.farmId).first()
+    const issue = await db('health_issues')
+      .where({ id: req.params.id })
+      .where('farm_id', req.farmId)
+      .first()
     if (!issue) return res.status(404).json({ error: 'Health issue not found' })
 
     const id = uuidv4()
@@ -255,7 +310,10 @@ router.delete('/:id/comments/:commentId', requireAdmin, async (req, res, next) =
       .first()
     if (!existing) return res.status(404).json({ error: 'Comment not found' })
 
-    await db('health_issue_comments').where({ id: req.params.commentId }).where('farm_id', req.farmId).delete()
+    await db('health_issue_comments')
+      .where({ id: req.params.commentId })
+      .where('farm_id', req.farmId)
+      .delete()
     res.json({ message: 'Comment deleted' })
   } catch (err) {
     next(err)

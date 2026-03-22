@@ -12,9 +12,13 @@ const ADMIN_PASSWORD = 'admin123'
 const WORKER_PIN = '1234'
 
 const ALL_PERMISSIONS = [
-  'can_manage_cows', 'can_manage_medications',
-  'can_record_milk', 'can_log_issues', 'can_log_treatments',
-  'can_log_breeding', 'can_view_analytics',
+  'can_manage_cows',
+  'can_manage_medications',
+  'can_record_milk',
+  'can_log_issues',
+  'can_log_treatments',
+  'can_log_breeding',
+  'can_view_analytics',
 ]
 
 // Seed the two base users required by every test suite.
@@ -71,7 +75,11 @@ async function seedFarm(db, code, name) {
   return id
 }
 
-async function seedFarmUser(db, farmId, { username = 'admin', password, pin, role = 'admin', permissions } = {}) {
+async function seedFarmUser(
+  db,
+  farmId,
+  { username = 'admin', password, pin, role = 'admin', permissions } = {}
+) {
   const id = randomUUID()
   const row = {
     id,
@@ -92,7 +100,11 @@ async function seedFarmUser(db, farmId, { username = 'admin', password, pin, rol
   return id
 }
 
-function tokenForFarm(farmId, userId, { role = 'admin', permissions, username = 'test', tokenVersion = 0 } = {}) {
+function tokenForFarm(
+  farmId,
+  userId,
+  { role = 'admin', permissions, username = 'test', tokenVersion = 0 } = {}
+) {
   const payload = {
     id: userId,
     farm_id: farmId,
@@ -122,6 +134,15 @@ async function seedCow(db, farmId, overrides = {}) {
 }
 
 module.exports = {
-  ADMIN_ID, WORKER_ID, DEFAULT_FARM_ID, ADMIN_PASSWORD, WORKER_PIN, seedUsers,
-  seedFarm, seedFarmUser, tokenForFarm, seedCow, ALL_PERMISSIONS,
+  ADMIN_ID,
+  WORKER_ID,
+  DEFAULT_FARM_ID,
+  ADMIN_PASSWORD,
+  WORKER_PIN,
+  seedUsers,
+  seedFarm,
+  seedFarmUser,
+  tokenForFarm,
+  seedCow,
+  ALL_PERMISSIONS,
 }

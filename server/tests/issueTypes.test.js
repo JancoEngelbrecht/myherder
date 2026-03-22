@@ -69,9 +69,7 @@ describe('GET /api/issue-types', () => {
       is_active: false,
     })
 
-    const res = await request(app)
-      .get('/api/issue-types?all=1')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/issue-types?all=1').set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
     expect(res.body.some((t) => t.id === inactiveId)).toBe(true)
@@ -234,7 +232,13 @@ describe('DELETE /api/issue-types/:id', () => {
 
     // Create a cow and a health issue that references this code
     const cowId = randomUUID()
-    await db('cows').insert({ id: cowId, farm_id: DEFAULT_FARM_ID, tag_number: `IT-${cowId.slice(0, 6)}`, sex: 'female', status: 'active' })
+    await db('cows').insert({
+      id: cowId,
+      farm_id: DEFAULT_FARM_ID,
+      tag_number: `IT-${cowId.slice(0, 6)}`,
+      sex: 'female',
+      status: 'active',
+    })
     const adminId = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa'
     const now = new Date().toISOString()
     await db('health_issues').insert({

@@ -35,9 +35,16 @@ vi.mock('../services/syncManager.js', () => {
 vi.mock('../db/indexedDB.js', () => ({
   default: {
     healthIssues: {
-      bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn(),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi.fn().mockReturnValue({ equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
     },
     issueTypes: { bulkPut: vi.fn(), put: vi.fn(), toArray: vi.fn().mockResolvedValue([]) },
     syncQueue: {
@@ -50,8 +57,26 @@ vi.mock('../db/indexedDB.js', () => ({
 }))
 
 const MOCK_ISSUES = [
-  { id: 'i1', cow_id: 'c1', tag_number: '001', cow_name: 'Bessie', issue_types: ['mastitis'], severity: 'high', status: 'open', observed_at: '2024-01-15T08:00:00Z' },
-  { id: 'i2', cow_id: 'c2', tag_number: '002', cow_name: 'Daisy', issue_types: ['lameness'], severity: 'medium', status: 'open', observed_at: '2024-01-16T09:00:00Z' },
+  {
+    id: 'i1',
+    cow_id: 'c1',
+    tag_number: '001',
+    cow_name: 'Bessie',
+    issue_types: ['mastitis'],
+    severity: 'high',
+    status: 'open',
+    observed_at: '2024-01-15T08:00:00Z',
+  },
+  {
+    id: 'i2',
+    cow_id: 'c2',
+    tag_number: '002',
+    cow_name: 'Daisy',
+    issue_types: ['lameness'],
+    severity: 'medium',
+    status: 'open',
+    observed_at: '2024-01-16T09:00:00Z',
+  },
 ]
 
 const stubs = {

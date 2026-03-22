@@ -6,7 +6,10 @@
       <div v-if="loading" class="spinner-wrap"><div class="spinner" /></div>
 
       <!-- Global all-clear -->
-      <div v-else-if="milkCows.length === 0 && meatCows.length === 0" class="empty-state clear-state">
+      <div
+        v-else-if="milkCows.length === 0 && meatCows.length === 0"
+        class="empty-state clear-state"
+      >
         <div class="clear-icon">✅</div>
         <h2>{{ $t('withdrawal.allClear') }}</h2>
         <p>{{ $t('withdrawal.allClearSub') }}</p>
@@ -65,7 +68,10 @@
                 <span class="wd-label">🥛 {{ $t('withdrawal.milkClear') }}</span>
                 <div class="wd-right">
                   <span class="wd-date mono">{{ formatDateTime(item.withdrawal_end_milk) }}</span>
-                  <span class="countdown-badge" :class="withdrawalInfo(item.withdrawal_end_milk).urgency">
+                  <span
+                    class="countdown-badge"
+                    :class="withdrawalInfo(item.withdrawal_end_milk).urgency"
+                  >
                     {{ withdrawalInfo(item.withdrawal_end_milk).label }}
                   </span>
                 </div>
@@ -83,7 +89,12 @@
               :limit="milkLimit"
               :page-size-options="[10, 20, 50]"
               @update:page="milkPage = $event"
-              @update:limit="v => { milkLimit = v; milkPage = 1 }"
+              @update:limit="
+                (v) => {
+                  milkLimit = v
+                  milkPage = 1
+                }
+              "
             />
           </div>
         </div>
@@ -101,7 +112,11 @@
           </div>
 
           <div v-else class="cow-list">
-            <div v-for="item in paginatedMeatCows" :key="item.cow_id" class="withdrawal-card meat-card">
+            <div
+              v-for="item in paginatedMeatCows"
+              :key="item.cow_id"
+              class="withdrawal-card meat-card"
+            >
               <div class="card-top">
                 <div class="cow-id">
                   <span class="tag-number mono">{{ item.tag_number }}</span>
@@ -120,7 +135,10 @@
                 <span class="wd-label">🥩 {{ $t('withdrawal.meatClear') }}</span>
                 <div class="wd-right">
                   <span class="wd-date mono">{{ formatDateTime(item.withdrawal_end_meat) }}</span>
-                  <span class="countdown-badge" :class="withdrawalInfo(item.withdrawal_end_meat).urgency">
+                  <span
+                    class="countdown-badge"
+                    :class="withdrawalInfo(item.withdrawal_end_meat).urgency"
+                  >
                     {{ withdrawalInfo(item.withdrawal_end_meat).label }}
                   </span>
                 </div>
@@ -138,7 +156,12 @@
               :limit="meatLimit"
               :page-size-options="[10, 20, 50]"
               @update:page="meatPage = $event"
-              @update:limit="v => { meatLimit = v; meatPage = 1 }"
+              @update:limit="
+                (v) => {
+                  meatLimit = v
+                  meatPage = 1
+                }
+              "
             />
           </div>
         </div>
@@ -146,7 +169,9 @@
     </div>
 
     <div v-if="!loading" class="refresh-row">
-      <button class="btn-secondary" @click="store.fetchWithdrawal()">{{ $t('common.refresh') }}</button>
+      <button class="btn-secondary" @click="store.fetchWithdrawal()">
+        {{ $t('common.refresh') }}
+      </button>
     </div>
   </div>
 </template>
@@ -170,29 +195,37 @@ const meatPage = ref(1)
 const meatLimit = ref(10)
 
 // Reset pages when switching tabs
-watch(activeTab, () => { milkPage.value = 1; meatPage.value = 1 })
+watch(activeTab, () => {
+  milkPage.value = 1
+  meatPage.value = 1
+})
 
 // Reactive timestamp — updates every 60s so expired withdrawals disappear automatically
 const nowIso = ref(new Date().toISOString())
 let timer
 onMounted(() => {
   store.fetchWithdrawal()
-  timer = setInterval(() => { nowIso.value = new Date().toISOString() }, 60_000)
+  timer = setInterval(() => {
+    nowIso.value = new Date().toISOString()
+  }, 60_000)
 })
 onUnmounted(() => clearInterval(timer))
 
 // Milk: only females currently being milked (exclude heifers/calves via life_phase from API)
 const milkCows = computed(() =>
   withdrawalCows.value.filter(
-    (c) => c.sex === 'female' && c.life_phase !== 'heifer' && c.life_phase !== 'calf' && c.withdrawal_end_milk && c.withdrawal_end_milk > nowIso.value,
-  ),
+    (c) =>
+      c.sex === 'female' &&
+      c.life_phase !== 'heifer' &&
+      c.life_phase !== 'calf' &&
+      c.withdrawal_end_milk &&
+      c.withdrawal_end_milk > nowIso.value
+  )
 )
 
 // Meat: any animal with active meat withdrawal
 const meatCows = computed(() =>
-  withdrawalCows.value.filter(
-    (c) => c.withdrawal_end_meat && c.withdrawal_end_meat > nowIso.value,
-  ),
+  withdrawalCows.value.filter((c) => c.withdrawal_end_meat && c.withdrawal_end_meat > nowIso.value)
 )
 
 // Paginated slices
@@ -211,18 +244,23 @@ function withdrawalInfo(endDate) {
   if (diff <= 0) return { label: '✓', urgency: 'urgency-done' }
 
   const hours = diff / 3_600_000
-  const label = hours < 24
-    ? `${Math.floor(hours)}h`
-    : (() => {
-        const d = Math.floor(hours / 24)
-        const h = Math.floor(hours % 24)
-        return h > 0 ? `${d}d ${h}h` : `${d}d`
-      })()
+  const label =
+    hours < 24
+      ? `${Math.floor(hours)}h`
+      : (() => {
+          const d = Math.floor(hours / 24)
+          const h = Math.floor(hours % 24)
+          return h > 0 ? `${d}d ${h}h` : `${d}d`
+        })()
 
-  const urgency = hours <= 12 ? 'urgency-critical'
-    : hours <= 24 ? 'urgency-high'
-    : hours <= 72 ? 'urgency-medium'
-    : 'urgency-low'
+  const urgency =
+    hours <= 12
+      ? 'urgency-critical'
+      : hours <= 24
+        ? 'urgency-high'
+        : hours <= 72
+          ? 'urgency-medium'
+          : 'urgency-low'
 
   return { label, urgency }
 }
@@ -477,7 +515,12 @@ function withdrawalInfo(endDate) {
 }
 
 @keyframes pulse-red {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 </style>

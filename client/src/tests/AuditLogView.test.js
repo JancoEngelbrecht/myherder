@@ -154,7 +154,9 @@ describe('AuditLogView', () => {
     let resolveGet
     mockGet.mockImplementation((url) => {
       if (url === '/users') return Promise.resolve({ data: MOCK_USERS })
-      return new Promise((r) => { resolveGet = r })
+      return new Promise((r) => {
+        resolveGet = r
+      })
     })
 
     const wrapper = mountComponent()

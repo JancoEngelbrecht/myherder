@@ -1,9 +1,11 @@
 # Hard Delete Farm — Implementation Plan
 
 ## Problem
+
 `DELETE /api/farms/:id` currently soft-deactivates (sets `is_active: false`), but the UI already does this via `PATCH /api/farms/:id` with `{ is_active: false }`. The delete action should permanently remove all farm data.
 
 ## Scope
+
 - **Backend:** Change `DELETE /api/farms/:id` to hard-delete the farm and all tenant-scoped data
 - **Frontend:** Add a separate "Delete Farm" button with typed-confirmation UX (custom inline dialog, not ConfirmDialog)
 - **Frontend:** Change `deactivate()` from `api.delete()` to `api.patch()` — **must ship atomically with backend change**
@@ -11,6 +13,7 @@
 - **No breaking changes** to existing deactivate/reactivate flow or other tests
 
 > **ATOMIC DEPLOYMENT:** The following files MUST be in a single git commit:
+>
 > - `server/routes/farms.js` (hard-delete endpoint)
 > - `server/tests/farms.test.js` (replace deactivate test with hard-delete tests)
 > - `client/src/views/super/FarmDetailView.vue` (deactivate() → api.patch, new delete button)
@@ -18,6 +21,7 @@
 > Deploying the backend change without the frontend change causes the "Deactivate" button to permanently delete farm data.
 
 ## Tenant-Scoped Tables
+
 Delete order matters due to FK constraints. Child tables first, then parent tables, then farm.
 
 **Tables with `farm_id` column:** audit_log, sync_log (nullable), treatments, milk_records, breeding_events, health_issues, cows, medications, breed_types, issue_type_definitions, feature_flags, app_settings, users
@@ -25,6 +29,7 @@ Delete order matters due to FK constraints. Child tables first, then parent tabl
 **Tables WITHOUT `farm_id` (cleaned by user_id):** announcement_dismissals, health_issue_comments, sync_log (NULL farm_id rows)
 
 **Special cases:**
+
 - `cows` has self-referencing FKs (`sire_id`, `dam_id` → `cows.id`) — MySQL needs `SET FOREIGN_KEY_CHECKS=0`
 - `health_issue_comments` has NO `farm_id` — must delete by `health_issue_id` (from farm's health issues)
 - `sync_log.farm_id` is nullable (migration 032) — also clean by `user_id` to catch NULL rows
@@ -52,7 +57,9 @@ router.delete('/:id', async (req, res, next) => {
       .count('* as c')
       .first()
     if (Number(superAdminCount.c) > 0) {
-      return res.status(409).json({ error: 'Cannot delete farm with super-admin users. Reassign them first.' })
+      return res
+        .status(409)
+        .json({ error: 'Cannot delete farm with super-admin users. Reassign them first.' })
     }
 
     // Get farm user IDs (for tables without farm_id: announcement_dismissals, health_issue_comments)
@@ -109,6 +116,7 @@ router.delete('/:id', async (req, res, next) => {
 ```
 
 ### 1B. Safety summary
+
 - **Auth:** `requireSuperAdmin` middleware blocks farm-scoped tokens (403) — no additional "inside farm" check needed
 - **Super-admin guard:** Refuses deletion if super-admin users assigned to farm (409), checked before transaction
 - **MySQL FKs:** `SET FOREIGN_KEY_CHECKS=0` handles self-referencing `cows.sire_id`/`dam_id`
@@ -117,6 +125,7 @@ router.delete('/:id', async (req, res, next) => {
 - **sync_log orphans:** Cleaned by both `farm_id` and `user_id` to catch nullable `farm_id` rows
 
 ### 1C. Concurrent session cleanup
+
 Super-admins currently inside the deleted farm (via a 4-hour farm-scoped JWT in another tab/browser) will get a 401 on their next API call — their user row is deleted, so the auth middleware's `token_version` DB check finds no user. The client 401 interceptor calls `logout()` and clears localStorage. No additional client-side handling is needed.
 
 ## Phase 2: Frontend — Delete Farm Button + Confirmation
@@ -124,6 +133,7 @@ Super-admins currently inside the deleted farm (via a 4-hour farm-scoped JWT in 
 ### 2A. Add "Delete Farm" button in `FarmDetailView.vue`
 
 Add a new danger button (always visible, independent of `is_active` state):
+
 ```html
 <button class="btn-danger btn-sm-pill" @click="showDeleteFarm = true">
   {{ t('superAdmin.deleteFarm') }}
@@ -161,11 +171,12 @@ Add a new danger button (always visible, independent of `is_active` state):
 ```
 
 CSS to add to `FarmDetailView.vue` scoped styles (copied from ConfirmDialog.vue):
+
 ```css
 .dialog-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -192,9 +203,13 @@ CSS to add to `FarmDetailView.vue` scoped styles (copied from ConfirmDialog.vue)
   gap: 8px;
 }
 .fade-enter-active,
-.fade-leave-active { transition: opacity 0.2s; }
+.fade-leave-active {
+  transition: opacity 0.2s;
+}
 .fade-enter-from,
-.fade-leave-to { opacity: 0; }
+.fade-leave-to {
+  opacity: 0;
+}
 ```
 
 ### 2C. Add `hardDeleteFarm()` function + refs
@@ -248,6 +263,7 @@ async function deactivate() {
 Add to both `en.json` and `af.json` under `superAdmin` namespace:
 
 **English:**
+
 ```json
 "deleteFarm": "Delete Farm",
 "deleteFarmConfirm": "Delete Permanently",
@@ -257,6 +273,7 @@ Add to both `en.json` and `af.json` under `superAdmin` namespace:
 ```
 
 **Afrikaans:**
+
 ```json
 "deleteFarm": "Verwyder Plaas",
 "deleteFarmConfirm": "Verwyder Permanent",

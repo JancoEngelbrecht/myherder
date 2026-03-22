@@ -25,6 +25,7 @@ Split the milk feature into two complementary pages:
 Current params: `?date=YYYY-MM-DD&session=morning&cow_id=UUID`
 
 Add new params (all optional, backward-compatible):
+
 - `from` / `to` — date range filter (ISO date strings)
 - `recorded_by` — UUID filter for specific user
 - `page` / `limit` — pagination (default page=1, limit=25)
@@ -32,6 +33,7 @@ Add new params (all optional, backward-compatible):
 - `order` — `desc` (default), `asc`
 
 When `page`/`limit` are provided, return paginated response:
+
 ```json
 {
   "data": [{ id, cow_id, tag_number, cow_name, recorded_by, recorded_by_name,
@@ -53,6 +55,7 @@ When called WITHOUT `page`/`limit` (existing behaviour for recording page), retu
 - Empty results return `{ data: [], total: 0 }` with pagination
 
 **Files touched:**
+
 - `server/routes/milkRecords.js` — enhanced GET handler + Joi query schema
 - `server/tests/milkRecords.test.js` (NEW) — ~12 tests
 
@@ -69,6 +72,7 @@ When called WITHOUT `page`/`limit` (existing behaviour for recording page), retu
 **Route:** `/milk/history` (lazy-loaded, requiresAuth, requiresModule: 'milkRecording')
 
 **Layout:**
+
 ```
 AppHeader: "Milk Records" (show-back, back-to="/milk")
 ┌──────────────────────────────────────┐
@@ -95,6 +99,7 @@ AppHeader: "Milk Records" (show-back, back-to="/milk")
 ```
 
 **Filters:**
+
 - **Date range:** Reuse `useTimeRange()` composable from analytics (7d, 30d, 90d, 12m, custom)
 - **Session:** chip toggle (all / morning / afternoon / evening)
 - **Cow:** text search (tag_number or name, passed as `cow_id` after lookup or as search param)
@@ -111,6 +116,7 @@ A read-only card for the history list. Different from MilkEntryCard (which has a
 **Props:** `record` object (from API with joined fields)
 
 **Displays:**
+
 - Cow tag + name (left)
 - Litres + discarded badge (right)
 - Session name + date + time (bottom row)
@@ -126,6 +132,7 @@ A read-only card for the history list. Different from MilkEntryCard (which has a
 ### 2.4 i18n Keys
 
 New keys under `milkHistory` namespace:
+
 ```json
 {
   "milkHistory": {
@@ -144,11 +151,13 @@ New keys under `milkHistory` namespace:
   }
 }
 ```
+
 Both `en.json` and `af.json`.
 
 ### 2.5 Tests
 
 `client/src/tests/MilkHistoryView.test.js` — ~12 tests:
+
 - Renders record list from API
 - Filter chips update query params and re-fetch
 - Pagination "load more" appends records
@@ -159,12 +168,14 @@ Both `en.json` and `af.json`.
 - Summary bar shows correct totals
 
 `client/src/tests/MilkRecordCard.test.js` — ~8 tests:
+
 - Renders cow info, litres, session, date, time
 - Discarded styling applied
 - Recorded-by name shown
 - Handles missing optional fields (no name, no time, no notes)
 
 **Files touched:**
+
 - `client/src/views/MilkHistoryView.vue` (NEW)
 - `client/src/components/molecules/MilkRecordCard.vue` (NEW)
 - `client/src/router/index.js` — add `/milk/history` route
@@ -206,6 +217,7 @@ Currently builds discard reason with English-only string. Move to i18n key and c
 ### 3.4 Tests
 
 Update `client/src/tests/MilkRecordingView.test.js` (NEW or added to existing):
+
 - Time picker always visible
 - Today defaults to current time (rounded)
 - Past date defaults to session standard
@@ -214,12 +226,14 @@ Update `client/src/tests/MilkRecordingView.test.js` (NEW or added to existing):
 - Search filtering
 
 Update `client/src/tests/milkRecords.store.test.js`:
+
 - session_time now sent for today's records too
 - Verify time formatting
 
 **Files touched:**
+
 - `client/src/views/MilkRecordingView.vue` — always show time, update defaults
-- `client/src/stores/milkRecords.js` — update _persist to always send session_time
+- `client/src/stores/milkRecords.js` — update \_persist to always send session_time
 - `client/src/tests/MilkRecordingView.test.js` (NEW or updated)
 - `client/src/tests/milkRecords.store.test.js` — updated tests
 
@@ -232,6 +246,7 @@ Update `client/src/tests/milkRecords.store.test.js`:
 **Goal:** Ensure everything is tight — no dead code, consistent patterns, all tests green.
 
 ### 4.1 Cross-cutting cleanup
+
 - Run `npm run knip` — remove any dead exports/files
 - Run `npm run lint:fix` — fix any style issues
 - Review MilkEntryCard for any dead props or unused computed properties
@@ -239,15 +254,18 @@ Update `client/src/tests/milkRecords.store.test.js`:
 - Ensure both pages work offline (history view should gracefully degrade)
 
 ### 4.2 Update documentation
+
 - Update CLAUDE.md with new `/milk/history` route and API changes
 - Update MEMORY.md with phase status
 
 ### 4.3 Final test run
+
 - Run full client test suite: `cd client && npm run test:run`
 - Run server tests: `cd server && npx jest`
 - Verify all tests pass with 0 failures
 
 **Files touched:**
+
 - `CLAUDE.md` — API docs for enhanced GET /api/milk-records
 - `MEMORY.md` — phase status update
 
@@ -255,12 +273,12 @@ Update `client/src/tests/milkRecords.store.test.js`:
 
 ## Summary
 
-| Phase | Description | New Files | Tests |
-|-------|-------------|-----------|-------|
-| 1 | Backend: paginated milk records API | milkRecords.test.js | ~12 |
-| 2 | Frontend: Milk History view + MilkRecordCard | MilkHistoryView.vue, MilkRecordCard.vue, 2 test files | ~20 |
-| 3 | Recording page: always-show time picker | — | ~8 |
-| 4 | Polish, dead code removal, docs | — | verify all pass |
+| Phase | Description                                  | New Files                                             | Tests           |
+| ----- | -------------------------------------------- | ----------------------------------------------------- | --------------- |
+| 1     | Backend: paginated milk records API          | milkRecords.test.js                                   | ~12             |
+| 2     | Frontend: Milk History view + MilkRecordCard | MilkHistoryView.vue, MilkRecordCard.vue, 2 test files | ~20             |
+| 3     | Recording page: always-show time picker      | —                                                     | ~8              |
+| 4     | Polish, dead code removal, docs              | —                                                     | verify all pass |
 
 **Total new tests:** ~40
 **Total new files:** 4 source + 3 test files

@@ -120,21 +120,33 @@ describe('GET /api/announcements/active', () => {
 describe('GET /api/announcements', () => {
   it('returns all announcements for super-admin', async () => {
     await db('system_announcements').insert([
-      { id: 'ann-a', type: 'info', title: 'A', is_active: true, created_by: SUPER_ADMIN_ID, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-      { id: 'ann-b', type: 'warning', title: 'B', is_active: false, created_by: SUPER_ADMIN_ID, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      {
+        id: 'ann-a',
+        type: 'info',
+        title: 'A',
+        is_active: true,
+        created_by: SUPER_ADMIN_ID,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      {
+        id: 'ann-b',
+        type: 'warning',
+        title: 'B',
+        is_active: false,
+        created_by: SUPER_ADMIN_ID,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
     ])
 
-    const res = await request(app)
-      .get('/api/announcements')
-      .set('Authorization', superAdminToken())
+    const res = await request(app).get('/api/announcements').set('Authorization', superAdminToken())
     expect(res.status).toBe(200)
     expect(res.body.length).toBe(2)
   })
 
   it('rejects non-super-admin', async () => {
-    const res = await request(app)
-      .get('/api/announcements')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/announcements').set('Authorization', adminToken())
     expect(res.status).toBe(403)
   })
 })
@@ -171,9 +183,13 @@ describe('POST /api/announcements', () => {
 describe('PATCH /api/announcements/:id', () => {
   it('updates an announcement', async () => {
     await db('system_announcements').insert({
-      id: 'ann-up', type: 'info', title: 'Original',
-      is_active: true, created_by: SUPER_ADMIN_ID,
-      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      id: 'ann-up',
+      type: 'info',
+      title: 'Original',
+      is_active: true,
+      created_by: SUPER_ADMIN_ID,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     })
 
     const res = await request(app)
@@ -197,9 +213,13 @@ describe('PATCH /api/announcements/:id', () => {
 describe('DELETE /api/announcements/:id', () => {
   it('deactivates an announcement', async () => {
     await db('system_announcements').insert({
-      id: 'ann-del', type: 'info', title: 'To Deactivate',
-      is_active: true, created_by: SUPER_ADMIN_ID,
-      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      id: 'ann-del',
+      type: 'info',
+      title: 'To Deactivate',
+      is_active: true,
+      created_by: SUPER_ADMIN_ID,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     })
 
     const res = await request(app)
@@ -213,12 +233,17 @@ describe('DELETE /api/announcements/:id', () => {
 describe('POST /api/announcements/:id/permanent', () => {
   it('permanently deletes an inactive announcement and its dismissals', async () => {
     await db('system_announcements').insert({
-      id: 'ann-perm', type: 'info', title: 'To Delete',
-      is_active: false, created_by: SUPER_ADMIN_ID,
-      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      id: 'ann-perm',
+      type: 'info',
+      title: 'To Delete',
+      is_active: false,
+      created_by: SUPER_ADMIN_ID,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     })
     await db('announcement_dismissals').insert({
-      announcement_id: 'ann-perm', user_id: SUPER_ADMIN_ID,
+      announcement_id: 'ann-perm',
+      user_id: SUPER_ADMIN_ID,
       dismissed_at: new Date().toISOString(),
     })
 
@@ -236,10 +261,14 @@ describe('POST /api/announcements/:id/permanent', () => {
 
   it('permanently deletes an active-but-expired announcement', async () => {
     await db('system_announcements').insert({
-      id: 'ann-expired', type: 'info', title: 'Expired Active',
-      is_active: true, expires_at: '2020-01-01T00:00:00.000Z',
+      id: 'ann-expired',
+      type: 'info',
+      title: 'Expired Active',
+      is_active: true,
+      expires_at: '2020-01-01T00:00:00.000Z',
       created_by: SUPER_ADMIN_ID,
-      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     })
 
     const res = await request(app)
@@ -254,9 +283,13 @@ describe('POST /api/announcements/:id/permanent', () => {
 
   it('returns 400 when announcement is still active', async () => {
     await db('system_announcements').insert({
-      id: 'ann-active', type: 'info', title: 'Still Active',
-      is_active: true, created_by: SUPER_ADMIN_ID,
-      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      id: 'ann-active',
+      type: 'info',
+      title: 'Still Active',
+      is_active: true,
+      created_by: SUPER_ADMIN_ID,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     })
 
     const res = await request(app)
@@ -274,9 +307,13 @@ describe('POST /api/announcements/:id/permanent', () => {
 
   it('rejects non-super-admin', async () => {
     await db('system_announcements').insert({
-      id: 'ann-auth', type: 'info', title: 'Auth Test',
-      is_active: false, created_by: SUPER_ADMIN_ID,
-      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      id: 'ann-auth',
+      type: 'info',
+      title: 'Auth Test',
+      is_active: false,
+      created_by: SUPER_ADMIN_ID,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     })
 
     const res = await request(app)
@@ -289,9 +326,13 @@ describe('POST /api/announcements/:id/permanent', () => {
 describe('POST /api/announcements/:id/dismiss', () => {
   it('dismisses an announcement for current user', async () => {
     await db('system_announcements').insert({
-      id: 'ann-dis', type: 'info', title: 'Dismissable',
-      is_active: true, created_by: SUPER_ADMIN_ID,
-      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      id: 'ann-dis',
+      type: 'info',
+      title: 'Dismissable',
+      is_active: true,
+      created_by: SUPER_ADMIN_ID,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     })
 
     const res = await request(app)
@@ -309,9 +350,13 @@ describe('POST /api/announcements/:id/dismiss', () => {
 
   it('is idempotent', async () => {
     await db('system_announcements').insert({
-      id: 'ann-idem', type: 'info', title: 'Idempotent',
-      is_active: true, created_by: SUPER_ADMIN_ID,
-      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+      id: 'ann-idem',
+      type: 'info',
+      title: 'Idempotent',
+      is_active: true,
+      created_by: SUPER_ADMIN_ID,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     })
 
     await request(app)

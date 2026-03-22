@@ -85,10 +85,9 @@ const medicationUpdateSchema = Joi.object({
 }).min(1)
 
 const pushSchema = Joi.object({
-  farm_ids: Joi.alternatives().try(
-    Joi.string().valid('all'),
-    Joi.array().items(Joi.string().uuid()).min(1)
-  ).required(),
+  farm_ids: Joi.alternatives()
+    .try(Joi.string().valid('all'), Joi.array().items(Joi.string().uuid()).min(1))
+    .required(),
 })
 
 const listQuerySchema = Joi.object({
@@ -190,14 +189,16 @@ for (const [slug, config] of Object.entries(ENTITIES)) {
 
       if (autoCode && !value.code) {
         value.code = toCode(value.name)
-        if (!value.code) return res.status(400).json({ error: 'Name must contain at least one letter or number' })
+        if (!value.code)
+          return res.status(400).json({ error: 'Name must contain at least one letter or number' })
       }
 
       // Check uniqueness
       const matchField = autoCode ? 'code' : 'name'
       const matchValue = autoCode ? value.code : value.name
       const existing = await db(table).where(matchField, matchValue).first()
-      if (existing) return res.status(409).json({ error: `${label} with this ${matchField} already exists` })
+      if (existing)
+        return res.status(409).json({ error: `${label} with this ${matchField} already exists` })
 
       const id = uuidv4()
       const now = new Date().toISOString()
@@ -225,7 +226,9 @@ for (const [slug, config] of Object.entries(ENTITIES)) {
         if (dup) return res.status(409).json({ error: `${label} with this name already exists` })
       }
 
-      await db(table).where('id', existing.id).update({ ...value, updated_at: new Date().toISOString() })
+      await db(table)
+        .where('id', existing.id)
+        .update({ ...value, updated_at: new Date().toISOString() })
       const updated = await db(table).where('id', existing.id).first()
       res.json(updated)
     } catch (err) {
@@ -244,7 +247,9 @@ for (const [slug, config] of Object.entries(ENTITIES)) {
         return res.json({ deleted: true })
       }
 
-      await db(table).where('id', existing.id).update({ is_active: false, updated_at: new Date().toISOString() })
+      await db(table)
+        .where('id', existing.id)
+        .update({ is_active: false, updated_at: new Date().toISOString() })
       const updated = await db(table).where('id', existing.id).first()
       res.json(updated)
     } catch (err) {
@@ -276,7 +281,10 @@ for (const [slug, config] of Object.entries(ENTITIES)) {
       let farmSpeciesMap = null
       if (slug === 'breed-types') {
         const fsRows = await db('farm_species')
-          .whereIn('farm_id', farms.map((f) => f.id))
+          .whereIn(
+            'farm_id',
+            farms.map((f) => f.id)
+          )
           .select('farm_id', 'species_id')
         farmSpeciesMap = {}
         for (const row of fsRows) farmSpeciesMap[row.farm_id] = row.species_id
@@ -289,7 +297,9 @@ for (const [slug, config] of Object.entries(ENTITIES)) {
 
       // Bulk-fetch existing items for all target farms
       const farmIds = farms.map((f) => f.id)
-      const allExisting = await db(farmTable).whereIn('farm_id', farmIds).select('farm_id', matchField)
+      const allExisting = await db(farmTable)
+        .whereIn('farm_id', farmIds)
+        .select('farm_id', matchField)
       const existingByFarm = {}
       for (const row of allExisting) {
         ;(existingByFarm[row.farm_id] ||= new Set()).add(row[matchField])

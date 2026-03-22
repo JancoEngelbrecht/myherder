@@ -9,7 +9,8 @@ const CURRENT_SCHEMA = {
   treatments: 'id, cow_id, medication_id, treatment_date, withdrawal_end_milk, updated_at',
   healthIssues: 'id, cow_id, issue_type, status, observed_at, updated_at',
   milkRecords: 'id, cow_id, session, recording_date, updated_at',
-  breedingEvents: 'id, cow_id, event_type, event_date, expected_calving, expected_next_heat, updated_at',
+  breedingEvents:
+    'id, cow_id, event_type, event_date, expected_calving, expected_next_heat, updated_at',
   breedTypes: 'id, code, name, is_active, sort_order',
   issueTypes: 'id, code, is_active, sort_order',
   syncQueue: '++autoId, id, entityType, action, createdAt, attempts, [entityType+id]',
@@ -152,7 +153,7 @@ const dbProxy = new Proxy(
       db[prop] = value
       return true
     },
-  },
+  }
 )
 
 export default dbProxy

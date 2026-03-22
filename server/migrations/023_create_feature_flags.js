@@ -9,7 +9,7 @@ exports.up = async function (knex) {
 
   const now = knex.fn.now()
   await knex('feature_flags').insert(
-    DEFAULTS.map((key) => ({ key, enabled: true, updated_at: now })),
+    DEFAULTS.map((key) => ({ key, enabled: true, updated_at: now }))
   )
 }
 

@@ -7,9 +7,11 @@ The `help` namespace in `en.json` (lines 967–1667, ~700 lines) needs full Afri
 ## Phases
 
 ### Phase 1: Scaffolding + shared keys
+
 > Status: COMPLETE
 
 Add the `help` key to af.json with:
+
 - `title`, `topicNotFound`
 - `categories` (5 keys)
 - `sections` (6 keys)
@@ -18,18 +20,22 @@ Add the `help` key to af.json with:
 ~55 lines of JSON.
 
 ### Phase 2: Daily Tasks topics
+
 > Status: COMPLETE
 
 Translate `help.topics`:
+
 - `recording-milk` (title, what, when, flow, steps[], next, tips[])
 - `milk-history` (title, what, when, flow, steps[], next, tips[])
 
 ~110 lines of JSON.
 
 ### Phase 3: Health & Treatment topics
+
 > Status: COMPLETE
 
 Translate `help.topics`:
+
 - `logging-health-issue`
 - `adding-treatment`
 - `withdrawal-periods`
@@ -38,9 +44,11 @@ Translate `help.topics`:
 ~200 lines of JSON.
 
 ### Phase 4: Breeding topics
+
 > Status: COMPLETE
 
 Translate `help.topics`:
+
 - `breeding-lifecycle` (no flow, just title/what/when/next/tips)
 - `logging-heat`
 - `logging-insemination`
@@ -52,9 +60,11 @@ Translate `help.topics`:
 ~250 lines of JSON.
 
 ### Phase 5: Cow Management topics
+
 > Status: COMPLETE
 
 Translate `help.topics`:
+
 - `adding-cow`
 - `cow-status`
 - `cow-details`
@@ -62,9 +72,11 @@ Translate `help.topics`:
 ~100 lines of JSON.
 
 ### Phase 6: Admin / Settings topics
+
 > Status: COMPLETE
 
 Translate `help.topics`:
+
 - `managing-users`
 - `managing-breed-types`
 - `managing-issue-types`
@@ -77,6 +89,7 @@ Translate `help.topics`:
 ~250 lines of JSON.
 
 ### Phase 7: Verification
+
 > Status: COMPLETE
 
 - Run `npm run dev:client` build to verify JSON is valid

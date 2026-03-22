@@ -425,8 +425,24 @@ describe('GET /api/health-issues/:id/comments', () => {
     const now = new Date().toISOString()
 
     await db('health_issue_comments').insert([
-      { id: randomUUID(), farm_id: DEFAULT_FARM_ID, health_issue_id: issueId, user_id: adminId, comment: 'First', created_at: '2026-01-01T10:00:00Z', updated_at: now },
-      { id: randomUUID(), farm_id: DEFAULT_FARM_ID, health_issue_id: issueId, user_id: adminId, comment: 'Second', created_at: '2026-01-01T11:00:00Z', updated_at: now },
+      {
+        id: randomUUID(),
+        farm_id: DEFAULT_FARM_ID,
+        health_issue_id: issueId,
+        user_id: adminId,
+        comment: 'First',
+        created_at: '2026-01-01T10:00:00Z',
+        updated_at: now,
+      },
+      {
+        id: randomUUID(),
+        farm_id: DEFAULT_FARM_ID,
+        health_issue_id: issueId,
+        user_id: adminId,
+        comment: 'Second',
+        created_at: '2026-01-01T11:00:00Z',
+        updated_at: now,
+      },
     ])
 
     const res = await request(app)
@@ -574,7 +590,9 @@ describe('GET /api/health-issues permission enforcement', () => {
 
   it('returns 403 for GET /:id/comments without can_log_issues', async () => {
     const token = workerTokenWith([])
-    const res = await request(app).get('/api/health-issues/fake-id/comments').set('Authorization', token)
+    const res = await request(app)
+      .get('/api/health-issues/fake-id/comments')
+      .set('Authorization', token)
     expect(res.status).toBe(403)
   })
 })

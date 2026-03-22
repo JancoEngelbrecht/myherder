@@ -93,7 +93,11 @@ describe('useHealthIssuesStore', () => {
 
     it('sets loadingByCow true during fetch, false after', async () => {
       let resolveRequest
-      api.get.mockReturnValue(new Promise((resolve) => { resolveRequest = () => resolve({ data: [] }) }))
+      api.get.mockReturnValue(
+        new Promise((resolve) => {
+          resolveRequest = () => resolve({ data: [] })
+        })
+      )
 
       const store = useHealthIssuesStore()
       const fetchPromise = store.fetchByCow('cow-1')
@@ -168,7 +172,7 @@ describe('useHealthIssuesStore', () => {
       api.get.mockReturnValue(
         new Promise((resolve) => {
           resolveRequest = () => resolve({ data: [], headers: { 'x-total-count': '0' } })
-        }),
+        })
       )
 
       const store = useHealthIssuesStore()
@@ -189,7 +193,11 @@ describe('useHealthIssuesStore', () => {
       api.post.mockResolvedValue({ data: created })
 
       const store = useHealthIssuesStore()
-      const result = await store.create({ cow_id: 'cow-1', issue_types: ['mastitis'], observed_at: '2026-01-01T00:00:00Z' })
+      const result = await store.create({
+        cow_id: 'cow-1',
+        issue_types: ['mastitis'],
+        observed_at: '2026-01-01T00:00:00Z',
+      })
 
       expect(api.post).toHaveBeenCalledWith('/health-issues', expect.any(Object))
       expect(store.issues[0]).toEqual(created)
@@ -209,7 +217,9 @@ describe('useHealthIssuesStore', () => {
 
       const result = await store.updateStatus('issue-1', 'resolved')
 
-      expect(api.patch).toHaveBeenCalledWith('/health-issues/issue-1/status', { status: 'resolved' })
+      expect(api.patch).toHaveBeenCalledWith('/health-issues/issue-1/status', {
+        status: 'resolved',
+      })
       expect(store.issues[0].status).toBe('resolved')
       expect(result).toEqual(updated)
     })
@@ -286,7 +296,9 @@ describe('useHealthIssuesStore', () => {
 
       await store.addComment('issue-1', 'New note')
 
-      expect(api.post).toHaveBeenCalledWith('/health-issues/issue-1/comments', { comment: 'New note' })
+      expect(api.post).toHaveBeenCalledWith('/health-issues/issue-1/comments', {
+        comment: 'New note',
+      })
       expect(store.getComments('issue-1')).toHaveLength(2)
       expect(store.getComments('issue-1')[1]).toEqual(newComment)
     })

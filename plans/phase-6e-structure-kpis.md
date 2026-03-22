@@ -33,12 +33,13 @@ Add fields to existing response (additive, non-breaking):
 ```
 
 Logic:
+
 - Query all non-deleted cows with `sex`, `status`, `is_dry` columns
 - `milking_count`: females where status IN ('active', 'pregnant', 'sick') AND is_dry != 1
 - `dry_count`: females where is_dry = 1 OR status = 'dry'
 - `heifer_count`: females with zero calving events (LEFT JOIN breeding_events WHERE event_type = 'calving', grouped, HAVING count = 0). Exclude sold/dead
 - `males` / `females`: count by sex
-- `replacement_rate`: round2(heifer_count / milking_count * 100), 0 if milking_count = 0
+- `replacement_rate`: round2(heifer_count / milking_count \* 100), 0 if milking_count = 0
 
 Update CLAUDE.md API docs for herd-summary.
 
@@ -50,15 +51,14 @@ Monthly additions (cows created) vs removals (cows set to sold/dead):
 
 ```json
 {
-  "months": [
-    { "month": "2025-06", "additions": 3, "removals": 1, "net": 2 }
-  ],
+  "months": [{ "month": "2025-06", "additions": 3, "removals": 1, "net": 2 }],
   "total_additions": 12,
   "total_removals": 5
 }
 ```
 
 Logic:
+
 - Additions: non-deleted cows grouped by `monthExpr('created_at')` within date range
 - Removals: cows with status IN ('sold', 'dead') grouped by `monthExpr('updated_at')` within date range
 - Merge into single month array, compute `net = additions - removals`
@@ -93,6 +93,7 @@ Update CLAUDE.md API docs for age-distribution.
 **File:** `server/tests/analytics.test.js`
 
 New/updated tests (~10):
+
 - `herd-summary`: returns milking_count, dry_count, heifer_count, males, females, replacement_rate
 - `herd-summary`: heifer detection (female with no calving events = heifer)
 - `herd-summary`: excludes sold/dead from heifer count
@@ -123,6 +124,7 @@ New/updated tests (~10):
 **Files:** `client/src/i18n/en.json`, `client/src/i18n/af.json`
 
 New keys under `analytics.structure`:
+
 - `milkingCows`, `dryCows`, `heifers`, `replacementRate`, `turnoverRate`
 - `statusBreakdown`, `statusBreakdownDesc`
 - `ageDistributionDesc` (subtitle for sex-split explanation)
@@ -132,6 +134,7 @@ New keys under `analytics.structure`:
 - `totalAdditions`, `totalRemovals`
 
 Remove dead keys (if males/females stat chips are replaced):
+
 - Check if `males` and `females` keys are still used (they may be used in status doughnut legend)
 
 ### 2.2 StructureView.vue rewrite
@@ -140,49 +143,56 @@ Remove dead keys (if males/females stat chips are replaced):
 
 #### Stat chips (7):
 
-| # | Chip | Source | Conditional color |
-|---|------|--------|-------------------|
-| 1 | Total Herd | herd-summary.total | — |
-| 2 | Milking Cows | herd-summary.milking_count | — |
-| 3 | Dry Cows | herd-summary.dry_count | — |
-| 4 | Heifers | herd-summary.heifer_count | — |
-| 5 | Replacement Rate | herd-summary.replacement_rate + '%' | `.warn` if < 25%, `.danger` if < 15% |
-| 6 | Avg Age | computed from age-distribution brackets | — |
-| 7 | Turnover Rate | computed: (total_removals / herd total) * 100 | `.warn` if > 5%, `.danger` if > 8% |
+| #   | Chip             | Source                                         | Conditional color                    |
+| --- | ---------------- | ---------------------------------------------- | ------------------------------------ |
+| 1   | Total Herd       | herd-summary.total                             | —                                    |
+| 2   | Milking Cows     | herd-summary.milking_count                     | —                                    |
+| 3   | Dry Cows         | herd-summary.dry_count                         | —                                    |
+| 4   | Heifers          | herd-summary.heifer_count                      | —                                    |
+| 5   | Replacement Rate | herd-summary.replacement_rate + '%'            | `.warn` if < 25%, `.danger` if < 15% |
+| 6   | Avg Age          | computed from age-distribution brackets        | —                                    |
+| 7   | Turnover Rate    | computed: (total_removals / herd total) \* 100 | `.warn` if > 5%, `.danger` if > 8%   |
 
 #### Chart sections (6):
 
 **1. Status Breakdown** — Doughnut
+
 - Data: herd-summary.by_status (snapshot, not time-sensitive)
 - Colors: one per status (active=primary, dry=info, pregnant=purple, sick=warning, sold=muted, dead=danger)
 - Legend: bottom position
 
 **2. Age Distribution** — Stacked Bar (enhanced)
+
 - Data: age-distribution brackets with males/females split (snapshot)
 - Two datasets: males (info color) + females (primary color)
 - Stacked: true on both x and y axes
 
 **3. Breed Composition** — Doughnut (keep as-is)
+
 - Data: breed-composition (snapshot)
 - No changes needed
 
 **4. Herd Turnover** — Grouped Bar (NEW)
+
 - Data: herd-turnover months (time-sensitive)
 - Two datasets: additions (primary) + removals (danger)
 - Grouped (not stacked) for easy comparison
 - Subtitle showing total additions / total removals
 
 **5. Mortality & Cull Rate** — Stacked Bar (enhanced from line)
+
 - Data: mortality-rate months (time-sensitive)
 - Two datasets: sold (warning) + dead (danger), stacked
 - Add horizontal annotation line at 2% for industry benchmark
 - Keep total_lost subtitle
 
 **6. Herd Size Trend** — Area Line (keep as-is)
+
 - Data: herd-size-trend months (time-sensitive)
 - No changes needed
 
 #### Data fetching strategy:
+
 - **On mount (snapshot):** herd-summary, age-distribution, breed-composition
 - **On mount + time range change:** herd-turnover, mortality-rate, herd-size-trend
 - Reuse `useTimeRange()` and `useAnalytics()` composables
@@ -192,6 +202,7 @@ Remove dead keys (if males/females stat chips are replaced):
 **File:** `client/src/tests/analytics/StructureView.test.js`
 
 Rewrite tests (~14):
+
 1. All 7 stat chips render with correct values
 2. Replacement rate shows `.warn` class when < 25%
 3. Replacement rate shows `.danger` class when < 15%

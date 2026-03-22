@@ -22,7 +22,9 @@ Middleware:   93.1% statements | 72% branches
 ## Test Files
 
 ### `withdrawalService.test.js` (6 tests)
+
 Unit tests for withdrawal date calculation logic:
+
 - Null returns for zero withdrawal periods
 - Milk withdrawal calculation from hours
 - Meat withdrawal calculation from days
@@ -31,13 +33,17 @@ Unit tests for withdrawal date calculation logic:
 - Return type validation
 
 ### `auth.test.js` (16 tests)
+
 Authentication and authorization testing:
+
 - **Password login**: Valid credentials, wrong password, unknown user, missing fields
 - **PIN login**: Valid PIN, wrong PIN, unknown user, missing fields, account lockout (5 failed attempts), locked account status (423)
 - **Auth middleware**: Missing token, malformed token rejection
 
 ### `cows.test.js` (15 tests)
+
 Cow CRUD operations:
+
 - **GET /api/cows**: Unauthorized access, array response, search filtering (tag + name), status filtering, pagination
 - **GET /api/cows/:id**: Single cow with sire_name/dam_name resolution, 404 for nonexistent
 - **POST /api/cows**: Creation with 201, duplicate tag_number → 409, missing required fields → 400, invalid enum values → 400, permission enforcement
@@ -45,7 +51,9 @@ Cow CRUD operations:
 - **DELETE /api/cows/:id**: Soft-delete (admin only), 403 for worker
 
 ### `medications.test.js` (12 tests)
+
 Medication management:
+
 - **GET /api/medications**: Active-only filtering by default, `?all=1` includes inactive, 401 without token
 - **GET /api/medications/:id**: Single medication, 404 for nonexistent
 - **POST /api/medications**: Creation with 201, 400 for missing required fields, 403 without permission
@@ -53,7 +61,9 @@ Medication management:
 - **DELETE /api/medications/:id**: Soft-deactivation (sets `is_active = false`), 404 for nonexistent
 
 ### `treatments.test.js` (19 tests)
+
 Complex treatment logic with multi-medication support:
+
 - **POST /api/treatments**:
   - Single medication creation
   - Multiple medications per treatment
@@ -68,22 +78,27 @@ Complex treatment logic with multi-medication support:
 - **DELETE /api/treatments/:id**: Hard delete with CASCADE to junction table (admin only), 403 for worker
 
 ### `analytics.test.js` (4 tests)
+
 Analytics endpoints:
+
 - **GET /api/analytics/herd-summary**: Total count + by_status breakdown, soft-deleted exclusion, sum validation, 401 without token
 - **GET /api/analytics/unhealthiest**: Placeholder endpoint returning `[]` (TODO: implement when health_events table is added)
 
 ## Test Infrastructure
 
 ### Configuration
+
 - **jest.config.js**: Node environment, in-memory SQLite, coverage paths
 - **knexfile.js**: Added `test` environment with `:memory:` database
 - **jest.setup.js**: Sets `NODE_ENV=test`, test JWT secret, disables rate limiting for tests
 
 ### Helpers
+
 - **setup.js**: `seedUsers()` creates admin + worker with fixed UUIDs, low bcrypt cost (4) for speed
 - **tokens.js**: `adminToken()` and `workerToken()` generate valid Bearer tokens matching seeded users
 
 ### Architecture
+
 - **server/app.js**: Extracted Express app (no `.listen()`) for Supertest to import without binding a port
 - **server/index.js**: Now only imports app and calls `.listen()`
 
@@ -107,6 +122,7 @@ npm run test:coverage   # Generate coverage report
 ## Uncovered Lines
 
 Most uncovered lines are intentional:
+
 - **app.js:33-35**: SPA static file serving (requires built client/dist/)
 - **env.js:7**: Production JWT_SECRET check (only runs when `NODE_ENV=production`)
 - **Migration down functions**: Rollback logic (not executed in normal test flow)

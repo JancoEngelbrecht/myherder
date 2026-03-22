@@ -102,7 +102,11 @@ describe('useMilkRecordsStore', () => {
 
     it('sets loading true during fetch, false after', async () => {
       let resolve
-      api.get.mockReturnValue(new Promise((r) => { resolve = () => r({ data: [] }) }))
+      api.get.mockReturnValue(
+        new Promise((r) => {
+          resolve = () => r({ data: [] })
+        })
+      )
 
       const store = useMilkRecordsStore()
       const p = store.fetchSession('2026-02-22', 'morning')
@@ -138,12 +142,15 @@ describe('useMilkRecordsStore', () => {
       store.autoSave('cow-1', 12.5, 'morning', '2026-02-22')
       await vi.runAllTimersAsync()
 
-      expect(api.post).toHaveBeenCalledWith('/milk-records', expect.objectContaining({
-        cow_id: 'cow-1',
-        session: 'morning',
-        recording_date: '2026-02-22',
-        litres: 12.5,
-      }))
+      expect(api.post).toHaveBeenCalledWith(
+        '/milk-records',
+        expect.objectContaining({
+          cow_id: 'cow-1',
+          session: 'morning',
+          recording_date: '2026-02-22',
+          litres: 12.5,
+        })
+      )
       expect(store.getRecord('cow-1')).toEqual(RECORD)
       expect(store.getStatus('cow-1')).toBe('saved')
     })
@@ -158,7 +165,10 @@ describe('useMilkRecordsStore', () => {
       store.autoSave('cow-1', 15, 'morning', '2026-02-22')
       await vi.runAllTimersAsync()
 
-      expect(api.put).toHaveBeenCalledWith('/milk-records/rec-1', expect.objectContaining({ litres: 15 }))
+      expect(api.put).toHaveBeenCalledWith(
+        '/milk-records/rec-1',
+        expect.objectContaining({ litres: 15 })
+      )
       expect(store.getRecord('cow-1').litres).toBe(15)
       expect(store.getStatus('cow-1')).toBe('saved')
     })
@@ -228,11 +238,14 @@ describe('useMilkRecordsStore', () => {
 
       // POST was called once by flushPending (morning data saved, not lost)
       expect(api.post).toHaveBeenCalledTimes(1)
-      expect(api.post).toHaveBeenCalledWith('/milk-records', expect.objectContaining({
-        cow_id: 'cow-1',
-        session: 'morning',
-        recording_date: '2026-02-22',
-      }))
+      expect(api.post).toHaveBeenCalledWith(
+        '/milk-records',
+        expect.objectContaining({
+          cow_id: 'cow-1',
+          session: 'morning',
+          recording_date: '2026-02-22',
+        })
+      )
 
       // Debounce timer should have been cleared — no additional calls
       api.post.mockClear()

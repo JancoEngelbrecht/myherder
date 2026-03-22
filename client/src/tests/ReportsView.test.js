@@ -112,7 +112,11 @@ describe('ReportsView', () => {
 
   it('shows spinner while generating', async () => {
     let resolveGet
-    mockGet.mockReturnValue(new Promise((r) => { resolveGet = r }))
+    mockGet.mockReturnValue(
+      new Promise((r) => {
+        resolveGet = r
+      })
+    )
 
     const wrapper = mountComponent()
     await selectReportAndDates(wrapper)

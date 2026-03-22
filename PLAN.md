@@ -4,16 +4,16 @@
 
 ## Summary of Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Architecture | Progressive Web App (PWA) | Works on PC + phone, offline-capable, one codebase |
-| Frontend | Vue 3 (Composition API) + vue-i18n | Reactive, lightweight, bilingual EN/AF support |
-| Backend | Node.js + Express | Same language as frontend, cPanel compatible |
-| Database | MySQL via Knex.js ORM | cPanel standard, ORM makes it migration-proof |
-| Auth | Self-managed, bcrypt + JWT | Appropriate for 4 private users, no external dependency |
-| Offline | Service Worker + IndexedDB (Dexie.js) | Truly critical — workers often have no signal |
-| Hosting | Single cPanel Node.js app | Serves both API and static Vue build |
-| Language | English + Afrikaans (user-selectable) | Workers choose their preferred language |
+| Decision     | Choice                                | Rationale                                               |
+| ------------ | ------------------------------------- | ------------------------------------------------------- |
+| Architecture | Progressive Web App (PWA)             | Works on PC + phone, offline-capable, one codebase      |
+| Frontend     | Vue 3 (Composition API) + vue-i18n    | Reactive, lightweight, bilingual EN/AF support          |
+| Backend      | Node.js + Express                     | Same language as frontend, cPanel compatible            |
+| Database     | MySQL via Knex.js ORM                 | cPanel standard, ORM makes it migration-proof           |
+| Auth         | Self-managed, bcrypt + JWT            | Appropriate for 4 private users, no external dependency |
+| Offline      | Service Worker + IndexedDB (Dexie.js) | Truly critical — workers often have no signal           |
+| Hosting      | Single cPanel Node.js app             | Serves both API and static Vue build                    |
+| Language     | English + Afrikaans (user-selectable) | Workers choose their preferred language                 |
 
 ---
 
@@ -107,6 +107,7 @@ sync_log         audit_log
 ### Table Definitions
 
 #### `users`
+
 ```sql
 CREATE TABLE users (
   id            VARCHAR(36) PRIMARY KEY,       -- UUID
@@ -124,6 +125,7 @@ CREATE TABLE users (
 ```
 
 **Permission model (stored in JSON):**
+
 ```json
 {
   "can_log_issues": true,
@@ -138,9 +140,11 @@ CREATE TABLE users (
   "can_manage_users": false
 }
 ```
+
 Default worker: log issues + treatments + breeding + milk. Admin: everything.
 
 #### `cows`
+
 ```sql
 CREATE TABLE cows (
   id            VARCHAR(36) PRIMARY KEY,       -- UUID
@@ -161,6 +165,7 @@ CREATE TABLE cows (
 ```
 
 #### `medications`
+
 ```sql
 CREATE TABLE medications (
   id                    VARCHAR(36) PRIMARY KEY,
@@ -178,6 +183,7 @@ CREATE TABLE medications (
 ```
 
 #### `health_issues`
+
 ```sql
 CREATE TABLE health_issues (
   id             VARCHAR(36) PRIMARY KEY,
@@ -198,6 +204,7 @@ CREATE TABLE health_issues (
 ```
 
 #### `treatments`
+
 ```sql
 CREATE TABLE treatments (
   id                    VARCHAR(36) PRIMARY KEY,
@@ -220,6 +227,7 @@ CREATE TABLE treatments (
 ```
 
 #### `milk_records`
+
 ```sql
 CREATE TABLE milk_records (
   id              VARCHAR(36) PRIMARY KEY,
@@ -239,6 +247,7 @@ CREATE TABLE milk_records (
 ```
 
 #### `breeding_events`
+
 ```sql
 CREATE TABLE breeding_events (
   id                    VARCHAR(36) PRIMARY KEY,
@@ -267,6 +276,7 @@ CREATE TABLE breeding_events (
 ```
 
 #### `sync_log`
+
 ```sql
 CREATE TABLE sync_log (
   id            VARCHAR(36) PRIMARY KEY,
@@ -281,6 +291,7 @@ CREATE TABLE sync_log (
 ```
 
 #### `audit_log`
+
 ```sql
 CREATE TABLE audit_log (
   id          VARCHAR(36) PRIMARY KEY,
@@ -540,10 +551,12 @@ Bottom nav: Home | Cows | Log | Milk | Breed
 ### Analytics Page — Phased Build
 
 **Phase 1 (MVP — included with initial build):**
+
 - Total cows by status (active, dry, sold, deceased)
 - Unhealthiest cows — most health issues / treatments in last 90 days (culling candidates)
 
 **Phase 6 (full analytics):**
+
 - Seasonal issue predictor — "Based on past data, expect more [issue type] in the next 2 months" (group health_issues by month and issue_type across all years, show top issues for upcoming 2 calendar months)
 - Milk production — total litres per month, trend chart
 - Top performing cows — ranked by average daily litres
@@ -556,14 +569,14 @@ Bottom nav: Home | Cows | Log | Milk | Breed
 
 All reports filterable by date range, exportable as PDF and Excel:
 
-| Report | Contents |
-|--------|----------|
-| Treatment History | All treatments by cow, date, medication, dosage, cost, who administered |
-| Withdrawal Compliance | Proof all withdrawal periods were respected, any discarded milk logged |
-| Medication Usage | Which medications used, quantities, total cost |
-| Milk Production | Daily/monthly litres per cow and total, averages, trends |
-| Breeding & Reproduction | AI events, pregnancy rates, calving dates, services per conception |
-| Herd Health Summary | Issues by type and severity, resolution times, seasonal patterns |
+| Report                  | Contents                                                                |
+| ----------------------- | ----------------------------------------------------------------------- |
+| Treatment History       | All treatments by cow, date, medication, dosage, cost, who administered |
+| Withdrawal Compliance   | Proof all withdrawal periods were respected, any discarded milk logged  |
+| Medication Usage        | Which medications used, quantities, total cost                          |
+| Milk Production         | Daily/monthly litres per cow and total, averages, trends                |
+| Breeding & Reproduction | AI events, pregnancy rates, calving dates, services per conception      |
+| Herd Health Summary     | Issues by type and severity, resolution times, seasonal patterns        |
 
 ---
 
@@ -572,6 +585,7 @@ All reports filterable by date range, exportable as PDF and Excel:
 ### Phases 1–5: COMPLETE
 
 All core features are built and working:
+
 - **Phase 1**: Backend foundation (Express, Knex, Auth, Cow CRUD, basic analytics)
 - **Phase 2**: Vue 3 PWA frontend (cow registry, IndexedDB, i18n)
 - **Phase 3**: Medications, treatments, withdrawal engine
@@ -586,17 +600,18 @@ Completed sub-plans: [breeding-v2](plans/breeding-v2.md), [offline-sync](plans/o
 ---
 
 ### Phase 7: Admin Settings + User Management — NOT STARTED (do first)
+
 **Goal:** Admin can manage users, permissions, app settings, data export, and audit trail.
 
 > Sub-plan: [plans/phase-7-admin.md](plans/phase-7-admin.md)
 
-| Sub-phase | Scope |
-|-----------|-------|
-| 7.1 | User CRUD API (GET/POST/PATCH/DELETE /api/users) |
-| 7.2 | User Management UI (list, add/edit worker, PIN, permissions checkboxes) |
-| 7.3 | App Settings (farm name, default language — migration + API + UI) |
-| 7.4 | Data Export (JSON dump download, admin-only) |
-| 7.5 | Audit Log (migration + helper + API + admin viewer UI) |
+| Sub-phase | Scope                                                                   |
+| --------- | ----------------------------------------------------------------------- |
+| 7.1       | User CRUD API (GET/POST/PATCH/DELETE /api/users)                        |
+| 7.2       | User Management UI (list, add/edit worker, PIN, permissions checkboxes) |
+| 7.3       | App Settings (farm name, default language — migration + API + UI)       |
+| 7.4       | Data Export (JSON dump download, admin-only)                            |
+| 7.5       | Audit Log (migration + helper + API + admin viewer UI)                  |
 
 Already complete from earlier phases: Medication management (Phase 3), Feature flags
 
@@ -605,15 +620,16 @@ Already complete from earlier phases: Medication management (Phase 3), Feature f
 ---
 
 ### Phase 6A: Analytics Charts — NOT STARTED
+
 **Goal:** Full analytics view with charts. Dashboard unchanged. Reports deferred to 6B.
 
 > Sub-plan: [plans/phase-6a-analytics.md](plans/phase-6a-analytics.md)
 
-| Sub-phase | Scope |
-|-----------|-------|
-| 6A.1 | Analytics API — 7 endpoints (unhealthiest, milk trends, top producers, wasted milk, breeding overview, treatment costs, seasonal predictor) |
-| 6A.2 | Install chart.js + vue-chartjs |
-| 6A.3 | Enhanced AnalyticsView — chart sections for each metric, feature-flag gated |
+| Sub-phase | Scope                                                                                                                                       |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 6A.1      | Analytics API — 7 endpoints (unhealthiest, milk trends, top producers, wasted milk, breeding overview, treatment costs, seasonal predictor) |
+| 6A.2      | Install chart.js + vue-chartjs                                                                                                              |
+| 6A.3      | Enhanced AnalyticsView — chart sections for each metric, feature-flag gated                                                                 |
 
 **Deliverable:** Rich analytics dashboard with charts, trends, and predictions.
 
@@ -643,12 +659,12 @@ Already complete from earlier phases: Medication management (Phase 3), Feature f
 
 **Goal:** Split milk feature into recording (fast entry) + history (audit trail). Fix time picker UX.
 
-| Step | Task |
-|------|------|
-| 8.1 | Backend: paginated milk records API with date range/user filters |
-| 8.2 | Frontend: Milk History view + MilkRecordCard molecule |
-| 8.3 | Recording page: always-show time picker, UX clarity |
-| 8.4 | Polish, dead code removal, docs, final test pass |
+| Step | Task                                                             |
+| ---- | ---------------------------------------------------------------- |
+| 8.1  | Backend: paginated milk records API with date range/user filters |
+| 8.2  | Frontend: Milk History view + MilkRecordCard molecule            |
+| 8.3  | Recording page: always-show time picker, UX clarity              |
+| 8.4  | Polish, dead code removal, docs, final test pass                 |
 
 **Deliverable:** Two complementary milk pages — fast recording + filterable audit trail.
 
@@ -660,14 +676,14 @@ Already complete from earlier phases: Medication management (Phase 3), Feature f
 
 **Goal:** Fix PIN length mismatch (standardize to 4 digits) and enforce worker permissions across backend routes, frontend router, and navigation UI.
 
-| Step | Task |
-|------|------|
-| 11.1 | Standardize PIN to 4 digits (backend Joi, frontend form, i18n) |
-| 11.2 | Backend permission enforcement (authorize middleware on write routes + analytics) |
+| Step | Task                                                                                  |
+| ---- | ------------------------------------------------------------------------------------- |
+| 11.1 | Standardize PIN to 4 digits (backend Joi, frontend form, i18n)                        |
+| 11.2 | Backend permission enforcement (authorize middleware on write routes + analytics)     |
 | 11.3 | Frontend router permission guard (requiresPermission meta + auth store hasPermission) |
-| 11.4 | Frontend navigation filtering (BottomNav + DashboardView permission checks) |
-| 11.5 | Tests (backend permission tests, updated frontend tests) |
-| 11.6 | i18n, CLAUDE.md, MEMORY.md cleanup |
+| 11.4 | Frontend navigation filtering (BottomNav + DashboardView permission checks)           |
+| 11.5 | Tests (backend permission tests, updated frontend tests)                              |
+| 11.6 | i18n, CLAUDE.md, MEMORY.md cleanup                                                    |
 
 **Deliverable:** Workers only see and can use features they have permission for; PINs consistently 4 digits.
 
@@ -679,34 +695,35 @@ Already complete from earlier phases: Medication management (Phase 3), Feature f
 
 **Goal:** Enhance Milk History with proper pagination, cow search, and custom date range filters.
 
-| Step | Task |
-|------|------|
+| Step | Task                                                           |
+| ---- | -------------------------------------------------------------- |
 | 9A.1 | Backend: add `total_litres` to paginated milk records response |
-| 9A.2 | Frontend: replace "load more" with prev/next pagination |
-| 9A.3 | Frontend: cow search filter (CowSearchDropdown) |
-| 9A.4 | Frontend: custom date range + "All" time filter |
-| 9A.5 | Styling & UX polish |
-| 9A.6 | Update & expand client tests |
-| 9A.7 | Final review: refactor, dead code, efficiency audit |
+| 9A.2 | Frontend: replace "load more" with prev/next pagination        |
+| 9A.3 | Frontend: cow search filter (CowSearchDropdown)                |
+| 9A.4 | Frontend: custom date range + "All" time filter                |
+| 9A.5 | Styling & UX polish                                            |
+| 9A.6 | Update & expand client tests                                   |
+| 9A.7 | Final review: refactor, dead code, efficiency audit            |
 
 **Deliverable:** Milk History with accurate totals, page navigation, cow filter, and flexible date controls.
 
 ---
 
 ### Phase 6B: Report Exports — COMPLETE
+
 > Sub-plan: [plans/phase-6b-reports.md](plans/phase-6b-reports.md) (COMPLETE)
 
 **Goal:** Audit-ready PDF/Excel reports for all farm data.
 
-| Step | Task |
-|------|------|
-| 6B.1 | Report generation API (pdfkit + exceljs) |
-| 6B.2 | Withdrawal compliance report |
-| 6B.3 | Treatment history report |
-| 6B.4 | Discarded milk report |
+| Step | Task                                                             |
+| ---- | ---------------------------------------------------------------- |
+| 6B.1 | Report generation API (pdfkit + exceljs)                         |
+| 6B.2 | Withdrawal compliance report                                     |
+| 6B.3 | Treatment history report                                         |
+| 6B.4 | Discarded milk report                                            |
 | 6B.5 | Medication usage, milk production, breeding, herd health reports |
-| 6B.6 | Report UI (ReportsView.vue — select type, filters, download) |
-| 6B.7 | Polish, docs, memory updates |
+| 6B.6 | Report UI (ReportsView.vue — select type, filters, download)     |
+| 6B.7 | Polish, docs, memory updates                                     |
 
 **Deliverable:** 7 downloadable PDF/Excel reports for compliance and record-keeping. 35 server tests, 11 client tests.
 
@@ -717,73 +734,78 @@ Already complete from earlier phases: Medication management (Phase 3), Feature f
 **Goal:** Deep audit-driven cleanup. Zero lint errors, zero dead code, fix N+1 queries, achieve 100% file-level test coverage, split oversized files.
 
 #### Phase 12A: Quick Wins — NOT STARTED
+
 > Sub-plan: [plans/phase-12a-quick-wins.md](plans/phase-12a-quick-wins.md)
 
-| Step | Task |
-|------|------|
-| 12A.1 | Fix 7 ESLint errors → 0 |
-| 12A.2 | Fix 2 knip dead exports |
-| 12A.3 | Fix 4 pre-existing test failures |
+| Step  | Task                                                        |
+| ----- | ----------------------------------------------------------- |
+| 12A.1 | Fix 7 ESLint errors → 0                                     |
+| 12A.2 | Fix 2 knip dead exports                                     |
+| 12A.3 | Fix 4 pre-existing test failures                            |
 | 12A.4 | Remove dead code snippets (no-op `.then()`, dead fallbacks) |
-| 12A.5 | Extract magic numbers to named constants |
-| 12A.6 | Fix dual permission check in milkRecords DELETE |
+| 12A.5 | Extract magic numbers to named constants                    |
+| 12A.6 | Fix dual permission check in milkRecords DELETE             |
 
 #### Phase 12B: Performance — NOT STARTED
+
 > Sub-plan: [plans/phase-12b-performance.md](plans/phase-12b-performance.md)
 
-| Step | Task |
-|------|------|
-| 12B.1 | Fix N+1: milk-trends (12 queries → 1) |
+| Step  | Task                                                                |
+| ----- | ------------------------------------------------------------------- |
+| 12B.1 | Fix N+1: milk-trends (12 queries → 1)                               |
 | 12B.2 | Fix N+1: breeding-overview + conception-rate (batch services query) |
-| 12B.3 | Fix memory aggregation: herd-summary (JS loops → SQL aggregates) |
-| 12B.4 | Add Joi query validation: cows.js GET |
-| 12B.5 | Add Joi query validation: healthIssues.js GET |
-| 12B.6 | Remove redundant re-fetches after INSERT |
+| 12B.3 | Fix memory aggregation: herd-summary (JS loops → SQL aggregates)    |
+| 12B.4 | Add Joi query validation: cows.js GET                               |
+| 12B.5 | Add Joi query validation: healthIssues.js GET                       |
+| 12B.6 | Remove redundant re-fetches after INSERT                            |
 
 #### Phase 12C: Test Coverage Tier 1 — NOT STARTED
+
 > Sub-plan: [plans/phase-12c-test-coverage-tier1.md](plans/phase-12c-test-coverage-tier1.md)
 
-| Step | Task |
-|------|------|
-| 12C.1 | Backend: sync.js route + syncService.js (~15 tests) |
-| 12C.2 | Backend: breedTypes.js route (~12 tests) |
-| 12C.3 | Backend: featureFlags.js route (~6 tests) |
-| 12C.4 | Frontend store: breedTypes.js (~10 tests) |
-| 12C.5 | Frontend store: medications.js (~8 tests) |
-| 12C.6 | Frontend store: treatments.js (~10 tests) |
-| 12C.7 | Frontend view: CowFormView.vue (~12 tests) |
-| 12C.8 | Frontend view: LogBreedingView.vue (~10 tests) |
-| 12C.9 | Frontend view: LogIssueView.vue (~8 tests) |
-| 12C.10 | Frontend view: LogTreatmentView.vue (~8 tests) |
+| Step   | Task                                                |
+| ------ | --------------------------------------------------- |
+| 12C.1  | Backend: sync.js route + syncService.js (~15 tests) |
+| 12C.2  | Backend: breedTypes.js route (~12 tests)            |
+| 12C.3  | Backend: featureFlags.js route (~6 tests)           |
+| 12C.4  | Frontend store: breedTypes.js (~10 tests)           |
+| 12C.5  | Frontend store: medications.js (~8 tests)           |
+| 12C.6  | Frontend store: treatments.js (~10 tests)           |
+| 12C.7  | Frontend view: CowFormView.vue (~12 tests)          |
+| 12C.8  | Frontend view: LogBreedingView.vue (~10 tests)      |
+| 12C.9  | Frontend view: LogIssueView.vue (~8 tests)          |
+| 12C.10 | Frontend view: LogTreatmentView.vue (~8 tests)      |
 
 **Deliverable:** ~99 new tests covering sync engine, untested CRUD, all data-entry forms.
 
 #### Phase 12D: Test Coverage Tier 2 — NOT STARTED
+
 > Sub-plan: [plans/phase-12d-test-coverage-tier2.md](plans/phase-12d-test-coverage-tier2.md)
 
-| Step | Task |
-|------|------|
-| 12D.1 | Views: Dashboard, Login, CowList (~22 tests) |
-| 12D.2 | Views: CowDetail, IssueDetail, TreatmentDetail, history views (~28 tests) |
-| 12D.3 | Views: CowRepro, BreedingEvents (~8 tests) |
-| 12D.4 | Views: Admin management (BreedType, IssueType, Medication, Settings) (~18 tests) |
+| Step  | Task                                                                                                                        |
+| ----- | --------------------------------------------------------------------------------------------------------------------------- |
+| 12D.1 | Views: Dashboard, Login, CowList (~22 tests)                                                                                |
+| 12D.2 | Views: CowDetail, IssueDetail, TreatmentDetail, history views (~28 tests)                                                   |
+| 12D.3 | Views: CowRepro, BreedingEvents (~8 tests)                                                                                  |
+| 12D.4 | Views: Admin management (BreedType, IssueType, Medication, Settings) (~18 tests)                                            |
 | 12D.5 | Components: ConfirmDialog, TeatSelector, BreedingEventCard, SyncPanel, SearchInput, PaginationBar, ToastMessage (~35 tests) |
-| 12D.6 | Utilities: apiError, initials, useToast, useAnalytics (~21 tests) |
+| 12D.6 | Utilities: apiError, initials, useToast, useAnalytics (~21 tests)                                                           |
 
 **Deliverable:** ~140 new tests. 100% file-level coverage (every source file has tests).
 
 #### Phase 12E: Architecture — NOT STARTED
+
 > Sub-plan: [plans/phase-12e-architecture.md](plans/phase-12e-architecture.md)
 
-| Step | Task |
-|------|------|
-| 12E.1 | Plan analytics.js split into 5 category files |
-| 12E.2 | Create shared helpers.js |
+| Step  | Task                                                               |
+| ----- | ------------------------------------------------------------------ |
+| 12E.1 | Plan analytics.js split into 5 category files                      |
+| 12E.2 | Create shared helpers.js                                           |
 | 12E.3 | Create kpi.js, financial.js, fertility.js, health.js, structure.js |
-| 12E.4 | Create analytics/index.js router mount |
-| 12E.5 | Update app mount (verify no changes needed) |
-| 12E.6 | Split analytics.test.js into 5 category test files |
-| 12E.7 | Delete old monolithic files |
+| 12E.4 | Create analytics/index.js router mount                             |
+| 12E.5 | Update app mount (verify no changes needed)                        |
+| 12E.6 | Split analytics.test.js into 5 category test files                 |
+| 12E.7 | Delete old monolithic files                                        |
 
 **Deliverable:** analytics.js (1,522 lines) → 5 files under 500 lines each. Same 109 tests, reorganized.
 
@@ -794,46 +816,49 @@ Already complete from earlier phases: Medication management (Phase 3), Feature f
 Post-audit fixes organized by priority level.
 
 #### Phase 13A: Critical Security Fixes — NOT STARTED
+
 > Sub-plan: [plans/phase-13a-critical-security.md](plans/phase-13a-critical-security.md)
 
-| Step | Task |
-|------|------|
+| Step  | Task                                                                        |
+| ----- | --------------------------------------------------------------------------- |
 | 13A.1 | Sync push permission bypass — add per-entity role checks + field allowlists |
 | 13A.2 | Password login account lockout — port PIN lockout logic to password handler |
-| 13A.3 | JWT secret hardening — require strong secret in all non-test environments |
-| 13A.4 | CORS default restriction — never allow wide-open CORS |
+| 13A.3 | JWT secret hardening — require strong secret in all non-test environments   |
+| 13A.4 | CORS default restriction — never allow wide-open CORS                       |
 
 **Deliverable:** All critical security holes closed. Sync endpoint enforces permissions. Login lockout on both methods.
 
 #### Phase 13B: High Priority Fixes — NOT STARTED
+
 > Sub-plan: [plans/phase-13b-high-priority.md](plans/phase-13b-high-priority.md)
 
-| Step | Task |
-|------|------|
+| Step  | Task                                                                                          |
+| ----- | --------------------------------------------------------------------------------------------- |
 | 13B.1 | Missing database indexes — recording_date, preg_check, dry_off, dismissed_at, audit/sync logs |
-| 13B.2 | Unbounded seasonal prediction query — add 3-year lookback |
-| 13B.3 | Treatments N+1 medication lookup — batch-fetch validation |
-| 13B.4 | Treatments pagination — add page/limit support |
-| 13B.5 | SQLite Number() coercion — fix 4 analytics endpoints returning string counts |
-| 13B.6 | Soft-deleted users accessible via ID — add whereNull guards |
+| 13B.2 | Unbounded seasonal prediction query — add 3-year lookback                                     |
+| 13B.3 | Treatments N+1 medication lookup — batch-fetch validation                                     |
+| 13B.4 | Treatments pagination — add page/limit support                                                |
+| 13B.5 | SQLite Number() coercion — fix 4 analytics endpoints returning string counts                  |
+| 13B.6 | Soft-deleted users accessible via ID — add whereNull guards                                   |
 
 **Deliverable:** Performance bottlenecks resolved. All endpoints return correct types. Data access properly bounded.
 
 #### Phase 13C: Medium Priority Cleanup — NOT STARTED
+
 > Sub-plan: [plans/phase-13c-medium-cleanup.md](plans/phase-13c-medium-cleanup.md)
 
-| Step | Task |
-|------|------|
-| 13C.1 | Inline admin checks → requireAdmin middleware |
-| 13C.2 | Extract shared helpers (toCode, ISO_DATE_RE, pagination) |
-| 13C.3 | logAudit() await consistency |
-| 13C.4 | SettingsView timeout cleanup on unmount |
-| 13C.5 | MilkRecordingView withdrawal map O(1) optimization |
-| 13C.6 | Double authorize import cleanup (5 files) |
-| 13C.7 | Sync error message sanitization |
-| 13C.8 | dismiss-batch + heat_signs Joi validation |
-| 13C.9 | MilkRecords store debounce cleanup |
-| 13C.10 | getIssueTypeDefMap() 60-second cache |
+| Step   | Task                                                     |
+| ------ | -------------------------------------------------------- |
+| 13C.1  | Inline admin checks → requireAdmin middleware            |
+| 13C.2  | Extract shared helpers (toCode, ISO_DATE_RE, pagination) |
+| 13C.3  | logAudit() await consistency                             |
+| 13C.4  | SettingsView timeout cleanup on unmount                  |
+| 13C.5  | MilkRecordingView withdrawal map O(1) optimization       |
+| 13C.6  | Double authorize import cleanup (5 files)                |
+| 13C.7  | Sync error message sanitization                          |
+| 13C.8  | dismiss-batch + heat_signs Joi validation                |
+| 13C.9  | MilkRecords store debounce cleanup                       |
+| 13C.10 | getIssueTypeDefMap() 60-second cache                     |
 
 **Deliverable:** Consistent patterns, no dead code, proper cleanup, optimized hot paths.
 
@@ -845,16 +870,16 @@ Post-audit fixes organized by priority level.
 
 > Sub-plan: [plans/multi-tenancy.md](plans/multi-tenancy.md)
 
-| Phase | Scope |
-|-------|-------|
+| Phase          | Scope                                                                                                                                         |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | 14.1 (Phase 1) | Database foundation — `farms` table, `farm_id` columns, unique constraint updates, token versioning, 2FA columns, migration 027 with backfill |
-| 14.2 (Phase 2) | Tenant middleware + scoped queries — `tenantScope.js`, `req.scoped()`, update all 26 routes + analytics + reports + services |
-| 14.3 (Phase 3) | Auth changes — farm code login, super-admin 2FA flow (TOTP setup/verify), token_version in JWT, frontend login view + new 2FA views |
-| 14.4 (Phase 4) | Session management — token revocation endpoint, UserManagement revoke UI, super-admin session visibility |
-| 14.5 (Phase 5) | Frontend IndexedDB isolation — farm-scoped DB name, logout cleanup, login re-init, service worker updates |
-| 14.6 (Phase 6) | Super-admin panel — Farm CRUD API, farm seeding service, Enter Farm functionality, FarmListView/FarmDetailView/CreateFarmView |
-| 14.7 (Phase 7) | Cross-tenant isolation tests — `tenantIsolation.test.js`, verify no data leakage across all CRUD + analytics endpoints |
-| 14.8 (Phase 8) | Production migration path — zero-downtime strategy, rollback plan, post-deploy checklist |
+| 14.2 (Phase 2) | Tenant middleware + scoped queries — `tenantScope.js`, `req.scoped()`, update all 26 routes + analytics + reports + services                  |
+| 14.3 (Phase 3) | Auth changes — farm code login, super-admin 2FA flow (TOTP setup/verify), token_version in JWT, frontend login view + new 2FA views           |
+| 14.4 (Phase 4) | Session management — token revocation endpoint, UserManagement revoke UI, super-admin session visibility                                      |
+| 14.5 (Phase 5) | Frontend IndexedDB isolation — farm-scoped DB name, logout cleanup, login re-init, service worker updates                                     |
+| 14.6 (Phase 6) | Super-admin panel — Farm CRUD API, farm seeding service, Enter Farm functionality, FarmListView/FarmDetailView/CreateFarmView                 |
+| 14.7 (Phase 7) | Cross-tenant isolation tests — `tenantIsolation.test.js`, verify no data leakage across all CRUD + analytics endpoints                        |
+| 14.8 (Phase 8) | Production migration path — zero-downtime strategy, rollback plan, post-deploy checklist                                                      |
 
 **New dependencies:** `otpauth` (TOTP), `qrcode` (frontend QR rendering)
 
@@ -868,14 +893,14 @@ Post-audit fixes organized by priority level.
 
 > Sub-plan: [plans/super-admin-panel.md](plans/super-admin-panel.md)
 
-| Phase | Scope |
-|-------|-------|
-| 16.1 | Migration 033 + global defaults backend (CRUD + push-to-farms) |
-| 16.2 | Global defaults frontend (3 management views + dashboard cards) |
-| 16.3 | Cross-farm export endpoint + download button |
-| 16.4 | System stats dashboard (aggregate farm/user/cow counts) |
-| 16.5 | Profile cleanup (hide settings link, super-admin badge) |
-| 16.6 | System announcements (broadcast messages to all farm users as dismissible banners) |
+| Phase | Scope                                                                              |
+| ----- | ---------------------------------------------------------------------------------- |
+| 16.1  | Migration 033 + global defaults backend (CRUD + push-to-farms)                     |
+| 16.2  | Global defaults frontend (3 management views + dashboard cards)                    |
+| 16.3  | Cross-farm export endpoint + download button                                       |
+| 16.4  | System stats dashboard (aggregate farm/user/cow counts)                            |
+| 16.5  | Profile cleanup (hide settings link, super-admin badge)                            |
+| 16.6  | System announcements (broadcast messages to all farm users as dismissible banners) |
 
 **Deliverable:** Super-admin has a full control panel: manage global defaults that seed new farms and can be pushed to existing farms, export all farm data at once, see system-wide stats, broadcast announcements, clean profile experience.
 
@@ -887,18 +912,18 @@ Post-audit fixes organized by priority level.
 
 > Sub-plan: [plans/frontend-audit-fixes.md](plans/frontend-audit-fixes.md)
 
-| Tier | Scope |
-|------|-------|
-| 1A | i18n bug fix (audit.entityTypes.medication) + orphaned key cleanup |
-| 1B | Dead store exports cleanup (featureFlags, auth, router) |
-| 1C | Accessibility attributes (aria-live, aria-modal, aria-pressed, aria-current) |
-| 1D | Translate hardcoded English strings (AppHeader, SearchInput, Toast, ConfirmDialog) |
-| 1E | CSS consolidation (.btn-sm to global) |
-| 1F | Missing toast feedback + error handling |
-| 2A | issueTypesStore hasData guard |
-| 2B | Remove redundant fetchAll after cow edit |
-| 2C | Dynamic import for driver.js |
-| 2D | ConfirmDialog keyboard support |
+| Tier | Scope                                                                              |
+| ---- | ---------------------------------------------------------------------------------- |
+| 1A   | i18n bug fix (audit.entityTypes.medication) + orphaned key cleanup                 |
+| 1B   | Dead store exports cleanup (featureFlags, auth, router)                            |
+| 1C   | Accessibility attributes (aria-live, aria-modal, aria-pressed, aria-current)       |
+| 1D   | Translate hardcoded English strings (AppHeader, SearchInput, Toast, ConfirmDialog) |
+| 1E   | CSS consolidation (.btn-sm to global)                                              |
+| 1F   | Missing toast feedback + error handling                                            |
+| 2A   | issueTypesStore hasData guard                                                      |
+| 2B   | Remove redundant fetchAll after cow edit                                           |
+| 2C   | Dynamic import for driver.js                                                       |
+| 2D   | ConfirmDialog keyboard support                                                     |
 
 **Deliverable:** Frontend audit score improved from 76 to ~84. Zero regressions — all 645+ frontend and 575+ backend tests pass after each sub-phase.
 
@@ -906,20 +931,20 @@ Post-audit fixes organized by priority level.
 
 ## Key Library Choices
 
-| Purpose | Library | Why |
-|---------|---------|-----|
-| ORM | Knex.js | Lightweight, migrations, database-agnostic |
-| Auth hashing | bcryptjs | Pure JS, no native build issues on cPanel |
-| JWT | jsonwebtoken | Industry standard |
-| Validation | Joi | Input validation on all API routes |
-| Frontend state | Pinia | Official Vue 3 state management |
-| IndexedDB | Dexie.js | Best IndexedDB wrapper, offline support |
-| i18n | vue-i18n | Official Vue internationalization |
-| PWA | vite-plugin-pwa | Automatic service worker generation |
-| PDF reports | pdfkit | Server-side PDF generation |
-| Excel reports | exceljs | Server-side Excel generation |
-| HTTP client | axios | Request interceptors for auth tokens |
-| Charts | Chart.js / vue-chartjs | Analytics visualizations |
+| Purpose        | Library                | Why                                        |
+| -------------- | ---------------------- | ------------------------------------------ |
+| ORM            | Knex.js                | Lightweight, migrations, database-agnostic |
+| Auth hashing   | bcryptjs               | Pure JS, no native build issues on cPanel  |
+| JWT            | jsonwebtoken           | Industry standard                          |
+| Validation     | Joi                    | Input validation on all API routes         |
+| Frontend state | Pinia                  | Official Vue 3 state management            |
+| IndexedDB      | Dexie.js               | Best IndexedDB wrapper, offline support    |
+| i18n           | vue-i18n               | Official Vue internationalization          |
+| PWA            | vite-plugin-pwa        | Automatic service worker generation        |
+| PDF reports    | pdfkit                 | Server-side PDF generation                 |
+| Excel reports  | exceljs                | Server-side Excel generation               |
+| HTTP client    | axios                  | Request interceptors for auth tokens       |
+| Charts         | Chart.js / vue-chartjs | Analytics visualizations                   |
 
 ---
 
