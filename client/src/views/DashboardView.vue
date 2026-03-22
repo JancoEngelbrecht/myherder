@@ -48,6 +48,10 @@
               <span class="action-icon">🩺</span>
               <span class="action-label">{{ t('systemHealth.title') }}</span>
             </RouterLink>
+            <RouterLink to="/super/farm-groups" class="action-card active-action">
+              <span class="action-icon">🔗</span>
+              <span class="action-label">{{ t('farmGroups.title') }}</span>
+            </RouterLink>
           </div>
         </section>
       </template>

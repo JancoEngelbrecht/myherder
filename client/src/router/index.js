@@ -396,6 +396,12 @@ const routes = [
     meta: { requiresAuth: true, requiresSuperAdmin: true },
   },
   {
+    path: '/super/farm-groups',
+    name: 'FarmGroups',
+    component: () => import('../views/super/FarmGroupsView.vue'),
+    meta: { requiresAuth: true, requiresSuperAdmin: true },
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/',
   },
