@@ -1,4 +1,5 @@
 const request = require('supertest')
+const { randomUUID } = require('crypto')
 const app = require('../app')
 const db = require('../config/database')
 const jwt = require('jsonwebtoken')
@@ -307,6 +308,30 @@ describe('Auth middleware', () => {
 // ─── Farm switcher ─────────────────────────────────────────────────────────────
 
 describe('GET /api/auth/my-farms', () => {
+  let groupId
+
+  beforeAll(async () => {
+    // Place DEFAULT_FARM_ID in a farm group so my-farms returns results
+    groupId = randomUUID()
+    await db('farm_groups').insert({
+      id: groupId,
+      name: 'My Farms Test Group',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    await db('farm_group_members').insert({
+      id: randomUUID(),
+      farm_group_id: groupId,
+      farm_id: DEFAULT_FARM_ID,
+      added_at: new Date().toISOString(),
+    })
+  })
+
+  afterAll(async () => {
+    await db('farm_group_members').where({ farm_group_id: groupId }).del()
+    await db('farm_groups').where({ id: groupId }).del()
+  })
+
   it('returns the list of active farms for the authenticated user', async () => {
     // The admin user (test_admin) is assigned to DEFAULT_FARM_ID
     const loginRes = await request(app)
@@ -352,6 +377,25 @@ describe('GET /api/auth/my-farms', () => {
     await db('farm_species').where({ farm_id: DEFAULT_FARM_ID, species_id: cattle.id }).del()
   })
 
+  it('returns empty array when farm is not in any group', async () => {
+    const { seedFarm, seedFarmUser } = require('./helpers/setup')
+    const ungroupedFarmId = await seedFarm(db, 'UNGROUPED', 'Ungrouped Farm')
+    await seedFarmUser(db, ungroupedFarmId, {
+      username: 'ungrouped_user',
+      password: ADMIN_PASSWORD,
+    })
+
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'ungrouped_user', password: ADMIN_PASSWORD, farm_code: 'UNGROUPED' })
+    const token = loginRes.body.token
+
+    const res = await request(app).get('/api/auth/my-farms').set('Authorization', `Bearer ${token}`)
+
+    expect(res.status).toBe(200)
+    expect(res.body).toEqual([])
+  })
+
   it('returns 401 without authentication', async () => {
     const res = await request(app).get('/api/auth/my-farms')
     expect(res.status).toBe(401)
@@ -359,64 +403,132 @@ describe('GET /api/auth/my-farms', () => {
 })
 
 describe('POST /api/auth/switch-farm/:farmId', () => {
-  it('issues a new scoped JWT when user is assigned to target farm', async () => {
-    // test_admin is already assigned to DEFAULT_FARM_ID
+  let switchGroupId
+  let secondFarmId
+
+  beforeAll(async () => {
+    const { seedFarm, seedFarmUser } = require('./helpers/setup')
+
+    // Create a second farm with test_admin username
+    secondFarmId = await seedFarm(db, 'SWFARM2', 'Switch Farm 2')
+    await seedFarmUser(db, secondFarmId, { username: 'test_admin', password: ADMIN_PASSWORD })
+
+    // Place DEFAULT_FARM_ID and secondFarmId in the same group
+    switchGroupId = randomUUID()
+    await db('farm_groups').insert({
+      id: switchGroupId,
+      name: 'Switch Test Group',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    await db('farm_group_members').insert([
+      {
+        id: randomUUID(),
+        farm_group_id: switchGroupId,
+        farm_id: DEFAULT_FARM_ID,
+        added_at: new Date().toISOString(),
+      },
+      {
+        id: randomUUID(),
+        farm_group_id: switchGroupId,
+        farm_id: secondFarmId,
+        added_at: new Date().toISOString(),
+      },
+    ])
+  })
+
+  afterAll(async () => {
+    await db('farm_group_members').where({ farm_group_id: switchGroupId }).del()
+    await db('farm_groups').where({ id: switchGroupId }).del()
+    await db('audit_log').where({ farm_id: secondFarmId }).del()
+    await db('users').where({ farm_id: secondFarmId }).del()
+    await db('farms').where({ id: secondFarmId }).del()
+  })
+
+  it('issues a new scoped JWT when user switches to a farm in the same group', async () => {
     const loginRes = await request(app)
       .post('/api/auth/login')
       .send({ username: 'test_admin', password: ADMIN_PASSWORD, farm_code: FARM_CODE })
     const token = loginRes.body.token
 
     const res = await request(app)
-      .post(`/api/auth/switch-farm/${DEFAULT_FARM_ID}`)
+      .post(`/api/auth/switch-farm/${secondFarmId}`)
       .set('Authorization', `Bearer ${token}`)
 
     expect(res.status).toBe(200)
     expect(res.body.token).toBeDefined()
     expect(typeof res.body.token).toBe('string')
-    expect(res.body.user.farm_id).toBe(DEFAULT_FARM_ID)
-    expect(res.body.farm.id).toBe(DEFAULT_FARM_ID)
+    expect(res.body.user.farm_id).toBe(secondFarmId)
+    expect(res.body.farm.id).toBe(secondFarmId)
   })
 
-  it('returns decoded JWT with correct farm_id', async () => {
+  it('returns decoded JWT with correct farm_id after switch', async () => {
     const loginRes = await request(app)
       .post('/api/auth/login')
       .send({ username: 'test_admin', password: ADMIN_PASSWORD, farm_code: FARM_CODE })
     const token = loginRes.body.token
 
     const switchRes = await request(app)
-      .post(`/api/auth/switch-farm/${DEFAULT_FARM_ID}`)
+      .post(`/api/auth/switch-farm/${secondFarmId}`)
       .set('Authorization', `Bearer ${token}`)
 
     const decoded = jwt.verify(switchRes.body.token, jwtSecret)
-    expect(decoded.farm_id).toBe(DEFAULT_FARM_ID)
+    expect(decoded.farm_id).toBe(secondFarmId)
     expect(decoded.username).toBe('test_admin')
   })
 
-  it('returns 403 when user is not assigned to target farm', async () => {
+  it('returns 403 when target farm is not in the same group', async () => {
+    const { seedFarm } = require('./helpers/setup')
+    const outsideFarmId = await seedFarm(db, 'OUTSIDE', 'Outside Farm')
+
     const loginRes = await request(app)
       .post('/api/auth/login')
       .send({ username: 'test_admin', password: ADMIN_PASSWORD, farm_code: FARM_CODE })
     const token = loginRes.body.token
 
-    // Try to switch to a non-existent / unassigned farm
+    const res = await request(app)
+      .post(`/api/auth/switch-farm/${outsideFarmId}`)
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(res.status).toBe(403)
+    expect(res.body.error).toMatch(/not in the same group/i)
+
+    // Clean up
+    await db('farms').where({ id: outsideFarmId }).del()
+  })
+
+  it('returns 403 when target farm does not exist', async () => {
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'test_admin', password: ADMIN_PASSWORD, farm_code: FARM_CODE })
+    const token = loginRes.body.token
+
     const nonExistentFarmId = '00000000-dead-4000-beef-000000000000'
     const res = await request(app)
       .post(`/api/auth/switch-farm/${nonExistentFarmId}`)
       .set('Authorization', `Bearer ${token}`)
 
     expect(res.status).toBe(403)
-    expect(res.body.error).toMatch(/not assigned/i)
+    expect(res.body.error).toMatch(/not in the same group/i)
   })
 
-  it('returns 404 when target farm exists but is inactive', async () => {
+  it('returns 404 when target farm exists in group but is inactive', async () => {
     const { seedFarm, seedFarmUser } = require('./helpers/setup')
 
-    // Create a farm where test_admin username also has an account
-    const newFarmId = await seedFarm(db, 'SWTEST', 'Switch Test Farm')
-    await seedFarmUser(db, newFarmId, { username: 'test_admin', password: ADMIN_PASSWORD })
+    // Create a farm in the same group as DEFAULT_FARM_ID, with test_admin account
+    const inactiveFarmId = await seedFarm(db, 'SWTEST', 'Switch Test Farm')
+    await seedFarmUser(db, inactiveFarmId, { username: 'test_admin', password: ADMIN_PASSWORD })
+
+    // Put it in the same group as DEFAULT_FARM_ID
+    await db('farm_group_members').insert({
+      id: randomUUID(),
+      farm_group_id: switchGroupId,
+      farm_id: inactiveFarmId,
+      added_at: new Date().toISOString(),
+    })
 
     // Deactivate that farm
-    await db('farms').where({ id: newFarmId }).update({ is_active: false })
+    await db('farms').where({ id: inactiveFarmId }).update({ is_active: false })
 
     const loginRes = await request(app)
       .post('/api/auth/login')
@@ -424,11 +536,16 @@ describe('POST /api/auth/switch-farm/:farmId', () => {
     const token = loginRes.body.token
 
     const res = await request(app)
-      .post(`/api/auth/switch-farm/${newFarmId}`)
+      .post(`/api/auth/switch-farm/${inactiveFarmId}`)
       .set('Authorization', `Bearer ${token}`)
 
     expect(res.status).toBe(404)
     expect(res.body.error).toMatch(/not found or inactive/i)
+
+    // Clean up
+    await db('farm_group_members').where({ farm_id: inactiveFarmId }).del()
+    await db('users').where({ farm_id: inactiveFarmId }).del()
+    await db('farms').where({ id: inactiveFarmId }).del()
   })
 
   it('returns 401 without authentication', async () => {

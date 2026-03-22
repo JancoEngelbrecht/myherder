@@ -8,6 +8,7 @@ const { TOTP, Secret } = require('otpauth')
 const db = require('../config/database')
 const authenticate = require('../middleware/auth')
 const { joiMsg, validateBody } = require('../helpers/constants')
+const { logAudit } = require('../services/auditService')
 const {
   jwtSecret,
   jwtExpiryPassword,
@@ -449,12 +450,31 @@ router.post('/verify-2fa', twoFactorLimiter, async (req, res, next) => {
 
 router.get('/my-farms', authenticate, async (req, res, next) => {
   try {
-    // Find all active user records matching this username across farms
+    const currentFarmId = req.user.farm_id
+
+    // Super-admin without farm context cannot use the farm switcher
+    if (!currentFarmId) return res.json([])
+
+    // Determine which farm group the current farm belongs to
+    const currentMembership = await db('farm_group_members').where('farm_id', currentFarmId).first()
+
+    // If the current farm is not in any group, no switching is allowed
+    if (!currentMembership) return res.json([])
+
+    // Get all farm_ids in the same group
+    const groupMembers = await db('farm_group_members').where(
+      'farm_group_id',
+      currentMembership.farm_group_id
+    )
+    const groupFarmIds = groupMembers.map((m) => m.farm_id)
+
+    // Find active user accounts for this username on farms within the group
     const users = await db('users')
       .where('username', req.user.username)
       .where('is_active', true)
       .whereNull('deleted_at')
       .whereNot('role', 'super_admin')
+      .whereIn('farm_id', groupFarmIds)
       .select('farm_id')
 
     if (users.length === 0) return res.json([])
@@ -496,6 +516,21 @@ router.get('/my-farms', authenticate, async (req, res, next) => {
 router.post('/switch-farm/:farmId', authenticate, async (req, res, next) => {
   try {
     const targetFarmId = req.params.farmId
+    const sourceFarmId = req.user.farm_id
+
+    // Verify both farms are in the same farm group (DB-authoritative, cannot be spoofed)
+    const [sourceMembership, targetMembership] = await Promise.all([
+      db('farm_group_members').where('farm_id', sourceFarmId).first(),
+      db('farm_group_members').where('farm_id', targetFarmId).first(),
+    ])
+
+    if (
+      !sourceMembership ||
+      !targetMembership ||
+      sourceMembership.farm_group_id !== targetMembership.farm_group_id
+    ) {
+      return res.status(403).json({ error: 'Farms are not in the same group' })
+    }
 
     // Verify user has an account on the target farm (same username)
     const targetUser = await db('users')
@@ -516,6 +551,17 @@ router.post('/switch-farm/:farmId', authenticate, async (req, res, next) => {
     const userPayload = buildUserResponse(targetUser)
     const loginType = req.user.login_type || 'password'
     const token = issueFullToken(userPayload, loginType)
+
+    // Audit log the farm switch (best-effort — won't block the response)
+    await logAudit({
+      farmId: targetFarmId,
+      userId: req.user.id,
+      action: 'switch_farm',
+      entityType: 'farm',
+      entityId: targetFarmId,
+      oldValues: { from_farm_id: sourceFarmId },
+      newValues: { to_farm_id: targetFarmId },
+    })
 
     res.json({ token, user: userPayload, farm: { id: farm.id, name: farm.name, code: farm.code } })
   } catch (err) {
