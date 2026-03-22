@@ -751,10 +751,6 @@
       "autoDatesPreview": "Outomaties berekende datums",
       "expectedCalving": "Verwagte Geboortedatum",
       "expectedCalvingHint": "Vooraf ingevul vanaf laaste inseminasie. Jy kan dit oorskryf.",
-      "calfSex": "Nageslag Geslag",
-      "calfTagNumber": "Nageslag Oornommer",
-      "calfTagPlaceholder": "bv. MH-050",
-      "calfWeight": "Geboortegewig (kg)",
       "complications": "Komplikasies / Notas"
     },
     "pregCheckMethod": {

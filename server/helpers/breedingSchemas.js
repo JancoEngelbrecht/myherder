@@ -63,9 +63,6 @@ const createSchema = Joi.object({
     .allow(null)
     .default(null),
   calving_details: Joi.object({
-    calf_sex: Joi.string().valid('male', 'female').allow(null),
-    calf_tag_number: Joi.string().max(50).allow(null, ''),
-    calf_weight: Joi.number().min(0).max(999).allow(null),
     complications: Joi.string().max(2000).allow(null, ''),
   })
     .allow(null)
@@ -90,9 +87,6 @@ const updateSchema = Joi.object({
     .allow(null)
     .optional(),
   calving_details: Joi.object({
-    calf_sex: Joi.string().valid('male', 'female').allow(null),
-    calf_tag_number: Joi.string().max(50).allow(null, ''),
-    calf_weight: Joi.number().min(0).max(999).allow(null),
     complications: Joi.string().max(2000).allow(null, ''),
   })
     .allow(null)

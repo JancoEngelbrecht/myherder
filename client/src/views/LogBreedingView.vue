@@ -147,51 +147,6 @@
           </div>
         </template>
 
-        <!-- Birth details (calving or lambing) -->
-        <template v-if="isBirthEvent">
-          <div class="form-group">
-            <label>{{ t('breeding.form.calfSex') }}</label>
-            <div class="method-row">
-              <button
-                type="button"
-                class="method-btn"
-                :class="{ active: form.calving_details.calf_sex === 'female' }"
-                @click="form.calving_details.calf_sex = 'female'"
-              >
-                {{ speciesEmoji.female }} {{ t('sex.female') }}
-              </button>
-              <button
-                type="button"
-                class="method-btn"
-                :class="{ active: form.calving_details.calf_sex === 'male' }"
-                @click="form.calving_details.calf_sex = 'male'"
-              >
-                {{ speciesEmoji.male }} {{ t('sex.male') }}
-              </button>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>{{ t('breeding.form.calfTagNumber') }}</label>
-            <input
-              v-model="form.calving_details.calf_tag_number"
-              type="text"
-              class="form-input"
-              :placeholder="t('breeding.form.calfTagPlaceholder')"
-            />
-          </div>
-          <div class="form-group">
-            <label>{{ t('breeding.form.calfWeight') }}</label>
-            <input
-              v-model.number="form.calving_details.calf_weight"
-              type="number"
-              class="form-input"
-              min="0"
-              step="0.1"
-              placeholder="e.g. 38"
-            />
-          </div>
-        </template>
-
         <!-- Register offspring prompt (shown after save, only for birth events) -->
         <div v-if="showOffspringPrompt" class="offspring-prompt card">
           <p class="offspring-prompt-text">
@@ -290,7 +245,7 @@ const router = useRouter()
 const breedingStore = useBreedingEventsStore()
 const breedTypesStore = useBreedTypesStore()
 const cowsStore = useCowsStore()
-const { speciesCode, emoji: speciesEmoji, typicalMultipleBirths, maxOffspring } = useSpeciesTerms()
+const { speciesCode, typicalMultipleBirths, maxOffspring } = useSpeciesTerms()
 
 const PREG_CHECK_METHODS = ['manual', 'ultrasound', 'blood_test']
 
@@ -316,7 +271,6 @@ const form = ref({
   inseminator: '',
   sire_id: '',
   preg_check_method: null,
-  calving_details: { calf_sex: null, calf_tag_number: '', calf_weight: null },
   offspring_count: 1,
   cost: null,
   notes: '',
@@ -496,13 +450,9 @@ async function submit() {
         notes: form.value.notes || null,
       }
 
+      payload.calving_details = null
       if (isBirthEvent.value) {
-        const cd = form.value.calving_details
-        payload.calving_details =
-          cd.calf_sex || cd.calf_tag_number || cd.calf_weight ? { ...cd } : null
         payload.offspring_count = form.value.offspring_count || 1
-      } else {
-        payload.calving_details = null
       }
 
       if (form.value.event_type === 'preg_check_positive') {
@@ -526,9 +476,7 @@ async function submit() {
       }
 
       if (isBirthEvent.value) {
-        const cd = form.value.calving_details
-        payload.calving_details =
-          cd.calf_sex || cd.calf_tag_number || cd.calf_weight ? { ...cd } : null
+        payload.calving_details = null
         payload.offspring_count = form.value.offspring_count || 1
       }
 
@@ -539,35 +487,12 @@ async function submit() {
 
       const created = await breedingStore.createEvent(payload)
 
-      // Post-birth event: show offspring registration prompt if multiple offspring
+      // Post-birth event: always show offspring registration prompt
       if (isBirthEvent.value) {
-        const count = form.value.offspring_count || 1
-        if (count > 1) {
-          lastSavedOffspringCount.value = count
-          lastSavedEventId.value = created.id
-          lastSavedCowId.value = created.cow_id
-          showOffspringPrompt.value = true
-        } else if (form.value.calving_details.calf_sex) {
-          // Single offspring with sex info — redirect directly to add cow form
-          const q = {
-            birth_event_id: created.id,
-            dam_id: created.cow_id,
-            offspring_total: '1',
-            offspring_index: '1',
-            dob: new Date().toISOString().slice(0, 10),
-            sex: form.value.calving_details.calf_sex,
-          }
-          if (form.value.calving_details.calf_tag_number) {
-            q.tag_number = form.value.calving_details.calf_tag_number
-          }
-          if (created.sire_id) q.sire_id = created.sire_id
-          if (created.breed_type_id) q.breed_type_id = created.breed_type_id
-          router.replace({ path: '/cows/new', query: q })
-        } else if (route.query.cow_id) {
-          router.replace(`/cows/${created.cow_id}/repro`)
-        } else {
-          router.replace('/breed')
-        }
+        lastSavedOffspringCount.value = form.value.offspring_count || 1
+        lastSavedEventId.value = created.id
+        lastSavedCowId.value = created.cow_id
+        showOffspringPrompt.value = true
       } else if (route.query.cow_id) {
         router.replace(`/cows/${created.cow_id}/repro`)
       } else {
@@ -608,18 +533,6 @@ onMounted(async () => {
       form.value.expected_calving = data.expected_calving ?? ''
       form.value.cost = data.cost ?? null
       form.value.notes = data.notes ?? ''
-
-      if (data.calving_details) {
-        const cd =
-          typeof data.calving_details === 'string'
-            ? JSON.parse(data.calving_details)
-            : data.calving_details
-        form.value.calving_details = {
-          calf_sex: cd.calf_sex ?? null,
-          calf_tag_number: cd.calf_tag_number ?? '',
-          calf_weight: cd.calf_weight ?? null,
-        }
-      }
 
       editCowLabel.value = data.tag_number
         ? `${data.tag_number}${data.cow_name ? ` · ${data.cow_name}` : ''}`

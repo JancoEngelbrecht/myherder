@@ -264,4 +264,51 @@ describe('LogBreedingView', () => {
     // The CowSearchDropdown should still be present (not read-only mode)
     expect(wrapper.find('.cow-search-dropdown').exists()).toBe(true)
   })
+
+  it('birth event with offspring_count=1 shows offspring prompt (not auto-redirect)', async () => {
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    // Select calving event (index 5 in cattle: heat, ai, bull, preg+, preg-, calving, abortion, dry_off)
+    const buttons = wrapper.findAll('.event-type-btn')
+    const calvingBtn = buttons.find((b) => b.text().includes('breeding.eventTypes.calving'))
+    await calvingBtn.trigger('click')
+    await flushPromises()
+
+    // Set cow_id via vm
+    wrapper.vm.form.cow_id = 'cow-1'
+    wrapper.vm.form.offspring_count = 1
+    await flushPromises()
+
+    api.post.mockResolvedValueOnce({ data: { id: 'be-new', cow_id: 'cow-1' } })
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    // Offspring prompt should be visible, no redirect
+    expect(wrapper.find('.offspring-prompt').exists()).toBe(true)
+    expect(mockReplace).not.toHaveBeenCalled()
+  })
+
+  it('birth event with offspring_count=2 shows offspring prompt', async () => {
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    // Select calving event
+    const buttons = wrapper.findAll('.event-type-btn')
+    const calvingBtn = buttons.find((b) => b.text().includes('breeding.eventTypes.calving'))
+    await calvingBtn.trigger('click')
+    await flushPromises()
+
+    wrapper.vm.form.cow_id = 'cow-1'
+    wrapper.vm.form.offspring_count = 2
+    await flushPromises()
+
+    api.post.mockResolvedValueOnce({ data: { id: 'be-new', cow_id: 'cow-1' } })
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    // Offspring prompt should be visible with count = 2
+    expect(wrapper.find('.offspring-prompt').exists()).toBe(true)
+    expect(mockReplace).not.toHaveBeenCalled()
+  })
 })

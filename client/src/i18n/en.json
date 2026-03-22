@@ -805,10 +805,6 @@
       "autoDatesPreview": "Auto-calculated dates",
       "expectedCalving": "Expected Birth Date",
       "expectedCalvingHint": "Pre-filled from last insemination. You can override.",
-      "calfSex": "Offspring Sex",
-      "calfTagNumber": "Offspring Tag Number",
-      "calfTagPlaceholder": "e.g. MH-050",
-      "calfWeight": "Birth Weight (kg)",
       "complications": "Complications / Notes"
     }
   },
