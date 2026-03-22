@@ -211,13 +211,13 @@ onMounted(() => {
 })
 onUnmounted(() => clearInterval(timer))
 
-// Milk: only females currently being milked (exclude heifers/calves via life_phase from API)
+// Milk: only females currently being milked (exclude young/immature phases)
+const NON_MILKING_PHASES = new Set(['heifer', 'calf', 'lamb'])
 const milkCows = computed(() =>
   withdrawalCows.value.filter(
     (c) =>
       c.sex === 'female' &&
-      c.life_phase !== 'heifer' &&
-      c.life_phase !== 'calf' &&
+      !NON_MILKING_PHASES.has(c.life_phase) &&
       c.withdrawal_end_milk &&
       c.withdrawal_end_milk > nowIso.value
   )

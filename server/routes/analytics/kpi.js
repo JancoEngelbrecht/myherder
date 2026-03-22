@@ -92,7 +92,9 @@ router.get('/herd-summary', async (req, res, next) => {
           db.raw(
             "SUM(CASE WHEN sex = 'female' AND status IN ('active','pregnant','sick') THEN 1 ELSE 0 END) as milking_count"
           ),
-          db.raw("SUM(CASE WHEN life_phase_override = 'heifer' THEN 1 ELSE 0 END) as heifer_count")
+          db.raw(
+            "SUM(CASE WHEN life_phase_override IN ('heifer', 'ewe') THEN 1 ELSE 0 END) as heifer_count"
+          )
         ),
       db('cows')
         .where('farm_id', farmId)

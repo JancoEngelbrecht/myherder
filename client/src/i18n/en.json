@@ -578,7 +578,9 @@
       "breedingEvents": "Breeding Events",
       "breedTypes": "Breed Types",
       "issueTypes": "Issue Types"
-    }
+    },
+    "pendingSwitchWarning": "You have {count} unsaved change(s) that haven't synced yet. Switching farms now will lose these changes.",
+    "switchAnyway": "Switch Anyway"
   },
   "treatmentDetail": {
     "title": "Treatment",
@@ -1092,7 +1094,7 @@
     "active": "Active",
     "inactive": "Inactive",
     "users": "Users",
-    "cows": "Cows",
+    "cows": "Animals",
     "created": "Created",
     "deleteFarm": "Delete Farm",
     "deleteFarmConfirm": "Delete Permanently",
@@ -2091,7 +2093,7 @@
     "export": "Export All",
     "totalFarms": "Farms",
     "totalUsers": "Users",
-    "totalCows": "Cows",
+    "totalCows": "Animals",
     "filterBySpecies": "Filter by Species",
     "allSpecies": "All Species",
     "noFarmsForSpecies": "No farms match this species filter"

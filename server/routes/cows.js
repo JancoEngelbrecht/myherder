@@ -99,6 +99,7 @@ async function findCowOrFail(id, farmId) {
 
 // ── Life-phase SQL CASE expression ───
 // Mirrors client-side computeLifePhase() logic using breed-specific thresholds
+// Species-aware: uses lamb/ewe/ram for sheep, calf/heifer/cow/young_bull/bull for cattle
 // Portable: uses DATEDIFF on MySQL, julianday on SQLite
 function lifePhaseSql() {
   const ageMonths = isMySQL()
@@ -106,14 +107,26 @@ function lifePhaseSql() {
     : "(julianday('now') - julianday(c.dob)) / 30.44"
   return `CASE
     WHEN c.life_phase_override IS NOT NULL THEN c.life_phase_override
-    WHEN c.dob IS NULL AND c.sex = 'male' THEN 'bull'
-    WHEN c.dob IS NULL THEN 'cow'
-    WHEN c.sex = 'male' AND ${ageMonths} < COALESCE(bt.calf_max_months, 6) THEN 'calf'
-    WHEN c.sex = 'male' AND ${ageMonths} < COALESCE(bt.young_bull_min_months, 15) THEN 'young_bull'
-    WHEN c.sex = 'male' THEN 'bull'
-    WHEN ${ageMonths} < COALESCE(bt.calf_max_months, 6) THEN 'calf'
-    WHEN ${ageMonths} < COALESCE(bt.heifer_min_months, 15) THEN 'heifer'
-    ELSE 'cow'
+    WHEN sp.code = 'sheep' THEN CASE
+      WHEN c.dob IS NULL AND c.sex = 'male' THEN 'ram'
+      WHEN c.dob IS NULL THEN 'ewe'
+      WHEN c.sex = 'male' AND ${ageMonths} < COALESCE(bt.calf_max_months, 6) THEN 'lamb'
+      WHEN c.sex = 'male' AND ${ageMonths} < COALESCE(bt.young_bull_min_months, 12) THEN 'ram'
+      WHEN c.sex = 'male' THEN 'ram'
+      WHEN ${ageMonths} < COALESCE(bt.calf_max_months, 6) THEN 'lamb'
+      WHEN ${ageMonths} < COALESCE(bt.heifer_min_months, 12) THEN 'ewe'
+      ELSE 'ewe'
+    END
+    ELSE CASE
+      WHEN c.dob IS NULL AND c.sex = 'male' THEN 'bull'
+      WHEN c.dob IS NULL THEN 'cow'
+      WHEN c.sex = 'male' AND ${ageMonths} < COALESCE(bt.calf_max_months, 6) THEN 'calf'
+      WHEN c.sex = 'male' AND ${ageMonths} < COALESCE(bt.young_bull_min_months, 15) THEN 'young_bull'
+      WHEN c.sex = 'male' THEN 'bull'
+      WHEN ${ageMonths} < COALESCE(bt.calf_max_months, 6) THEN 'calf'
+      WHEN ${ageMonths} < COALESCE(bt.heifer_min_months, 15) THEN 'heifer'
+      ELSE 'cow'
+    END
   END`
 }
 
@@ -133,6 +146,7 @@ router.get('/', async (req, res, next) => {
     const query = db('cows as c')
       .where('c.farm_id', req.farmId)
       .leftJoin('breed_types as bt', 'c.breed_type_id', 'bt.id')
+      .leftJoin('species as sp', 'c.species_id', 'sp.id')
       .select(
         'c.*',
         'bt.name as breed_type_name',

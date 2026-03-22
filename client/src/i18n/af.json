@@ -578,7 +578,9 @@
       "breedingEvents": "Teelgebeurtenisse",
       "breedTypes": "Rastipes",
       "issueTypes": "Probleemtipes"
-    }
+    },
+    "pendingSwitchWarning": "Jy het {count} ongestoorde verandering(e) wat nog nie gesinkroniseer het nie. As jy nou van plaas wissel, sal hierdie veranderinge verlore gaan.",
+    "switchAnyway": "Wissel in elk geval"
   },
   "treatmentDetail": {
     "title": "Behandeling",
@@ -1092,7 +1094,7 @@
     "active": "Aktief",
     "inactive": "Onaktief",
     "users": "Gebruikers",
-    "cows": "Koeie",
+    "cows": "Diere",
     "created": "Geskep",
     "deleteFarm": "Verwyder Plaas",
     "deleteFarmConfirm": "Verwyder Permanent",
@@ -2091,7 +2093,7 @@
     "export": "Eksporteer Alles",
     "totalFarms": "Plase",
     "totalUsers": "Gebruikers",
-    "totalCows": "Beeste",
+    "totalCows": "Diere",
     "filterBySpecies": "Filter op Spesie",
     "allSpecies": "Alle Spesies",
     "noFarmsForSpecies": "Geen plase pas hierdie spesie-filter"

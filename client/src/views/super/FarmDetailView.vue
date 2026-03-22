@@ -179,6 +179,17 @@
         @cancel="revokeTarget = null"
       />
 
+      <!-- Pending Sync Enter Farm Dialog -->
+      <ConfirmDialog
+        :show="pendingSyncWarning"
+        :message="t('sync.pendingSwitchWarning', { count: pendingSyncCount })"
+        :confirm-label="t('sync.switchAnyway')"
+        :cancel-label="t('common.cancel')"
+        :loading="enteringFarm"
+        @confirm="confirmPendingEnter"
+        @cancel="cancelPendingEnter"
+      />
+
       <!-- Hard Delete Farm Dialog (typed confirmation) -->
       <Transition name="fade">
         <div
@@ -266,6 +277,10 @@ const deleteConfirmInput = ref('')
 const deleting = ref(false)
 const deleteDialogOverlay = ref(null)
 
+const enteringFarm = ref(false)
+const pendingSyncWarning = ref(false)
+const pendingSyncCount = ref(0)
+
 watch(showDeleteFarm, async (visible) => {
   if (visible) {
     await nextTick()
@@ -305,12 +320,32 @@ async function toggleFlag(key, enabled) {
 
 onMounted(fetchFarm)
 
-async function handleEnter() {
+async function handleEnter({ force = false } = {}) {
+  enteringFarm.value = true
   try {
-    await authStore.enterFarm(farm.value.id)
+    await authStore.enterFarm(farm.value.id, { force })
     router.push('/')
   } catch (err) {
-    showToast(resolveError(extractApiError(err), t), 'error')
+    if (err.message === 'PENDING_SYNC') {
+      pendingSyncCount.value = err.pendingCount
+      pendingSyncWarning.value = true
+    } else {
+      showToast(resolveError(extractApiError(err), t), 'error')
+    }
+  } finally {
+    enteringFarm.value = false
+  }
+}
+
+function cancelPendingEnter() {
+  pendingSyncWarning.value = false
+}
+
+async function confirmPendingEnter() {
+  try {
+    await handleEnter({ force: true })
+  } finally {
+    pendingSyncWarning.value = false
   }
 }
 

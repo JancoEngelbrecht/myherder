@@ -65,8 +65,7 @@
             <div
               v-if="
                 cow?.sex !== 'male' &&
-                lifePhase !== 'heifer' &&
-                lifePhase !== 'calf' &&
+                !['heifer', 'calf', 'lamb'].includes(lifePhase) &&
                 tx.withdrawal_end_milk &&
                 new Date(tx.withdrawal_end_milk) > new Date()
               "
@@ -114,7 +113,7 @@ const lifePhase = computed(() => {
 
 const onWithdrawal = computed(() => {
   if (cow.value?.sex === 'male') return false
-  if (lifePhase.value === 'heifer' || lifePhase.value === 'calf') return false
+  if (['heifer', 'calf', 'lamb'].includes(lifePhase.value)) return false
   const now = new Date()
   return cowTreatments.value.some(
     (tx) => tx.withdrawal_end_milk && new Date(tx.withdrawal_end_milk) > now
@@ -123,7 +122,7 @@ const onWithdrawal = computed(() => {
 
 const cowWithdrawalEnd = computed(() => {
   if (cow.value?.sex === 'male') return null
-  if (lifePhase.value === 'heifer' || lifePhase.value === 'calf') return null
+  if (['heifer', 'calf', 'lamb'].includes(lifePhase.value)) return null
   const now = new Date()
   const dates = cowTreatments.value
     .filter((tx) => tx.withdrawal_end_milk && new Date(tx.withdrawal_end_milk) > now)

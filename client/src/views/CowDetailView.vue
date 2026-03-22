@@ -416,7 +416,7 @@ const cowTreatments = computed(() =>
 
 const onWithdrawal = computed(() => {
   if (cow.value?.sex === 'male') return false
-  if (lifePhase.value === 'heifer' || lifePhase.value === 'calf') return false
+  if (['heifer', 'calf', 'lamb'].includes(lifePhase.value)) return false
   const now = new Date()
   return cowTreatments.value.some(
     (t) => t.withdrawal_end_milk && new Date(t.withdrawal_end_milk) > now
@@ -425,7 +425,7 @@ const onWithdrawal = computed(() => {
 
 const cowWithdrawalEnd = computed(() => {
   if (cow.value?.sex === 'male') return null
-  if (lifePhase.value === 'heifer' || lifePhase.value === 'calf') return null
+  if (['heifer', 'calf', 'lamb'].includes(lifePhase.value)) return null
   const now = new Date()
   const dates = cowTreatments.value
     .filter((t) => t.withdrawal_end_milk && new Date(t.withdrawal_end_milk) > now)

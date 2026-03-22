@@ -57,6 +57,16 @@
       </slot>
     </div>
   </header>
+
+  <ConfirmDialog
+    :show="pendingSyncWarning"
+    :message="t('sync.pendingSwitchWarning', { count: pendingSyncCount })"
+    :confirm-label="t('sync.switchAnyway')"
+    :cancel-label="t('common.cancel')"
+    :loading="switching"
+    @confirm="confirmPendingSwitch"
+    @cancel="cancelPendingSwitch"
+  />
 </template>
 
 <script setup>
@@ -67,12 +77,16 @@ import { useAuthStore } from '../../stores/auth.js'
 import { getInitials } from '../../utils/initials.js'
 import SyncIndicator from '../atoms/SyncIndicator.vue'
 import SyncPanel from '../molecules/SyncPanel.vue'
+import ConfirmDialog from '../molecules/ConfirmDialog.vue'
 import { extractApiError, resolveError } from '../../utils/apiError.js'
 import { useToast } from '../../composables/useToast.js'
 
 const showSyncPanel = ref(false)
 const farmDropdownOpen = ref(false)
 const switching = ref(false)
+const pendingSyncWarning = ref(false)
+const pendingSyncCount = ref(0)
+const pendingSwitchFarmId = ref(null)
 
 const authStore = useAuthStore()
 const { showToast } = useToast()
@@ -126,21 +140,41 @@ function closeFarmDropdown() {
   farmDropdownOpen.value = false
 }
 
-async function handleSwitchFarm(farmId) {
+async function handleSwitchFarm(farmId, { force = false } = {}) {
   if (farmId === authStore.user?.farm_id) {
     closeFarmDropdown()
     return
   }
   switching.value = true
   try {
-    await authStore.switchFarm(farmId)
+    await authStore.switchFarm(farmId, { force })
     closeFarmDropdown()
     // Navigate to dashboard to reload all farm-scoped data
     router.push('/')
   } catch (err) {
-    showToast(resolveError(extractApiError(err), t), 'error')
+    if (err.message === 'PENDING_SYNC') {
+      pendingSyncCount.value = err.pendingCount
+      pendingSwitchFarmId.value = farmId
+      pendingSyncWarning.value = true
+    } else {
+      showToast(resolveError(extractApiError(err), t), 'error')
+    }
   } finally {
     switching.value = false
+  }
+}
+
+function cancelPendingSwitch() {
+  pendingSyncWarning.value = false
+  pendingSwitchFarmId.value = null
+}
+
+async function confirmPendingSwitch() {
+  try {
+    await handleSwitchFarm(pendingSwitchFarmId.value, { force: true })
+  } finally {
+    pendingSyncWarning.value = false
+    pendingSwitchFarmId.value = null
   }
 }
 

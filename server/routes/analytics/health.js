@@ -158,6 +158,7 @@ router.get('/withdrawal-days', async (req, res, next) => {
       .where('treatments.farm_id', req.farmId)
       .join('cows as c', 'c.id', 'treatments.cow_id')
       .leftJoin('breed_types as bt', 'c.breed_type_id', 'bt.id')
+      .leftJoin('species as sp', 'c.species_id', 'sp.id')
       .whereNull('c.deleted_at')
       .whereBetween('treatment_date', [start, endTs])
       .whereNotNull('withdrawal_end_milk')
@@ -171,12 +172,15 @@ router.get('/withdrawal-days', async (req, res, next) => {
         'c.life_phase_override',
         'bt.calf_max_months',
         'bt.heifer_min_months',
-        'bt.young_bull_min_months'
+        'bt.young_bull_min_months',
+        'sp.code as species_code'
       )
       .orderBy('month')
 
-    // Filter out non-milking life phases (heifers, calves)
-    const milkRows = rows.filter((row) => !NON_MILKING_PHASES.has(computeLifePhase(row, row)))
+    // Filter out non-milking life phases (heifers, calves, lambs)
+    const milkRows = rows.filter(
+      (row) => !NON_MILKING_PHASES.has(computeLifePhase(row, row, row.species_code))
+    )
 
     // Accumulate per-month totals in JS (avoids SQLite date arithmetic limitations)
     const monthMap = {} // { 'YYYY-MM': { total_withdrawal_days, cow_ids: Set } }

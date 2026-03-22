@@ -1,0 +1,10 @@
+# Run lint-staged (format + lint on staged files)
+npx lint-staged
+
+# Auto-rebuild client/dist if frontend source files are staged
+FRONTEND_CHANGED=$(git diff --cached --name-only | grep -c "^client/src/")
+if [ "$FRONTEND_CHANGED" -gt 0 ]; then
+  echo "Frontend files changed — rebuilding client/dist..."
+  npm run build
+  git add client/dist/
+fi

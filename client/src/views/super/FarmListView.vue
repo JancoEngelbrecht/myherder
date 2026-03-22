@@ -46,6 +46,16 @@
         </div>
       </div>
     </div>
+
+    <ConfirmDialog
+      :show="pendingSyncWarning"
+      :message="t('sync.pendingSwitchWarning', { count: pendingSyncCount })"
+      :confirm-label="t('sync.switchAnyway')"
+      :cancel-label="t('common.cancel')"
+      :loading="enteringFarm"
+      @confirm="confirmPendingEnter"
+      @cancel="cancelPendingEnter"
+    />
   </div>
 </template>
 
@@ -56,6 +66,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth.js'
 import api from '../../services/api.js'
 import AppHeader from '../../components/organisms/AppHeader.vue'
+import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import { useToast } from '../../composables/useToast.js'
 import { extractApiError, resolveError } from '../../utils/apiError.js'
 
@@ -67,6 +78,10 @@ const { showToast } = useToast()
 const farms = ref([])
 const loading = ref(true)
 const exporting = ref(false)
+const enteringFarm = ref(false)
+const pendingSyncWarning = ref(false)
+const pendingSyncCount = ref(0)
+const pendingEnterFarmId = ref(null)
 
 async function handleExport() {
   exporting.value = true
@@ -97,12 +112,36 @@ onMounted(async () => {
   }
 })
 
-async function handleEnter(farm) {
+async function handleEnter(farm, { force = false } = {}) {
+  enteringFarm.value = true
   try {
-    await authStore.enterFarm(farm.id)
+    await authStore.enterFarm(farm.id, { force })
     router.push('/')
   } catch (err) {
-    showToast(resolveError(extractApiError(err), t), 'error')
+    if (err.message === 'PENDING_SYNC') {
+      pendingSyncCount.value = err.pendingCount
+      pendingEnterFarmId.value = farm.id
+      pendingSyncWarning.value = true
+    } else {
+      showToast(resolveError(extractApiError(err), t), 'error')
+    }
+  } finally {
+    enteringFarm.value = false
+  }
+}
+
+function cancelPendingEnter() {
+  pendingSyncWarning.value = false
+  pendingEnterFarmId.value = null
+}
+
+async function confirmPendingEnter() {
+  const farmId = pendingEnterFarmId.value
+  try {
+    await handleEnter({ id: farmId }, { force: true })
+  } finally {
+    pendingSyncWarning.value = false
+    pendingEnterFarmId.value = null
   }
 }
 </script>

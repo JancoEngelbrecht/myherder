@@ -33,6 +33,7 @@ vi.mock('../services/syncManager.js', () => {
     isOfflineError: vi.fn().mockReturnValue(false),
     enqueue: vi.fn(),
     dequeueByEntityId: vi.fn(),
+    pushChanges: vi.fn().mockResolvedValue(undefined),
   }
 })
 
@@ -184,11 +185,9 @@ describe('MedicationManagement', () => {
     expect(deactivateBtns.length).toBeGreaterThan(0)
     await deactivateBtns[0].trigger('click')
 
-    // Now the deactivate ConfirmDialog should be open — find and confirm it
-    // The deactivate dialog's confirm button calls doDeactivate → store.deactivate → api.put
+    // Find the visible deactivate ConfirmDialog and confirm it
     const confirmDialogs = wrapper.findAllComponents({ name: 'ConfirmDialog' })
-    // Second ConfirmDialog is the deactivate one
-    const deactivateDialog = confirmDialogs[1]
+    const deactivateDialog = confirmDialogs.find((d) => d.props('show'))
     await deactivateDialog.vm.$emit('confirm')
     await flushPromises()
 

@@ -2,7 +2,13 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '../services/api.js'
 import db, { initDb, closeDb } from '../db/indexedDB.js'
-import { initialSync, isOfflineError } from '../services/syncManager.js'
+import {
+  initialSync,
+  isOfflineError,
+  pushChanges,
+  getPending,
+  isSyncing,
+} from '../services/syncManager.js'
 import { useFeatureFlagsStore } from './featureFlags.js'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -304,13 +310,51 @@ export const useAuthStore = defineStore('auth', () => {
    * Switch to a different farm the user is assigned to.
    * Issues a new JWT scoped to the target farm and re-initializes all stores.
    */
-  async function switchFarm(farmId) {
+  async function switchFarm(farmId, { force = false } = {}) {
+    // Flush pending sync queue before switching farms
+    const allPending = await getPending()
+    const recoverable = allPending.filter((e) => e.attempts < 5)
+    if (recoverable.length > 0) {
+      if (!isSyncing.value) {
+        try {
+          await pushChanges()
+        } catch {
+          // Push failed (offline or server error) — handled below
+        }
+      }
+      const remaining = (await getPending()).filter((e) => e.attempts < 5).length
+      if (remaining > 0 && !force) {
+        const err = new Error('PENDING_SYNC')
+        err.pendingCount = remaining
+        throw err
+      }
+    }
+
     const { data } = await api.post(`/auth/switch-farm/${farmId}`)
     await setSession(data)
     localStorage.setItem('last_farm_id', farmId)
   }
 
-  async function enterFarm(farmId) {
+  async function enterFarm(farmId, { force = false } = {}) {
+    // Flush pending sync queue before entering farm context
+    const allPending = await getPending()
+    const recoverable = allPending.filter((e) => e.attempts < 5)
+    if (recoverable.length > 0) {
+      if (!isSyncing.value) {
+        try {
+          await pushChanges()
+        } catch {
+          // Push failed — handled below
+        }
+      }
+      const remaining = (await getPending()).filter((e) => e.attempts < 5).length
+      if (remaining > 0 && !force) {
+        const err = new Error('PENDING_SYNC')
+        err.pendingCount = remaining
+        throw err
+      }
+    }
+
     // Guard against double-entering — exit current farm context first
     if (localStorage.getItem('super_admin_token')) {
       await exitFarm()
@@ -356,6 +400,13 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('farm_id')
     localStorage.removeItem('farm_code')
     myFarms.value = []
+
+    // Best-effort push before closing the farm-scoped DB
+    try {
+      await pushChanges()
+    } catch {
+      // Ignore — offline or error; changes remain queued
+    }
 
     // Close farm-scoped DB and re-init without farm context
     try {

@@ -106,7 +106,7 @@ export const useTreatmentsStore = defineStore('treatments', () => {
       }
       // Mirror server logic: null out milk withdrawal for non-milking life phases
       // Must match NON_MILKING_PHASES in server/helpers/lifePhase.js
-      const NON_MILKING_PHASES = new Set(['heifer', 'calf'])
+      const NON_MILKING_PHASES = new Set(['heifer', 'calf', 'lamb'])
       const nowMs = Date.now()
       for (const id of Object.keys(byCow)) {
         const entry = byCow[id]

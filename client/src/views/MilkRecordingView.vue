@@ -137,9 +137,10 @@ const searchQuery = ref('')
 
 const isToday = computed(() => selectedDate.value === today)
 
-// ── Qualifying cows (only active female cows in "cow" life phase) ────────────
+// ── Qualifying cows (only active adult females — cow or ewe life phase) ──────
 
-const isMilkable = (c) => c.sex !== 'male' && computeLifePhase(c) === 'cow'
+const MILKING_PHASES = new Set(['cow', 'ewe'])
+const isMilkable = (c) => c.sex !== 'male' && MILKING_PHASES.has(computeLifePhase(c))
 
 const qualifyingCows = computed(() =>
   cowsStore.cows.filter((c) => isMilkable(c) && c.status === 'active')

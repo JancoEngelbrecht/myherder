@@ -168,13 +168,15 @@ router.get('/withdrawal', authorize('can_log_treatments'), async (req, res, next
     // Inline join breed_types for life phase computation (not in treatmentQuery to keep it lean)
     const rows = await treatmentQuery(req.farmId)
       .leftJoin('breed_types as bt', 'c.breed_type_id', 'bt.id')
+      .leftJoin('species as sp', 'c.species_id', 'sp.id')
       .select(
         'c.status',
         'c.dob',
         'c.life_phase_override',
         'bt.calf_max_months',
         'bt.heifer_min_months',
-        'bt.young_bull_min_months'
+        'bt.young_bull_min_months',
+        'sp.code as species_code'
       )
       .where(function () {
         this.where('t.withdrawal_end_milk', '>', nowStr).orWhere(
@@ -188,7 +190,7 @@ router.get('/withdrawal', authorize('can_log_treatments'), async (req, res, next
     const filtered = []
     for (const row of rows) {
       if (INACTIVE_STATUSES.has(row.status)) continue
-      const lifePhase = computeLifePhase(row, row)
+      const lifePhase = computeLifePhase(row, row, row.species_code)
       row.life_phase = lifePhase
       if (NON_MILKING_PHASES.has(lifePhase)) {
         row.withdrawal_end_milk = null
@@ -271,7 +273,10 @@ router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
     const breedType = cow.breed_type_id
       ? await db('breed_types').where('id', cow.breed_type_id).where('farm_id', req.farmId).first()
       : null
-    const lifePhase = computeLifePhase(cow, breedType)
+    const species = cow.species_id
+      ? await db('species').where('id', cow.species_id).select('code').first()
+      : null
+    const lifePhase = computeLifePhase(cow, breedType, species?.code)
     const skipMilkWithdrawal = isMale || NON_MILKING_PHASES.has(lifePhase)
 
     // Batch-fetch all medications in a single query and build a lookup map

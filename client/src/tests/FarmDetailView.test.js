@@ -210,9 +210,10 @@ describe('FarmDetailView', () => {
       .find((b) => b.text().includes('superAdmin.deactivateFarm'))
     await deactivateBtn.trigger('click')
 
-    // Find the ConfirmDialog confirm button and click it
-    // ConfirmDialog renders its own btn-danger
-    await wrapper.findComponent({ name: 'ConfirmDialog' }).vm.$emit('confirm')
+    // Find the visible ConfirmDialog (the deactivate one) and confirm it
+    const dialogs = wrapper.findAllComponents({ name: 'ConfirmDialog' })
+    const activeDialog = dialogs.find((d) => d.props('show'))
+    await activeDialog.vm.$emit('confirm')
     await flushPromises()
 
     expect(mockPatch).toHaveBeenCalledWith('/farms/f1', { is_active: false })

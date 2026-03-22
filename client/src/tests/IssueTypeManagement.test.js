@@ -32,6 +32,7 @@ vi.mock('../services/syncManager.js', () => {
     isOfflineError: vi.fn().mockReturnValue(false),
     enqueue: vi.fn(),
     dequeueByEntityId: vi.fn(),
+    pushChanges: vi.fn().mockResolvedValue(undefined),
   }
 })
 
@@ -165,13 +166,14 @@ describe('IssueTypeManagement', () => {
     })
     await flushPromises()
 
-    // Trigger delete confirm on first card
+    // Trigger delete confirm on first card (second btn-danger is the delete button)
     const deleteBtns = wrapper.findAll('.btn-danger.btn-sm')
-    await deleteBtns[0].trigger('click')
+    await deleteBtns[1].trigger('click')
 
-    // Confirm the dialog
-    const confirmDialog = wrapper.findComponent({ name: 'ConfirmDialog' })
-    await confirmDialog.vm.$emit('confirm')
+    // Find the delete dialog (has confirmLabel matching 'common.delete')
+    const dialogs = wrapper.findAllComponents({ name: 'ConfirmDialog' })
+    const deleteDialog = dialogs.find((d) => d.props('show'))
+    await deleteDialog.vm.$emit('confirm')
     await flushPromises()
 
     expect(wrapper.find('.page-error').exists()).toBe(true)
