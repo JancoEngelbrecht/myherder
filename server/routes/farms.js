@@ -544,6 +544,18 @@ router.delete('/:id', async (req, res, next) => {
         await trx('feature_flags').where('farm_id', farm.id).del()
         await trx('app_settings').where('farm_id', farm.id).del()
         await trx('farm_species').where('farm_id', farm.id).del()
+        // Remove from any farm group; auto-delete groups that fall below 2 members
+        await trx('farm_group_members').where('farm_id', farm.id).del()
+        const underMinGroups = await trx('farm_groups')
+          .leftJoin('farm_group_members as m', 'farm_groups.id', 'm.farm_group_id')
+          .groupBy('farm_groups.id')
+          .havingRaw('COUNT(m.id) < 2')
+          .select('farm_groups.id')
+        if (underMinGroups.length > 0) {
+          const groupIds = underMinGroups.map((g) => g.id)
+          await trx('farm_group_members').whereIn('farm_group_id', groupIds).del()
+          await trx('farm_groups').whereIn('id', groupIds).del()
+        }
         // Silently preserves super_admin users — guaranteed zero by guard above
         await trx('users').where('farm_id', farm.id).whereNot('role', 'super_admin').del()
         await trx('farms').where('id', farm.id).del()
