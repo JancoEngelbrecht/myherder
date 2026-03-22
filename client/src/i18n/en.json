@@ -2,6 +2,7 @@
   "nav": {
     "home": "Home",
     "cows": "Cows",
+    "sheep": "Sheep",
     "milk": "Milk",
     "breed": "Breed"
   },

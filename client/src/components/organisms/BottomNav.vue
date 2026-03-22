@@ -26,11 +26,15 @@ const { t } = useI18n()
 const route = useRoute()
 const featureFlagsStore = useFeatureFlagsStore()
 const authStore = useAuthStore()
-const { emoji: speciesEmoji } = useSpeciesTerms()
+const { emoji: speciesEmoji, speciesCode } = useSpeciesTerms()
+
+const animalsLabelKey = computed(() =>
+  speciesCode.value === 'sheep' ? 'nav.sheep' : 'nav.cows'
+)
 
 const allTabs = computed(() => [
   { name: 'home', to: '/', icon: '🏠', labelKey: 'nav.home' },
-  { name: 'cows', to: '/cows', icon: speciesEmoji.value.female, labelKey: 'nav.cows' },
+  { name: 'cows', to: '/cows', icon: speciesEmoji.value.female, labelKey: animalsLabelKey.value },
   {
     name: 'milk',
     to: '/milk',
@@ -42,7 +46,7 @@ const allTabs = computed(() => [
   {
     name: 'breed',
     to: '/breed',
-    icon: speciesEmoji.value.male,
+    icon: speciesCode.value === 'sheep' ? '🧬' : speciesEmoji.value.male,
     labelKey: 'nav.breed',
     flag: 'breeding',
     permission: 'can_log_breeding',
