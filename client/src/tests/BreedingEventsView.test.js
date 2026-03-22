@@ -46,27 +46,21 @@ vi.mock('../db/indexedDB.js', () => ({
       get: vi.fn(),
       delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi
-        .fn()
-        .mockReturnValue({
-          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
-        }),
-      orderBy: vi
-        .fn()
-        .mockReturnValue({
-          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
-        }),
+      where: vi.fn().mockReturnValue({
+        equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+      }),
+      orderBy: vi.fn().mockReturnValue({
+        reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+      }),
     },
     cows: {
       bulkPut: vi.fn(),
       put: vi.fn(),
       get: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      orderBy: vi
-        .fn()
-        .mockReturnValue({
-          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
-        }),
+      orderBy: vi.fn().mockReturnValue({
+        reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+      }),
     },
     auth: { get: vi.fn().mockResolvedValue(null), put: vi.fn(), delete: vi.fn() },
     syncQueue: {

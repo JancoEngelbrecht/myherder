@@ -253,7 +253,9 @@ describe('FarmGroupsView', () => {
       if (url === '/farms') return Promise.resolve({ data: MOCK_FARMS })
       return Promise.resolve({ data: [] })
     })
-    mockPost.mockResolvedValue({ data: { ...groupWithOneFarm[0], farms: [MOCK_FARMS[0], MOCK_FARMS[1]] } })
+    mockPost.mockResolvedValue({
+      data: { ...groupWithOneFarm[0], farms: [MOCK_FARMS[0], MOCK_FARMS[1]] },
+    })
 
     const wrapper = mount(FarmGroupsView, { global: { stubs } })
     await flushPromises()

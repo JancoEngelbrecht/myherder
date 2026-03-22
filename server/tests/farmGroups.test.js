@@ -95,9 +95,7 @@ afterAll(async () => {
 
 describe('GET /api/farm-groups', () => {
   it('returns empty array initially', async () => {
-    const res = await request(app)
-      .get('/api/farm-groups')
-      .set('Authorization', superAdminToken())
+    const res = await request(app).get('/api/farm-groups').set('Authorization', superAdminToken())
     expect(res.status).toBe(200)
     expect(res.body).toEqual([])
   })
@@ -109,9 +107,7 @@ describe('GET /api/farm-groups', () => {
     await insertMember(groupId, farmAId)
     await insertMember(groupId, farmBId)
 
-    const res = await request(app)
-      .get('/api/farm-groups')
-      .set('Authorization', superAdminToken())
+    const res = await request(app).get('/api/farm-groups').set('Authorization', superAdminToken())
 
     expect(res.status).toBe(200)
     expect(res.body).toHaveLength(1)
@@ -124,16 +120,12 @@ describe('GET /api/farm-groups', () => {
   })
 
   it('rejects non-super-admin (admin token)', async () => {
-    const res = await request(app)
-      .get('/api/farm-groups')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/farm-groups').set('Authorization', adminToken())
     expect(res.status).toBe(403)
   })
 
   it('rejects worker token', async () => {
-    const res = await request(app)
-      .get('/api/farm-groups')
-      .set('Authorization', workerToken())
+    const res = await request(app).get('/api/farm-groups').set('Authorization', workerToken())
     expect(res.status).toBe(403)
   })
 })
@@ -500,9 +492,7 @@ describe('GET /api/auth/my-farms — farm group filtering', () => {
   it('returns only group-member farms when current farm is in a group', async () => {
     // Token for farm A — should see [A, B] but not C
     const token = farmToken(farmAId, userAId, { username: 'sipho' })
-    const res = await request(app)
-      .get('/api/auth/my-farms')
-      .set('Authorization', token)
+    const res = await request(app).get('/api/auth/my-farms').set('Authorization', token)
 
     expect(res.status).toBe(200)
     expect(res.body).toHaveLength(2)
@@ -515,9 +505,7 @@ describe('GET /api/auth/my-farms — farm group filtering', () => {
   it('returns empty array when current farm is not in any group', async () => {
     // Token for farm C — C is not in any group
     const token = farmToken(farmCId, userCId, { username: 'sipho' })
-    const res = await request(app)
-      .get('/api/auth/my-farms')
-      .set('Authorization', token)
+    const res = await request(app).get('/api/auth/my-farms').set('Authorization', token)
 
     expect(res.status).toBe(200)
     expect(res.body).toEqual([])
@@ -526,14 +514,15 @@ describe('GET /api/auth/my-farms — farm group filtering', () => {
   it('returns only farms where the user has an account within the group', async () => {
     // Seed a 4th farm in the AB group, but sipho has NO account there
     const farmDId = await seedFarm(db, 'MFD1', 'My Farm D')
-    const groupId = await db('farm_group_members').where('farm_id', farmAId).select('farm_group_id').first()
+    const groupId = await db('farm_group_members')
+      .where('farm_id', farmAId)
+      .select('farm_group_id')
+      .first()
     await insertMember(groupId.farm_group_id, farmDId)
 
     // Token for farm A — should see [A, B] but NOT D (no sipho account on D)
     const token = farmToken(farmAId, userAId, { username: 'sipho' })
-    const res = await request(app)
-      .get('/api/auth/my-farms')
-      .set('Authorization', token)
+    const res = await request(app).get('/api/auth/my-farms').set('Authorization', token)
 
     expect(res.status).toBe(200)
     const ids = res.body.map((f) => f.id)

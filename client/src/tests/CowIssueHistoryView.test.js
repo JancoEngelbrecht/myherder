@@ -52,11 +52,9 @@ vi.mock('../db/indexedDB.js', () => ({
       put: vi.fn(),
       get: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      orderBy: vi
-        .fn()
-        .mockReturnValue({
-          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
-        }),
+      orderBy: vi.fn().mockReturnValue({
+        reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+      }),
     },
     treatments: {
       bulkPut: vi.fn(),
@@ -64,11 +62,9 @@ vi.mock('../db/indexedDB.js', () => ({
       get: vi.fn(),
       delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi
-        .fn()
-        .mockReturnValue({
-          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
-        }),
+      where: vi.fn().mockReturnValue({
+        equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+      }),
     },
     healthIssues: {
       bulkPut: vi.fn(),
@@ -76,11 +72,9 @@ vi.mock('../db/indexedDB.js', () => ({
       get: vi.fn(),
       delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi
-        .fn()
-        .mockReturnValue({
-          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
-        }),
+      where: vi.fn().mockReturnValue({
+        equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+      }),
     },
     breedingEvents: {
       bulkPut: vi.fn(),
@@ -88,16 +82,12 @@ vi.mock('../db/indexedDB.js', () => ({
       get: vi.fn(),
       delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi
-        .fn()
-        .mockReturnValue({
-          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
-        }),
-      orderBy: vi
-        .fn()
-        .mockReturnValue({
-          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
-        }),
+      where: vi.fn().mockReturnValue({
+        equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+      }),
+      orderBy: vi.fn().mockReturnValue({
+        reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+      }),
     },
     issueTypes: {
       bulkPut: vi.fn(),

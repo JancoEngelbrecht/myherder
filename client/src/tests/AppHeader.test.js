@@ -41,11 +41,9 @@ vi.mock('../db/indexedDB.js', () => ({
   default: {
     auth: { get: vi.fn().mockResolvedValue(null), put: vi.fn(), delete: vi.fn() },
     syncQueue: {
-      where: vi
-        .fn()
-        .mockReturnValue({
-          aboveOrEqual: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
-        }),
+      where: vi.fn().mockReturnValue({
+        aboveOrEqual: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+      }),
       bulkDelete: vi.fn(),
     },
   },

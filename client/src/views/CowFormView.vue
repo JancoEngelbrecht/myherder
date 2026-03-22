@@ -133,20 +133,28 @@
 
         <!-- Sire (male parent) -->
         <div class="form-group">
-          <label class="form-label">{{ t('animalForm.sire') }}</label>
+          <label class="form-label">{{
+            t(`animalForm.sire_${speciesCode}`, t('animalForm.sire'))
+          }}</label>
           <CowSearchDropdown
             v-model="form.sire_id"
-            :placeholder="t('animalForm.sirePlaceholder')"
+            :placeholder="
+              t(`animalForm.sirePlaceholder_${speciesCode}`, t('animalForm.sirePlaceholder'))
+            "
             sex-filter="male"
           />
         </div>
 
         <!-- Dam (female parent) -->
         <div class="form-group">
-          <label class="form-label">{{ t('animalForm.dam') }}</label>
+          <label class="form-label">{{
+            t(`animalForm.dam_${speciesCode}`, t('animalForm.dam'))
+          }}</label>
           <CowSearchDropdown
             v-model="form.dam_id"
-            :placeholder="t('animalForm.damPlaceholder')"
+            :placeholder="
+              t(`animalForm.damPlaceholder_${speciesCode}`, t('animalForm.damPlaceholder'))
+            "
             sex-filter="female"
           />
         </div>
@@ -235,7 +243,7 @@ const route = useRoute()
 const router = useRouter()
 const cowsStore = useCowsStore()
 const breedTypesStore = useBreedTypesStore()
-const { singular, emoji: speciesEmoji, lifePhasesConfig } = useSpeciesTerms()
+const { singular, speciesCode, emoji: speciesEmoji, lifePhasesConfig } = useSpeciesTerms()
 
 const isEdit = computed(() => !!route.params.id && route.path.endsWith('/edit'))
 const fromCalving = computed(() => route.query.from_calving === 'true')

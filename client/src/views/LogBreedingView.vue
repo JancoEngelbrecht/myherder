@@ -84,10 +84,15 @@
         <!-- Sire selection — for bull_service or ram_service -->
         <template v-if="form.event_type === 'bull_service' || form.event_type === 'ram_service'">
           <div class="form-group">
-            <label>{{ t('breeding.form.sire') }}</label>
+            <label>{{ t(`breeding.form.sire_${speciesCode}`, t('breeding.form.sire')) }}</label>
             <CowSearchDropdown
               v-model="form.sire_id"
-              :placeholder="t('breeding.form.sirePlaceholder')"
+              :placeholder="
+                t(
+                  `breeding.form.sirePlaceholder_${speciesCode}`,
+                  t('breeding.form.sirePlaceholder')
+                )
+              "
               sex-filter="male"
             />
           </div>

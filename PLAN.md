@@ -929,6 +929,25 @@ Post-audit fixes organized by priority level.
 
 ---
 
+### Phase 18: Farm Groups — Secure Farm Switching
+
+**Goal:** Close security vulnerability where username collisions across unrelated farms allow unauthorized farm switching. Farm groups define explicit trust boundaries for the farm switcher.
+
+> Sub-plan: [plans/farm-groups.md](plans/farm-groups.md)
+
+| Phase | Scope                                                                                         |
+| ----- | --------------------------------------------------------------------------------------------- |
+| 18.1  | Migration 037 — `farm_groups` + `farm_group_members` tables, farm DELETE cascade cleanup      |
+| 18.2  | Backend API — farm groups CRUD (6 endpoints, super-admin only)                                |
+| 18.3  | Security hardening — filter my-farms by group, verify switch-farm group membership, audit log |
+| 18.4  | Frontend — FarmGroupsView, route, DashboardView nav link, i18n                                |
+| 18.5  | Testing — backend CRUD + auth security tests, frontend view tests                             |
+| 18.6  | Documentation — CLAUDE.md API docs, MEMORY.md, rebuild client/dist                            |
+
+**Deliverable:** Farm switching is only possible between farms explicitly linked by a super-admin-created farm group. Every farm switch is audit logged. Unauthorized cross-farm access is blocked at the API level.
+
+---
+
 ## Key Library Choices
 
 | Purpose        | Library                | Why                                        |

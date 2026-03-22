@@ -86,14 +86,46 @@ function pickSeverity() {
 // ── Sheep name lists (Afrikaans / SA themed) ─────────────────────────────────
 
 const EWE_NAMES = [
-  'Wollie', 'Skaapie', 'Witpens', 'Rooikop', 'Swartjie',
-  'Blommie', 'Sterretjie', 'Vlekkie', 'Grysie', 'Hartjie',
-  'Mielie', 'Soetjie', 'Bokkie', 'Lettie', 'Sannie',
-  'Liewe', 'Nana', 'Hester', 'Elsie', 'Toffie',
-  'Karoobos', 'Fynbos', 'Bossie', 'Doringbos', 'Vetplant',
-  'Protea', 'Veldblom', 'Suurlemoen', 'Appelkoos', 'Perske',
-  'Heuning', 'Koringaar', 'Lusern', 'Klawer', 'Gousblom',
-  'Magriet', 'Annatjie', 'Sussie', 'Ouma', 'Tannie',
+  'Wollie',
+  'Skaapie',
+  'Witpens',
+  'Rooikop',
+  'Swartjie',
+  'Blommie',
+  'Sterretjie',
+  'Vlekkie',
+  'Grysie',
+  'Hartjie',
+  'Mielie',
+  'Soetjie',
+  'Bokkie',
+  'Lettie',
+  'Sannie',
+  'Liewe',
+  'Nana',
+  'Hester',
+  'Elsie',
+  'Toffie',
+  'Karoobos',
+  'Fynbos',
+  'Bossie',
+  'Doringbos',
+  'Vetplant',
+  'Protea',
+  'Veldblom',
+  'Suurlemoen',
+  'Appelkoos',
+  'Perske',
+  'Heuning',
+  'Koringaar',
+  'Lusern',
+  'Klawer',
+  'Gousblom',
+  'Magriet',
+  'Annatjie',
+  'Sussie',
+  'Ouma',
+  'Tannie',
 ]
 
 const RAM_NAMES = ['Groot Ram', 'Sterk Jan', 'Dik Hendrik']
@@ -117,7 +149,9 @@ async function main() {
   // Verify species row exists
   const sheepSpecies = await knex('species').where('id', SHEEP_SPECIES_ID).first()
   if (!sheepSpecies) {
-    console.error('[sheep-seed] FAILED: Sheep species row not found. Run migrations first (npm run migrate).')
+    console.error(
+      '[sheep-seed] FAILED: Sheep species row not found. Run migrations first (npm run migrate).'
+    )
     await knex.destroy()
     process.exit(1) // eslint-disable-line n/no-process-exit
   }
@@ -215,13 +249,49 @@ async function main() {
 
     // ── 4. Issue types (sheep-specific) ──────────────────────────────────
     const issueTypeDefs = [
-      { code: 'pulpy_kidney', name: 'Pulpy Kidney', emoji: '💉', requires_teat_selection: false, sort_order: 0 },
-      { code: 'blue_tongue', name: 'Blue Tongue', emoji: '👅', requires_teat_selection: false, sort_order: 1 },
-      { code: 'internal_parasites', name: 'Internal Parasites', emoji: '🪱', requires_teat_selection: false, sort_order: 2 },
+      {
+        code: 'pulpy_kidney',
+        name: 'Pulpy Kidney',
+        emoji: '💉',
+        requires_teat_selection: false,
+        sort_order: 0,
+      },
+      {
+        code: 'blue_tongue',
+        name: 'Blue Tongue',
+        emoji: '👅',
+        requires_teat_selection: false,
+        sort_order: 1,
+      },
+      {
+        code: 'internal_parasites',
+        name: 'Internal Parasites',
+        emoji: '🪱',
+        requires_teat_selection: false,
+        sort_order: 2,
+      },
       { code: 'orf', name: 'Orf', emoji: '🤕', requires_teat_selection: false, sort_order: 3 },
-      { code: 'foot_rot', name: 'Foot Rot', emoji: '🦶', requires_teat_selection: false, sort_order: 4 },
-      { code: 'lameness', name: 'Lameness', emoji: '🦵', requires_teat_selection: false, sort_order: 5 },
-      { code: 'respiratory', name: 'Respiratory', emoji: '🫁', requires_teat_selection: false, sort_order: 6 },
+      {
+        code: 'foot_rot',
+        name: 'Foot Rot',
+        emoji: '🦶',
+        requires_teat_selection: false,
+        sort_order: 4,
+      },
+      {
+        code: 'lameness',
+        name: 'Lameness',
+        emoji: '🦵',
+        requires_teat_selection: false,
+        sort_order: 5,
+      },
+      {
+        code: 'respiratory',
+        name: 'Respiratory',
+        emoji: '🫁',
+        requires_teat_selection: false,
+        sort_order: 6,
+      },
       { code: 'eye', name: 'Eye', emoji: '👁️', requires_teat_selection: false, sort_order: 7 },
       { code: 'other', name: 'Other', emoji: '❓', requires_teat_selection: false, sort_order: 8 },
     ]
@@ -297,7 +367,9 @@ async function main() {
     }))
     await trx('medications').insert(medRows)
     const medMap = {}
-    medRows.forEach((m) => { medMap[m.name] = m })
+    medRows.forEach((m) => {
+      medMap[m.name] = m
+    })
     console.log('[sheep-seed] ✓ Medications (5)')
 
     // ── 6. Feature flags + settings ──────────────────────────────────────
@@ -393,7 +465,12 @@ async function main() {
     for (let i = 0; i < 5; i++) {
       const ageMonths = randInt(1, 5)
       const dob = addDays(TODAY, -ageMonths * 30.4)
-      makeSheep(Math.random() < 0.5 ? 'female' : 'male', 'active', dob, EWE_NAMES[33 + i] || `Lam${i + 1}`)
+      makeSheep(
+        Math.random() < 0.5 ? 'female' : 'male',
+        'active',
+        dob,
+        EWE_NAMES[33 + i] || `Lam${i + 1}`
+      )
     }
 
     // Sold (2)
@@ -442,7 +519,7 @@ async function main() {
         offspring_count: offspringCount,
         calving_details: JSON.stringify({
           calf_sex: offspringCount === 1 ? (Math.random() < 0.5 ? 'male' : 'female') : 'mixed',
-          calf_alive: Math.random() < 0.90,
+          calf_alive: Math.random() < 0.9,
         }),
         recorded_by: pick(reporters),
         created_at: isoDatetime(lambingDate),
@@ -460,7 +537,9 @@ async function main() {
         cow_id: sheepId,
         event_type: 'heat_observed',
         event_date: isoDate(heatDate),
-        heat_signs: JSON.stringify(pick([['standing_heat'], ['restlessness'], ['standing_heat', 'tail_wagging']])),
+        heat_signs: JSON.stringify(
+          pick([['standing_heat'], ['restlessness'], ['standing_heat', 'tail_wagging']])
+        ),
         recorded_by: pick(reporters),
         created_at: isoDatetime(heatDate),
         updated_at: isoDatetime(heatDate),
@@ -604,18 +683,44 @@ async function main() {
 
     // ── 9. Health issues ─────────────────────────────────────────────────
     const issueTypeProbs = [
-      { code: 'internal_parasites', baseProb: 0.03, seasonal: [0, 1.2, 1.3, 1.1, 0.8, 0.5, 0.4, 0.4, 0.6, 1.0, 1.3, 1.4, 1.3] },
-      { code: 'foot_rot', baseProb: 0.02, seasonal: [0, 0.6, 0.5, 0.7, 1.0, 1.4, 1.6, 1.5, 1.3, 0.9, 0.7, 0.6, 0.6] },
-      { code: 'pulpy_kidney', baseProb: 0.012, seasonal: [0, 0.8, 0.7, 0.9, 1.0, 1.2, 1.0, 0.8, 1.0, 1.5, 1.6, 1.2, 0.9] },
-      { code: 'blue_tongue', baseProb: 0.008, seasonal: [0, 1.6, 1.8, 1.5, 1.0, 0.3, 0.2, 0.2, 0.4, 0.8, 1.2, 1.5, 1.6] },
-      { code: 'orf', baseProb: 0.01, seasonal: [0, 0.8, 0.7, 0.9, 1.0, 1.2, 1.3, 1.2, 1.0, 0.9, 0.8, 0.8, 0.8] },
-      { code: 'respiratory', baseProb: 0.01, seasonal: [0, 0.4, 0.4, 0.5, 0.8, 1.3, 1.6, 1.8, 1.4, 0.8, 0.5, 0.4, 0.4] },
-      { code: 'eye', baseProb: 0.006, seasonal: [0, 1.5, 1.6, 1.3, 0.8, 0.5, 0.4, 0.4, 0.5, 0.8, 1.0, 1.3, 1.5] },
+      {
+        code: 'internal_parasites',
+        baseProb: 0.03,
+        seasonal: [0, 1.2, 1.3, 1.1, 0.8, 0.5, 0.4, 0.4, 0.6, 1.0, 1.3, 1.4, 1.3],
+      },
+      {
+        code: 'foot_rot',
+        baseProb: 0.02,
+        seasonal: [0, 0.6, 0.5, 0.7, 1.0, 1.4, 1.6, 1.5, 1.3, 0.9, 0.7, 0.6, 0.6],
+      },
+      {
+        code: 'pulpy_kidney',
+        baseProb: 0.012,
+        seasonal: [0, 0.8, 0.7, 0.9, 1.0, 1.2, 1.0, 0.8, 1.0, 1.5, 1.6, 1.2, 0.9],
+      },
+      {
+        code: 'blue_tongue',
+        baseProb: 0.008,
+        seasonal: [0, 1.6, 1.8, 1.5, 1.0, 0.3, 0.2, 0.2, 0.4, 0.8, 1.2, 1.5, 1.6],
+      },
+      {
+        code: 'orf',
+        baseProb: 0.01,
+        seasonal: [0, 0.8, 0.7, 0.9, 1.0, 1.2, 1.3, 1.2, 1.0, 0.9, 0.8, 0.8, 0.8],
+      },
+      {
+        code: 'respiratory',
+        baseProb: 0.01,
+        seasonal: [0, 0.4, 0.4, 0.5, 0.8, 1.3, 1.6, 1.8, 1.4, 0.8, 0.5, 0.4, 0.4],
+      },
+      {
+        code: 'eye',
+        baseProb: 0.006,
+        seasonal: [0, 1.5, 1.6, 1.3, 0.8, 0.5, 0.4, 0.4, 0.5, 0.8, 1.0, 1.3, 1.5],
+      },
     ]
 
-    const issueEligible = sheep.filter(
-      (s) => s.status !== 'sold' && s.status !== 'dead'
-    )
+    const issueEligible = sheep.filter((s) => s.status !== 'sold' && s.status !== 'dead')
 
     const healthIssues = []
     const healthIssueIndex = {}
@@ -697,10 +802,27 @@ async function main() {
     }
 
     const treatmentNotes = {
-      internal_parasites: ['High worm count on FEC', 'Routine dosing', 'Drench resistance suspected — switched product', 'FAMACHA score 4'],
-      foot_rot: ['Hoof trimmed, foot bath applied', 'Severe — isolated from flock', 'Bilateral front hooves'],
-      pulpy_kidney: ['Vaccination — booster dose', 'Preventative — pre-lambing', 'Lamb vaccination program'],
-      blue_tongue: ['Supportive care, shade provided', 'Swollen face, drooling', 'Mild case — monitoring'],
+      internal_parasites: [
+        'High worm count on FEC',
+        'Routine dosing',
+        'Drench resistance suspected — switched product',
+        'FAMACHA score 4',
+      ],
+      foot_rot: [
+        'Hoof trimmed, foot bath applied',
+        'Severe — isolated from flock',
+        'Bilateral front hooves',
+      ],
+      pulpy_kidney: [
+        'Vaccination — booster dose',
+        'Preventative — pre-lambing',
+        'Lamb vaccination program',
+      ],
+      blue_tongue: [
+        'Supportive care, shade provided',
+        'Swollen face, drooling',
+        'Mild case — monitoring',
+      ],
       orf: ['Scabs around mouth', 'Isolate from lambs', 'Secondary infection treated'],
       respiratory: ['Nasal discharge, coughing', 'Temperature 40.8°C', 'Post-dipping pneumonia'],
       eye: ['Pinkeye, fly season', 'Cloudy left eye', 'Bilateral — spray applied'],
@@ -770,7 +892,9 @@ async function main() {
     for (let i = 0; i < treatmentMeds.length; i += 50) {
       await trx.batchInsert('treatment_medications', treatmentMeds.slice(i, i + 50), 50)
     }
-    console.log(`[sheep-seed] ✓ Treatments (${treatments.length}, ${treatmentMeds.length} medication links)`)
+    console.log(
+      `[sheep-seed] ✓ Treatments (${treatments.length}, ${treatmentMeds.length} medication links)`
+    )
 
     // ── Summary ──────────────────────────────────────────────────────────
     console.log('')

@@ -40,11 +40,9 @@ vi.mock('../db/indexedDB.js', () => ({
       get: vi.fn(),
       delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi
-        .fn()
-        .mockReturnValue({
-          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
-        }),
+      where: vi.fn().mockReturnValue({
+        equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+      }),
     },
     issueTypes: { bulkPut: vi.fn(), put: vi.fn(), toArray: vi.fn().mockResolvedValue([]) },
     syncQueue: {

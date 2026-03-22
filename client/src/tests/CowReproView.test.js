@@ -48,11 +48,9 @@ vi.mock('../db/indexedDB.js', () => ({
       put: vi.fn(),
       get: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      orderBy: vi
-        .fn()
-        .mockReturnValue({
-          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
-        }),
+      orderBy: vi.fn().mockReturnValue({
+        reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+      }),
     },
     breedingEvents: {
       bulkPut: vi.fn(),
@@ -60,16 +58,12 @@ vi.mock('../db/indexedDB.js', () => ({
       get: vi.fn(),
       delete: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      where: vi
-        .fn()
-        .mockReturnValue({
-          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
-        }),
-      orderBy: vi
-        .fn()
-        .mockReturnValue({
-          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
-        }),
+      where: vi.fn().mockReturnValue({
+        equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+      }),
+      orderBy: vi.fn().mockReturnValue({
+        reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+      }),
     },
     breedTypes: { bulkPut: vi.fn(), put: vi.fn(), toArray: vi.fn().mockResolvedValue([]) },
     auth: { get: vi.fn().mockResolvedValue(null), put: vi.fn(), delete: vi.fn() },

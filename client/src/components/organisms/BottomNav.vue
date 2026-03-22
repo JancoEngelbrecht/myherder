@@ -28,9 +28,7 @@ const featureFlagsStore = useFeatureFlagsStore()
 const authStore = useAuthStore()
 const { emoji: speciesEmoji, speciesCode } = useSpeciesTerms()
 
-const animalsLabelKey = computed(() =>
-  speciesCode.value === 'sheep' ? 'nav.sheep' : 'nav.cows'
-)
+const animalsLabelKey = computed(() => (speciesCode.value === 'sheep' ? 'nav.sheep' : 'nav.cows'))
 
 const allTabs = computed(() => [
   { name: 'home', to: '/', icon: '🏠', labelKey: 'nav.home' },

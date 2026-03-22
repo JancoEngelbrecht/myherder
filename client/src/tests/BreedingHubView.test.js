@@ -39,35 +39,27 @@ vi.mock('../db/indexedDB.js', () => ({
       put: vi.fn(),
       get: vi.fn(),
       delete: vi.fn(),
-      where: vi
-        .fn()
-        .mockReturnValue({
-          equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
-        }),
+      where: vi.fn().mockReturnValue({
+        equals: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+      }),
       toArray: vi.fn().mockResolvedValue([]),
-      orderBy: vi
-        .fn()
-        .mockReturnValue({
-          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
-        }),
+      orderBy: vi.fn().mockReturnValue({
+        reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+      }),
     },
     cows: {
       bulkPut: vi.fn(),
       put: vi.fn(),
       get: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      orderBy: vi
-        .fn()
-        .mockReturnValue({
-          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
-        }),
+      orderBy: vi.fn().mockReturnValue({
+        reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+      }),
     },
     syncQueue: {
-      where: vi
-        .fn()
-        .mockReturnValue({
-          aboveOrEqual: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
-        }),
+      where: vi.fn().mockReturnValue({
+        aboveOrEqual: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+      }),
       bulkDelete: vi.fn(),
     },
   },

@@ -80,14 +80,18 @@
               <RouterLink v-if="cow.sire_id" :to="`/cows/${cow.sire_id}`" class="parent-card sire">
                 <span>{{ speciesEmoji.male }}</span>
                 <div>
-                  <div class="parent-role">{{ t('animalDetail.sire') }}</div>
+                  <div class="parent-role">
+                    {{ t(`animalDetail.sire_${speciesCode}`, t('animalDetail.sire')) }}
+                  </div>
                   <div class="parent-name">{{ cow.sire_name || '—' }}</div>
                 </div>
               </RouterLink>
               <div v-else class="parent-card unknown">
                 <span>{{ speciesEmoji.male }}</span>
                 <div>
-                  <div class="parent-role">{{ t('animalDetail.sire') }}</div>
+                  <div class="parent-role">
+                    {{ t(`animalDetail.sire_${speciesCode}`, t('animalDetail.sire')) }}
+                  </div>
                   <div class="parent-name unknown-text">{{ t('animalDetail.unknown') }}</div>
                 </div>
               </div>
@@ -95,14 +99,18 @@
               <RouterLink v-if="cow.dam_id" :to="`/cows/${cow.dam_id}`" class="parent-card dam">
                 <span>{{ speciesEmoji.female }}</span>
                 <div>
-                  <div class="parent-role">{{ t('animalDetail.dam') }}</div>
+                  <div class="parent-role">
+                    {{ t(`animalDetail.dam_${speciesCode}`, t('animalDetail.dam')) }}
+                  </div>
                   <div class="parent-name">{{ cow.dam_name || '—' }}</div>
                 </div>
               </RouterLink>
               <div v-else class="parent-card unknown">
                 <span>{{ speciesEmoji.female }}</span>
                 <div>
-                  <div class="parent-role">{{ t('animalDetail.dam') }}</div>
+                  <div class="parent-role">
+                    {{ t(`animalDetail.dam_${speciesCode}`, t('animalDetail.dam')) }}
+                  </div>
                   <div class="parent-name unknown-text">{{ t('animalDetail.unknown') }}</div>
                 </div>
               </div>
@@ -345,7 +353,7 @@ const breedingEventsStore = useBreedingEventsStore()
 
 const breedTypesStore = useBreedTypesStore()
 const featureFlagsStore = useFeatureFlagsStore()
-const { emoji: speciesEmoji, lifePhasesConfig } = useSpeciesTerms()
+const { speciesCode, emoji: speciesEmoji, lifePhasesConfig } = useSpeciesTerms()
 
 const flags = computed(() => featureFlagsStore.flags)
 
@@ -377,7 +385,11 @@ const latestBirthEvent = ref(null)
 const incompleteOffspring = computed(() => {
   if (!latestBirthEvent.value) return null
   const ev = latestBirthEvent.value
-  const registeredCount = cowsStore.cows.filter((c) => c.birth_event_id === ev.id).length
+  // Count by birth_event_id link, or fall back to dam_id + matching DOB
+  const eventDate = ev.event_date?.slice(0, 10)
+  const registeredCount = cowsStore.cows.filter(
+    (c) => c.birth_event_id === ev.id || (c.dam_id === cow.value?.id && c.dob === eventDate)
+  ).length
   if (ev.offspring_count > registeredCount) {
     return { total: ev.offspring_count, registered: registeredCount, eventId: ev.id }
   }

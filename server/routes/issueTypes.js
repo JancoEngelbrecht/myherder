@@ -101,13 +101,11 @@ router.post('/', requireAdmin, async (req, res, next) => {
     }
     await db('issue_type_definitions').insert(record)
     // Coerce booleans to 0/1 to match SQLite's stored representation
-    res
-      .status(201)
-      .json({
-        ...record,
-        is_active: record.is_active ? 1 : 0,
-        requires_teat_selection: record.requires_teat_selection ? 1 : 0,
-      })
+    res.status(201).json({
+      ...record,
+      is_active: record.is_active ? 1 : 0,
+      requires_teat_selection: record.requires_teat_selection ? 1 : 0,
+    })
   } catch (err) {
     next(err)
   }

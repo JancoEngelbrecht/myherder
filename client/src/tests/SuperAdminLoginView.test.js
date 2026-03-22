@@ -40,11 +40,9 @@ vi.mock('../db/indexedDB.js', () => ({
       bulkPut: vi.fn(),
       put: vi.fn(),
       toArray: vi.fn().mockResolvedValue([]),
-      orderBy: vi
-        .fn()
-        .mockReturnValue({
-          reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
-        }),
+      orderBy: vi.fn().mockReturnValue({
+        reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+      }),
     },
     auth: {
       get: vi.fn().mockResolvedValue(null),
