@@ -14,10 +14,22 @@ const ENTITY_MAP = {
     requiredRole: null,
     requiredPermission: 'can_manage_cows',
     allowedFields: [
-      'tag_number', 'name', 'sex', 'dob', 'status', 'breed_type_id',
-      'sire_id', 'dam_id', 'breed', 'life_phase_override',
-      'species_id', 'birth_event_id',
-      'notes', 'created_by', 'created_at', 'updated_at',
+      'tag_number',
+      'name',
+      'sex',
+      'dob',
+      'status',
+      'breed_type_id',
+      'sire_id',
+      'dam_id',
+      'breed',
+      'life_phase_override',
+      'species_id',
+      'birth_event_id',
+      'notes',
+      'created_by',
+      'created_at',
+      'updated_at',
     ],
   },
   medications: {
@@ -26,10 +38,18 @@ const ENTITY_MAP = {
     requiredRole: 'admin',
     requiredPermission: null,
     allowedFields: [
-      'name', 'active_ingredient', 'unit', 'default_dosage',
-      'withdrawal_milk_days', 'withdrawal_milk_hours',
-      'withdrawal_meat_days', 'withdrawal_meat_hours',
-      'notes', 'is_active', 'created_at', 'updated_at',
+      'name',
+      'active_ingredient',
+      'unit',
+      'default_dosage',
+      'withdrawal_milk_days',
+      'withdrawal_milk_hours',
+      'withdrawal_meat_days',
+      'withdrawal_meat_hours',
+      'notes',
+      'is_active',
+      'created_at',
+      'updated_at',
     ],
   },
   treatments: {
@@ -39,10 +59,20 @@ const ENTITY_MAP = {
     requiredPermission: 'can_log_treatments',
     ownerField: 'administered_by',
     allowedFields: [
-      'cow_id', 'medication_id', 'dosage', 'treatment_date',
-      'is_vet_visit', 'vet_name', 'cost', 'notes',
-      'withdrawal_end_milk', 'withdrawal_end_meat',
-      'health_issue_id', 'administered_by', 'created_at', 'updated_at',
+      'cow_id',
+      'medication_id',
+      'dosage',
+      'treatment_date',
+      'is_vet_visit',
+      'vet_name',
+      'cost',
+      'notes',
+      'withdrawal_end_milk',
+      'withdrawal_end_meat',
+      'health_issue_id',
+      'administered_by',
+      'created_at',
+      'updated_at',
     ],
   },
   healthIssues: {
@@ -52,9 +82,17 @@ const ENTITY_MAP = {
     requiredPermission: 'can_log_issues',
     ownerField: 'reported_by',
     allowedFields: [
-      'cow_id', 'issue_types', 'severity', 'status', 'description',
-      'affected_teats', 'observed_at', 'resolved_at', 'reported_by',
-      'created_at', 'updated_at',
+      'cow_id',
+      'issue_types',
+      'severity',
+      'status',
+      'description',
+      'affected_teats',
+      'observed_at',
+      'resolved_at',
+      'reported_by',
+      'created_at',
+      'updated_at',
     ],
   },
   milkRecords: {
@@ -64,9 +102,17 @@ const ENTITY_MAP = {
     requiredPermission: 'can_record_milk',
     ownerField: 'recorded_by',
     allowedFields: [
-      'cow_id', 'recording_date', 'session', 'session_time', 'litres',
-      'milk_discarded', 'discard_reason', 'notes', 'recorded_by',
-      'created_at', 'updated_at',
+      'cow_id',
+      'recording_date',
+      'session',
+      'session_time',
+      'litres',
+      'milk_discarded',
+      'discard_reason',
+      'notes',
+      'recorded_by',
+      'created_at',
+      'updated_at',
     ],
   },
   breedingEvents: {
@@ -76,12 +122,28 @@ const ENTITY_MAP = {
     requiredPermission: 'can_log_breeding',
     ownerField: 'recorded_by',
     allowedFields: [
-      'cow_id', 'event_type', 'event_date', 'notes', 'sire_id', 'semen_id',
-      'inseminator', 'heat_signs', 'preg_check_method', 'calving_details',
-      'offspring_count', 'cost', 'expected_next_heat', 'expected_preg_check',
-      'expected_calving', 'expected_dry_off',
-      'dismissed_at', 'dismissed_by', 'dismiss_reason',
-      'recorded_by', 'created_at', 'updated_at',
+      'cow_id',
+      'event_type',
+      'event_date',
+      'notes',
+      'sire_id',
+      'semen_id',
+      'inseminator',
+      'heat_signs',
+      'preg_check_method',
+      'calving_details',
+      'offspring_count',
+      'cost',
+      'expected_next_heat',
+      'expected_preg_check',
+      'expected_calving',
+      'expected_dry_off',
+      'dismissed_at',
+      'dismissed_by',
+      'dismiss_reason',
+      'recorded_by',
+      'created_at',
+      'updated_at',
     ],
   },
   breedTypes: {
@@ -90,10 +152,21 @@ const ENTITY_MAP = {
     requiredRole: 'admin',
     requiredPermission: null,
     allowedFields: [
-      'name', 'code', 'species_id', 'gestation_days', 'heat_cycle_days', 'preg_check_days',
-      'dry_off_days', 'voluntary_waiting_days', 'calf_max_months',
-      'heifer_min_months', 'young_bull_min_months',
-      'is_active', 'sort_order', 'created_at', 'updated_at',
+      'name',
+      'code',
+      'species_id',
+      'gestation_days',
+      'heat_cycle_days',
+      'preg_check_days',
+      'dry_off_days',
+      'voluntary_waiting_days',
+      'calf_max_months',
+      'heifer_min_months',
+      'young_bull_min_months',
+      'is_active',
+      'sort_order',
+      'created_at',
+      'updated_at',
     ],
   },
   issueTypes: {
@@ -102,8 +175,14 @@ const ENTITY_MAP = {
     requiredRole: 'admin',
     requiredPermission: null,
     allowedFields: [
-      'name', 'code', 'emoji', 'requires_teat_selection',
-      'is_active', 'sort_order', 'created_at', 'updated_at',
+      'name',
+      'code',
+      'emoji',
+      'requires_teat_selection',
+      'is_active',
+      'sort_order',
+      'created_at',
+      'updated_at',
     ],
   },
 }
@@ -157,7 +236,16 @@ async function processChange(entityType, action, id, data, clientUpdatedAt, user
     if (action === 'create') {
       return await handleCreate(qb, table, entityType, id, safeData, user, mapping.ownerField)
     } else if (action === 'update') {
-      return await handleUpdate(qb, table, entityType, id, safeData, clientUpdatedAt, user, mapping.ownerField)
+      return await handleUpdate(
+        qb,
+        table,
+        entityType,
+        id,
+        safeData,
+        clientUpdatedAt,
+        user,
+        mapping.ownerField
+      )
     } else if (action === 'delete') {
       return await handleDelete(qb, table, entityType, id, softDelete, user, mapping.ownerField)
     } else {
@@ -186,7 +274,12 @@ async function handleCreate(qb, table, entityType, id, data, user, ownerField) {
   if (existing) {
     // Already exists — verify ownership before returning data
     if (ownerField && user && user.role !== 'admin' && existing[ownerField] !== user.id) {
-      return { id, entityType, status: 'error', error: 'Cannot access records owned by another user' }
+      return {
+        id,
+        entityType,
+        status: 'error',
+        error: 'Cannot access records owned by another user',
+      }
     }
     return { id, entityType, status: 'applied', serverData: existing }
   }
@@ -200,7 +293,13 @@ async function handleCreate(qb, table, entityType, id, data, user, ownerField) {
       .where('recording_date', data.recording_date)
       .first()
     if (duplicate) {
-      return { id, entityType, status: 'conflict', serverData: duplicate, error: 'Duplicate milk record for this cow/session/date' }
+      return {
+        id,
+        entityType,
+        status: 'conflict',
+        serverData: duplicate,
+        error: 'Duplicate milk record for this cow/session/date',
+      }
     }
   }
 
@@ -277,7 +376,10 @@ async function handleDelete(qb, table, entityType, id, softDelete, user, ownerFi
 
   if (softDelete) {
     const now = new Date().toISOString()
-    await qb(table).where({ id }).where('farm_id', user.farm_id).update({ deleted_at: now, updated_at: now })
+    await qb(table)
+      .where({ id })
+      .where('farm_id', user.farm_id)
+      .update({ deleted_at: now, updated_at: now })
   } else {
     await qb(table).where({ id }).where('farm_id', user.farm_id).delete()
   }
@@ -312,36 +414,38 @@ async function pullData(since, full, farmId, user) {
   })
 
   // Run all entity queries in parallel
-  const entityResults = await Promise.all(entries.map(async ([entityType, { table, softDelete }]) => {
-    let query = db(table).where('farm_id', farmId)
+  const entityResults = await Promise.all(
+    entries.map(async ([entityType, { table, softDelete }]) => {
+      let query = db(table).where('farm_id', farmId)
 
-    if (full) {
-      // Full pull: return all non-deleted records
-      if (softDelete) query = query.whereNull('deleted_at')
-    } else if (since) {
-      // Incremental: return records updated since timestamp
-      query = query.where('updated_at', '>', since)
-    } else {
-      // No since and not full — return all non-deleted
-      if (softDelete) query = query.whereNull('deleted_at')
-    }
+      if (full) {
+        // Full pull: return all non-deleted records
+        if (softDelete) query = query.whereNull('deleted_at')
+      } else if (since) {
+        // Incremental: return records updated since timestamp
+        query = query.where('updated_at', '>', since)
+      } else {
+        // No since and not full — return all non-deleted
+        if (softDelete) query = query.whereNull('deleted_at')
+      }
 
-    const rows = await query
+      const rows = await query
 
-    if (!full && since && softDelete) {
-      // Also find soft-deleted records for the client to remove locally
-      const deletedRows = await db(table)
-        .where('farm_id', farmId)
-        .whereNotNull('deleted_at')
-        .where('updated_at', '>', since)
-        .select('id')
+      if (!full && since && softDelete) {
+        // Also find soft-deleted records for the client to remove locally
+        const deletedRows = await db(table)
+          .where('farm_id', farmId)
+          .whereNotNull('deleted_at')
+          .where('updated_at', '>', since)
+          .select('id')
 
-      const entityDeleted = deletedRows.map((row) => ({ entityType, id: row.id }))
-      return { entityType, rows: rows.filter((r) => !r.deleted_at), deleted: entityDeleted }
-    }
+        const entityDeleted = deletedRows.map((row) => ({ entityType, id: row.id }))
+        return { entityType, rows: rows.filter((r) => !r.deleted_at), deleted: entityDeleted }
+      }
 
-    return { entityType, rows, deleted: [] }
-  }))
+      return { entityType, rows, deleted: [] }
+    })
+  )
 
   const result = {}
   for (const { entityType, rows, deleted: entityDeleted } of entityResults) {
@@ -355,17 +459,25 @@ async function pullData(since, full, farmId, user) {
     species = await db('species').where('is_active', true).orderBy('sort_order')
     species = species.map((row) => {
       if (row.config && typeof row.config === 'string') {
-        try { row.config = JSON.parse(row.config) } catch { row.config = {} }
+        try {
+          row.config = JSON.parse(row.config)
+        } catch {
+          row.config = {}
+        }
       }
       return row
     })
-  } catch { /* species table may not exist yet */ }
+  } catch {
+    /* species table may not exist yet */
+  }
 
   // Include farm's species assignment
   let farmSpecies = null
   try {
     farmSpecies = await db('farm_species').where('farm_id', farmId).first()
-  } catch { /* farm_species table may not exist yet */ }
+  } catch {
+    /* farm_species table may not exist yet */
+  }
 
   return { ...result, species, farmSpecies, deleted, syncedAt: new Date().toISOString() }
 }
@@ -392,6 +504,7 @@ const TABLE_TO_ENTITY = Object.fromEntries(
   Object.entries(ENTITY_MAP).map(([entity, { table }]) => [table, entity])
 )
 
+// eslint-disable-next-line no-unused-vars
 function tableToEntity(table) {
   return TABLE_TO_ENTITY[table] || table
 }

@@ -3,7 +3,14 @@ const app = require('../app')
 const db = require('../config/database')
 const jwt = require('jsonwebtoken')
 const { jwtSecret } = require('../config/env')
-const { ADMIN_ID, WORKER_ID, DEFAULT_FARM_ID, ADMIN_PASSWORD, WORKER_PIN, seedUsers } = require('./helpers/setup')
+const {
+  ADMIN_ID,
+  WORKER_ID,
+  DEFAULT_FARM_ID,
+  ADMIN_PASSWORD,
+  WORKER_PIN,
+  seedUsers,
+} = require('./helpers/setup')
 
 const FARM_CODE = 'TEST'
 
@@ -68,9 +75,7 @@ describe('POST /api/auth/login', () => {
   })
 
   it('returns 400 when password is missing', async () => {
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ username: 'test_admin' })
+    const res = await request(app).post('/api/auth/login').send({ username: 'test_admin' })
 
     expect(res.status).toBe(400)
   })
@@ -230,9 +235,7 @@ describe('Token version', () => {
     await db('users').where({ id: ADMIN_ID }).update({ token_version: 1 })
 
     // Try to use the old token — should be rejected
-    const res = await request(app)
-      .get('/api/cows')
-      .set('Authorization', `Bearer ${token}`)
+    const res = await request(app).get('/api/cows').set('Authorization', `Bearer ${token}`)
 
     expect(res.status).toBe(401)
     expect(res.body.error).toBe('Token revoked')
@@ -263,26 +266,20 @@ describe('Token version', () => {
 
 describe('Temp token security', () => {
   it('rejects temp tokens on regular endpoints', async () => {
-    const tempToken = jwt.sign(
-      { id: ADMIN_ID, role: 'super_admin', type: 'temp' },
-      jwtSecret,
-      { expiresIn: '10m' }
-    )
+    const tempToken = jwt.sign({ id: ADMIN_ID, role: 'super_admin', type: 'temp' }, jwtSecret, {
+      expiresIn: '10m',
+    })
 
-    const res = await request(app)
-      .get('/api/cows')
-      .set('Authorization', `Bearer ${tempToken}`)
+    const res = await request(app).get('/api/cows').set('Authorization', `Bearer ${tempToken}`)
 
     expect(res.status).toBe(401)
     expect(res.body.error).toBe('Temporary token not valid for this endpoint')
   })
 
   it('rejects temp tokens on refresh', async () => {
-    const tempToken = jwt.sign(
-      { id: ADMIN_ID, role: 'super_admin', type: 'temp' },
-      jwtSecret,
-      { expiresIn: '10m' }
-    )
+    const tempToken = jwt.sign({ id: ADMIN_ID, role: 'super_admin', type: 'temp' }, jwtSecret, {
+      expiresIn: '10m',
+    })
 
     const res = await request(app)
       .post('/api/auth/refresh')
@@ -302,9 +299,140 @@ describe('Auth middleware', () => {
   })
 
   it('returns 401 for a malformed token', async () => {
+    const res = await request(app).get('/api/cows').set('Authorization', 'Bearer not.a.valid.token')
+    expect(res.status).toBe(401)
+  })
+})
+
+// ─── Farm switcher ─────────────────────────────────────────────────────────────
+
+describe('GET /api/auth/my-farms', () => {
+  it('returns the list of active farms for the authenticated user', async () => {
+    // The admin user (test_admin) is assigned to DEFAULT_FARM_ID
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'test_admin', password: ADMIN_PASSWORD, farm_code: FARM_CODE })
+
+    expect(loginRes.status).toBe(200)
+    const token = loginRes.body.token
+
+    const res = await request(app).get('/api/auth/my-farms').set('Authorization', `Bearer ${token}`)
+
+    expect(res.status).toBe(200)
+    expect(Array.isArray(res.body)).toBe(true)
+    expect(res.body.length).toBeGreaterThanOrEqual(1)
+    expect(res.body[0]).toHaveProperty('id')
+    expect(res.body[0]).toHaveProperty('name')
+    expect(res.body[0]).toHaveProperty('code')
+    expect(res.body[0]).toHaveProperty('species')
+  })
+
+  it('includes species info when farm_species row exists', async () => {
+    const cattle = await db('species').where({ code: 'cattle' }).first()
+    // Ensure the test farm has a farm_species row
+    await db('farm_species')
+      .insert({ farm_id: DEFAULT_FARM_ID, species_id: cattle.id })
+      .onConflict(['farm_id'])
+      .ignore()
+
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'test_admin', password: ADMIN_PASSWORD, farm_code: FARM_CODE })
+    const token = loginRes.body.token
+
+    const res = await request(app).get('/api/auth/my-farms').set('Authorization', `Bearer ${token}`)
+
+    expect(res.status).toBe(200)
+    const farm = res.body.find((f) => f.id === DEFAULT_FARM_ID)
+    expect(farm).toBeDefined()
+    expect(farm.species).toBeDefined()
+    expect(farm.species.code).toBe('cattle')
+
+    // Clean up
+    await db('farm_species').where({ farm_id: DEFAULT_FARM_ID, species_id: cattle.id }).del()
+  })
+
+  it('returns 401 without authentication', async () => {
+    const res = await request(app).get('/api/auth/my-farms')
+    expect(res.status).toBe(401)
+  })
+})
+
+describe('POST /api/auth/switch-farm/:farmId', () => {
+  it('issues a new scoped JWT when user is assigned to target farm', async () => {
+    // test_admin is already assigned to DEFAULT_FARM_ID
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'test_admin', password: ADMIN_PASSWORD, farm_code: FARM_CODE })
+    const token = loginRes.body.token
+
     const res = await request(app)
-      .get('/api/cows')
-      .set('Authorization', 'Bearer not.a.valid.token')
+      .post(`/api/auth/switch-farm/${DEFAULT_FARM_ID}`)
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(res.status).toBe(200)
+    expect(res.body.token).toBeDefined()
+    expect(typeof res.body.token).toBe('string')
+    expect(res.body.user.farm_id).toBe(DEFAULT_FARM_ID)
+    expect(res.body.farm.id).toBe(DEFAULT_FARM_ID)
+  })
+
+  it('returns decoded JWT with correct farm_id', async () => {
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'test_admin', password: ADMIN_PASSWORD, farm_code: FARM_CODE })
+    const token = loginRes.body.token
+
+    const switchRes = await request(app)
+      .post(`/api/auth/switch-farm/${DEFAULT_FARM_ID}`)
+      .set('Authorization', `Bearer ${token}`)
+
+    const decoded = jwt.verify(switchRes.body.token, jwtSecret)
+    expect(decoded.farm_id).toBe(DEFAULT_FARM_ID)
+    expect(decoded.username).toBe('test_admin')
+  })
+
+  it('returns 403 when user is not assigned to target farm', async () => {
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'test_admin', password: ADMIN_PASSWORD, farm_code: FARM_CODE })
+    const token = loginRes.body.token
+
+    // Try to switch to a non-existent / unassigned farm
+    const nonExistentFarmId = '00000000-dead-4000-beef-000000000000'
+    const res = await request(app)
+      .post(`/api/auth/switch-farm/${nonExistentFarmId}`)
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(res.status).toBe(403)
+    expect(res.body.error).toMatch(/not assigned/i)
+  })
+
+  it('returns 404 when target farm exists but is inactive', async () => {
+    const { seedFarm, seedFarmUser } = require('./helpers/setup')
+
+    // Create a farm where test_admin username also has an account
+    const newFarmId = await seedFarm(db, 'SWTEST', 'Switch Test Farm')
+    await seedFarmUser(db, newFarmId, { username: 'test_admin', password: ADMIN_PASSWORD })
+
+    // Deactivate that farm
+    await db('farms').where({ id: newFarmId }).update({ is_active: false })
+
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'test_admin', password: ADMIN_PASSWORD, farm_code: FARM_CODE })
+    const token = loginRes.body.token
+
+    const res = await request(app)
+      .post(`/api/auth/switch-farm/${newFarmId}`)
+      .set('Authorization', `Bearer ${token}`)
+
+    expect(res.status).toBe(404)
+    expect(res.body.error).toMatch(/not found or inactive/i)
+  })
+
+  it('returns 401 without authentication', async () => {
+    const res = await request(app).post(`/api/auth/switch-farm/${DEFAULT_FARM_ID}`)
     expect(res.status).toBe(401)
   })
 })

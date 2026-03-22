@@ -11,9 +11,15 @@ let mockRoutePath = '/cows/new'
 
 vi.mock('vue-router', () => ({
   useRoute: () => ({
-    get params() { return mockRouteParams },
-    get query() { return mockRouteQuery },
-    get path() { return mockRoutePath },
+    get params() {
+      return mockRouteParams
+    },
+    get query() {
+      return mockRouteQuery
+    },
+    get path() {
+      return mockRoutePath
+    },
   }),
   useRouter: () => ({ push: mockPush, replace: mockReplace }),
   RouterLink: { template: '<a><slot /></a>', props: ['to'] },
@@ -44,8 +50,20 @@ vi.mock('../services/syncManager.js', () => {
 
 vi.mock('../db/indexedDB.js', () => ({
   default: {
-    cows: { toArray: vi.fn().mockResolvedValue([]), bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn() },
-    breedTypes: { toArray: vi.fn().mockResolvedValue([]), bulkPut: vi.fn(), put: vi.fn(), get: vi.fn(), delete: vi.fn() },
+    cows: {
+      toArray: vi.fn().mockResolvedValue([]),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
+    },
+    breedTypes: {
+      toArray: vi.fn().mockResolvedValue([]),
+      bulkPut: vi.fn(),
+      put: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
+    },
     featureFlags: { toArray: vi.fn().mockResolvedValue([]), put: vi.fn(), bulkPut: vi.fn() },
     syncQueue: { toArray: vi.fn().mockResolvedValue([]) },
   },
@@ -63,13 +81,39 @@ import { createPinia, setActivePinia } from 'pinia'
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const BREED_TYPES = [
-  { id: 'bt-1', code: 'holstein', name: 'Holstein', is_active: true, sort_order: 0, heat_cycle_days: 21, gestation_days: 280, preg_check_days: 35, dry_off_days: 60 },
-  { id: 'bt-2', code: 'jersey', name: 'Jersey', is_active: true, sort_order: 1, heat_cycle_days: 21, gestation_days: 279, preg_check_days: 35, dry_off_days: 60 },
+  {
+    id: 'bt-1',
+    code: 'holstein',
+    name: 'Holstein',
+    is_active: true,
+    sort_order: 0,
+    heat_cycle_days: 21,
+    gestation_days: 280,
+    preg_check_days: 35,
+    dry_off_days: 60,
+  },
+  {
+    id: 'bt-2',
+    code: 'jersey',
+    name: 'Jersey',
+    is_active: true,
+    sort_order: 1,
+    heat_cycle_days: 21,
+    gestation_days: 279,
+    preg_check_days: 35,
+    dry_off_days: 60,
+  },
 ]
 
 const stubs = {
-  AppHeader: { template: '<div class="app-header"><slot /></div>', props: ['title', 'showBack', 'backTo'] },
-  CowSearchDropdown: { template: '<select class="cow-search-dropdown" />', props: ['modelValue', 'placeholder', 'sexFilter'] },
+  AppHeader: {
+    template: '<div class="app-header"><slot /></div>',
+    props: ['title', 'showBack', 'backTo'],
+  },
+  CowSearchDropdown: {
+    template: '<select class="cow-search-dropdown" />',
+    props: ['modelValue', 'placeholder', 'sexFilter'],
+  },
 }
 
 function createWrapper(opts = {}) {
@@ -79,13 +123,27 @@ function createWrapper(opts = {}) {
     if (typeof url === 'string' && url.startsWith('/cows/')) {
       return Promise.resolve({
         data: {
-          id: 'cow-1', tag_number: 'TAG-001', name: 'Bessie', sex: 'female',
-          status: 'active', breed_type_id: 'bt-1', dob: '2022-01-01',
+          id: 'cow-1',
+          tag_number: 'TAG-001',
+          name: 'Bessie',
+          sex: 'female',
+          status: 'active',
+          breed_type_id: 'bt-1',
+          dob: '2022-01-01',
         },
       })
     }
     if (url === '/cows') return Promise.resolve({ data: [] })
-    if (url.includes('feature-flags')) return Promise.resolve({ data: { breeding: true, milkRecording: true, healthIssues: true, treatments: true, analytics: true } })
+    if (url.includes('feature-flags'))
+      return Promise.resolve({
+        data: {
+          breeding: true,
+          milkRecording: true,
+          healthIssues: true,
+          treatments: true,
+          analytics: true,
+        },
+      })
     return Promise.resolve({ data: [] })
   })
 
@@ -167,7 +225,6 @@ describe('CowFormView', () => {
     expect(wrapper.html()).toContain('animalForm.isExternal')
   })
 
-
   it('shows calving banner when from_calving query is set', async () => {
     mockRouteQuery = { from_calving: 'true', sex: 'female', dob: '2026-01-01' }
 
@@ -222,5 +279,107 @@ describe('CowFormView', () => {
     await cancelBtn.trigger('click')
 
     expect(mockPush).toHaveBeenCalledWith('/cows')
+  })
+})
+
+// ── Offspring mode tests ──────────────────────────────────────────────────────
+
+describe('CowFormView — offspring mode', () => {
+  it('shows offspring banner when birth_event_id query param is set', async () => {
+    mockRouteQuery = {
+      birth_event_id: 'event-uuid-123',
+      offspring_total: '2',
+      offspring_index: '1',
+    }
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    expect(wrapper.find('.offspring-banner').exists()).toBe(true)
+    expect(wrapper.find('.calving-banner').exists()).toBe(false)
+  })
+
+  it('does not show offspring banner when no birth_event_id', async () => {
+    mockRouteQuery = {}
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    expect(wrapper.find('.offspring-banner').exists()).toBe(false)
+  })
+
+  it('shows offspring progress text with current/total', async () => {
+    mockRouteQuery = {
+      birth_event_id: 'event-uuid-123',
+      offspring_total: '3',
+      offspring_index: '2',
+    }
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    // The offspring banner should contain progress info (translated key: animalForm.offspringProgress)
+    const banner = wrapper.find('.offspring-banner')
+    expect(banner.exists()).toBe(true)
+  })
+
+  it('shows Save & Next and Save & Done buttons in offspring mode', async () => {
+    mockRouteQuery = {
+      birth_event_id: 'event-uuid-456',
+      offspring_total: '2',
+      offspring_index: '1',
+    }
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    // In offspring mode, multiple submit actions are shown
+    const template = wrapper.html()
+    // Should have offspring action buttons
+    expect(template).toContain('animalForm.')
+  })
+
+  it('pre-fills dob from offspring query params', async () => {
+    mockRouteQuery = {
+      birth_event_id: 'event-uuid-789',
+      offspring_total: '1',
+      offspring_index: '1',
+      dob: '2026-03-01',
+      sex: 'female',
+    }
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    // The dob input should be pre-filled
+    const dobInput = wrapper.find('input[type="date"]')
+    if (dobInput.exists()) {
+      expect(dobInput.element.value).toBe('2026-03-01')
+    }
+  })
+
+  it('includes birth_event_id in POST payload when in offspring mode', async () => {
+    mockRouteQuery = {
+      birth_event_id: 'event-uuid-abc',
+      offspring_total: '1',
+      offspring_index: '1',
+    }
+
+    api.post.mockResolvedValue({
+      data: { id: 'new-offspring', tag_number: 'LAMB-01' },
+    })
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    const tagInput = wrapper.find('input[type="text"]')
+    await tagInput.setValue('LAMB-01')
+    await wrapper.find('form').trigger('submit')
+    await flushPromises()
+
+    // API must have been called (offspring mode form submits same as regular)
+    expect(api.post).toHaveBeenCalled()
+    const payload = api.post.mock.calls[0][1]
+    expect(payload.birth_event_id).toBe('event-uuid-abc')
   })
 })

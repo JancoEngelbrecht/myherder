@@ -115,7 +115,9 @@ describe('GET /api/breeding-events', () => {
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    expect(res.body.every((e) => ['ai_insemination', 'heat_observed'].includes(e.event_type))).toBe(true)
+    expect(res.body.every((e) => ['ai_insemination', 'heat_observed'].includes(e.event_type))).toBe(
+      true
+    )
   })
 
   it('rejects invalid event_type', async () => {
@@ -128,9 +130,7 @@ describe('GET /api/breeding-events', () => {
   })
 
   it('defaults to page=1 limit=20 when not provided', async () => {
-    const res = await request(app)
-      .get('/api/breeding-events')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/breeding-events').set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
     expect(res.body).toHaveProperty('data')
@@ -392,5 +392,177 @@ describe('GET /api/breeding-events permission enforcement', () => {
     const token = workerTokenWith([])
     const res = await request(app).get('/api/breeding-events/upcoming').set('Authorization', token)
     expect(res.status).toBe(403)
+  })
+})
+
+// ─── Universal livestock: sheep event types ───────────────────────────────────
+
+describe('POST /api/breeding-events — sheep event types', () => {
+  it('accepts ram_service event type', async () => {
+    const cowId = await createCow({ sex: 'female' })
+
+    const res = await postEvent({
+      cow_id: cowId,
+      event_type: 'ram_service',
+      event_date: '2026-03-01T08:00',
+    })
+
+    expect(res.status).toBe(201)
+    expect(res.body.event_type).toBe('ram_service')
+  })
+
+  it('accepts lambing event type', async () => {
+    const cowId = await createCow({ sex: 'female' })
+
+    const res = await postEvent({
+      cow_id: cowId,
+      event_type: 'lambing',
+      event_date: '2026-03-15T08:00',
+    })
+
+    expect(res.status).toBe(201)
+    expect(res.body.event_type).toBe('lambing')
+  })
+
+  it('stores offspring_count on birth events', async () => {
+    const cowId = await createCow({ sex: 'female' })
+
+    const res = await postEvent({
+      cow_id: cowId,
+      event_type: 'lambing',
+      event_date: '2026-04-01T08:00',
+      offspring_count: 3,
+    })
+
+    expect(res.status).toBe(201)
+    expect(res.body.offspring_count).toBe(3)
+
+    const row = await db('breeding_events').where({ id: res.body.id }).first()
+    expect(row.offspring_count).toBe(3)
+  })
+
+  it('defaults offspring_count to 1 when not provided', async () => {
+    const cowId = await createCow({ sex: 'female' })
+
+    const res = await postEvent({
+      cow_id: cowId,
+      event_type: 'calving',
+      event_date: '2026-04-10T08:00',
+    })
+
+    expect(res.status).toBe(201)
+    expect(res.body.offspring_count).toBe(1)
+  })
+
+  it('rejects offspring_count > 10', async () => {
+    const cowId = await createCow({ sex: 'female' })
+
+    const res = await postEvent({
+      cow_id: cowId,
+      event_type: 'lambing',
+      event_date: '2026-04-15T08:00',
+      offspring_count: 11,
+    })
+
+    expect(res.status).toBe(400)
+  })
+})
+
+// ─── Universal livestock: registered_offspring count ─────────────────────────
+
+describe('GET /api/breeding-events/:id — registered_offspring', () => {
+  it('includes registered_offspring count for birth events', async () => {
+    const damId = await createCow({ sex: 'female' })
+    const eventRes = await postEvent({
+      cow_id: damId,
+      event_type: 'calving',
+      event_date: '2026-05-01T08:00',
+      offspring_count: 2,
+    })
+    const eventId = eventRes.body.id
+
+    // Register one offspring linked to this event
+    const offspringTag = `REG-OFF-${randomUUID().slice(0, 6)}`
+    await db('cows').insert({
+      id: randomUUID(),
+      farm_id: DEFAULT_FARM_ID,
+      tag_number: offspringTag,
+      sex: 'female',
+      status: 'active',
+      birth_event_id: eventId,
+    })
+
+    const res = await request(app)
+      .get(`/api/breeding-events/${eventId}`)
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    expect(res.body.offspring_count).toBe(2)
+    expect(res.body.registered_offspring).toBe(1)
+  })
+
+  it('registered_offspring is 0 when no offspring linked', async () => {
+    const damId = await createCow({ sex: 'female' })
+    const eventRes = await postEvent({
+      cow_id: damId,
+      event_type: 'lambing',
+      event_date: '2026-05-15T08:00',
+      offspring_count: 2,
+    })
+
+    const res = await request(app)
+      .get(`/api/breeding-events/${eventRes.body.id}`)
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    expect(res.body.registered_offspring).toBe(0)
+  })
+
+  it('does not include registered_offspring for non-birth events', async () => {
+    const cowId = await createCow({ sex: 'female' })
+    const insemRes = await postEvent({
+      cow_id: cowId,
+      event_type: 'ai_insemination',
+      event_date: '2026-05-20T08:00',
+    })
+
+    const res = await request(app)
+      .get(`/api/breeding-events/${insemRes.body.id}`)
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    // registered_offspring should NOT be present on non-birth events
+    expect(res.body).not.toHaveProperty('registered_offspring')
+  })
+})
+
+// ─── Universal livestock: event type filter accepts new types ─────────────────
+
+describe('GET /api/breeding-events — filter accepts sheep event types', () => {
+  it('accepts ram_service as event_type filter', async () => {
+    const cowId = await createCow({ sex: 'female' })
+    await createBreedingEvent(cowId, {
+      event_type: 'ram_service',
+      event_date: '2026-06-01T08:00',
+    })
+
+    const res = await request(app)
+      .get(`/api/breeding-events?cow_id=${cowId}&event_type=ram_service`)
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    expect(res.body.every((e) => e.event_type === 'ram_service')).toBe(true)
+  })
+
+  it('accepts lambing as event_type filter', async () => {
+    const cowId = await createCow({ sex: 'female' })
+    await createBreedingEvent(cowId, { event_type: 'lambing', event_date: '2026-06-10T08:00' })
+
+    const res = await request(app)
+      .get(`/api/breeding-events?cow_id=${cowId}&event_type=lambing`)
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    expect(res.body.every((e) => e.event_type === 'lambing')).toBe(true)
   })
 })

@@ -41,7 +41,11 @@ vi.mock('../db/indexedDB.js', () => ({
   default: {
     auth: { get: vi.fn().mockResolvedValue(null), put: vi.fn(), delete: vi.fn() },
     syncQueue: {
-      where: vi.fn().mockReturnValue({ aboveOrEqual: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }) }),
+      where: vi
+        .fn()
+        .mockReturnValue({
+          aboveOrEqual: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
+        }),
       bulkDelete: vi.fn(),
     },
   },
@@ -114,7 +118,7 @@ describe('AppHeader', () => {
   it('renders avatar initials when showAvatar is true', () => {
     const wrapper = mountWithAuth(
       { showAvatar: true },
-      { full_name: 'John Doe', username: 'johnd' },
+      { full_name: 'John Doe', username: 'johnd' }
     )
     const avatar = wrapper.find('.avatar-circle')
     expect(avatar.exists()).toBe(true)
@@ -124,5 +128,101 @@ describe('AppHeader', () => {
   it('hides avatar when showAvatar is false (default)', () => {
     const wrapper = mount(AppHeader, { global: { stubs } })
     expect(wrapper.find('.avatar-circle').exists()).toBe(false)
+  })
+})
+
+// ─── Farm switcher ────────────────────────────────────────────────────────────
+
+describe('AppHeader — farm switcher', () => {
+  function mountWithFarms(farms = [], currentUser = null) {
+    const authStore = useAuthStore()
+    authStore.myFarms = farms
+    if (currentUser) authStore.user = currentUser
+    return mount(AppHeader, { global: { stubs } })
+  }
+
+  it('hides farm switcher when user has only one farm', () => {
+    const wrapper = mountWithFarms(
+      [{ id: 'farm-1', name: 'Botha Cattle', code: 'BC', species: { code: 'cattle' } }],
+      { id: 'u1', farm_id: 'farm-1', username: 'admin', role: 'admin' }
+    )
+    expect(wrapper.find('.farm-switcher').exists()).toBe(false)
+  })
+
+  it('shows farm switcher pill when user has 2+ farms', () => {
+    const wrapper = mountWithFarms(
+      [
+        { id: 'farm-1', name: 'Botha Cattle', code: 'BC', species: { code: 'cattle' } },
+        { id: 'farm-2', name: 'Botha Sheep', code: 'BS', species: { code: 'sheep' } },
+      ],
+      { id: 'u1', farm_id: 'farm-1', username: 'admin', role: 'admin' }
+    )
+    expect(wrapper.find('.farm-switcher').exists()).toBe(true)
+  })
+
+  it('hides farm switcher for super-admin', () => {
+    const authStore = useAuthStore()
+    authStore.myFarms = [
+      { id: 'farm-1', name: 'Farm A', code: 'FA', species: null },
+      { id: 'farm-2', name: 'Farm B', code: 'FB', species: null },
+    ]
+    authStore.user = { id: 'sa', role: 'super_admin', username: 'super' }
+    const wrapper = mount(AppHeader, { global: { stubs } })
+    expect(wrapper.find('.farm-switcher').exists()).toBe(false)
+  })
+
+  it('farm pill label uses cattle emoji for cattle farm', () => {
+    const wrapper = mountWithFarms(
+      [
+        { id: 'farm-1', name: 'Botha Cattle', code: 'BC', species: { code: 'cattle' } },
+        { id: 'farm-2', name: 'Botha Sheep', code: 'BS', species: { code: 'sheep' } },
+      ],
+      { id: 'u1', farm_id: 'farm-1', username: 'admin', role: 'admin' }
+    )
+    const pill = wrapper.find('.farm-pill')
+    expect(pill.text()).toContain('🐄')
+    expect(pill.text()).toContain('Botha Cattle')
+  })
+
+  it('farm pill label uses sheep emoji for sheep farm', () => {
+    const wrapper = mountWithFarms(
+      [
+        { id: 'farm-1', name: 'Botha Cattle', code: 'BC', species: { code: 'cattle' } },
+        { id: 'farm-2', name: 'Botha Sheep', code: 'BS', species: { code: 'sheep' } },
+      ],
+      { id: 'u1', farm_id: 'farm-2', username: 'admin', role: 'admin', species_code: 'sheep' }
+    )
+    const pill = wrapper.find('.farm-pill')
+    expect(pill.text()).toContain('🐑')
+    expect(pill.text()).toContain('Botha Sheep')
+  })
+
+  it('opens dropdown when farm switcher is clicked', async () => {
+    const wrapper = mountWithFarms(
+      [
+        { id: 'farm-1', name: 'Cattle Farm', code: 'CF', species: { code: 'cattle' } },
+        { id: 'farm-2', name: 'Sheep Farm', code: 'SF', species: { code: 'sheep' } },
+      ],
+      { id: 'u1', farm_id: 'farm-1', username: 'admin', role: 'admin' }
+    )
+    // Dropdown hidden initially
+    expect(wrapper.find('.farm-dropdown').exists()).toBe(false)
+    await wrapper.find('.farm-switcher').trigger('click')
+    expect(wrapper.find('.farm-dropdown').exists()).toBe(true)
+  })
+
+  it('dropdown lists all farms as options', async () => {
+    const wrapper = mountWithFarms(
+      [
+        { id: 'farm-1', name: 'Cattle Farm', code: 'CF', species: { code: 'cattle' } },
+        { id: 'farm-2', name: 'Sheep Farm', code: 'SF', species: { code: 'sheep' } },
+      ],
+      { id: 'u1', farm_id: 'farm-1', username: 'admin', role: 'admin' }
+    )
+    await wrapper.find('.farm-switcher').trigger('click')
+    const options = wrapper.findAll('.farm-option')
+    expect(options).toHaveLength(2)
+    expect(options[0].text()).toContain('Cattle Farm')
+    expect(options[1].text()).toContain('Sheep Farm')
   })
 })

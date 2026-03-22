@@ -69,9 +69,7 @@ describe('GET /api/breed-types', () => {
       is_active: false,
     })
 
-    const res = await request(app)
-      .get('/api/breed-types?all=1')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/breed-types?all=1').set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
     expect(res.body.some((t) => t.id === inactiveId)).toBe(true)
@@ -158,6 +156,119 @@ describe('PUT /api/breed-types/:id', () => {
       .send({ name: 'Ghost' })
 
     expect(res.status).toBe(404)
+  })
+})
+
+// ─── GET /api/breed-types — species filter ────────────────────────────────────
+
+describe('GET /api/breed-types — species_id filter', () => {
+  it('returns breed types filtered by species_id', async () => {
+    // Get the cattle species ID from DB (seeded by migration 035)
+    const db = require('../config/database')
+    const cattle = await db('species').where({ code: 'cattle' }).first()
+    const sheep = await db('species').where({ code: 'sheep' }).first()
+
+    const cattleBreedId = randomUUID()
+    const now = new Date().toISOString()
+    await db('breed_types').insert({
+      id: cattleBreedId,
+      farm_id: DEFAULT_FARM_ID,
+      code: `cattle_only_${cattleBreedId.slice(0, 6)}`,
+      name: `CattleOnly-${cattleBreedId.slice(0, 6)}`,
+      species_id: cattle.id,
+      is_active: true,
+      sort_order: 0,
+      created_at: now,
+      updated_at: now,
+    })
+
+    const sheepBreedId = randomUUID()
+    await db('breed_types').insert({
+      id: sheepBreedId,
+      farm_id: DEFAULT_FARM_ID,
+      code: `sheep_only_${sheepBreedId.slice(0, 6)}`,
+      name: `SheepOnly-${sheepBreedId.slice(0, 6)}`,
+      species_id: sheep.id,
+      is_active: true,
+      sort_order: 0,
+      created_at: now,
+      updated_at: now,
+    })
+
+    const res = await request(app)
+      .get(`/api/breed-types?species_id=${cattle.id}`)
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    const ids = res.body.map((bt) => bt.id)
+    expect(ids).toContain(cattleBreedId)
+    expect(ids).not.toContain(sheepBreedId)
+  })
+
+  it('returns species_id in breed type response', async () => {
+    const db = require('../config/database')
+    const cattle = await db('species').where({ code: 'cattle' }).first()
+
+    const id = randomUUID()
+    const now = new Date().toISOString()
+    await db('breed_types').insert({
+      id,
+      farm_id: DEFAULT_FARM_ID,
+      code: `with_species_${id.slice(0, 6)}`,
+      name: `WithSpecies-${id.slice(0, 6)}`,
+      species_id: cattle.id,
+      is_active: true,
+      sort_order: 0,
+      created_at: now,
+      updated_at: now,
+    })
+
+    const res = await request(app).get('/api/breed-types').set('Authorization', adminToken())
+
+    const bt = res.body.find((b) => b.id === id)
+    expect(bt).toBeDefined()
+    expect(bt.species_id).toBe(cattle.id)
+  })
+
+  it('returns all breeds when no species_id filter', async () => {
+    const db = require('../config/database')
+    const cattle = await db('species').where({ code: 'cattle' }).first()
+    const sheep = await db('species').where({ code: 'sheep' }).first()
+
+    const now = new Date().toISOString()
+    const cattleId = randomUUID()
+    const sheepId = randomUUID()
+
+    await db('breed_types').insert([
+      {
+        id: cattleId,
+        farm_id: DEFAULT_FARM_ID,
+        code: `all_cattle_${cattleId.slice(0, 6)}`,
+        name: `AllCattle-${cattleId.slice(0, 6)}`,
+        species_id: cattle.id,
+        is_active: true,
+        sort_order: 0,
+        created_at: now,
+        updated_at: now,
+      },
+      {
+        id: sheepId,
+        farm_id: DEFAULT_FARM_ID,
+        code: `all_sheep_${sheepId.slice(0, 6)}`,
+        name: `AllSheep-${sheepId.slice(0, 6)}`,
+        species_id: sheep.id,
+        is_active: true,
+        sort_order: 0,
+        created_at: now,
+        updated_at: now,
+      },
+    ])
+
+    const res = await request(app).get('/api/breed-types').set('Authorization', adminToken())
+
+    const ids = res.body.map((bt) => bt.id)
+    expect(ids).toContain(cattleId)
+    expect(ids).toContain(sheepId)
   })
 })
 

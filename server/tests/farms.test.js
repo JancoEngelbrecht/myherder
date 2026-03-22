@@ -55,9 +55,7 @@ afterAll(async () => {
 
 describe('GET /api/farms', () => {
   it('returns farm list with stats for super-admin', async () => {
-    const res = await request(app)
-      .get('/api/farms')
-      .set('Authorization', superAdminToken())
+    const res = await request(app).get('/api/farms').set('Authorization', superAdminToken())
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body)).toBe(true)
     expect(res.body.length).toBeGreaterThanOrEqual(1)
@@ -68,16 +66,12 @@ describe('GET /api/farms', () => {
   })
 
   it('rejects non-super-admin', async () => {
-    const res = await request(app)
-      .get('/api/farms')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/farms').set('Authorization', adminToken())
     expect(res.status).toBe(403)
   })
 
   it('rejects workers', async () => {
-    const res = await request(app)
-      .get('/api/farms')
-      .set('Authorization', workerToken())
+    const res = await request(app).get('/api/farms').set('Authorization', workerToken())
     expect(res.status).toBe(403)
   })
 
@@ -180,16 +174,13 @@ describe('PATCH /api/farms/:id/feature-flags', () => {
 
 describe('POST /api/farms', () => {
   it('creates a farm with admin user and seed data', async () => {
-    const res = await request(app)
-      .post('/api/farms')
-      .set('Authorization', superAdminToken())
-      .send({
-        name: 'New Farm',
-        code: 'NEWFARM',
-        admin_username: 'newfarmadmin',
-        admin_password: 'password123',
-        admin_full_name: 'New Farm Admin',
-      })
+    const res = await request(app).post('/api/farms').set('Authorization', superAdminToken()).send({
+      name: 'New Farm',
+      code: 'NEWFARM',
+      admin_username: 'newfarmadmin',
+      admin_password: 'password123',
+      admin_full_name: 'New Farm Admin',
+    })
     expect(res.status).toBe(201)
     expect(res.body.farm.name).toBe('New Farm')
     expect(res.body.farm.code).toBe('NEWFARM')
@@ -220,41 +211,134 @@ describe('POST /api/farms', () => {
   })
 
   it('rejects duplicate farm code', async () => {
-    await request(app)
-      .post('/api/farms')
-      .set('Authorization', superAdminToken())
-      .send({
-        name: 'Farm A',
-        code: 'DUPL',
-        admin_username: 'admin1',
-        admin_password: 'pass123',
-        admin_full_name: 'Admin 1',
-      })
-    const res = await request(app)
-      .post('/api/farms')
-      .set('Authorization', superAdminToken())
-      .send({
-        name: 'Farm B',
-        code: 'DUPL',
-        admin_username: 'admin2',
-        admin_password: 'pass123',
-        admin_full_name: 'Admin 2',
-      })
+    await request(app).post('/api/farms').set('Authorization', superAdminToken()).send({
+      name: 'Farm A',
+      code: 'DUPL',
+      admin_username: 'admin1',
+      admin_password: 'pass123',
+      admin_full_name: 'Admin 1',
+    })
+    const res = await request(app).post('/api/farms').set('Authorization', superAdminToken()).send({
+      name: 'Farm B',
+      code: 'DUPL',
+      admin_username: 'admin2',
+      admin_password: 'pass123',
+      admin_full_name: 'Admin 2',
+    })
     expect(res.status).toBe(409)
   })
 
   it('validates farm code format', async () => {
-    const res = await request(app)
-      .post('/api/farms')
-      .set('Authorization', superAdminToken())
-      .send({
-        name: 'Bad Code',
-        code: 'ab',
-        admin_username: 'admin',
-        admin_password: 'pass123',
-        admin_full_name: 'Admin',
-      })
+    const res = await request(app).post('/api/farms').set('Authorization', superAdminToken()).send({
+      name: 'Bad Code',
+      code: 'ab',
+      admin_username: 'admin',
+      admin_password: 'pass123',
+      admin_full_name: 'Admin',
+    })
     expect(res.status).toBe(400)
+  })
+})
+
+describe('POST /api/farms — species selection', () => {
+  it('creates a sheep farm with species_code and seeds sheep breed types', async () => {
+    const sheep = await db('species').where({ code: 'sheep' }).first()
+
+    const res = await request(app).post('/api/farms').set('Authorization', superAdminToken()).send({
+      name: 'Sheep Farm',
+      code: 'SHPFRM',
+      admin_username: 'sheepfarmadmin',
+      admin_password: 'password123',
+      admin_full_name: 'Sheep Farm Admin',
+      species_code: 'sheep',
+    })
+
+    expect(res.status).toBe(201)
+    expect(res.body.farm.name).toBe('Sheep Farm')
+
+    // Sheep breed types seeded (Dorper, Meatmaster, SA Mutton Merino, Dohne Merino = 4)
+    const breedTypes = await db('breed_types').where('farm_id', res.body.farm.id)
+    expect(breedTypes.length).toBe(4)
+    const codes = breedTypes.map((bt) => bt.code)
+    expect(codes).toContain('dorper')
+    expect(codes).not.toContain('holstein_friesian')
+
+    // farm_species row uses sheep species_id
+    const farmSpecies = await db('farm_species').where('farm_id', res.body.farm.id)
+    expect(farmSpecies.length).toBe(1)
+    expect(farmSpecies[0].species_id).toBe(sheep.id)
+
+    // Sheep farms have milkRecording off
+    const flags = await db('feature_flags').where({
+      farm_id: res.body.farm.id,
+      key: 'milk_recording',
+    })
+    expect(flags.length).toBe(1)
+    expect(flags[0].enabled).toBeFalsy()
+  })
+
+  it('cattle farm defaults to cattle species and has milkRecording enabled', async () => {
+    const cattle = await db('species').where({ code: 'cattle' }).first()
+
+    const res = await request(app).post('/api/farms').set('Authorization', superAdminToken()).send({
+      name: 'Cattle Farm',
+      code: 'CTLFRM',
+      admin_username: 'cattlefarmadmin',
+      admin_password: 'password123',
+      admin_full_name: 'Cattle Farm Admin',
+    })
+
+    expect(res.status).toBe(201)
+
+    const farmSpecies = await db('farm_species').where('farm_id', res.body.farm.id)
+    expect(farmSpecies[0].species_id).toBe(cattle.id)
+
+    const milkFlag = await db('feature_flags').where({
+      farm_id: res.body.farm.id,
+      key: 'milk_recording',
+    })
+    expect(milkFlag.length).toBe(1)
+    expect(milkFlag[0].enabled).toBeTruthy()
+  })
+
+  it('rejects unknown species_code', async () => {
+    const res = await request(app).post('/api/farms').set('Authorization', superAdminToken()).send({
+      name: 'Bad Species Farm',
+      code: 'BADSPC',
+      admin_username: 'badspeciesadmin',
+      admin_password: 'password123',
+      admin_full_name: 'Bad Species Admin',
+      species_code: 'goat',
+    })
+    expect(res.status).toBe(400)
+    expect(res.body.error).toMatch(/unknown species/i)
+  })
+})
+
+describe('GET /api/farms/:id — species info', () => {
+  it('returns species info in farm detail when farm_species row exists', async () => {
+    const cattle = await db('species').where({ code: 'cattle' }).first()
+    // Ensure the default test farm has a farm_species row (beforeEach clears it)
+    await db('farm_species')
+      .insert({ farm_id: DEFAULT_FARM_ID, species_id: cattle.id })
+      .onConflict(['farm_id'])
+      .ignore()
+
+    const res = await request(app)
+      .get(`/api/farms/${DEFAULT_FARM_ID}`)
+      .set('Authorization', superAdminToken())
+    expect(res.status).toBe(200)
+    expect(res.body.species).toBeDefined()
+    expect(res.body.species.code).toBe('cattle')
+  })
+
+  it('returns null species when no farm_species row exists', async () => {
+    // Default test farm has no farm_species row after beforeEach cleanup
+    const res = await request(app)
+      .get(`/api/farms/${DEFAULT_FARM_ID}`)
+      .set('Authorization', superAdminToken())
+    expect(res.status).toBe(200)
+    expect(res.body.species).toBeNull()
   })
 })
 
@@ -272,16 +356,13 @@ describe('PATCH /api/farms/:id', () => {
 
   it('rejects duplicate code on update', async () => {
     // Create another farm first
-    await request(app)
-      .post('/api/farms')
-      .set('Authorization', superAdminToken())
-      .send({
-        name: 'Other',
-        code: 'OTHER',
-        admin_username: 'other',
-        admin_password: 'pass123',
-        admin_full_name: 'Other Admin',
-      })
+    await request(app).post('/api/farms').set('Authorization', superAdminToken()).send({
+      name: 'Other',
+      code: 'OTHER',
+      admin_username: 'other',
+      admin_password: 'pass123',
+      admin_full_name: 'Other Admin',
+    })
 
     const res = await request(app)
       .patch(`/api/farms/${DEFAULT_FARM_ID}`)
@@ -297,7 +378,10 @@ describe('DELETE /api/farms/:id — hard delete', () => {
   beforeEach(async () => {
     // Seed a second farm with full data to delete
     targetFarmId = await seedFarm(db, 'DELME', 'Delete Me Farm')
-    targetUserId = await seedFarmUser(db, targetFarmId, { username: 'delme_admin', password: 'pass123' })
+    targetUserId = await seedFarmUser(db, targetFarmId, {
+      username: 'delme_admin',
+      password: 'pass123',
+    })
     const cowId = await seedCow(db, targetFarmId)
 
     const now = new Date().toISOString()
@@ -305,19 +389,115 @@ describe('DELETE /api/farms/:id — hard delete', () => {
     const hiId = randomUUID()
 
     // Seed related data
-    await db('medications').insert({ id: medId, farm_id: targetFarmId, name: 'TestMed', active_ingredient: 'Test', withdrawal_milk_hours: 48, withdrawal_meat_days: 7, is_active: true })
-    await db('breed_types').insert({ id: randomUUID(), farm_id: targetFarmId, code: 'tst', name: 'Test Breed', is_active: true })
-    await db('issue_type_definitions').insert({ id: randomUUID(), farm_id: targetFarmId, code: 'tst_issue', name: 'Test Issue', emoji: '🔴', is_active: true })
-    await db('health_issues').insert({ id: hiId, farm_id: targetFarmId, cow_id: cowId, reported_by: targetUserId, issue_types: JSON.stringify(['tst_issue']), severity: 'medium', status: 'open', observed_at: '2026-01-01', created_at: now, updated_at: now })
-    await db('health_issue_comments').insert({ id: randomUUID(), farm_id: targetFarmId, health_issue_id: hiId, user_id: targetUserId, comment: 'test', created_at: now, updated_at: now })
-    await db('treatments').insert({ id: randomUUID(), farm_id: targetFarmId, cow_id: cowId, medication_id: medId, administered_by: targetUserId, treatment_date: '2026-01-01', created_at: now, updated_at: now })
-    await db('milk_records').insert({ id: randomUUID(), farm_id: targetFarmId, cow_id: cowId, recorded_by: targetUserId, session: 'morning', litres: 10, recording_date: '2026-01-01', created_at: now, updated_at: now })
-    await db('breeding_events').insert({ id: randomUUID(), farm_id: targetFarmId, cow_id: cowId, event_type: 'heat_observed', event_date: '2026-01-01', recorded_by: targetUserId })
-    await db('feature_flags').insert({ farm_id: targetFarmId, key: 'breeding', enabled: true, updated_at: now })
-    await db('app_settings').insert({ farm_id: targetFarmId, key: 'farm_name', value: 'Delete Me Farm', updated_at: now })
-    await db('farm_species').insert({ farm_id: targetFarmId, species_id: '00000000-0000-4000-a000-000000000001' })
-    await db('audit_log').insert({ id: randomUUID(), farm_id: targetFarmId, user_id: targetUserId, action: 'create', entity_type: 'cow', entity_id: cowId, created_at: now })
-    await db('sync_log').insert({ id: randomUUID(), farm_id: targetFarmId, user_id: targetUserId, device_id: 'test-device', action: 'push', records_count: 1, status: 'success', synced_at: now })
+    await db('medications').insert({
+      id: medId,
+      farm_id: targetFarmId,
+      name: 'TestMed',
+      active_ingredient: 'Test',
+      withdrawal_milk_hours: 48,
+      withdrawal_meat_days: 7,
+      is_active: true,
+    })
+    await db('breed_types').insert({
+      id: randomUUID(),
+      farm_id: targetFarmId,
+      code: 'tst',
+      name: 'Test Breed',
+      is_active: true,
+    })
+    await db('issue_type_definitions').insert({
+      id: randomUUID(),
+      farm_id: targetFarmId,
+      code: 'tst_issue',
+      name: 'Test Issue',
+      emoji: '🔴',
+      is_active: true,
+    })
+    await db('health_issues').insert({
+      id: hiId,
+      farm_id: targetFarmId,
+      cow_id: cowId,
+      reported_by: targetUserId,
+      issue_types: JSON.stringify(['tst_issue']),
+      severity: 'medium',
+      status: 'open',
+      observed_at: '2026-01-01',
+      created_at: now,
+      updated_at: now,
+    })
+    await db('health_issue_comments').insert({
+      id: randomUUID(),
+      farm_id: targetFarmId,
+      health_issue_id: hiId,
+      user_id: targetUserId,
+      comment: 'test',
+      created_at: now,
+      updated_at: now,
+    })
+    await db('treatments').insert({
+      id: randomUUID(),
+      farm_id: targetFarmId,
+      cow_id: cowId,
+      medication_id: medId,
+      administered_by: targetUserId,
+      treatment_date: '2026-01-01',
+      created_at: now,
+      updated_at: now,
+    })
+    await db('milk_records').insert({
+      id: randomUUID(),
+      farm_id: targetFarmId,
+      cow_id: cowId,
+      recorded_by: targetUserId,
+      session: 'morning',
+      litres: 10,
+      recording_date: '2026-01-01',
+      created_at: now,
+      updated_at: now,
+    })
+    await db('breeding_events').insert({
+      id: randomUUID(),
+      farm_id: targetFarmId,
+      cow_id: cowId,
+      event_type: 'heat_observed',
+      event_date: '2026-01-01',
+      recorded_by: targetUserId,
+    })
+    await db('feature_flags').insert({
+      farm_id: targetFarmId,
+      key: 'breeding',
+      enabled: true,
+      updated_at: now,
+    })
+    await db('app_settings').insert({
+      farm_id: targetFarmId,
+      key: 'farm_name',
+      value: 'Delete Me Farm',
+      updated_at: now,
+    })
+    await db('farm_species').insert({
+      farm_id: targetFarmId,
+      species_id: '00000000-0000-4000-a000-000000000001',
+    })
+    await db('audit_log').insert({
+      id: randomUUID(),
+      farm_id: targetFarmId,
+      user_id: targetUserId,
+      action: 'create',
+      entity_type: 'cow',
+      entity_id: cowId,
+      created_at: now,
+    })
+    await db('sync_log').insert({
+      id: randomUUID(),
+      farm_id: targetFarmId,
+      user_id: targetUserId,
+      device_id: 'test-device',
+      action: 'push',
+      records_count: 1,
+      status: 'success',
+      synced_at: now,
+    })
   })
 
   it('hard deletes farm and all associated data', async () => {
@@ -338,7 +518,9 @@ describe('DELETE /api/farms/:id — hard delete', () => {
     expect(await db('breeding_events').where('farm_id', targetFarmId).first()).toBeUndefined()
     expect(await db('medications').where('farm_id', targetFarmId).first()).toBeUndefined()
     expect(await db('breed_types').where('farm_id', targetFarmId).first()).toBeUndefined()
-    expect(await db('issue_type_definitions').where('farm_id', targetFarmId).first()).toBeUndefined()
+    expect(
+      await db('issue_type_definitions').where('farm_id', targetFarmId).first()
+    ).toBeUndefined()
     expect(await db('feature_flags').where('farm_id', targetFarmId).first()).toBeUndefined()
     expect(await db('app_settings').where('farm_id', targetFarmId).first()).toBeUndefined()
     expect(await db('farm_species').where('farm_id', targetFarmId).first()).toBeUndefined()
@@ -398,9 +580,7 @@ describe('DELETE /api/farms/:id — hard delete', () => {
     const cowsBefore = await db('cows').where('farm_id', DEFAULT_FARM_ID).count('* as c').first()
     const usersBefore = await db('users').where('farm_id', DEFAULT_FARM_ID).count('* as c').first()
 
-    await request(app)
-      .delete(`/api/farms/${targetFarmId}`)
-      .set('Authorization', superAdminToken())
+    await request(app).delete(`/api/farms/${targetFarmId}`).set('Authorization', superAdminToken())
 
     // Default farm data unchanged
     const cowsAfter = await db('cows').where('farm_id', DEFAULT_FARM_ID).count('* as c').first()
@@ -454,9 +634,7 @@ describe('POST /api/farms/:id/enter', () => {
 
 describe('GET /api/farms/export', () => {
   it('returns cross-farm JSON export', async () => {
-    const res = await request(app)
-      .get('/api/farms/export')
-      .set('Authorization', superAdminToken())
+    const res = await request(app).get('/api/farms/export').set('Authorization', superAdminToken())
     expect(res.status).toBe(200)
     expect(res.body._meta).toBeDefined()
     expect(res.body._meta.farm_count).toBeGreaterThanOrEqual(1)
@@ -466,18 +644,14 @@ describe('GET /api/farms/export', () => {
   })
 
   it('rejects non-super-admin', async () => {
-    const res = await request(app)
-      .get('/api/farms/export')
-      .set('Authorization', adminToken())
+    const res = await request(app).get('/api/farms/export').set('Authorization', adminToken())
     expect(res.status).toBe(403)
   })
 })
 
 describe('GET /api/farms/stats', () => {
   it('returns aggregate system stats', async () => {
-    const res = await request(app)
-      .get('/api/farms/stats')
-      .set('Authorization', superAdminToken())
+    const res = await request(app).get('/api/farms/stats').set('Authorization', superAdminToken())
     expect(res.status).toBe(200)
     expect(typeof res.body.total_farms).toBe('number')
     expect(typeof res.body.active_farms).toBe('number')
