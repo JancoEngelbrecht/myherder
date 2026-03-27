@@ -26,9 +26,12 @@ Thumbs.db
 # Editor
 .idea/
 
-# Claude Code
-.claude/settings*.json
+# Claude Code — junctioned from ai-knowledgebase (single source of truth)
+.claude/agents/
+.claude/commands/
 .claude/hooks/
+.claude/skills/
+.claude/settings*.json
 
 # Vite
 client/.vite/
