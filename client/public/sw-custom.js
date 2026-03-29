@@ -10,6 +10,11 @@ self.addEventListener('message', (event) => {
   }
 })
 
+// Claim all open tabs immediately when this SW activates (enables seamless updates)
+self.addEventListener('activate', (event) => {
+  event.waitUntil(clients.claim())
+})
+
 self.addEventListener('sync', (event) => {
   if (event.tag === 'myherder-sync') {
     event.waitUntil(pushPendingChanges())
