@@ -156,48 +156,13 @@
           </RouterLink>
         </div>
 
-        <!-- Issues + Withdrawal row (alert cards) -->
-        <div
+        <!-- Section header: More Options -->
+        <template
           v-if="
+            (flags.analytics && hasPermission('can_view_analytics')) ||
             (flags.healthIssues && hasPermission('can_log_issues')) ||
             (flags.treatments && hasPermission('can_log_treatments'))
           "
-          class="action-pair"
-        >
-          <RouterLink
-            v-if="flags.healthIssues && hasPermission('can_log_issues')"
-            to="/health-issues"
-            class="action-card alert-card"
-            :data-issue-count="openIssueCount"
-          >
-            <div class="icon-circle icon-circle--red">
-              <span>🚨</span>
-            </div>
-            <span class="action-title">{{ t('dashboard.openIssues') }}</span>
-            <span class="alert-count">{{
-              t('dashboard.issueCount', { count: openIssueCount })
-            }}</span>
-          </RouterLink>
-
-          <RouterLink
-            v-if="flags.treatments && hasPermission('can_log_treatments')"
-            to="/withdrawal"
-            class="action-card alert-card withdrawal-alert"
-            :data-withdrawal-count="withdrawalCount"
-          >
-            <div class="icon-circle icon-circle--orange">
-              <span>🚫</span>
-            </div>
-            <span class="action-title">{{ t('dashboard.withdrawal') }}</span>
-            <span class="alert-count">{{
-              t('dashboard.withdrawalCount', { count: withdrawalCount })
-            }}</span>
-          </RouterLink>
-        </div>
-
-        <!-- Section header: More Options -->
-        <template
-          v-if="flags.analytics && hasPermission('can_view_analytics')"
         >
           <h2 class="section-label section-label--spaced">
             {{ t('dashboard.moreOptions').toUpperCase() }}
@@ -206,6 +171,33 @@
           <!-- More options row -->
           <div class="more-options">
             <RouterLink
+              v-if="flags.healthIssues && hasPermission('can_log_issues')"
+              to="/health-issues"
+              class="option-btn"
+              :data-issue-count="openIssueCount"
+            >
+              <div class="option-circle option-circle--red">
+                <span>🚨</span>
+              </div>
+              <span class="option-label">{{ t('dashboard.openIssues') }}</span>
+              <span class="option-count">{{ openIssueCount }}</span>
+            </RouterLink>
+
+            <RouterLink
+              v-if="flags.treatments && hasPermission('can_log_treatments')"
+              to="/withdrawal"
+              class="option-btn"
+              :data-withdrawal-count="withdrawalCount"
+            >
+              <div class="option-circle option-circle--orange">
+                <span>🚫</span>
+              </div>
+              <span class="option-label">{{ t('dashboard.withdrawal') }}</span>
+              <span class="option-count">{{ withdrawalCount }}</span>
+            </RouterLink>
+
+            <RouterLink
+              v-if="flags.analytics && hasPermission('can_view_analytics')"
               to="/analytics"
               class="option-btn"
             >
@@ -485,17 +477,6 @@ onMounted(async () => {
   outline-offset: 2px;
 }
 
-/* ── Alert card variant ───────────────────────────────────────────────── */
-.alert-card {
-  background: #fff5f5;
-  border-color: rgba(214, 40, 40, 0.2);
-}
-
-.withdrawal-alert {
-  background: #fff8f0;
-  border-color: rgba(224, 124, 36, 0.2);
-}
-
 /* ── Icon circle ──────────────────────────────────────────────────────── */
 .icon-circle {
   width: 40px;
@@ -516,14 +497,6 @@ onMounted(async () => {
   background: rgba(139, 92, 246, 0.12);
 }
 
-.icon-circle--red {
-  background: rgba(214, 40, 40, 0.12);
-}
-
-.icon-circle--orange {
-  background: rgba(224, 124, 36, 0.12);
-}
-
 .action-title {
   font-size: 0.9375rem;
   font-weight: 600;
@@ -535,11 +508,6 @@ onMounted(async () => {
   font-size: 0.8125rem;
   color: var(--text-secondary);
   line-height: 1.3;
-}
-
-.alert-count {
-  font-size: 0.8125rem;
-  color: var(--text-secondary);
 }
 
 /* ── More options ─────────────────────────────────────────────────────── */
@@ -576,6 +544,14 @@ onMounted(async () => {
   transform: scale(0.93);
 }
 
+.option-circle--red {
+  background: rgba(214, 40, 40, 0.12);
+}
+
+.option-circle--orange {
+  background: rgba(224, 124, 36, 0.12);
+}
+
 .option-circle--indigo {
   background: rgba(99, 102, 241, 0.12);
 }
@@ -594,6 +570,13 @@ onMounted(async () => {
   text-align: center;
   color: var(--text-secondary);
   line-height: 1.2;
+}
+
+.option-count {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
 /* ── Super-admin stats (unchanged) ───────────────────────────────────── */
