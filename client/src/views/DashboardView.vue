@@ -123,7 +123,40 @@
           </RouterLink>
         </div>
 
-        <!-- Issues + Withdrawal row -->
+        <!-- Treatment + Health row -->
+        <div
+          v-if="
+            (flags.treatments && hasPermission('can_log_treatments')) ||
+            (flags.healthIssues && hasPermission('can_log_issues'))
+          "
+          class="action-pair"
+        >
+          <RouterLink
+            v-if="flags.treatments && hasPermission('can_log_treatments')"
+            to="/log/treatment"
+            class="action-card"
+          >
+            <div class="icon-circle icon-circle--teal">
+              <span>💉</span>
+            </div>
+            <span class="action-title">{{ t('dashboard.addLog') }}</span>
+            <span class="action-subtitle">{{ t('dashboard.health') }}</span>
+          </RouterLink>
+
+          <RouterLink
+            v-if="flags.healthIssues && hasPermission('can_log_issues')"
+            to="/log/issue"
+            class="action-card"
+          >
+            <div class="icon-circle icon-circle--green">
+              <span>🩺</span>
+            </div>
+            <span class="action-title">{{ t('dashboard.health') }}</span>
+            <span class="action-subtitle">{{ t('dashboard.logIssue') }}</span>
+          </RouterLink>
+        </div>
+
+        <!-- Issues + Withdrawal row (alert cards) -->
         <div
           v-if="
             (flags.healthIssues && hasPermission('can_log_issues')) ||
@@ -164,11 +197,7 @@
 
         <!-- Section header: More Options -->
         <template
-          v-if="
-            (flags.analytics && hasPermission('can_view_analytics')) ||
-            (flags.treatments && hasPermission('can_log_treatments')) ||
-            (flags.healthIssues && hasPermission('can_log_issues'))
-          "
+          v-if="flags.analytics && hasPermission('can_view_analytics')"
         >
           <h2 class="section-label section-label--spaced">
             {{ t('dashboard.moreOptions').toUpperCase() }}
@@ -177,7 +206,6 @@
           <!-- More options row -->
           <div class="more-options">
             <RouterLink
-              v-if="flags.analytics && hasPermission('can_view_analytics')"
               to="/analytics"
               class="option-btn"
             >
@@ -185,28 +213,6 @@
                 <span>📊</span>
               </div>
               <span class="option-label">{{ t('dashboard.analytics') }}</span>
-            </RouterLink>
-
-            <RouterLink
-              v-if="flags.treatments && hasPermission('can_log_treatments')"
-              to="/log/treatment"
-              class="option-btn"
-            >
-              <div class="option-circle option-circle--teal">
-                <span>💉</span>
-              </div>
-              <span class="option-label">{{ t('dashboard.addLog') }}</span>
-            </RouterLink>
-
-            <RouterLink
-              v-if="flags.healthIssues && hasPermission('can_log_issues')"
-              to="/log/issue"
-              class="option-btn"
-            >
-              <div class="option-circle option-circle--green">
-                <span>🩺</span>
-              </div>
-              <span class="option-label">{{ t('dashboard.health') }}</span>
             </RouterLink>
           </div>
         </template>

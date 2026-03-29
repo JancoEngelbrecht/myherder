@@ -265,11 +265,11 @@ describe('DashboardView', () => {
     await flushPromises()
 
     expect(wrapper.find('.herd-card').exists()).toBe(true)
-    expect(wrapper.findAll('.action-card')).toHaveLength(4) // milk, breeding, issues, withdrawal
+    expect(wrapper.findAll('.action-card')).toHaveLength(6) // milk, breeding, treatment, health, issues, withdrawal
     expect(wrapper.findAll('.alert-card')).toHaveLength(2)
   })
 
-  it('shows more options section with analytics, treatment, health buttons', async () => {
+  it('shows more options section with analytics button', async () => {
     setAdmin()
     setAllFlags()
     const wrapper = mount(DashboardView, { global: { stubs } })
@@ -277,7 +277,7 @@ describe('DashboardView', () => {
 
     const moreOptions = wrapper.find('.more-options')
     expect(moreOptions.exists()).toBe(true)
-    expect(wrapper.findAll('.option-btn')).toHaveLength(3)
+    expect(wrapper.findAll('.option-btn')).toHaveLength(1)
   })
 
   it('worker with only can_record_milk sees only herd card and milk card', async () => {
