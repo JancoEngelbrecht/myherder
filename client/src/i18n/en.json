@@ -46,7 +46,15 @@
     "viewAnimals": "View {collectiveNoun}",
     "analytics": "Analytics",
     "withdrawal": "Withdrawal Alerts",
-    "title": "MyHerder"
+    "title": "MyHerder",
+    "mainActions": "Main Actions",
+    "moreOptions": "More Options",
+    "herdSubtitle": "{total} {collectiveNoun} · {pregnant} {pregnantLabel}",
+    "milkSubtitle": "Record milk",
+    "breedSubtitle": "Manage breeding",
+    "issueCount": "{count} open",
+    "withdrawalCount": "{count} alerts",
+    "health": "Health"
   },
   "animals": {
     "title": "{collectiveNoun}",
@@ -312,7 +320,12 @@
     "totalSpend": "Total spend",
     "noData": "No data available",
     "connectToView": "Connect to the internet to view analytics",
-    "timeRange": { "3m": "3M", "6m": "6M", "12m": "12M", "24m": "24M" },
+    "timeRange": {
+      "3m": "3M",
+      "6m": "6M",
+      "12m": "12M",
+      "24m": "24M"
+    },
     "landing": {
       "todaySnapshot": "Today's Snapshot",
       "litresToday": "Litres Today",
@@ -1338,7 +1351,7 @@
         "when": "Read this to understand the full picture of breeding management before using the individual breeding features.",
         "next": "Each step in this cycle has its own help page with detailed instructions. Tap any breeding topic in the Help Library to learn more.",
         "tips": [
-          "The typical cycle is: Heat \u2192 Insemination \u2192 Pregnancy Check \u2192 Dry-Off \u2192 Calving \u2192 Repeat.",
+          "The typical cycle is: Heat → Insemination → Pregnancy Check → Dry-Off → Calving → Repeat.",
           "The app calculates dates automatically based on your breed type settings — different breeds have different gestation periods.",
           "Notifications alert you when the next step is due — check the Breeding Notifications page regularly.",
           "A cow that doesn't conceive after 3+ inseminations may need veterinary attention.",
@@ -1351,7 +1364,7 @@
         "when": "When you observe heat signs — mounting, restlessness, mucus discharge, reduced milk, standing to be mounted.",
         "flow": {
           "noticeSigns": "Notice cow showing heat signs",
-          "goToBreeding": "Go to Breeding Hub \u2192 Log Event",
+          "goToBreeding": "Go to Breeding Hub → Log Event",
           "selectCow": "Select the cow",
           "selectHeat": "Select 'Heat Detection' as event type",
           "save": "Save the event",
@@ -1378,7 +1391,7 @@
         "what": "Record when a cow is artificially inseminated (AI) or served by a bull.",
         "when": "After insemination has been performed — either by an AI technician or natural bull service.",
         "flow": {
-          "startLog": "Go to Breeding Hub \u2192 Log Event",
+          "startLog": "Go to Breeding Hub → Log Event",
           "selectCow": "Select the cow",
           "selectType": "AI or Bull Service?",
           "ai": "AI",
@@ -1409,7 +1422,7 @@
         "what": "Record the result of a pregnancy check — positive (pregnant) or negative (not pregnant).",
         "when": "After your vet or technician has performed a pregnancy check on a cow (typically 28-35 days after insemination).",
         "flow": {
-          "startLog": "Go to Breeding Hub \u2192 Log Event",
+          "startLog": "Go to Breeding Hub → Log Event",
           "selectCow": "Select the cow",
           "result": "Pregnancy check result?",
           "positive": "Positive",
@@ -1438,7 +1451,7 @@
         "when": "Typically 45-60 days before the expected calving date. The app will send you a notification.",
         "flow": {
           "notification": "System alerts: time to dry off",
-          "goToBreeding": "Go to Breeding Hub \u2192 Log Event",
+          "goToBreeding": "Go to Breeding Hub → Log Event",
           "selectCow": "Select the cow",
           "selectDryOff": "Select 'Dry Off' as event type",
           "save": "Save the event",
@@ -1465,7 +1478,7 @@
         "when": "When a cow calves — the app will have a notification near the expected calving date.",
         "flow": {
           "notification": "System alerts: calving expected soon",
-          "goToBreeding": "Go to Breeding Hub \u2192 Log Event",
+          "goToBreeding": "Go to Breeding Hub → Log Event",
           "selectCow": "Select the cow that calved",
           "selectCalving": "Select 'Calving' as event type",
           "enterDetails": "Enter calf details (sex, alive/dead)",
@@ -1616,7 +1629,7 @@
           "save": "Save user"
         },
         "steps": [
-          "Go to Settings \u2192 User Management.",
+          "Go to Settings → User Management.",
           "To add a user, tap 'Add User'.",
           "Choose the role: Admin (full access, password login) or Worker (limited access, PIN login).",
           "For admins: set a username and password. For workers: set their name and a 4-digit PIN.",
@@ -1644,7 +1657,7 @@
           "save": "Save"
         },
         "steps": [
-          "Go to Settings \u2192 Breed Types.",
+          "Go to Settings → Breed Types.",
           "To add a new breed, tap 'Add'. To edit, tap the existing breed.",
           "Enter the breed name (e.g. 'Holstein', 'Jersey').",
           "Set the breeding parameters: gestation days, heat cycle length, pregnancy check days, and dry-off days.",
@@ -1670,7 +1683,7 @@
           "save": "Save"
         },
         "steps": [
-          "Go to Settings \u2192 Issue Types.",
+          "Go to Settings → Issue Types.",
           "To add, tap 'Add'. To edit, tap the existing type.",
           "Enter the name (e.g. 'Bloat', 'Eye Infection') and choose an emoji icon.",
           "Tap Save. The new type will appear in the health issue type dropdown."
@@ -1695,7 +1708,7 @@
           "save": "Save"
         },
         "steps": [
-          "Go to Settings \u2192 Medications.",
+          "Go to Settings → Medications.",
           "To add, tap 'Add'. To edit, tap the existing medication.",
           "Enter the medication name.",
           "Set the milk withdrawal days — how many days after treatment before milk is safe to sell.",
@@ -1722,7 +1735,7 @@
           "immediate": "Changes take effect immediately"
         },
         "steps": [
-          "Go to Settings \u2192 Feature Flags.",
+          "Go to Settings → Feature Flags.",
           "You'll see toggles for each feature module: Breeding, Milk Recording, Health Issues, Treatments, Analytics.",
           "Toggle a feature off to hide it from the app — the navigation items and routes are removed.",
           "Toggle it back on to restore it. No data is lost when toggling.",
@@ -1747,7 +1760,7 @@
           "save": "Save changes"
         },
         "steps": [
-          "Go to Settings \u2192 Farm Settings.",
+          "Go to Settings → Farm Settings.",
           "Edit the farm name — this appears in the app header.",
           "Set the default language — English or Afrikaans. This is the default for new users.",
           "Tap Save."
@@ -1771,7 +1784,7 @@
           "download": "Report downloads to your device"
         },
         "steps": [
-          "Go to Settings \u2192 Reports.",
+          "Go to Settings → Reports.",
           "Choose the report type: Treatment History, Discarded Milk, Medication Usage, Milk Production, Breeding, or Herd Health.",
           "Set the date range — all reports require a 'from' and 'to' date.",
           "Choose the format — PDF for printing, Excel for further analysis.",
@@ -1795,7 +1808,7 @@
           "viewChanges": "View change details (old vs new values)"
         },
         "steps": [
-          "Go to Settings \u2192 Audit Log.",
+          "Go to Settings → Audit Log.",
           "Use the filters to narrow results: entity type (cows, treatments, etc.), specific user, action type (create, update, delete), or date range.",
           "Browse the log entries. Each entry shows who made the change, what was changed, and when.",
           "Tap an entry to see the details — including old and new values for updates."

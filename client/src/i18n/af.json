@@ -46,7 +46,15 @@
     "viewAnimals": "Sien {collectiveNoun}",
     "analytics": "Analise",
     "withdrawal": "Onttrekking",
-    "title": "MyHerder"
+    "title": "MyHerder",
+    "mainActions": "Hoof Aksies",
+    "moreOptions": "Meer Opsies",
+    "herdSubtitle": "{total} {collectiveNoun} · {pregnant} {pregnantLabel}",
+    "milkSubtitle": "Melk opneem",
+    "breedSubtitle": "Teel bestuur",
+    "issueCount": "{count} oop",
+    "withdrawalCount": "{count} waarskuwings",
+    "health": "Gesondheid"
   },
   "animals": {
     "title": "{collectiveNoun}",
@@ -312,7 +320,12 @@
     "totalSpend": "Totale besteding",
     "noData": "Geen data beskikbaar",
     "connectToView": "Koppel aan die internet om analise te sien",
-    "timeRange": { "3m": "3M", "6m": "6M", "12m": "12M", "24m": "24M" },
+    "timeRange": {
+      "3m": "3M",
+      "6m": "6M",
+      "12m": "12M",
+      "24m": "24M"
+    },
     "landing": {
       "todaySnapshot": "Vandag se Oorsig",
       "litresToday": "Liter Vandag",
