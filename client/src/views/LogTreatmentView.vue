@@ -6,10 +6,10 @@
       <form @submit.prevent="submit">
         <!-- Cow selector -->
         <div data-tour="treat-cow" class="form-group">
-          <label>{{ $t('treatments.cow') }} *</label>
+          <label>{{ animalLabel }} *</label>
           <CowSearchDropdown
             v-model="form.cow_id"
-            :placeholder="$t('treatments.cowPlaceholder')"
+            :placeholder="$t('treatments.cowPlaceholder', { animal: animalLabel })"
             :error="errors.cow_id"
           />
         </div>
@@ -198,8 +198,10 @@ import CowSearchDropdown from '../components/molecules/CowSearchDropdown.vue'
 import TourButton from '../components/atoms/TourButton.vue'
 import { extractApiError, resolveError } from '../utils/apiError'
 import { useTour } from '../composables/useTour.js'
+import { useSpeciesTerms } from '../composables/useSpeciesTerms'
 
 const { t } = useI18n()
+const { singular: animalLabel } = useSpeciesTerms()
 const route = useRoute()
 const router = useRouter()
 const medicationsStore = useMedicationsStore()
@@ -211,8 +213,8 @@ const { startTour } = useTour('treatments', () => [
   {
     element: '[data-tour="treat-cow"]',
     popover: {
-      title: t('tour.treatments.cowSelect.title'),
-      description: t('tour.treatments.cowSelect.desc'),
+      title: t('tour.treatments.cowSelect.title', { animal: animalLabel.value }),
+      description: t('tour.treatments.cowSelect.desc', { animal: animalLabel.value }),
     },
   },
   {

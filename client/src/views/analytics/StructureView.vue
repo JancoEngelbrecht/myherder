@@ -34,11 +34,11 @@
             </div>
             <div class="stat-chip">
               <span class="stat-value mono">{{ herdSummary.milking_count }}</span>
-              <span class="stat-label">{{ t('analytics.structure.milkingCows') }}</span>
+              <span class="stat-label">{{ t('analytics.structure.milkingCows', sp) }}</span>
             </div>
             <div class="stat-chip">
               <span class="stat-value mono">{{ herdSummary.dry_count }}</span>
-              <span class="stat-label">{{ t('analytics.structure.dryCows') }}</span>
+              <span class="stat-label">{{ t('analytics.structure.dryCows', sp) }}</span>
             </div>
             <div class="stat-chip">
               <span class="stat-value mono">{{ herdSummary.heifer_count }}</span>
@@ -156,6 +156,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useSpeciesTerms } from '../../composables/useSpeciesTerms.js'
 import { Line, Bar, Doughnut } from 'vue-chartjs'
 import '../../utils/chartSetup.js'
 import '../../assets/analytics.css'
@@ -173,6 +174,8 @@ import {
 
 const { offline, handleError, t } = useAnalytics()
 const { selectedRange, dateRange } = useTimeRange()
+const { singular, plural } = useSpeciesTerms()
+const sp = computed(() => ({ animal: singular.value, animals: plural.value }))
 
 function toggleChip(e) {
   const chip = e.target.closest('.stat-chip')

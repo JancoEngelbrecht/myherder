@@ -329,7 +329,7 @@
     "landing": {
       "todaySnapshot": "Today's Snapshot",
       "litresToday": "Litres Today",
-      "cowsMilked": "Cows Milked",
+      "cowsMilked": "{animals} Milked",
       "activeIssues": "Active Issues",
       "breedingDue": "Breeding Due",
       "totalHerd": "Total Herd",
@@ -350,10 +350,10 @@
     },
     "financial": {
       "title": "Financial",
-      "litresPerCow": "Litres per Cow per Day",
+      "litresPerCow": "Litres per {animal} per Day",
       "revenue": "Revenue per Month",
       "revenueSubtitle": "Based on R{price}/litre",
-      "treatmentCostPerCow": "Treatment Cost per Cow",
+      "treatmentCostPerCow": "Treatment Cost per {animal}",
       "wastedMilkValue": "Wasted Milk Value",
       "bottomProducers": "Bottom Producers",
       "noMilkPrice": "Set milk price in Settings to see revenue"
@@ -361,11 +361,11 @@
     "fertility": {
       "title": "Fertility",
       "calvingInterval": "Calving Interval",
-      "calvingIntervalDesc": "Days between successive calvings per cow. Target is under 400 days.",
+      "calvingIntervalDesc": "Days between successive calvings per {animal}. Target is under 400 days.",
       "avgCalvingInterval": "Avg Calving Interval",
       "days": "days",
       "daysOpen": "Days Open",
-      "daysOpenDesc": "Days from calving until the cow is confirmed pregnant again.",
+      "daysOpenDesc": "Days from calving until the {animal} is confirmed pregnant again.",
       "avgDaysOpen": "Avg Days Open",
       "conceptionRate": "1st Service Rate",
       "reproStatus": "Reproduction Status",
@@ -375,7 +375,7 @@
       "breedingActivity": "Breeding Activity",
       "breedingActivityDesc": "Monthly inseminations vs confirmed pregnancies.",
       "conceptionTrend": "Conception Rate Trend",
-      "conceptionTrendDesc": "Percentage of cows that conceive on the first service, by month.",
+      "conceptionTrendDesc": "Percentage of {animals} that conceive on the first service, by month.",
       "expectedCalvingsDesc": "Upcoming calvings based on confirmed pregnancy dates.",
       "target400": "Target 400d",
       "target120": "Target 120d",
@@ -385,7 +385,7 @@
       "bredAwaitingCheck": "Bred — awaiting check",
       "dry": "Dry",
       "heiferNotBred": "Heifer (not yet bred)",
-      "cows": "Cows"
+      "cows": "{animals}"
     },
     "health": {
       "title": "Herd Health",
@@ -395,7 +395,7 @@
       "avgDaysToResolve": "Avg Days to Resolve",
       "recurrenceRate": "Recurrence Rate",
       "topIncidence": "Top Incidence Rates",
-      "topIncidenceDesc": "per 100 cows/month",
+      "topIncidenceDesc": "per 100 {animals}/month",
       "issueFrequency": "Issue Frequency by Type",
       "issueTrend": "Issue Trend by Month",
       "resolutionByType": "Resolution Time by Type",
@@ -405,14 +405,14 @@
       "recurrenceByType": "Recurrence by Type",
       "recurrenceByTypeDesc": "% recurring within 60 days of resolution",
       "incidenceTrend": "Top 3 Disease Incidence Trend",
-      "incidenceTrendDesc": "Cases per 100 cows/month for top diseases",
-      "treatmentCostPerCow": "Treatment Cost per Cow",
+      "incidenceTrendDesc": "Cases per 100 {animals}/month for top diseases",
+      "treatmentCostPerCow": "Treatment Cost per {animal}",
       "treatmentCostPerCowDesc": "Monthly spend normalized by herd size",
       "slowestToResolve": "Slowest to Resolve",
-      "slowestToResolveDesc": "Cows with the longest avg resolution time",
+      "slowestToResolveDesc": "{animals} with the longest avg resolution time",
       "daysAvg": "d avg",
       "treatmentCosts": "Treatment Costs",
-      "unhealthiestCows": "Unhealthiest Cows",
+      "unhealthiestCows": "Unhealthiest {animals}",
       "seasonalPredictions": "Seasonal Predictions",
       "predictedIssues": "Predicted Issues",
       "yearsOfData": "{count} year(s) of data",
@@ -424,7 +424,7 @@
       "target80pct": "Target 80%",
       "concern10pct": "Concern >10%",
       "per100": "per 100",
-      "costPerCowUnit": "R / cow"
+      "costPerCowUnit": "R / {animal}"
     },
     "structure": {
       "title": "Herd Structure",
@@ -433,8 +433,8 @@
       "females": "Females",
       "avgAge": "Avg Age",
       "years": "yrs",
-      "milkingCows": "Milking Cows",
-      "dryCows": "Dry Cows",
+      "milkingCows": "Milking {animals}",
+      "dryCows": "Dry {animals}",
       "heifers": "Heifers",
       "replacementRate": "Replacement Rate",
       "turnoverRate": "Turnover Rate",
@@ -486,7 +486,7 @@
   "treatments": {
     "logTitle": "Log Treatment",
     "cow": "Cow",
-    "cowPlaceholder": "Search for cow by tag or name...",
+    "cowPlaceholder": "Search for {animal} by tag or name...",
     "medications": "Medications",
     "selectMedication": "Select medication...",
     "addMedication": "Add medication",
@@ -608,7 +608,7 @@
     "title": "Health Issues",
     "logTitle": "Log Health Issue",
     "cow": "Cow",
-    "cowPlaceholder": "Search for cow by tag or name...",
+    "cowPlaceholder": "Search for {animal} by tag or name...",
     "issueType": "Issue Type",
     "issueTypeHint": "Select one or more",
     "severity": "Severity",
@@ -1899,8 +1899,8 @@
     },
     "healthIssues": {
       "cowSelect": {
-        "title": "Select a Cow",
-        "desc": "Search and select the cow with the health issue."
+        "title": "Select {animal}",
+        "desc": "Search and select the {animal} with the health issue."
       },
       "issueType": {
         "title": "Issue Type",
@@ -1921,8 +1921,8 @@
     },
     "treatments": {
       "cowSelect": {
-        "title": "Select a Cow",
-        "desc": "Search and select the cow being treated."
+        "title": "Select {animal}",
+        "desc": "Search and select the {animal} being treated."
       },
       "medication": {
         "title": "Choose Medication",

@@ -39,7 +39,7 @@
             <!-- Cows Milked -->
             <div v-if="flags.milkRecording" class="kpi-card">
               <div class="kpi-value mono">{{ kpis.cows_milked_today }}</div>
-              <div class="kpi-label">{{ t('analytics.landing.cowsMilked') }}</div>
+              <div class="kpi-label">{{ t('analytics.landing.cowsMilked', sp) }}</div>
               <div
                 class="kpi-compare mono"
                 :class="kpis.cows_milked_today >= kpis.cows_expected ? 'trend-up' : 'trend-down'"
@@ -160,10 +160,13 @@ import api from '../services/api.js'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import TourButton from '../components/atoms/TourButton.vue'
 import { useAnalytics } from '../composables/useAnalytics.js'
+import { useSpeciesTerms } from '../composables/useSpeciesTerms.js'
 import { useTour } from '../composables/useTour.js'
 import '../assets/analytics.css'
 
 const { offline, flags, handleError, t } = useAnalytics()
+const { singular, plural } = useSpeciesTerms()
+const sp = computed(() => ({ animal: singular.value, animals: plural.value }))
 
 const { startTour } = useTour('analytics', () => [
   {

@@ -24,7 +24,7 @@
       <template v-if="!offline">
         <!-- Litres per Cow per Day -->
         <section v-if="flags.milkRecording" class="analytics-card">
-          <h2 class="analytics-title">{{ t('analytics.financial.litresPerCow') }}</h2>
+          <h2 class="analytics-title">{{ t('analytics.financial.litresPerCow', sp) }}</h2>
           <div v-if="litresLoading" class="center-spinner"><div class="spinner" /></div>
           <template v-else-if="litresPerCow.length > 0">
             <div class="chart-wrap">
@@ -54,7 +54,7 @@
 
         <!-- Treatment Cost per Cow -->
         <section v-if="flags.treatments" class="analytics-card">
-          <h2 class="analytics-title">{{ t('analytics.financial.treatmentCostPerCow') }}</h2>
+          <h2 class="analytics-title">{{ t('analytics.financial.treatmentCostPerCow', sp) }}</h2>
           <div v-if="costLoading" class="center-spinner"><div class="spinner" /></div>
           <template v-else-if="treatmentCosts.months && treatmentCosts.months.length > 0">
             <p class="chart-subtitle mono">
@@ -141,6 +141,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useSpeciesTerms } from '../../composables/useSpeciesTerms.js'
 import { Line, Bar } from 'vue-chartjs'
 import '../../utils/chartSetup.js'
 import '../../assets/analytics.css'
@@ -159,6 +160,8 @@ import {
 
 const { offline, flags, handleError, t } = useAnalytics()
 const { selectedRange, dateRange } = useTimeRange()
+const { singular, plural } = useSpeciesTerms()
+const sp = computed(() => ({ animal: singular.value, animals: plural.value }))
 
 // ── State ─────────────────────────────────────────────
 
@@ -190,7 +193,7 @@ const litresPerCowChart = computed(() => ({
   labels: litresPerCow.value.map((m) => formatMonth(m.month)),
   datasets: [
     {
-      label: t('analytics.financial.litresPerCow'),
+      label: t('analytics.financial.litresPerCow', sp.value),
       data: litresPerCow.value.map((m) => m.avg_litres_per_cow_per_day),
       borderColor: chartColors.primary,
       backgroundColor: chartColors.primaryLight,
@@ -216,7 +219,7 @@ const costPerCowChart = computed(() => ({
   labels: (treatmentCosts.value.months || []).map((m) => formatMonth(m.month)),
   datasets: [
     {
-      label: t('analytics.financial.treatmentCostPerCow'),
+      label: t('analytics.financial.treatmentCostPerCow', sp.value),
       data: (treatmentCosts.value.months || []).map(
         (m) => Math.round((m.total_cost / Math.max(herdSize.value, 1)) * 100) / 100
       ),

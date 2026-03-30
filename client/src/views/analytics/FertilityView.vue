@@ -81,7 +81,7 @@
         <!-- 3. Calving Interval Histogram -->
         <section class="analytics-card">
           <h2 class="analytics-title">{{ t('analytics.fertility.calvingInterval') }}</h2>
-          <p class="chart-subtitle">{{ t('analytics.fertility.calvingIntervalDesc') }}</p>
+          <p class="chart-subtitle">{{ t('analytics.fertility.calvingIntervalDesc', sp) }}</p>
           <div v-if="calvingLoading" class="center-spinner"><div class="spinner" /></div>
           <template v-else-if="calvingData && calvingData.intervals.length > 0">
             <p class="chart-subtitle mono">
@@ -98,7 +98,7 @@
         <!-- 4. Days Open Histogram -->
         <section class="analytics-card">
           <h2 class="analytics-title">{{ t('analytics.fertility.daysOpen') }}</h2>
-          <p class="chart-subtitle">{{ t('analytics.fertility.daysOpenDesc') }}</p>
+          <p class="chart-subtitle">{{ t('analytics.fertility.daysOpenDesc', sp) }}</p>
           <div v-if="daysOpenLoading" class="center-spinner"><div class="spinner" /></div>
           <template v-else-if="daysOpenData && daysOpenData.records.length > 0">
             <p class="chart-subtitle mono">
@@ -128,7 +128,7 @@
         <!-- 6. Conception Rate Trend -->
         <section class="analytics-card">
           <h2 class="analytics-title">{{ t('analytics.fertility.conceptionTrend') }}</h2>
-          <p class="chart-subtitle">{{ t('analytics.fertility.conceptionTrendDesc') }}</p>
+          <p class="chart-subtitle">{{ t('analytics.fertility.conceptionTrendDesc', sp) }}</p>
           <div v-if="conceptionLoading" class="center-spinner"><div class="spinner" /></div>
           <template v-else-if="conceptionData?.by_month?.length > 0">
             <div class="chart-wrap">
@@ -157,6 +157,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useSpeciesTerms } from '../../composables/useSpeciesTerms.js'
 import { Bar, Doughnut, Line } from 'vue-chartjs'
 import '../../utils/chartSetup.js'
 import '../../assets/analytics.css'
@@ -173,6 +174,8 @@ import {
 
 const { offline, handleError, t } = useAnalytics()
 const { selectedRange, dateRange } = useTimeRange()
+const { singular, plural } = useSpeciesTerms()
+const sp = computed(() => ({ animal: singular.value, animals: plural.value }))
 
 function toggleChip(e) {
   const chip = e.target.closest('.stat-chip')
@@ -329,7 +332,7 @@ const calvingHistogramOptions = computed(() => ({
   scales: {
     y: {
       beginAtZero: true,
-      title: { display: true, text: t('analytics.fertility.cows'), font: { size: 10 } },
+      title: { display: true, text: t('analytics.fertility.cows', sp.value), font: { size: 10 } },
       ticks: { stepSize: 1, font: { family: "'JetBrains Mono', monospace", size: 11 } },
       grid: { color: 'rgba(0,0,0,0.06)' },
     },
@@ -368,7 +371,7 @@ const daysOpenHistogramOptions = computed(() => ({
   scales: {
     y: {
       beginAtZero: true,
-      title: { display: true, text: t('analytics.fertility.cows'), font: { size: 10 } },
+      title: { display: true, text: t('analytics.fertility.cows', sp.value), font: { size: 10 } },
       ticks: { stepSize: 1, font: { family: "'JetBrains Mono', monospace", size: 11 } },
       grid: { color: 'rgba(0,0,0,0.06)' },
     },

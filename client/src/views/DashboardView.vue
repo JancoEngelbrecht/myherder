@@ -89,27 +89,15 @@
           <span class="herd-chevron">›</span>
         </RouterLink>
 
-        <!-- Milk + Breeding row -->
+        <!-- Breeding + Health row -->
         <div
           v-if="
-            (flags.milkRecording && hasPermission('can_record_milk')) ||
-            (flags.breeding && hasPermission('can_log_breeding'))
+            (flags.breeding && hasPermission('can_log_breeding')) ||
+            (flags.healthIssues && hasPermission('can_log_issues'))
           "
           class="action-pair"
           data-tour="dashboard-actions"
         >
-          <RouterLink
-            v-if="flags.milkRecording && hasPermission('can_record_milk')"
-            to="/milk"
-            class="action-card"
-          >
-            <div class="icon-circle icon-circle--blue">
-              <span>🥛</span>
-            </div>
-            <span class="action-title">{{ t('dashboard.recordMilk') }}</span>
-            <span class="action-subtitle">{{ t('dashboard.milkSubtitle') }}</span>
-          </RouterLink>
-
           <RouterLink
             v-if="flags.breeding && hasPermission('can_log_breeding')"
             to="/breed"
@@ -121,13 +109,25 @@
             <span class="action-title">{{ t('dashboard.breed') }}</span>
             <span class="action-subtitle">{{ t('dashboard.breedSubtitle') }}</span>
           </RouterLink>
+
+          <RouterLink
+            v-if="flags.healthIssues && hasPermission('can_log_issues')"
+            to="/log/issue"
+            class="action-card"
+          >
+            <div class="icon-circle icon-circle--green">
+              <span>🩺</span>
+            </div>
+            <span class="action-title">{{ t('dashboard.health') }}</span>
+            <span class="action-subtitle">{{ t('dashboard.logIssue') }}</span>
+          </RouterLink>
         </div>
 
-        <!-- Treatment + Health row -->
+        <!-- Treatment + Milk row -->
         <div
           v-if="
             (flags.treatments && hasPermission('can_log_treatments')) ||
-            (flags.healthIssues && hasPermission('can_log_issues'))
+            (flags.milkRecording && hasPermission('can_record_milk'))
           "
           class="action-pair"
         >
@@ -144,15 +144,15 @@
           </RouterLink>
 
           <RouterLink
-            v-if="flags.healthIssues && hasPermission('can_log_issues')"
-            to="/log/issue"
+            v-if="flags.milkRecording && hasPermission('can_record_milk')"
+            to="/milk"
             class="action-card"
           >
-            <div class="icon-circle icon-circle--green">
-              <span>🩺</span>
+            <div class="icon-circle icon-circle--blue">
+              <span>🥛</span>
             </div>
-            <span class="action-title">{{ t('dashboard.health') }}</span>
-            <span class="action-subtitle">{{ t('dashboard.logIssue') }}</span>
+            <span class="action-title">{{ t('dashboard.recordMilk') }}</span>
+            <span class="action-subtitle">{{ t('dashboard.milkSubtitle') }}</span>
           </RouterLink>
         </div>
 

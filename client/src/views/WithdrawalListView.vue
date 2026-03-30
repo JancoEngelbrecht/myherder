@@ -7,7 +7,7 @@
 
       <!-- Global all-clear -->
       <div
-        v-else-if="milkCows.length === 0 && meatCows.length === 0"
+        v-else-if="(!isDairy || milkCows.length === 0) && meatCows.length === 0"
         class="empty-state clear-state"
       >
         <div class="clear-icon">✅</div>
@@ -19,6 +19,7 @@
         <!-- ── Tab bar ── -->
         <div class="filter-chips">
           <button
+            v-if="isDairy"
             class="chip"
             :class="{ active: activeTab === 'milk' }"
             @click="activeTab = 'milk'"
@@ -36,8 +37,8 @@
           </button>
         </div>
 
-        <!-- ── Milk Tab ── -->
-        <div v-if="activeTab === 'milk'">
+        <!-- ── Milk Tab (dairy species only) ── -->
+        <div v-if="isDairy && activeTab === 'milk'">
           <div v-if="milkCows.length > 0" class="alert-banner milk-banner">
             <span class="alert-icon">🚫</span>
             <span>{{ $t('withdrawal.milkBanner', { count: milkCows.length }) }}</span>
@@ -179,13 +180,16 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useTreatmentsStore } from '../stores/treatments'
+import { useSpeciesTerms } from '../composables/useSpeciesTerms'
 import { formatDateTime } from '../utils/format'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import PaginationBar from '../components/atoms/PaginationBar.vue'
 
 const store = useTreatmentsStore()
+const { speciesCode } = useSpeciesTerms()
 const loading = computed(() => store.loadingWithdrawal)
 const withdrawalCows = computed(() => store.withdrawalCows)
+const isDairy = computed(() => speciesCode.value === 'cattle')
 const activeTab = ref('milk')
 
 // Pagination state
@@ -199,6 +203,15 @@ watch(activeTab, () => {
   milkPage.value = 1
   meatPage.value = 1
 })
+
+// Default to meat tab for non-dairy species (e.g. sheep)
+watch(
+  isDairy,
+  (val) => {
+    if (!val) activeTab.value = 'meat'
+  },
+  { immediate: true }
+)
 
 // Reactive timestamp — updates every 60s so expired withdrawals disappear automatically
 const nowIso = ref(new Date().toISOString())

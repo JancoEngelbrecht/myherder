@@ -329,7 +329,7 @@
     "landing": {
       "todaySnapshot": "Vandag se Oorsig",
       "litresToday": "Liter Vandag",
-      "cowsMilked": "Koeie Gemelk",
+      "cowsMilked": "{animals} Gemelk",
       "activeIssues": "Aktiewe Kwessies",
       "breedingDue": "Teelt Aksies",
       "totalHerd": "Totale Kudde",
@@ -350,10 +350,10 @@
     },
     "financial": {
       "title": "Finansieel",
-      "litresPerCow": "Liter per Koei per Dag",
+      "litresPerCow": "Liter per {animal} per Dag",
       "revenue": "Inkomste per Maand",
       "revenueSubtitle": "Gebaseer op R{price}/liter",
-      "treatmentCostPerCow": "Behandelingskos per Koei",
+      "treatmentCostPerCow": "Behandelingskos per {animal}",
       "wastedMilkValue": "Vermorsde Melk Waarde",
       "bottomProducers": "Laagste Produseerders",
       "noMilkPrice": "Stel melkprys in Instellings om inkomste te sien"
@@ -361,11 +361,11 @@
     "fertility": {
       "title": "Vrugbaarheid",
       "calvingInterval": "Kalfinterval",
-      "calvingIntervalDesc": "Dae tussen opeenvolgende kalwings per koei. Teiken is onder 400 dae.",
+      "calvingIntervalDesc": "Dae tussen opeenvolgende kalwings per {animal}. Teiken is onder 400 dae.",
       "avgCalvingInterval": "Gem. Kalfinterval",
       "days": "dae",
       "daysOpen": "Dae Oop",
-      "daysOpenDesc": "Dae van kalwing tot die koei weer dragtig bevestig word.",
+      "daysOpenDesc": "Dae van kalwing tot die {animal} weer dragtig bevestig word.",
       "avgDaysOpen": "Gem. Dae Oop",
       "conceptionRate": "1ste Diens Koers",
       "reproStatus": "Reproduksiestatus",
@@ -375,7 +375,7 @@
       "breedingActivity": "Teeltaktiwiteit",
       "breedingActivityDesc": "Maandelikse inseminasies teenoor bevestigde dragtighede.",
       "conceptionTrend": "Bevrugtingskoers Neiging",
-      "conceptionTrendDesc": "Persentasie koeie wat by die eerste diens bevrug word, per maand.",
+      "conceptionTrendDesc": "Persentasie {animals} wat by die eerste diens bevrug word, per maand.",
       "expectedCalvingsDesc": "Komende kalwings gebaseer op bevestigde dragtigheiddatums.",
       "target400": "Teiken 400d",
       "target120": "Teiken 120d",
@@ -385,7 +385,7 @@
       "bredAwaitingCheck": "Geteel — wag vir toets",
       "dry": "Droog",
       "heiferNotBred": "Vers (nog nie geteel)",
-      "cows": "Koeie"
+      "cows": "{animals}"
     },
     "health": {
       "title": "Kudde Gesondheid",
@@ -395,7 +395,7 @@
       "avgDaysToResolve": "Gem. Dae tot Oplossing",
       "recurrenceRate": "Herhalingskoers",
       "topIncidence": "Top Voorkomskoerse",
-      "topIncidenceDesc": "per 100 koeie/maand",
+      "topIncidenceDesc": "per 100 {animals}/maand",
       "issueFrequency": "Kwessie Frekwensie per Tipe",
       "issueTrend": "Kwessie Neiging per Maand",
       "resolutionByType": "Oplossingstyd per Tipe",
@@ -405,14 +405,14 @@
       "recurrenceByType": "Herhaling per Tipe",
       "recurrenceByTypeDesc": "% herhaling binne 60 dae na oplossing",
       "incidenceTrend": "Top 3 Siekte Voorkoms Neiging",
-      "incidenceTrendDesc": "Gevalle per 100 koeie/maand vir top siektes",
-      "treatmentCostPerCow": "Behandelingskos per Koei",
+      "incidenceTrendDesc": "Gevalle per 100 {animals}/maand vir top siektes",
+      "treatmentCostPerCow": "Behandelingskos per {animal}",
       "treatmentCostPerCowDesc": "Maandelikse besteding genormaliseer per kuddegrootte",
       "slowestToResolve": "Stadigste om Op te Los",
-      "slowestToResolveDesc": "Koeie met die langste gem. oplossingstyd",
+      "slowestToResolveDesc": "{animals} met die langste gem. oplossingstyd",
       "daysAvg": "d gem",
       "treatmentCosts": "Behandelingskoste",
-      "unhealthiestCows": "Ongesonste Koeie",
+      "unhealthiestCows": "Ongesonste {animals}",
       "seasonalPredictions": "Seisoenale Voorspellings",
       "predictedIssues": "Voorspelde Kwessies",
       "yearsOfData": "{count} jaar se data",
@@ -424,7 +424,7 @@
       "target80pct": "Teiken 80%",
       "concern10pct": "Risiko >10%",
       "per100": "per 100",
-      "costPerCowUnit": "R / koei"
+      "costPerCowUnit": "R / {animal}"
     },
     "structure": {
       "title": "Kudde Struktuur",
@@ -433,8 +433,8 @@
       "females": "Koeie",
       "avgAge": "Gem Ouderdom",
       "years": "jr",
-      "milkingCows": "Melkkoeie",
-      "dryCows": "Droë Koeie",
+      "milkingCows": "Melk {animals}",
+      "dryCows": "Droë {animals}",
       "heifers": "Verse",
       "replacementRate": "Vervangingskoers",
       "turnoverRate": "Omsetkoers",
@@ -486,7 +486,7 @@
   "treatments": {
     "logTitle": "Teken Behandeling aan",
     "cow": "Koei",
-    "cowPlaceholder": "Soek koei op tag of naam...",
+    "cowPlaceholder": "Soek {animal} op oornommer of naam...",
     "medications": "Medikasies",
     "selectMedication": "Kies medikasie...",
     "addMedication": "Voeg medikasie by",
@@ -608,7 +608,7 @@
     "title": "Gesondheidsprobleme",
     "logTitle": "Teken Gesondheidsprobleem aan",
     "cow": "Koei",
-    "cowPlaceholder": "Soek koei op tag of naam...",
+    "cowPlaceholder": "Soek {animal} op oornommer of naam...",
     "issueType": "Probleemtipe",
     "issueTypeHint": "Kies een of meer",
     "severity": "Ernst",
@@ -1899,8 +1899,8 @@
     },
     "healthIssues": {
       "cowSelect": {
-        "title": "Kies 'n Koei",
-        "desc": "Soek en kies die koei met die gesondheidsprobleem."
+        "title": "Kies {animal}",
+        "desc": "Soek en kies die {animal} met die gesondheidsprobleem."
       },
       "issueType": {
         "title": "Probleemtipe",
@@ -1921,8 +1921,8 @@
     },
     "treatments": {
       "cowSelect": {
-        "title": "Kies 'n Koei",
-        "desc": "Soek en kies die koei wat behandel word."
+        "title": "Kies {animal}",
+        "desc": "Soek en kies die {animal} wat behandel word."
       },
       "medication": {
         "title": "Kies Medikasie",

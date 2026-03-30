@@ -71,7 +71,7 @@
               <p class="panel-label">
                 {{ t('analytics.health.topIncidence') }}
                 <span style="text-transform: none; letter-spacing: normal; font-weight: 400"
-                  >({{ t('analytics.health.topIncidenceDesc') }})</span
+                  >({{ t('analytics.health.topIncidenceDesc', sp) }})</span
                 >
               </p>
               <div class="stat-chips-3col">
@@ -152,7 +152,7 @@
         <!-- 7. Top 3 Disease Incidence Trend (IMPROVED) -->
         <section v-if="flags.healthIssues" class="analytics-card">
           <h2 class="analytics-title">{{ t('analytics.health.incidenceTrend') }}</h2>
-          <p class="chart-subtitle">{{ t('analytics.health.incidenceTrendDesc') }}</p>
+          <p class="chart-subtitle">{{ t('analytics.health.incidenceTrendDesc', sp) }}</p>
           <div v-if="freqLoading" class="center-spinner"><div class="spinner" /></div>
           <template v-else-if="incidenceTrendChart.datasets.length > 0">
             <div class="chart-wrap">
@@ -164,7 +164,7 @@
 
         <!-- 8. Treatment Cost per Cow (IMPROVED) -->
         <section v-if="flags.treatments" class="analytics-card">
-          <h2 class="analytics-title">{{ t('analytics.health.treatmentCostPerCow') }}</h2>
+          <h2 class="analytics-title">{{ t('analytics.health.treatmentCostPerCow', sp) }}</h2>
           <p class="chart-subtitle">{{ t('analytics.health.treatmentCostPerCowDesc') }}</p>
           <div v-if="costsLoading" class="center-spinner"><div class="spinner" /></div>
           <template v-else-if="costPerCowChart.labels.length > 0">
@@ -178,7 +178,7 @@
         <!-- 9. Slowest to Resolve (NEW) -->
         <section v-if="flags.healthIssues" class="analytics-card">
           <h2 class="analytics-title">{{ t('analytics.health.slowestToResolve') }}</h2>
-          <p class="chart-subtitle">{{ t('analytics.health.slowestToResolveDesc') }}</p>
+          <p class="chart-subtitle">{{ t('analytics.health.slowestToResolveDesc', sp) }}</p>
           <div v-if="slowestLoading" class="center-spinner"><div class="spinner" /></div>
           <template v-else-if="slowestCows.length > 0">
             <div class="cow-list">
@@ -202,7 +202,7 @@
 
         <!-- 10. Unhealthiest Cows -->
         <section v-if="flags.healthIssues" class="analytics-card">
-          <h2 class="analytics-title">{{ t('analytics.health.unhealthiestCows') }}</h2>
+          <h2 class="analytics-title">{{ t('analytics.health.unhealthiestCows', sp) }}</h2>
           <div v-if="unhealthiestLoading" class="center-spinner"><div class="spinner" /></div>
           <template v-else-if="unhealthiest.length > 0">
             <div class="cow-list">
@@ -260,6 +260,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useSpeciesTerms } from '../../composables/useSpeciesTerms.js'
 import { Line, Bar } from 'vue-chartjs'
 import '../../utils/chartSetup.js'
 import '../../assets/analytics.css'
@@ -277,6 +278,8 @@ import {
 
 const { offline, flags, handleError, t } = useAnalytics()
 const { selectedRange, dateRange } = useTimeRange()
+const { singular, plural } = useSpeciesTerms()
+const sp = computed(() => ({ animal: singular.value, animals: plural.value }))
 
 function toggleChip(e) {
   const chip = e.target.closest('.stat-chip')
@@ -564,7 +567,7 @@ const costPerCowChart = computed(() => {
     labels: months.map((m) => formatMonth(m.month)),
     datasets: [
       {
-        label: t('analytics.health.costPerCowUnit'),
+        label: t('analytics.health.costPerCowUnit', sp.value),
         data: perCow,
         backgroundColor: perCow.map((v) =>
           v > 50 ? chartColors.danger : v > 40 ? chartColors.warning : chartColors.primary
