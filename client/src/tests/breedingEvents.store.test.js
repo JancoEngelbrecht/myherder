@@ -117,9 +117,9 @@ describe('useBreedingEventsStore', () => {
       api.get.mockResolvedValue({ data: cowEvents })
 
       const store = useBreedingEventsStore()
-      const result = await store.fetchAll({ cow_id: 'cow-1' })
+      const result = await store.fetchAll({ animal_id: 'cow-1' })
 
-      expect(api.get).toHaveBeenCalledWith('/breeding-events', { params: { cow_id: 'cow-1' } })
+      expect(api.get).toHaveBeenCalledWith('/breeding-events', { params: { animal_id: 'cow-1' } })
       expect(result).toEqual(cowEvents)
       // Per-cow fetch should NOT overwrite the global events list
       expect(store.events).toEqual([])
@@ -131,7 +131,7 @@ describe('useBreedingEventsStore', () => {
 
       const { default: db } = await import('../db/indexedDB.js')
       const store = useBreedingEventsStore()
-      await store.fetchAll({ cow_id: 'cow-1' })
+      await store.fetchAll({ animal_id: 'cow-1' })
 
       expect(db.breedingEvents.bulkPut).toHaveBeenCalledWith([EVENT_FIXTURE])
     })
@@ -144,9 +144,9 @@ describe('useBreedingEventsStore', () => {
       db.breedingEvents.where.mockReturnValue({ equals: mockEquals })
 
       const store = useBreedingEventsStore()
-      const result = await store.fetchAll({ cow_id: 'cow-1' })
+      const result = await store.fetchAll({ animal_id: 'cow-1' })
 
-      expect(db.breedingEvents.where).toHaveBeenCalledWith('cow_id')
+      expect(db.breedingEvents.where).toHaveBeenCalledWith('animal_id')
       expect(mockEquals).toHaveBeenCalledWith('cow-1')
       expect(result).toEqual([EVENT_FIXTURE])
     })
@@ -155,13 +155,13 @@ describe('useBreedingEventsStore', () => {
   // ─── fetchForCow shorthand ───────────────────────────────────────────────
 
   describe('fetchForCow', () => {
-    it('delegates to fetchAll with cow_id', async () => {
+    it('delegates to fetchAll with animal_id', async () => {
       api.get.mockResolvedValue({ data: [] })
 
       const store = useBreedingEventsStore()
       await store.fetchForCow('cow-1')
 
-      expect(api.get).toHaveBeenCalledWith('/breeding-events', { params: { cow_id: 'cow-1' } })
+      expect(api.get).toHaveBeenCalledWith('/breeding-events', { params: { animal_id: 'cow-1' } })
     })
   })
 
@@ -362,9 +362,9 @@ describe('useBreedingEventsStore', () => {
     it('returns the latest event for a cow', () => {
       const store = useBreedingEventsStore()
       store.events = [
-        { ...EVENT_FIXTURE, id: 'ev-old', cow_id: 'cow-1', event_date: '2026-01-01' },
-        { ...EVENT_FIXTURE, id: 'ev-new', cow_id: 'cow-1', event_date: '2026-02-15' },
-        { ...EVENT_FIXTURE, id: 'ev-other', cow_id: 'cow-2', event_date: '2026-03-01' },
+        { ...EVENT_FIXTURE, id: 'ev-old', animal_id: 'cow-1', event_date: '2026-01-01' },
+        { ...EVENT_FIXTURE, id: 'ev-new', animal_id: 'cow-1', event_date: '2026-02-15' },
+        { ...EVENT_FIXTURE, id: 'ev-other', animal_id: 'cow-2', event_date: '2026-03-01' },
       ]
 
       const latest = store.latestForCow('cow-1')

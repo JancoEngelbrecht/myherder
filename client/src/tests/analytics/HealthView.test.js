@@ -325,7 +325,7 @@ describe('HealthView', () => {
     const wrapper = createWrapper()
     await flushPromises()
 
-    expect(wrapper.find('.cow-item').exists()).toBe(true)
+    expect(wrapper.find('.animal-item').exists()).toBe(true)
     expect(wrapper.text()).toContain('MH-001')
     expect(wrapper.text()).toContain('5') // issue count
   })
@@ -350,7 +350,7 @@ describe('HealthView', () => {
     await flushPromises()
 
     expect(wrapper.find('.stat-chip').exists()).toBe(false)
-    expect(wrapper.find('.cow-item').exists()).toBe(false)
+    expect(wrapper.find('.animal-item').exists()).toBe(false)
     expect(wrapper.find('.prediction-card').exists()).toBe(false)
   })
 

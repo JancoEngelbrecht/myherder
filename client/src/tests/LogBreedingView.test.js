@@ -46,7 +46,7 @@ vi.mock('../services/syncManager.js', () => {
 
 vi.mock('../db/indexedDB.js', () => ({
   default: {
-    cows: {
+    animals: {
       toArray: vi.fn().mockResolvedValue([]),
       bulkPut: vi.fn(),
       put: vi.fn(),
@@ -92,7 +92,7 @@ const stubs = {
     template: '<div class="app-header"><slot /></div>',
     props: ['title', 'showBack', 'backTo'],
   },
-  CowSearchDropdown: {
+  AnimalSearchDropdown: {
     template: '<select class="cow-search-dropdown" />',
     props: ['modelValue', 'placeholder', 'error', 'sexFilter'],
   },
@@ -102,7 +102,7 @@ function createWrapper() {
   api.get.mockImplementation((url) => {
     if (url === '/breed-types') return Promise.resolve({ data: [] })
     if (url === '/breed-types?all=1') return Promise.resolve({ data: [] })
-    if (url === '/cows') return Promise.resolve({ data: [] })
+    if (url === '/animals') return Promise.resolve({ data: [] })
     if (url.includes('feature-flags'))
       return Promise.resolve({
         data: {
@@ -143,7 +143,7 @@ beforeEach(() => {
 // ── Tests ────────────────────────────────────────────────────────────────────
 
 describe('LogBreedingView', () => {
-  it('renders create form with CowSearchDropdown', async () => {
+  it('renders create form with AnimalSearchDropdown', async () => {
     const wrapper = createWrapper()
     await flushPromises()
 
@@ -186,7 +186,7 @@ describe('LogBreedingView', () => {
     expect(wrapper.html()).toContain('breeding.form.inseminator')
   })
 
-  it('selecting bull_service shows sire CowSearchDropdown', async () => {
+  it('selecting bull_service shows sire AnimalSearchDropdown', async () => {
     const wrapper = createWrapper()
     await flushPromises()
 
@@ -195,7 +195,7 @@ describe('LogBreedingView', () => {
     await buttons[2].trigger('click')
     await flushPromises()
 
-    // Should have 2 CowSearchDropdowns: cow + sire
+    // Should have 2 AnimalSearchDropdowns: animal + sire
     const dropdowns = wrapper.findAll('.cow-search-dropdown')
     expect(dropdowns).toHaveLength(2)
   })
@@ -261,7 +261,7 @@ describe('LogBreedingView', () => {
     const wrapper = createWrapper()
     await flushPromises()
 
-    // The CowSearchDropdown should still be present (not read-only mode)
+    // The AnimalSearchDropdown should still be present (not read-only mode)
     expect(wrapper.find('.cow-search-dropdown').exists()).toBe(true)
   })
 

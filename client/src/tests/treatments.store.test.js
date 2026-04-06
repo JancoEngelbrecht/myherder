@@ -62,7 +62,7 @@ describe('useTreatmentsStore', () => {
       const store = useTreatmentsStore()
       const result = await store.fetchByCow('cow-1')
 
-      expect(api.get).toHaveBeenCalledWith('/treatments', { params: { cow_id: 'cow-1' } })
+      expect(api.get).toHaveBeenCalledWith('/treatments', { params: { animal_id: 'cow-1' } })
       expect(store.treatments).toContainEqual(TREATMENT_FIXTURE)
       expect(result).toEqual([TREATMENT_FIXTURE])
     })
@@ -192,8 +192,8 @@ describe('useTreatmentsStore', () => {
     it('returns treatments for a specific cow', () => {
       const store = useTreatmentsStore()
       store.treatments = [
-        TREATMENT_FIXTURE,
-        { ...TREATMENT_FIXTURE, id: 'treat-2', cow_id: 'cow-2' },
+        { ...TREATMENT_FIXTURE, animal_id: 'cow-1' },
+        { ...TREATMENT_FIXTURE, id: 'treat-2', animal_id: 'cow-2' },
       ]
 
       const result = store.getCowTreatments('cow-1')

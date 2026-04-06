@@ -43,7 +43,7 @@ vi.mock('../services/syncManager.js', () => {
 
 vi.mock('../db/indexedDB.js', () => ({
   default: {
-    cows: { toArray: vi.fn().mockResolvedValue([]), bulkPut: vi.fn(), put: vi.fn() },
+    animals: { toArray: vi.fn().mockResolvedValue([]), bulkPut: vi.fn(), put: vi.fn() },
     issueTypes: {
       toArray: vi.fn().mockResolvedValue([]),
       bulkPut: vi.fn(),
@@ -112,7 +112,7 @@ const stubs = {
     template: '<div class="app-header"><slot /></div>',
     props: ['title', 'showBack', 'backTo'],
   },
-  CowSearchDropdown: {
+  AnimalSearchDropdown: {
     template: '<select class="cow-search-dropdown" />',
     props: ['modelValue', 'placeholder', 'error'],
   },
@@ -152,7 +152,7 @@ beforeEach(() => {
 // ── Tests ────────────────────────────────────────────────────────────────────
 
 describe('LogIssueView', () => {
-  it('renders form with CowSearchDropdown', async () => {
+  it('renders form with AnimalSearchDropdown', async () => {
     const wrapper = createWrapper()
     await flushPromises()
 

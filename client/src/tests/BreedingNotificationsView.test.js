@@ -197,7 +197,7 @@ describe('BreedingNotificationsView', () => {
     await flushPromises()
 
     await wrapper.find('.alert-row').trigger('click')
-    expect(mockRouter.push).toHaveBeenCalledWith('/cows/cow-abc/repro')
+    expect(mockRouter.push).toHaveBeenCalledWith('/animals/cow-abc/repro')
   })
 
   it('dismiss button opens confirm dialog', async () => {

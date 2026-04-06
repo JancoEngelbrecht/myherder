@@ -51,7 +51,7 @@ import { createPinia, setActivePinia } from 'pinia'
 
 const stubs = {
   AppHeader: { template: '<div class="app-header"><slot /></div>' },
-  CowSearchDropdown: {
+  AnimalSearchDropdown: {
     template: '<div class="cow-search-dropdown" />',
     props: ['modelValue', 'placeholder', 'sexFilter'],
   },

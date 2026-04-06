@@ -47,7 +47,7 @@ vi.mock('../db/indexedDB.js', () => ({
         reverse: vi.fn().mockReturnValue({ toArray: vi.fn().mockResolvedValue([]) }),
       }),
     },
-    cows: {
+    animals: {
       bulkPut: vi.fn(),
       put: vi.fn(),
       get: vi.fn(),
@@ -67,7 +67,7 @@ vi.mock('../db/indexedDB.js', () => ({
 
 import BreedingHubView from '../views/BreedingHubView.vue'
 import { useBreedingEventsStore } from '../stores/breedingEvents'
-import { useCowsStore } from '../stores/cows'
+import { useAnimalsStore } from '../stores/animals'
 import { createPinia, setActivePinia } from 'pinia'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -85,18 +85,18 @@ function createWrapper() {
 // ── Tests ────────────────────────────────────────────────────────────────────
 
 describe('BreedingHubView', () => {
-  let breedingStore, cowsStore
+  let breedingStore, animalsStore
 
   beforeEach(() => {
     vi.clearAllMocks()
     setActivePinia(createPinia())
     breedingStore = useBreedingEventsStore()
-    cowsStore = useCowsStore()
+    animalsStore = useAnimalsStore()
 
     // Prevent actual API calls
     vi.spyOn(breedingStore, 'fetchAll').mockResolvedValue([])
     vi.spyOn(breedingStore, 'fetchUpcoming').mockResolvedValue()
-    vi.spyOn(cowsStore, 'fetchAll').mockResolvedValue()
+    vi.spyOn(animalsStore, 'fetchAll').mockResolvedValue()
   })
 
   it('shows loading spinner while fetching', () => {
@@ -107,7 +107,7 @@ describe('BreedingHubView', () => {
 
   it('renders stats row with counts', async () => {
     breedingStore.loading = false
-    cowsStore.cows = [
+    animalsStore.animals = [
       { id: '1', sex: 'female', status: 'pregnant' },
       { id: '2', sex: 'female', status: 'pregnant' },
       { id: '3', sex: 'female', status: 'active' },

@@ -258,18 +258,17 @@ describe('DashboardView', () => {
     expect(calls.some((u) => u.includes('treatments/withdrawal'))).toBe(false)
   })
 
-  it('admin with all flags sees herd card + milk + breeding + issues + withdrawal', async () => {
+  it('admin with all flags sees herd card + milk + breeding + treatment + health action cards', async () => {
     setAdmin()
     setAllFlags()
     const wrapper = mount(DashboardView, { global: { stubs } })
     await flushPromises()
 
     expect(wrapper.find('.herd-card').exists()).toBe(true)
-    expect(wrapper.findAll('.action-card')).toHaveLength(6) // milk, breeding, treatment, health, issues, withdrawal
-    expect(wrapper.findAll('.alert-card')).toHaveLength(2)
+    expect(wrapper.findAll('.action-card')).toHaveLength(4) // breeding, health, treatment, milk
   })
 
-  it('shows more options section with analytics button', async () => {
+  it('shows more options section with open issues, withdrawal, and analytics buttons', async () => {
     setAdmin()
     setAllFlags()
     const wrapper = mount(DashboardView, { global: { stubs } })
@@ -277,7 +276,7 @@ describe('DashboardView', () => {
 
     const moreOptions = wrapper.find('.more-options')
     expect(moreOptions.exists()).toBe(true)
-    expect(wrapper.findAll('.option-btn')).toHaveLength(1)
+    expect(wrapper.findAll('.option-btn')).toHaveLength(3) // open issues, withdrawal, analytics
   })
 
   it('worker with only can_record_milk sees only herd card and milk card', async () => {
@@ -287,12 +286,10 @@ describe('DashboardView', () => {
     await flushPromises()
 
     expect(wrapper.find('.herd-card').exists()).toBe(true)
-    // milk card (action-card without alert-card)
+    // milk card only
     const actionCards = wrapper.findAll('.action-card')
     expect(actionCards).toHaveLength(1)
-    // no alert cards
-    expect(wrapper.findAll('.alert-card')).toHaveLength(0)
-    // no more-options buttons
+    // no more-options buttons (no analytics/issues/withdrawal permission)
     expect(wrapper.findAll('.option-btn')).toHaveLength(0)
   })
 

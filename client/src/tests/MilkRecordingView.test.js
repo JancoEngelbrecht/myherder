@@ -33,7 +33,7 @@ vi.mock('../services/syncManager.js', () => {
 
 vi.mock('../db/indexedDB.js', () => ({
   default: {
-    cows: { toArray: vi.fn().mockResolvedValue([]), bulkPut: vi.fn(), put: vi.fn() },
+    animals: { toArray: vi.fn().mockResolvedValue([]), bulkPut: vi.fn(), put: vi.fn() },
     milkRecords: {
       toArray: vi.fn().mockResolvedValue([]),
       bulkPut: vi.fn(),
@@ -71,7 +71,7 @@ function createWrapper() {
   api.get.mockImplementation((url) => {
     if (url === '/milk-records') return Promise.resolve({ data: [] })
     if (url === '/treatments/withdrawal') return Promise.resolve({ data: [] })
-    if (url === '/cows') return Promise.resolve({ data: [] })
+    if (url === '/animals') return Promise.resolve({ data: [] })
     if (url.includes('feature-flags'))
       return Promise.resolve({
         data: {
@@ -142,7 +142,7 @@ describe('MilkRecordingView', () => {
   it('does not flag cow as on-withdrawal when only meat withdrawal is active', async () => {
     const futureMeat = new Date(Date.now() + 86400000 * 5).toISOString()
     api.get.mockImplementation((url) => {
-      if (url === '/cows')
+      if (url === '/animals')
         return Promise.resolve({
           data: [
             { id: 'cow-1', tag_number: '001', name: 'Letty', sex: 'female', status: 'active' },
@@ -187,7 +187,7 @@ describe('MilkRecordingView', () => {
   it('flags cow as on-withdrawal when milk withdrawal is active', async () => {
     const futureMilk = new Date(Date.now() + 86400000 * 5).toISOString()
     api.get.mockImplementation((url) => {
-      if (url === '/cows')
+      if (url === '/animals')
         return Promise.resolve({
           data: [
             { id: 'cow-2', tag_number: '002', name: 'Daisy', sex: 'female', status: 'active' },
@@ -232,7 +232,7 @@ describe('MilkRecordingView', () => {
   it('does not flag cow when milk withdrawal is expired', async () => {
     const pastMilk = new Date(Date.now() - 86400000).toISOString()
     api.get.mockImplementation((url) => {
-      if (url === '/cows')
+      if (url === '/animals')
         return Promise.resolve({
           data: [
             { id: 'cow-3', tag_number: '003', name: 'Bella', sex: 'female', status: 'active' },

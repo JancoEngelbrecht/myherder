@@ -85,13 +85,13 @@ afterEach(() => {
 describe('syncManager — queue operations', () => {
   describe('enqueue', () => {
     it('adds an entry to syncQueue with correct shape', async () => {
-      await enqueue('cows', 'create', 'cow-1', { id: 'cow-1', name: 'Bessie' })
+      await enqueue('animals', 'create', 'cow-1', { id: 'cow-1', name: 'Bessie' })
 
       const entries = await db.syncQueue.toArray()
       expect(entries).toHaveLength(1)
       expect(entries[0]).toMatchObject({
         id: 'cow-1',
-        entityType: 'cows',
+        entityType: 'animals',
         action: 'create',
         data: { id: 'cow-1', name: 'Bessie' },
         attempts: 0,
@@ -103,15 +103,15 @@ describe('syncManager — queue operations', () => {
 
     it('increments pendingCount reactive ref', async () => {
       expect(pendingCount.value).toBe(0)
-      await enqueue('cows', 'create', 'cow-1', { id: 'cow-1' })
+      await enqueue('animals', 'create', 'cow-1', { id: 'cow-1' })
       expect(pendingCount.value).toBe(1)
-      await enqueue('cows', 'update', 'cow-2', { id: 'cow-2' })
+      await enqueue('animals', 'update', 'cow-2', { id: 'cow-2' })
       expect(pendingCount.value).toBe(2)
     })
 
     it('stores multiple entries for the same entity', async () => {
-      await enqueue('cows', 'create', 'cow-1', { id: 'cow-1' })
-      await enqueue('cows', 'update', 'cow-1', { id: 'cow-1', name: 'Updated' })
+      await enqueue('animals', 'create', 'cow-1', { id: 'cow-1' })
+      await enqueue('animals', 'update', 'cow-1', { id: 'cow-1', name: 'Updated' })
 
       const entries = await db.syncQueue.toArray()
       expect(entries).toHaveLength(2)
@@ -120,8 +120,8 @@ describe('syncManager — queue operations', () => {
 
   describe('dequeue', () => {
     it('removes a specific entry by autoId', async () => {
-      await enqueue('cows', 'create', 'cow-1', { id: 'cow-1' })
-      await enqueue('cows', 'create', 'cow-2', { id: 'cow-2' })
+      await enqueue('animals', 'create', 'cow-1', { id: 'cow-1' })
+      await enqueue('animals', 'create', 'cow-2', { id: 'cow-2' })
 
       const entries = await db.syncQueue.toArray()
       await dequeue(entries[0].autoId)
@@ -134,11 +134,11 @@ describe('syncManager — queue operations', () => {
 
   describe('dequeueByEntityId', () => {
     it('removes all entries matching entityType and id', async () => {
-      await enqueue('cows', 'create', 'cow-1', { id: 'cow-1' })
-      await enqueue('cows', 'update', 'cow-1', { id: 'cow-1', name: 'Updated' })
-      await enqueue('cows', 'create', 'cow-2', { id: 'cow-2' })
+      await enqueue('animals', 'create', 'cow-1', { id: 'cow-1' })
+      await enqueue('animals', 'update', 'cow-1', { id: 'cow-1', name: 'Updated' })
+      await enqueue('animals', 'create', 'cow-2', { id: 'cow-2' })
 
-      await dequeueByEntityId('cows', 'cow-1')
+      await dequeueByEntityId('animals', 'cow-1')
 
       const remaining = await db.syncQueue.toArray()
       expect(remaining).toHaveLength(1)
@@ -146,14 +146,14 @@ describe('syncManager — queue operations', () => {
     })
 
     it('is idempotent — no error when nothing matches', async () => {
-      await expect(dequeueByEntityId('cows', 'nonexistent')).resolves.not.toThrow()
+      await expect(dequeueByEntityId('animals', 'nonexistent')).resolves.not.toThrow()
     })
 
     it('does not remove entries for different entity types', async () => {
-      await enqueue('cows', 'create', 'id-1', { id: 'id-1' })
+      await enqueue('animals', 'create', 'id-1', { id: 'id-1' })
       await enqueue('treatments', 'create', 'id-1', { id: 'id-1' })
 
-      await dequeueByEntityId('cows', 'id-1')
+      await dequeueByEntityId('animals', 'id-1')
 
       const remaining = await db.syncQueue.toArray()
       expect(remaining).toHaveLength(1)
@@ -164,9 +164,9 @@ describe('syncManager — queue operations', () => {
   describe('getPending', () => {
     it('returns entries ordered by createdAt', async () => {
       // Enqueue with slight delays to ensure different timestamps
-      await enqueue('cows', 'create', 'cow-a', { id: 'cow-a' })
-      await enqueue('cows', 'create', 'cow-b', { id: 'cow-b' })
-      await enqueue('cows', 'create', 'cow-c', { id: 'cow-c' })
+      await enqueue('animals', 'create', 'cow-a', { id: 'cow-a' })
+      await enqueue('animals', 'create', 'cow-b', { id: 'cow-b' })
+      await enqueue('animals', 'create', 'cow-c', { id: 'cow-c' })
 
       const pending = await getPending()
       expect(pending).toHaveLength(3)
@@ -178,7 +178,7 @@ describe('syncManager — queue operations', () => {
   describe('getPendingCount', () => {
     it('returns count of all queue entries', async () => {
       expect(await getPendingCount()).toBe(0)
-      await enqueue('cows', 'create', 'cow-1', { id: 'cow-1' })
+      await enqueue('animals', 'create', 'cow-1', { id: 'cow-1' })
       expect(await getPendingCount()).toBe(1)
     })
   })
@@ -207,10 +207,10 @@ describe('syncManager — queue operations', () => {
 
 describe('syncManager — pushChanges', () => {
   it('sends pending items to POST /sync/push with correct payload', async () => {
-    await enqueue('cows', 'create', 'cow-1', { id: 'cow-1', updated_at: '2026-01-01T00:00:00Z' })
+    await enqueue('animals', 'create', 'cow-1', { id: 'cow-1', updated_at: '2026-01-01T00:00:00Z' })
 
     api.post.mockResolvedValue({
-      data: { results: [{ id: 'cow-1', entityType: 'cows', status: 'applied' }] },
+      data: { results: [{ id: 'cow-1', entityType: 'animals', status: 'applied' }] },
     })
 
     await pushChanges()
@@ -222,7 +222,7 @@ describe('syncManager — pushChanges', () => {
         changes: [
           expect.objectContaining({
             id: 'cow-1',
-            entityType: 'cows',
+            entityType: 'animals',
             action: 'create',
             updatedAt: '2026-01-01T00:00:00Z',
           }),
@@ -237,10 +237,10 @@ describe('syncManager — pushChanges', () => {
   })
 
   it('dequeues entries with "applied" status', async () => {
-    await enqueue('cows', 'create', 'cow-1', { id: 'cow-1' })
+    await enqueue('animals', 'create', 'cow-1', { id: 'cow-1' })
 
     api.post.mockResolvedValue({
-      data: { results: [{ id: 'cow-1', entityType: 'cows', status: 'applied' }] },
+      data: { results: [{ id: 'cow-1', entityType: 'animals', status: 'applied' }] },
     })
 
     await pushChanges()
@@ -250,7 +250,7 @@ describe('syncManager — pushChanges', () => {
   })
 
   it('dequeues entries with "conflict" status and writes serverData to IndexedDB', async () => {
-    await enqueue('cows', 'update', 'cow-1', { id: 'cow-1', name: 'Local' })
+    await enqueue('animals', 'update', 'cow-1', { id: 'cow-1', name: 'Local' })
     const serverCow = { id: 'cow-1', name: 'Server Version', updated_at: '2026-01-02T00:00:00Z' }
 
     api.post.mockResolvedValue({
@@ -258,7 +258,7 @@ describe('syncManager — pushChanges', () => {
         results: [
           {
             id: 'cow-1',
-            entityType: 'cows',
+            entityType: 'animals',
             status: 'conflict',
             serverData: serverCow,
           },
@@ -271,19 +271,19 @@ describe('syncManager — pushChanges', () => {
     // Queue should be empty
     expect(await getPendingCount()).toBe(0)
     // IndexedDB should have the server version
-    const cow = await db.cows.get('cow-1')
-    expect(cow.name).toBe('Server Version')
+    const animal = await db.animals.get('cow-1')
+    expect(animal.name).toBe('Server Version')
   })
 
   it('increments attempts on per-item error', async () => {
-    await enqueue('cows', 'create', 'cow-1', { id: 'cow-1' })
+    await enqueue('animals', 'create', 'cow-1', { id: 'cow-1' })
 
     api.post.mockResolvedValue({
       data: {
         results: [
           {
             id: 'cow-1',
-            entityType: 'cows',
+            entityType: 'animals',
             status: 'error',
             error: 'Validation failed',
           },
@@ -303,7 +303,7 @@ describe('syncManager — pushChanges', () => {
     // Manually add a failed item
     await db.syncQueue.add({
       id: 'cow-fail',
-      entityType: 'cows',
+      entityType: 'animals',
       action: 'create',
       data: { id: 'cow-fail' },
       createdAt: '2026-01-01T00:00:00Z',
@@ -311,10 +311,10 @@ describe('syncManager — pushChanges', () => {
       lastError: 'Gave up',
     })
     // Add a fresh item
-    await enqueue('cows', 'create', 'cow-fresh', { id: 'cow-fresh' })
+    await enqueue('animals', 'create', 'cow-fresh', { id: 'cow-fresh' })
 
     api.post.mockResolvedValue({
-      data: { results: [{ id: 'cow-fresh', entityType: 'cows', status: 'applied' }] },
+      data: { results: [{ id: 'cow-fresh', entityType: 'animals', status: 'applied' }] },
     })
 
     await pushChanges()
@@ -331,7 +331,7 @@ describe('syncManager — pushChanges', () => {
   })
 
   it('increments attempts on network error and sets isOnline = false', async () => {
-    await enqueue('cows', 'create', 'cow-1', { id: 'cow-1' })
+    await enqueue('animals', 'create', 'cow-1', { id: 'cow-1' })
 
     _onLine = false
     api.post.mockRejectedValue(new Error('Network Error'))
@@ -342,7 +342,7 @@ describe('syncManager — pushChanges', () => {
   })
 
   it('increments attempts for non-offline errors', async () => {
-    await enqueue('cows', 'create', 'cow-1', { id: 'cow-1' })
+    await enqueue('animals', 'create', 'cow-1', { id: 'cow-1' })
 
     const err = new Error('Server Error')
     err.response = { status: 500, data: {} }
@@ -390,7 +390,7 @@ describe('syncManager — pullChanges', () => {
   it('bulk-upserts records into IndexedDB tables', async () => {
     api.get.mockResolvedValue({
       data: {
-        cows: [{ id: 'cow-1', name: 'Bessie' }],
+        animals: [{ id: 'cow-1', name: 'Bessie' }],
         medications: [{ id: 'med-1', name: 'Amoxicillin' }],
         treatments: [],
         healthIssues: [],
@@ -404,18 +404,18 @@ describe('syncManager — pullChanges', () => {
 
     await pullChanges()
 
-    expect(await db.cows.get('cow-1')).toMatchObject({ name: 'Bessie' })
+    expect(await db.animals.get('cow-1')).toMatchObject({ name: 'Bessie' })
     expect(await db.medications.get('med-1')).toMatchObject({ name: 'Amoxicillin' })
     expect(await db.breedTypes.get('bt-1')).toMatchObject({ code: 'jersey' })
   })
 
   it('processes deleted records — removes from local tables', async () => {
-    // Pre-populate a cow
-    await db.cows.put({ id: 'cow-del', name: 'About to be deleted' })
+    // Pre-populate an animal
+    await db.animals.put({ id: 'cow-del', name: 'About to be deleted' })
 
     api.get.mockResolvedValue({
       data: {
-        cows: [],
+        animals: [],
         medications: [],
         treatments: [],
         healthIssues: [],
@@ -423,20 +423,20 @@ describe('syncManager — pullChanges', () => {
         breedingEvents: [],
         breedTypes: [],
         issueTypes: [],
-        deleted: [{ entityType: 'cows', id: 'cow-del' }],
+        deleted: [{ entityType: 'animals', id: 'cow-del' }],
         syncedAt: '2026-01-01T12:00:00Z',
       },
     })
 
     await pullChanges()
 
-    expect(await db.cows.get('cow-del')).toBeUndefined()
+    expect(await db.animals.get('cow-del')).toBeUndefined()
   })
 
   it('updates lastPullTimestamp and lastSyncTime', async () => {
     api.get.mockResolvedValue({
       data: {
-        cows: [],
+        animals: [],
         medications: [],
         treatments: [],
         healthIssues: [],
@@ -473,7 +473,7 @@ describe('syncManager — sync()', () => {
     })
     api.get.mockResolvedValue({
       data: {
-        cows: [],
+        animals: [],
         medications: [],
         treatments: [],
         healthIssues: [],
@@ -486,7 +486,7 @@ describe('syncManager — sync()', () => {
     })
 
     // Enqueue something so pushChanges actually calls the API
-    await enqueue('cows', 'create', 'cow-1', { id: 'cow-1' })
+    await enqueue('animals', 'create', 'cow-1', { id: 'cow-1' })
     await sync()
 
     expect(syncingDuringPush).toBe(true)
@@ -502,7 +502,7 @@ describe('syncManager — sync()', () => {
     )
     api.get.mockResolvedValue({
       data: {
-        cows: [],
+        animals: [],
         medications: [],
         treatments: [],
         healthIssues: [],
@@ -514,7 +514,7 @@ describe('syncManager — sync()', () => {
       },
     })
 
-    await enqueue('cows', 'create', 'cow-1', { id: 'cow-1' })
+    await enqueue('animals', 'create', 'cow-1', { id: 'cow-1' })
     const first = sync()
     const second = sync() // should be no-op
 
@@ -530,7 +530,7 @@ describe('syncManager — sync()', () => {
     isOnline.value = false
     api.get.mockResolvedValue({
       data: {
-        cows: [],
+        animals: [],
         medications: [],
         treatments: [],
         healthIssues: [],
@@ -559,7 +559,7 @@ describe('syncManager — initialSync()', () => {
       progressSteps.push(initialSyncProgress.value)
       return {
         data: {
-          cows: [],
+          animals: [],
           medications: [],
           treatments: [],
           healthIssues: [],
@@ -572,7 +572,7 @@ describe('syncManager — initialSync()', () => {
       }
     })
 
-    await enqueue('cows', 'create', 'cow-1', { id: 'cow-1' })
+    await enqueue('animals', 'create', 'cow-1', { id: 'cow-1' })
     await initialSync()
 
     expect(progressSteps).toContain('pushing')
@@ -593,7 +593,7 @@ describe('syncManager — initialSync()', () => {
 
     api.get.mockResolvedValue({
       data: {
-        cows: [],
+        animals: [],
         medications: [],
         treatments: [],
         healthIssues: [],
@@ -614,7 +614,7 @@ describe('syncManager — initialSync()', () => {
 describe('syncManager — visibility change', () => {
   const emptyPullResponse = {
     data: {
-      cows: [],
+      animals: [],
       medications: [],
       treatments: [],
       healthIssues: [],
@@ -692,7 +692,7 @@ describe('syncManager — visibility change', () => {
 describe('syncManager — periodic pull', () => {
   const emptyPullResponse = {
     data: {
-      cows: [],
+      animals: [],
       medications: [],
       treatments: [],
       healthIssues: [],
@@ -756,7 +756,7 @@ describe('syncManager — init()', () => {
   it('refreshes pendingCount from queue', async () => {
     await db.syncQueue.add({
       id: 'cow-1',
-      entityType: 'cows',
+      entityType: 'animals',
       action: 'create',
       data: {},
       createdAt: '2026-01-01T00:00:00Z',

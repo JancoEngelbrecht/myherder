@@ -33,7 +33,7 @@ vi.mock('../services/syncManager', () => ({
 
 const RECORD = {
   id: 'rec-1',
-  cow_id: 'cow-1',
+  animal_id: 'cow-1',
   session: 'morning',
   recording_date: '2026-02-22',
   litres: 12.5,
@@ -145,7 +145,7 @@ describe('useMilkRecordsStore', () => {
       expect(api.post).toHaveBeenCalledWith(
         '/milk-records',
         expect.objectContaining({
-          cow_id: 'cow-1',
+          animal_id: 'cow-1',
           session: 'morning',
           recording_date: '2026-02-22',
           litres: 12.5,
@@ -241,7 +241,7 @@ describe('useMilkRecordsStore', () => {
       expect(api.post).toHaveBeenCalledWith(
         '/milk-records',
         expect.objectContaining({
-          cow_id: 'cow-1',
+          animal_id: 'cow-1',
           session: 'morning',
           recording_date: '2026-02-22',
         })
@@ -298,7 +298,7 @@ describe('useMilkRecordsStore', () => {
       const store = useMilkRecordsStore()
       const result = await store.fetchCowHistory('cow-1')
 
-      expect(api.get).toHaveBeenCalledWith('/milk-records', { params: { cow_id: 'cow-1' } })
+      expect(api.get).toHaveBeenCalledWith('/milk-records', { params: { animal_id: 'cow-1' } })
       expect(result).toEqual([RECORD])
     })
 

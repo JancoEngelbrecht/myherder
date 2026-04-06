@@ -56,21 +56,21 @@ describe('useHealthIssuesStore', () => {
       const store = useHealthIssuesStore()
       const result = await store.fetchByCow('cow-1')
 
-      expect(api.get).toHaveBeenCalledWith('/health-issues', { params: { cow_id: 'cow-1' } })
+      expect(api.get).toHaveBeenCalledWith('/health-issues', { params: { animal_id: 'cow-1' } })
       expect(store.issues).toContainEqual(ISSUE_FIXTURE)
       expect(result).toEqual([ISSUE_FIXTURE])
     })
 
-    it('merges issues by cow_id (replaces existing for same cow)', async () => {
-      const oldIssue = { ...ISSUE_FIXTURE, id: 'old' }
-      const newIssue = { ...ISSUE_FIXTURE, id: 'new' }
+    it('merges issues by animal_id (replaces existing for same animal)', async () => {
+      const oldIssue = { ...ISSUE_FIXTURE, id: 'old', animal_id: 'cow-1' }
+      const newIssue = { ...ISSUE_FIXTURE, id: 'new', animal_id: 'cow-1' }
       api.get.mockResolvedValue({ data: [newIssue] })
 
       const store = useHealthIssuesStore()
       store.issues = [oldIssue]
       await store.fetchByCow('cow-1')
 
-      const cowIssues = store.issues.filter((i) => i.cow_id === 'cow-1')
+      const cowIssues = store.issues.filter((i) => i.animal_id === 'cow-1')
       expect(cowIssues).toHaveLength(1)
       expect(cowIssues[0].id).toBe('new')
     })
@@ -245,12 +245,12 @@ describe('useHealthIssuesStore', () => {
   // ─── getCowIssues / getById ────────────────────────────────────────────────
 
   describe('getCowIssues', () => {
-    it('returns issues filtered by cow_id', () => {
+    it('returns issues filtered by animal_id', () => {
       const store = useHealthIssuesStore()
       store.issues = [
-        { ...ISSUE_FIXTURE, id: 'i1', cow_id: 'cow-1' },
-        { ...ISSUE_FIXTURE, id: 'i2', cow_id: 'cow-2' },
-        { ...ISSUE_FIXTURE, id: 'i3', cow_id: 'cow-1' },
+        { ...ISSUE_FIXTURE, id: 'i1', animal_id: 'cow-1' },
+        { ...ISSUE_FIXTURE, id: 'i2', animal_id: 'cow-2' },
+        { ...ISSUE_FIXTURE, id: 'i3', animal_id: 'cow-1' },
       ]
       expect(store.getCowIssues('cow-1')).toHaveLength(2)
       expect(store.getCowIssues('cow-2')).toHaveLength(1)

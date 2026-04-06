@@ -43,7 +43,7 @@ vi.mock('../services/syncManager.js', () => {
 
 vi.mock('../db/indexedDB.js', () => ({
   default: {
-    cows: { toArray: vi.fn().mockResolvedValue([]), bulkPut: vi.fn(), put: vi.fn() },
+    animals: { toArray: vi.fn().mockResolvedValue([]), bulkPut: vi.fn(), put: vi.fn() },
     medications: {
       toArray: vi.fn().mockResolvedValue([]),
       bulkPut: vi.fn(),
@@ -128,7 +128,7 @@ const stubs = {
     template: '<div class="app-header"><slot /></div>',
     props: ['title', 'showBack', 'backTo'],
   },
-  CowSearchDropdown: {
+  AnimalSearchDropdown: {
     template: '<select class="cow-search-dropdown" />',
     props: ['modelValue', 'placeholder', 'error'],
   },
@@ -140,7 +140,7 @@ function createWrapper() {
       return Promise.resolve({ data: MEDICATIONS, headers: { 'x-total-count': '2' } })
     if (url === '/issue-types')
       return Promise.resolve({ data: [], headers: { 'x-total-count': '0' } })
-    if (url === '/cows') return Promise.resolve({ data: [] })
+    if (url === '/animals') return Promise.resolve({ data: [] })
     if (url.includes('feature-flags'))
       return Promise.resolve({
         data: {
@@ -167,7 +167,7 @@ beforeEach(() => {
 // ── Tests ────────────────────────────────────────────────────────────────────
 
 describe('LogTreatmentView', () => {
-  it('renders form with CowSearchDropdown', async () => {
+  it('renders form with AnimalSearchDropdown', async () => {
     const wrapper = createWrapper()
     await flushPromises()
 

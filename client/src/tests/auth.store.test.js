@@ -58,34 +58,34 @@ describe('useAuthStore', () => {
     })
   })
 
-  describe('canManageCows', () => {
+  describe('canManageAnimals', () => {
     it('is false when user is null', () => {
       const store = useAuthStore()
-      expect(store.canManageCows).toBe(false)
+      expect(store.canManageAnimals).toBe(false)
     })
 
     it('is true for admin role regardless of permissions', () => {
       const store = useAuthStore()
       store.user = { role: 'admin', permissions: [] }
-      expect(store.canManageCows).toBe(true)
+      expect(store.canManageAnimals).toBe(true)
     })
 
-    it('is true for worker with can_manage_cows permission', () => {
+    it('is true for worker with can_manage_animals permission', () => {
       const store = useAuthStore()
-      store.user = { role: 'worker', permissions: ['can_manage_cows'] }
-      expect(store.canManageCows).toBe(true)
+      store.user = { role: 'worker', permissions: ['can_manage_animals'] }
+      expect(store.canManageAnimals).toBe(true)
     })
 
     it('is false for worker without the permission', () => {
       const store = useAuthStore()
       store.user = { role: 'worker', permissions: ['can_view_reports'] }
-      expect(store.canManageCows).toBe(false)
+      expect(store.canManageAnimals).toBe(false)
     })
 
     it('is false for worker with no permissions array', () => {
       const store = useAuthStore()
       store.user = { role: 'worker' }
-      expect(store.canManageCows).toBe(false)
+      expect(store.canManageAnimals).toBe(false)
     })
   })
 

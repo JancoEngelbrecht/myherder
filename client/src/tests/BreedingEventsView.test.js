@@ -100,7 +100,7 @@ const stubs = {
     props: ['event', 'showCow', 'showDelete', 'compact'],
   },
   ConfirmDialog: true,
-  CowSearchDropdown: {
+  AnimalSearchDropdown: {
     template: '<div class="cow-search" />',
     props: ['modelValue', 'placeholder'],
   },

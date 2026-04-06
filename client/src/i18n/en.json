@@ -949,7 +949,7 @@
       "can_log_breeding": "Log Breeding",
       "can_record_milk": "Record Milk",
       "can_view_analytics": "View Analytics",
-      "can_manage_cows": "Manage Cows",
+      "can_manage_animals": "Manage Animals",
       "can_manage_medications": "Manage Medications"
     },
     "active": "Active",
