@@ -33,10 +33,10 @@ beforeAll(async () => {
 afterAll(() => db.destroy())
 
 // Helper — inserts a cow and returns its id
-async function createCow(overrides = {}) {
+async function createAnimal(overrides = {}) {
   const id = randomUUID()
   const now = new Date().toISOString()
-  await db('cows').insert({
+  await db('animals').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
     tag_number: `SYNC-${id.slice(0, 8)}`,
@@ -79,8 +79,8 @@ describe('POST /api/sync/push', () => {
     expect(res.status).toBe(400)
   })
 
-  it('creates a new cow via push', async () => {
-    const cowId = randomUUID()
+  it('creates a new animal via push', async () => {
+    const newId = randomUUID()
     const now = new Date().toISOString()
 
     const res = await request(app)
@@ -90,12 +90,12 @@ describe('POST /api/sync/push', () => {
         deviceId: randomUUID(),
         changes: [
           {
-            entityType: 'cows',
+            entityType: 'animals',
             action: 'create',
-            id: cowId,
+            id: newId,
             data: {
-              tag_number: `PUSH-${cowId.slice(0, 6)}`,
-              name: 'Pushed Cow',
+              tag_number: `PUSH-${newId.slice(0, 6)}`,
+              name: 'Pushed Animal',
               sex: 'female',
               status: 'active',
             },
@@ -107,11 +107,11 @@ describe('POST /api/sync/push', () => {
     expect(res.status).toBe(200)
     expect(res.body.results).toHaveLength(1)
     expect(res.body.results[0].status).toBe('applied')
-    expect(res.body.results[0].serverData.tag_number).toBe(`PUSH-${cowId.slice(0, 6)}`)
+    expect(res.body.results[0].serverData.tag_number).toBe(`PUSH-${newId.slice(0, 6)}`)
   })
 
   it('updates an existing cow via push', async () => {
-    const cowId = await createCow({ name: 'Before Update' })
+    const animalId = await createAnimal({ name: 'Before Update' })
     const now = new Date().toISOString()
 
     const res = await request(app)
@@ -121,9 +121,9 @@ describe('POST /api/sync/push', () => {
         deviceId: randomUUID(),
         changes: [
           {
-            entityType: 'cows',
+            entityType: 'animals',
             action: 'update',
-            id: cowId,
+            id: animalId,
             data: { name: 'After Update' },
             updatedAt: now,
           },
@@ -136,7 +136,7 @@ describe('POST /api/sync/push', () => {
   })
 
   it('soft-deletes a cow via push (sets deleted_at)', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const now = new Date().toISOString()
 
     const res = await request(app)
@@ -146,9 +146,9 @@ describe('POST /api/sync/push', () => {
         deviceId: randomUUID(),
         changes: [
           {
-            entityType: 'cows',
+            entityType: 'animals',
             action: 'delete',
-            id: cowId,
+            id: animalId,
             data: null,
             updatedAt: now,
           },
@@ -159,15 +159,15 @@ describe('POST /api/sync/push', () => {
     expect(res.body.results[0].status).toBe('applied')
 
     // Verify it was soft-deleted
-    const row = await db('cows').where({ id: cowId }).first()
+    const row = await db('animals').where({ id: animalId }).first()
     expect(row.deleted_at).not.toBeNull()
   })
 
   it('LWW: server row newer → returns conflict with server data', async () => {
     // Create a cow with a future updated_at
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const futureDate = '2099-01-01T00:00:00.000Z'
-    await db('cows').where({ id: cowId }).update({ updated_at: futureDate })
+    await db('animals').where({ id: animalId }).update({ updated_at: futureDate })
 
     const oldDate = '2020-01-01T00:00:00.000Z'
     const res = await request(app)
@@ -177,9 +177,9 @@ describe('POST /api/sync/push', () => {
         deviceId: randomUUID(),
         changes: [
           {
-            entityType: 'cows',
+            entityType: 'animals',
             action: 'update',
-            id: cowId,
+            id: animalId,
             data: { name: 'Client Attempt' },
             updatedAt: oldDate,
           },
@@ -192,9 +192,9 @@ describe('POST /api/sync/push', () => {
   })
 
   it('LWW: client row newer → applies client data', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const oldDate = '2020-01-01T00:00:00.000Z'
-    await db('cows').where({ id: cowId }).update({ updated_at: oldDate })
+    await db('animals').where({ id: animalId }).update({ updated_at: oldDate })
 
     const newerDate = '2099-01-01T00:00:00.000Z'
     const res = await request(app)
@@ -204,9 +204,9 @@ describe('POST /api/sync/push', () => {
         deviceId: randomUUID(),
         changes: [
           {
-            entityType: 'cows',
+            entityType: 'animals',
             action: 'update',
-            id: cowId,
+            id: animalId,
             data: { name: 'Client Wins' },
             updatedAt: newerDate,
           },
@@ -239,12 +239,46 @@ describe('POST /api/sync/push', () => {
     expect(res.status).toBe(400)
   })
 
+  it('accepts legacy entityType "cows" for backward compatibility', async () => {
+    // Sync push with the old entity type 'cows' must still work for 1 release cycle
+    const newId = randomUUID()
+    const now = new Date().toISOString()
+
+    const res = await request(app)
+      .post('/api/sync/push')
+      .set('Authorization', adminToken())
+      .send({
+        deviceId: randomUUID(),
+        changes: [
+          {
+            entityType: 'cows',
+            action: 'create',
+            id: newId,
+            data: {
+              tag_number: `LEGCY-${newId.slice(0, 6)}`,
+              name: 'Legacy Compat Animal',
+              sex: 'female',
+              status: 'active',
+            },
+            updatedAt: now,
+          },
+        ],
+      })
+
+    expect(res.status).toBe(200)
+    expect(res.body.results[0].status).toBe('applied')
+    // Verify the row was actually written to the animals table
+    const row = await db('animals').where({ id: newId }).first()
+    expect(row).toBeDefined()
+    expect(row.tag_number).toBe(`LEGCY-${newId.slice(0, 6)}`)
+  })
+
   it('returns generic error message (not raw DB details) for invalid data', async () => {
     // Send a cow create with a duplicate tag_number to trigger a DB constraint error.
     // The server should log internally but only return a generic message to the client.
     const id = randomUUID()
     const now = new Date().toISOString()
-    await db('cows').insert({
+    await db('animals').insert({
       id: randomUUID(),
       farm_id: DEFAULT_FARM_ID,
       tag_number: 'DUP-TAG-SYNC',
@@ -261,7 +295,7 @@ describe('POST /api/sync/push', () => {
         deviceId: randomUUID(),
         changes: [
           {
-            entityType: 'cows',
+            entityType: 'animals',
             action: 'create',
             id,
             data: { tag_number: 'DUP-TAG-SYNC', name: 'Dup Cow', sex: 'female', status: 'active' },
@@ -280,7 +314,7 @@ describe('POST /api/sync/push', () => {
   })
 
   it('handles mixed batch (some succeed, some fail)', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const now = new Date().toISOString()
 
     const res = await request(app)
@@ -290,14 +324,14 @@ describe('POST /api/sync/push', () => {
         deviceId: randomUUID(),
         changes: [
           {
-            entityType: 'cows',
+            entityType: 'animals',
             action: 'update',
-            id: cowId,
+            id: animalId,
             data: { name: 'Good Update' },
             updatedAt: now,
           },
           {
-            entityType: 'cows',
+            entityType: 'animals',
             action: 'update',
             id: randomUUID(), // non-existent
             data: { name: 'Bad Update' },
@@ -391,13 +425,13 @@ describe('POST /api/sync/push — permission checks', () => {
 
   it('worker with can_record_milk can sync milkRecords', async () => {
     // Insert a cow so the FK resolves
-    const cowId = randomUUID()
+    const newId = randomUUID()
     const now = new Date().toISOString()
-    await db('cows').insert({
-      id: cowId,
+    await db('animals').insert({
+      id: newId,
       farm_id: DEFAULT_FARM_ID,
-      tag_number: `PERM-${cowId.slice(0, 6)}`,
-      name: 'Perm Cow',
+      tag_number: `PERM-${newId.slice(0, 6)}`,
+      name: 'Perm Animal',
       sex: 'female',
       status: 'active',
       created_at: now,
@@ -416,7 +450,7 @@ describe('POST /api/sync/push — permission checks', () => {
             action: 'create',
             id: recordId,
             data: {
-              cow_id: cowId,
+              animal_id: newId,
               recording_date: '2024-01-15',
               session: 'morning',
               litres: 12.5,
@@ -463,7 +497,7 @@ describe('POST /api/sync/push — permission checks', () => {
   })
 
   it('strips unknown fields from payload before writing', async () => {
-    const cowId = randomUUID()
+    const newId = randomUUID()
     const now = new Date().toISOString()
     const res = await request(app)
       .post('/api/sync/push')
@@ -472,11 +506,11 @@ describe('POST /api/sync/push — permission checks', () => {
         deviceId: randomUUID(),
         changes: [
           {
-            entityType: 'cows',
+            entityType: 'animals',
             action: 'create',
-            id: cowId,
+            id: newId,
             data: {
-              tag_number: `STRIP-${cowId.slice(0, 6)}`,
+              tag_number: `STRIP-${newId.slice(0, 6)}`,
               name: 'Strip Test',
               sex: 'female',
               status: 'active',
@@ -491,7 +525,7 @@ describe('POST /api/sync/push — permission checks', () => {
     expect(res.status).toBe(200)
     expect(res.body.results[0].status).toBe('applied')
     // The unknown fields must not appear on the saved row
-    const row = await db('cows').where({ id: cowId }).first()
+    const row = await db('animals').where({ id: newId }).first()
     expect(row).toBeDefined()
     expect(row['__unknownField']).toBeUndefined()
     expect(row['injectedColumn']).toBeUndefined()
@@ -510,7 +544,7 @@ describe('GET /api/sync/pull', () => {
     const res = await request(app).get('/api/sync/pull').set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    expect(res.body).toHaveProperty('cows')
+    expect(res.body).toHaveProperty('animals')
     expect(res.body).toHaveProperty('medications')
     expect(res.body).toHaveProperty('treatments')
     expect(res.body).toHaveProperty('healthIssues')
@@ -524,23 +558,23 @@ describe('GET /api/sync/pull', () => {
 
   it('incremental pull returns only rows updated after since', async () => {
     // Create a cow with a known old date
-    const cowId = await createCow({ name: 'Old Cow' })
+    const animalId = await createAnimal({ name: 'Old Cow' })
     const oldDate = '2020-01-01T00:00:00.000Z'
-    await db('cows').where({ id: cowId }).update({ updated_at: oldDate })
+    await db('animals').where({ id: animalId }).update({ updated_at: oldDate })
 
     // Create a cow with a recent date
-    const recentId = await createCow({ name: 'Recent Cow' })
+    const recentId = await createAnimal({ name: 'Recent Cow' })
     const recentDate = '2099-01-01T00:00:00.000Z'
-    await db('cows').where({ id: recentId }).update({ updated_at: recentDate })
+    await db('animals').where({ id: recentId }).update({ updated_at: recentDate })
 
     const res = await request(app)
       .get('/api/sync/pull?since=2050-01-01T00:00:00.000Z')
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const cowIds = res.body.cows.map((c) => c.id)
-    expect(cowIds).toContain(recentId)
-    expect(cowIds).not.toContain(cowId)
+    const animalIds = res.body.animals.map((c) => c.id)
+    expect(animalIds).toContain(recentId)
+    expect(animalIds).not.toContain(animalId)
   })
 
   it('full=1 ignores since param and returns all', async () => {
@@ -550,14 +584,14 @@ describe('GET /api/sync/pull', () => {
 
     expect(res.status).toBe(200)
     // With full=1, should still return results even with a far-future since
-    expect(Array.isArray(res.body.cows)).toBe(true)
-    expect(res.body.cows.length).toBeGreaterThan(0)
+    expect(Array.isArray(res.body.animals)).toBe(true)
+    expect(res.body.animals.length).toBeGreaterThan(0)
   })
 
   it('includes soft-deleted items in deleted array during incremental pull', async () => {
-    const cowId = await createCow({ name: 'To Delete For Sync' })
+    const animalId = await createAnimal({ name: 'To Delete For Sync' })
     const now = new Date().toISOString()
-    await db('cows').where({ id: cowId }).update({
+    await db('animals').where({ id: animalId }).update({
       deleted_at: now,
       updated_at: now,
     })
@@ -568,22 +602,22 @@ describe('GET /api/sync/pull', () => {
 
     expect(res.status).toBe(200)
     const deletedIds = res.body.deleted.map((d) => d.id)
-    expect(deletedIds).toContain(cowId)
+    expect(deletedIds).toContain(animalId)
   })
 })
 
 // ─── Ownership checks ─────────────────────────────────────────────────────────
 
 describe('POST /api/sync/push — ownership enforcement', () => {
-  let cowId
+  let animalId
 
   beforeAll(async () => {
-    cowId = await createCow()
+    animalId = await createAnimal()
   })
 
   afterAll(async () => {
-    await db('milk_records').where('cow_id', cowId).del()
-    await db('cows').where('id', cowId).del()
+    await db('milk_records').where('animal_id', animalId).del()
+    await db('animals').where('id', animalId).del()
   })
 
   it('blocks worker B from updating worker A milk record', async () => {
@@ -592,7 +626,7 @@ describe('POST /api/sync/push — ownership enforcement', () => {
     await db('milk_records').insert({
       id: recordId,
       farm_id: DEFAULT_FARM_ID,
-      cow_id: cowId,
+      animal_id: animalId,
       recording_date: '2026-03-01',
       session: 'morning',
       litres: 5,
@@ -634,7 +668,7 @@ describe('POST /api/sync/push — ownership enforcement', () => {
     await db('milk_records').insert({
       id: recordId,
       farm_id: DEFAULT_FARM_ID,
-      cow_id: cowId,
+      animal_id: animalId,
       recording_date: '2026-03-02',
       session: 'morning',
       litres: 7,
@@ -675,7 +709,7 @@ describe('POST /api/sync/push — ownership enforcement', () => {
     await db('milk_records').insert({
       id: recordId,
       farm_id: DEFAULT_FARM_ID,
-      cow_id: cowId,
+      animal_id: animalId,
       recording_date: '2026-03-03',
       session: 'morning',
       litres: 5,
@@ -712,7 +746,7 @@ describe('POST /api/sync/push — ownership enforcement', () => {
     await db('milk_records').insert({
       id: recordId,
       farm_id: DEFAULT_FARM_ID,
-      cow_id: cowId,
+      animal_id: animalId,
       recording_date: '2026-03-04',
       session: 'morning',
       litres: 5,
@@ -751,7 +785,7 @@ describe('GET /api/sync/pull permission filtering', () => {
 
     expect(res.status).toBe(200)
     // Reference data always included
-    expect(res.body).toHaveProperty('cows')
+    expect(res.body).toHaveProperty('animals')
     expect(res.body).toHaveProperty('breedTypes')
     expect(res.body).toHaveProperty('issueTypes')
     // Permitted entity included
@@ -767,7 +801,7 @@ describe('GET /api/sync/pull permission filtering', () => {
     const res = await request(app).get('/api/sync/pull?full=1').set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    expect(res.body).toHaveProperty('cows')
+    expect(res.body).toHaveProperty('animals')
     expect(res.body).toHaveProperty('treatments')
     expect(res.body).toHaveProperty('medications')
     expect(res.body).toHaveProperty('healthIssues')
@@ -782,7 +816,7 @@ describe('GET /api/sync/pull permission filtering', () => {
     const res = await request(app).get('/api/sync/pull?full=1').set('Authorization', token)
 
     expect(res.status).toBe(200)
-    expect(res.body).toHaveProperty('cows')
+    expect(res.body).toHaveProperty('animals')
     expect(res.body).toHaveProperty('breedTypes')
     expect(res.body).toHaveProperty('issueTypes')
     expect(res.body).not.toHaveProperty('treatments')

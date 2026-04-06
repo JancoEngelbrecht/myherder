@@ -12,9 +12,9 @@ beforeAll(async () => {
 
 afterAll(() => db.destroy())
 
-async function createCow(overrides = {}) {
+async function createAnimal(overrides = {}) {
   const id = randomUUID()
-  await db('cows').insert({
+  await db('animals').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
     tag_number: `A-${id.slice(0, 8)}`,
@@ -25,12 +25,12 @@ async function createCow(overrides = {}) {
   return id
 }
 
-async function createHealthIssue(cowId, overrides = {}) {
+async function createHealthIssue(animalId, overrides = {}) {
   const id = randomUUID()
   await db('health_issues').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
-    cow_id: cowId,
+    animal_id: animalId,
     issue_types: JSON.stringify(['mastitis']),
     severity: 'medium',
     observed_at: new Date().toISOString(),
@@ -41,12 +41,12 @@ async function createHealthIssue(cowId, overrides = {}) {
   return id
 }
 
-async function createTreatment(cowId, medId, overrides = {}) {
+async function createTreatment(animalId, medId, overrides = {}) {
   const id = randomUUID()
   await db('treatments').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
-    cow_id: cowId,
+    animal_id: animalId,
     medication_id: medId,
     administered_by: ADMIN_ID,
     treatment_date: new Date().toISOString(),
@@ -72,9 +72,9 @@ async function createMedication(overrides = {}) {
 
 describe('GET /api/analytics/unhealthiest', () => {
   it('returns array of cows with issue_count', async () => {
-    const cowId = await createCow()
-    await createHealthIssue(cowId)
-    await createHealthIssue(cowId)
+    const animalId = await createAnimal()
+    await createHealthIssue(animalId)
+    await createHealthIssue(animalId)
 
     const res = await request(app)
       .get('/api/analytics/unhealthiest')
@@ -83,7 +83,7 @@ describe('GET /api/analytics/unhealthiest', () => {
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body)).toBe(true)
 
-    const found = res.body.find((r) => r.id === cowId)
+    const found = res.body.find((r) => r.id === animalId)
     expect(found).toBeDefined()
     expect(found.tag_number).toBeDefined()
     expect(found.sex).toBeDefined()
@@ -91,11 +91,11 @@ describe('GET /api/analytics/unhealthiest', () => {
   })
 
   it('excludes issues outside default 12-month range', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     // Create issue > 12 months ago — should be excluded from default range
     const oldDate = new Date()
     oldDate.setMonth(oldDate.getMonth() - 13)
-    await createHealthIssue(cowId, { observed_at: oldDate.toISOString() })
+    await createHealthIssue(animalId, { observed_at: oldDate.toISOString() })
 
     const res = await request(app)
       .get('/api/analytics/unhealthiest')
@@ -103,7 +103,7 @@ describe('GET /api/analytics/unhealthiest', () => {
 
     expect(res.status).toBe(200)
     // The old issue cow should not appear (outside 12-month default)
-    const found = res.body.find((r) => r.id === cowId)
+    const found = res.body.find((r) => r.id === animalId)
     expect(found).toBeUndefined()
   })
 
@@ -117,15 +117,15 @@ describe('GET /api/analytics/unhealthiest', () => {
   })
 
   it('respects from/to date range', async () => {
-    const cowId = await createCow()
-    await createHealthIssue(cowId, { observed_at: '2020-03-15T10:00:00.000Z' })
+    const animalId = await createAnimal()
+    await createHealthIssue(animalId, { observed_at: '2020-03-15T10:00:00.000Z' })
 
     const res = await request(app)
       .get('/api/analytics/unhealthiest?from=2020-03-01&to=2020-03-31')
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const found = res.body.find((r) => r.id === cowId)
+    const found = res.body.find((r) => r.id === animalId)
     expect(found).toBeDefined()
     expect(Number(found.issue_count)).toBeGreaterThanOrEqual(1)
   })
@@ -156,8 +156,8 @@ describe('GET /api/analytics/issue-frequency', () => {
   })
 
   it('counts issue types correctly with name and emoji', async () => {
-    const cowId = await createCow()
-    await createHealthIssue(cowId, {
+    const animalId = await createAnimal()
+    await createHealthIssue(animalId, {
       issue_types: JSON.stringify(['mastitis', 'fever']),
       observed_at: '2025-07-15T10:00:00.000Z',
     })
@@ -179,8 +179,8 @@ describe('GET /api/analytics/issue-frequency', () => {
   })
 
   it('groups by month correctly', async () => {
-    const cowId = await createCow()
-    await createHealthIssue(cowId, {
+    const animalId = await createAnimal()
+    await createHealthIssue(animalId, {
       issue_types: JSON.stringify(['lameness']),
       observed_at: '2020-08-10T10:00:00.000Z',
     })
@@ -223,8 +223,8 @@ describe('GET /api/analytics/mastitis-rate', () => {
   })
 
   it('computes rate as cases per 100 cows', async () => {
-    const cowId = await createCow()
-    await createHealthIssue(cowId, {
+    const animalId = await createAnimal()
+    await createHealthIssue(animalId, {
       issue_types: JSON.stringify(['mastitis']),
       observed_at: '2020-09-15T10:00:00.000Z',
     })
@@ -269,9 +269,9 @@ describe('GET /api/analytics/withdrawal-days', () => {
   })
 
   it('calculates withdrawal days from treatment to withdrawal_end_milk', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const medId = await createMedication()
-    await createTreatment(cowId, medId, {
+    await createTreatment(animalId, medId, {
       treatment_date: '2020-10-01T10:00:00.000Z',
       withdrawal_end_milk: '2020-10-06T10:00:00.000Z', // 5 days
       cost: 100,
@@ -322,17 +322,17 @@ describe('GET /api/analytics/health-resolution-stats', () => {
   })
 
   it('calculates cure rate correctly', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const now = new Date()
     const observed = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString()
     const resolved = now.toISOString()
 
-    await createHealthIssue(cowId, {
+    await createHealthIssue(animalId, {
       status: 'resolved',
       observed_at: observed,
       resolved_at: resolved,
     })
-    await createHealthIssue(cowId, { status: 'open', observed_at: observed })
+    await createHealthIssue(animalId, { status: 'open', observed_at: observed })
 
     const res = await request(app)
       .get('/api/analytics/health-resolution-stats')
@@ -344,9 +344,9 @@ describe('GET /api/analytics/health-resolution-stats', () => {
   })
 
   it('respects from/to date range filter', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     // Issue outside the range
-    await createHealthIssue(cowId, { observed_at: '2020-01-01T00:00:00.000Z', status: 'open' })
+    await createHealthIssue(animalId, { observed_at: '2020-01-01T00:00:00.000Z', status: 'open' })
 
     const res = await request(app)
       .get('/api/analytics/health-resolution-stats?from=2025-01-01&to=2025-12-31')
@@ -390,11 +390,11 @@ describe('GET /api/analytics/health-resolution-by-type', () => {
   })
 
   it('calculates avg days per issue type', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const observed = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
     const resolved = new Date().toISOString()
 
-    await createHealthIssue(cowId, {
+    await createHealthIssue(animalId, {
       issue_types: JSON.stringify(['lameness']),
       status: 'resolved',
       observed_at: observed,
@@ -443,20 +443,20 @@ describe('GET /api/analytics/health-recurrence', () => {
   })
 
   it('detects recurrence within 60-day window', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const day1 = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
     const day10 = new Date(day1.getTime() + 10 * 24 * 60 * 60 * 1000)
     const day20 = new Date(day1.getTime() + 20 * 24 * 60 * 60 * 1000)
 
     // First issue: resolved on day10
-    await createHealthIssue(cowId, {
+    await createHealthIssue(animalId, {
       issue_types: JSON.stringify(['mastitis']),
       status: 'resolved',
       observed_at: day1.toISOString(),
       resolved_at: day10.toISOString(),
     })
     // Recurrence: same cow + same type within 60 days of resolution
-    await createHealthIssue(cowId, {
+    await createHealthIssue(animalId, {
       issue_types: JSON.stringify(['mastitis']),
       status: 'open',
       observed_at: day20.toISOString(),
@@ -502,16 +502,16 @@ describe('GET /api/analytics/health-cure-rate-trend', () => {
   })
 
   it('groups cure rate by month', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const observed = '2026-01-15T00:00:00.000Z'
     const resolved = '2026-01-20T00:00:00.000Z'
 
-    await createHealthIssue(cowId, {
+    await createHealthIssue(animalId, {
       status: 'resolved',
       observed_at: observed,
       resolved_at: resolved,
     })
-    await createHealthIssue(cowId, { status: 'open', observed_at: '2026-01-18T00:00:00.000Z' })
+    await createHealthIssue(animalId, { status: 'open', observed_at: '2026-01-18T00:00:00.000Z' })
 
     const res = await request(app)
       .get('/api/analytics/health-cure-rate-trend?from=2026-01-01&to=2026-01-31')
@@ -555,17 +555,17 @@ describe('GET /api/analytics/slowest-to-resolve', () => {
   })
 
   it('ranks cows by avg resolution days', async () => {
-    const cow1 = await createCow({ name: 'SlowCow' })
-    const cow2 = await createCow({ name: 'FastCow' })
+    const animal1 = await createAnimal({ name: 'SlowCow' })
+    const animal2 = await createAnimal({ name: 'FastCow' })
 
     // SlowCow: 20 days to resolve
-    await createHealthIssue(cow1, {
+    await createHealthIssue(animal1, {
       status: 'resolved',
       observed_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
       resolved_at: new Date().toISOString(),
     })
     // FastCow: 2 days to resolve
-    await createHealthIssue(cow2, {
+    await createHealthIssue(animal2, {
       status: 'resolved',
       observed_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
       resolved_at: new Date().toISOString(),
@@ -586,8 +586,8 @@ describe('GET /api/analytics/slowest-to-resolve', () => {
   })
 
   it('includes cow fields in each item', async () => {
-    const cowId = await createCow({ name: 'TestResolve' })
-    await createHealthIssue(cowId, {
+    const animalId = await createAnimal({ name: 'TestResolve' })
+    await createHealthIssue(animalId, {
       status: 'resolved',
       observed_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
       resolved_at: new Date().toISOString(),

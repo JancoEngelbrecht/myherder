@@ -12,10 +12,10 @@ beforeAll(async () => {
 
 afterAll(() => db.destroy())
 
-// Helper — inserts a cow row and returns its id
-async function createCow(overrides = {}) {
+// Helper — inserts an animal row and returns its id
+async function createAnimal(overrides = {}) {
   const id = randomUUID()
-  await db('cows').insert({
+  await db('animals').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
     tag_number: `TAG-${id.slice(0, 8)}`,
@@ -27,34 +27,38 @@ async function createCow(overrides = {}) {
   return id
 }
 
-// ─── GET /api/cows ─────────────────────────────────────────────────────────────
+// ─── GET /api/animals ─────────────────────────────────────────────────────────
 
-describe('GET /api/cows', () => {
+describe('GET /api/animals', () => {
   it('returns 401 without a token', async () => {
-    const res = await request(app).get('/api/cows')
+    const res = await request(app).get('/api/animals')
     expect(res.status).toBe(401)
   })
 
-  it('returns a plain array of cows', async () => {
-    const res = await request(app).get('/api/cows').set('Authorization', adminToken())
+  it('returns a plain array of animals', async () => {
+    const res = await request(app).get('/api/animals').set('Authorization', adminToken())
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body)).toBe(true)
   })
 
   it('filters by search query (tag and name)', async () => {
     const tag = `SRCH-${randomUUID().slice(0, 6)}`
-    await createCow({ tag_number: tag, name: 'Searchable' })
+    await createAnimal({ tag_number: tag, name: 'Searchable' })
 
-    const res = await request(app).get(`/api/cows?search=${tag}`).set('Authorization', adminToken())
+    const res = await request(app)
+      .get(`/api/animals?search=${tag}`)
+      .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
     expect(res.body.some((c) => c.tag_number === tag)).toBe(true)
   })
 
   it('filters by status', async () => {
-    await createCow({ tag_number: `SICK-${randomUUID().slice(0, 6)}`, status: 'sick' })
+    await createAnimal({ tag_number: `SICK-${randomUUID().slice(0, 6)}`, status: 'sick' })
 
-    const res = await request(app).get('/api/cows?status=sick').set('Authorization', adminToken())
+    const res = await request(app)
+      .get('/api/animals?status=sick')
+      .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
     expect(res.body.every((c) => c.status === 'sick')).toBe(true)
@@ -62,13 +66,13 @@ describe('GET /api/cows', () => {
   })
 
   it('respects pagination (limit + page)', async () => {
-    // Insert enough cows so there is more than 1 page worth
+    // Insert enough animals so there is more than 1 page worth
     for (let i = 0; i < 3; i++) {
-      await createCow({ tag_number: `PAGE-${randomUUID().slice(0, 6)}` })
+      await createAnimal({ tag_number: `PAGE-${randomUUID().slice(0, 6)}` })
     }
 
     const res = await request(app)
-      .get('/api/cows?limit=2&page=1')
+      .get('/api/animals?limit=2&page=1')
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
@@ -76,44 +80,46 @@ describe('GET /api/cows', () => {
   })
 })
 
-// ─── GET /api/cows/:id ─────────────────────────────────────────────────────────
+// ─── GET /api/animals/:id ─────────────────────────────────────────────────────
 
-describe('GET /api/cows/:id', () => {
-  it('returns a single cow with sire_name and dam_name', async () => {
-    const sireId = await createCow({
+describe('GET /api/animals/:id', () => {
+  it('returns a single animal with sire_name and dam_name', async () => {
+    const sireId = await createAnimal({
       tag_number: `SIRE-${randomUUID().slice(0, 6)}`,
       sex: 'male',
       name: 'Big Bull',
     })
-    const cowId = await createCow({
+    const animalId = await createAnimal({
       tag_number: `CALF-${randomUUID().slice(0, 6)}`,
       sire_id: sireId,
     })
 
-    const res = await request(app).get(`/api/cows/${cowId}`).set('Authorization', adminToken())
+    const res = await request(app)
+      .get(`/api/animals/${animalId}`)
+      .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    expect(res.body.id).toBe(cowId)
+    expect(res.body.id).toBe(animalId)
     expect(res.body.sire_name).toBe('Big Bull')
     expect(res.body.dam_name).toBeNull()
   })
 
-  it('returns 404 for a nonexistent cow', async () => {
+  it('returns 404 for a nonexistent animal', async () => {
     const res = await request(app)
-      .get(`/api/cows/${randomUUID()}`)
+      .get(`/api/animals/${randomUUID()}`)
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(404)
   })
 })
 
-// ─── POST /api/cows ────────────────────────────────────────────────────────────
+// ─── POST /api/animals ────────────────────────────────────────────────────────
 
-describe('POST /api/cows', () => {
-  it('creates a cow and returns 201', async () => {
+describe('POST /api/animals', () => {
+  it('creates an animal and returns 201', async () => {
     const tag = `NEW-${randomUUID().slice(0, 6)}`
     const res = await request(app)
-      .post('/api/cows')
+      .post('/api/animals')
       .set('Authorization', adminToken())
       .send({ tag_number: tag, name: 'Bessie', sex: 'female', status: 'active' })
 
@@ -124,10 +130,10 @@ describe('POST /api/cows', () => {
 
   it('returns 409 when tag_number is a duplicate', async () => {
     const tag = `DUP-${randomUUID().slice(0, 6)}`
-    await createCow({ tag_number: tag })
+    await createAnimal({ tag_number: tag })
 
     const res = await request(app)
-      .post('/api/cows')
+      .post('/api/animals')
       .set('Authorization', adminToken())
       .send({ tag_number: tag })
 
@@ -136,7 +142,7 @@ describe('POST /api/cows', () => {
 
   it('returns 400 for missing tag_number', async () => {
     const res = await request(app)
-      .post('/api/cows')
+      .post('/api/animals')
       .set('Authorization', adminToken())
       .send({ name: 'No Tag' })
 
@@ -145,14 +151,14 @@ describe('POST /api/cows', () => {
 
   it('returns 400 for invalid status value', async () => {
     const res = await request(app)
-      .post('/api/cows')
+      .post('/api/animals')
       .set('Authorization', adminToken())
       .send({ tag_number: `BAD-${randomUUID().slice(0, 6)}`, status: 'unicorn' })
 
     expect(res.status).toBe(400)
   })
 
-  it('returns 403 for a worker without can_manage_cows permission', async () => {
+  it('returns 403 for a worker without can_manage_animals permission', async () => {
     // Inline worker token with no permissions (must use real user ID for token_version check)
     const jwt = require('jsonwebtoken')
     const { jwtSecret } = require('../config/env')
@@ -170,7 +176,7 @@ describe('POST /api/cows', () => {
     )}`
 
     const res = await request(app)
-      .post('/api/cows')
+      .post('/api/animals')
       .set('Authorization', noPermToken)
       .send({ tag_number: `DENY-${randomUUID().slice(0, 6)}` })
 
@@ -178,14 +184,17 @@ describe('POST /api/cows', () => {
   })
 })
 
-// ─── PUT /api/cows/:id ─────────────────────────────────────────────────────────
+// ─── PUT /api/animals/:id ─────────────────────────────────────────────────────
 
-describe('PUT /api/cows/:id', () => {
-  it('updates the cow and returns 200', async () => {
-    const id = await createCow({ tag_number: `UPD-${randomUUID().slice(0, 6)}`, name: 'Old Name' })
+describe('PUT /api/animals/:id', () => {
+  it('updates the animal and returns 200', async () => {
+    const id = await createAnimal({
+      tag_number: `UPD-${randomUUID().slice(0, 6)}`,
+      name: 'Old Name',
+    })
 
     const res = await request(app)
-      .put(`/api/cows/${id}`)
+      .put(`/api/animals/${id}`)
       .set('Authorization', adminToken())
       .send({ name: 'New Name', status: 'dry' })
 
@@ -194,9 +203,9 @@ describe('PUT /api/cows/:id', () => {
     expect(res.body.status).toBe('dry')
   })
 
-  it('returns 404 for a nonexistent cow', async () => {
+  it('returns 404 for a nonexistent animal', async () => {
     const res = await request(app)
-      .put(`/api/cows/${randomUUID()}`)
+      .put(`/api/animals/${randomUUID()}`)
       .set('Authorization', adminToken())
       .send({ name: 'Ghost' })
 
@@ -204,33 +213,33 @@ describe('PUT /api/cows/:id', () => {
   })
 })
 
-// ─── DELETE /api/cows/:id ──────────────────────────────────────────────────────
+// ─── DELETE /api/animals/:id ──────────────────────────────────────────────────
 
-describe('DELETE /api/cows/:id', () => {
-  it('soft-deletes the cow (admin)', async () => {
-    const id = await createCow({ tag_number: `DEL-${randomUUID().slice(0, 6)}` })
+describe('DELETE /api/animals/:id', () => {
+  it('soft-deletes the animal (admin)', async () => {
+    const id = await createAnimal({ tag_number: `DEL-${randomUUID().slice(0, 6)}` })
 
-    const res = await request(app).delete(`/api/cows/${id}`).set('Authorization', adminToken())
+    const res = await request(app).delete(`/api/animals/${id}`).set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
 
     // Should no longer appear in listings
-    const listRes = await request(app).get('/api/cows').set('Authorization', adminToken())
+    const listRes = await request(app).get('/api/animals').set('Authorization', adminToken())
     expect(listRes.body.find((c) => c.id === id)).toBeUndefined()
   })
 
   it('returns 403 for a worker token', async () => {
-    const id = await createCow({ tag_number: `WDEL-${randomUUID().slice(0, 6)}` })
+    const id = await createAnimal({ tag_number: `WDEL-${randomUUID().slice(0, 6)}` })
 
-    const res = await request(app).delete(`/api/cows/${id}`).set('Authorization', workerToken())
+    const res = await request(app).delete(`/api/animals/${id}`).set('Authorization', workerToken())
 
     expect(res.status).toBe(403)
   })
 })
 
-// ─── Species-aware cow tests ────────────────────────────────────────────────
+// ─── Species-aware animal tests ───────────────────────────────────────────────
 
-describe('POST /api/cows — species_id auto-set from breed_type', () => {
+describe('POST /api/animals — species_id auto-set from breed_type', () => {
   it('auto-sets species_id from breed_type_id on create', async () => {
     const cattle = await db('species').where({ code: 'cattle' }).first()
     const btId = randomUUID()
@@ -249,23 +258,23 @@ describe('POST /api/cows — species_id auto-set from breed_type', () => {
 
     const tag = `SPTEST-${randomUUID().slice(0, 6)}`
     const res = await request(app)
-      .post('/api/cows')
+      .post('/api/animals')
       .set('Authorization', adminToken())
       .send({ tag_number: tag, sex: 'female', breed_type_id: btId })
 
     expect(res.status).toBe(201)
-    const row = await db('cows').where({ id: res.body.id }).first()
+    const row = await db('animals').where({ id: res.body.id }).first()
     expect(row.species_id).toBe(cattle.id)
   })
 
   it('accepts birth_event_id linking an offspring to a birth event', async () => {
-    const cowId = await createCow({ tag_number: `DAM-${randomUUID().slice(0, 6)}` })
+    const animalId = await createAnimal({ tag_number: `DAM-${randomUUID().slice(0, 6)}` })
     const birthEventId = randomUUID()
     const now = new Date().toISOString()
     await db('breeding_events').insert({
       id: birthEventId,
       farm_id: DEFAULT_FARM_ID,
-      cow_id: cowId,
+      animal_id: animalId,
       event_type: 'calving',
       event_date: '2026-01-15T08:00',
       offspring_count: 1,
@@ -276,48 +285,48 @@ describe('POST /api/cows — species_id auto-set from breed_type', () => {
 
     const tag = `OFFSPRING-${randomUUID().slice(0, 6)}`
     const res = await request(app)
-      .post('/api/cows')
+      .post('/api/animals')
       .set('Authorization', adminToken())
       .send({ tag_number: tag, sex: 'female', birth_event_id: birthEventId })
 
     expect(res.status).toBe(201)
-    const row = await db('cows').where({ id: res.body.id }).first()
+    const row = await db('animals').where({ id: res.body.id }).first()
     expect(row.birth_event_id).toBe(birthEventId)
   })
 })
 
-describe('GET /api/cows — species filter', () => {
-  it('filters cows by species_id', async () => {
+describe('GET /api/animals — species filter', () => {
+  it('filters animals by species_id', async () => {
     const cattle = await db('species').where({ code: 'cattle' }).first()
     const sheep = await db('species').where({ code: 'sheep' }).first()
 
-    const cattleCowId = await createCow({
+    const cattleAnimalId = await createAnimal({
       tag_number: `CATTLESP-${randomUUID().slice(0, 6)}`,
       species_id: cattle.id,
     })
-    const sheepCowId = await createCow({
+    const sheepAnimalId = await createAnimal({
       tag_number: `SHEEPSP-${randomUUID().slice(0, 6)}`,
       species_id: sheep.id,
     })
 
     const res = await request(app)
-      .get(`/api/cows?species_id=${cattle.id}`)
+      .get(`/api/animals?species_id=${cattle.id}`)
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
     const ids = res.body.map((c) => c.id)
-    expect(ids).toContain(cattleCowId)
-    expect(ids).not.toContain(sheepCowId)
+    expect(ids).toContain(cattleAnimalId)
+    expect(ids).not.toContain(sheepAnimalId)
   })
 
   it('filters offspring by birth_event_id', async () => {
-    const damId = await createCow({ tag_number: `DAM2-${randomUUID().slice(0, 6)}` })
+    const damId = await createAnimal({ tag_number: `DAM2-${randomUUID().slice(0, 6)}` })
     const evId = randomUUID()
     const now = new Date().toISOString()
     await db('breeding_events').insert({
       id: evId,
       farm_id: DEFAULT_FARM_ID,
-      cow_id: damId,
+      animal_id: damId,
       event_type: 'calving',
       event_date: '2026-02-01T08:00',
       offspring_count: 2,
@@ -326,16 +335,16 @@ describe('GET /api/cows — species filter', () => {
       updated_at: now,
     })
 
-    const offspring1 = await createCow({
+    const offspring1 = await createAnimal({
       tag_number: `OFF1-${randomUUID().slice(0, 6)}`,
       birth_event_id: evId,
     })
-    const unrelated = await createCow({
+    const unrelated = await createAnimal({
       tag_number: `UNREL-${randomUUID().slice(0, 6)}`,
     })
 
     const res = await request(app)
-      .get(`/api/cows?birth_event_id=${evId}`)
+      .get(`/api/animals?birth_event_id=${evId}`)
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
@@ -345,7 +354,7 @@ describe('GET /api/cows — species filter', () => {
   })
 })
 
-describe('PUT /api/cows/:id — species_id sync on breed_type change', () => {
+describe('PUT /api/animals/:id — species_id sync on breed_type change', () => {
   it('updates species_id when breed_type_id changes', async () => {
     const cattle = await db('species').where({ code: 'cattle' }).first()
     const sheep = await db('species').where({ code: 'sheep' }).first()
@@ -364,35 +373,37 @@ describe('PUT /api/cows/:id — species_id sync on breed_type change', () => {
       updated_at: now,
     })
 
-    const cowId = await createCow({
+    const animalId = await createAnimal({
       tag_number: `CHNGSP-${randomUUID().slice(0, 6)}`,
       species_id: cattle.id,
     })
 
     const res = await request(app)
-      .put(`/api/cows/${cowId}`)
+      .put(`/api/animals/${animalId}`)
       .set('Authorization', adminToken())
       .send({ name: 'Updated', breed_type_id: sheepBtId })
 
     expect(res.status).toBe(200)
-    const row = await db('cows').where({ id: cowId }).first()
+    const row = await db('animals').where({ id: animalId }).first()
     expect(row.species_id).toBe(sheep.id)
   })
 })
 
-// ─── Query Validation (12B.4) ───────────────────────────────────────────────
+// ─── Query Validation (12B.4) ─────────────────────────────────────────────────
 
-describe('GET /api/cows query validation', () => {
+describe('GET /api/animals query validation', () => {
   it('returns 400 for invalid status value', async () => {
     const res = await request(app)
-      .get('/api/cows?status=invalid')
+      .get('/api/animals?status=invalid')
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(400)
   })
 
   it('returns 400 for unknown query param', async () => {
-    const res = await request(app).get('/api/cows?nonexistent=1').set('Authorization', adminToken())
+    const res = await request(app)
+      .get('/api/animals?nonexistent=1')
+      .set('Authorization', adminToken())
 
     expect(res.status).toBe(400)
   })

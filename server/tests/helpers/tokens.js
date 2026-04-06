@@ -26,7 +26,7 @@ function workerToken() {
     full_name: 'Test Worker',
     role: 'worker',
     permissions: [
-      'can_manage_cows',
+      'can_manage_animals',
       'can_manage_medications',
       'can_record_milk',
       'can_log_issues',

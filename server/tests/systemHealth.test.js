@@ -165,7 +165,7 @@ describe('GET /api/system/health', () => {
   })
 
   it('returns recorded 5xx errors in recent_errors', async () => {
-    recordError('GET', '/api/cows', 500, 'Something broke')
+    recordError('GET', '/api/animals', 500, 'Something broke')
     recordError('POST', '/api/milk-records', 500, 'DB connection lost')
 
     const res = await request(app).get('/api/system/health').set('Authorization', superAdminToken())
@@ -173,18 +173,18 @@ describe('GET /api/system/health', () => {
     expect(res.body.recent_errors.length).toBe(2)
     // Newest first
     expect(res.body.recent_errors[0].path).toBe('/api/milk-records')
-    expect(res.body.recent_errors[1].path).toBe('/api/cows')
+    expect(res.body.recent_errors[1].path).toBe('/api/animals')
   })
 })
 
 describe('recordError / getRecentErrors', () => {
   it('records error with all fields', () => {
-    recordError('GET', '/api/cows', 500, 'Test error')
+    recordError('GET', '/api/animals', 500, 'Test error')
     const errors = getRecentErrors()
     expect(errors).toHaveLength(1)
     expect(errors[0]).toHaveProperty('timestamp')
     expect(errors[0].method).toBe('GET')
-    expect(errors[0].path).toBe('/api/cows')
+    expect(errors[0].path).toBe('/api/animals')
     expect(errors[0].status).toBe(500)
     expect(errors[0].message).toBe('Test error')
   })
@@ -204,9 +204,9 @@ describe('recordError / getRecentErrors', () => {
   })
 
   it('strips query params from path', () => {
-    recordError('GET', '/api/cows?token=secret123&page=1', 500, 'Err')
+    recordError('GET', '/api/animals?token=secret123&page=1', 500, 'Err')
     const errors = getRecentErrors()
-    expect(errors[0].path).toBe('/api/cows')
+    expect(errors[0].path).toBe('/api/animals')
   })
 
   it('truncates long messages to 200 chars', () => {

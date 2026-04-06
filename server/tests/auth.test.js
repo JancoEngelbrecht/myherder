@@ -236,7 +236,7 @@ describe('Token version', () => {
     await db('users').where({ id: ADMIN_ID }).update({ token_version: 1 })
 
     // Try to use the old token — should be rejected
-    const res = await request(app).get('/api/cows').set('Authorization', `Bearer ${token}`)
+    const res = await request(app).get('/api/animals').set('Authorization', `Bearer ${token}`)
 
     expect(res.status).toBe(401)
     expect(res.body.error).toBe('Token revoked')
@@ -271,7 +271,7 @@ describe('Temp token security', () => {
       expiresIn: '10m',
     })
 
-    const res = await request(app).get('/api/cows').set('Authorization', `Bearer ${tempToken}`)
+    const res = await request(app).get('/api/animals').set('Authorization', `Bearer ${tempToken}`)
 
     expect(res.status).toBe(401)
     expect(res.body.error).toBe('Temporary token not valid for this endpoint')
@@ -295,12 +295,14 @@ describe('Temp token security', () => {
 
 describe('Auth middleware', () => {
   it('returns 401 when Authorization header is absent', async () => {
-    const res = await request(app).get('/api/cows')
+    const res = await request(app).get('/api/animals')
     expect(res.status).toBe(401)
   })
 
   it('returns 401 for a malformed token', async () => {
-    const res = await request(app).get('/api/cows').set('Authorization', 'Bearer not.a.valid.token')
+    const res = await request(app)
+      .get('/api/animals')
+      .set('Authorization', 'Bearer not.a.valid.token')
     expect(res.status).toBe(401)
   })
 })

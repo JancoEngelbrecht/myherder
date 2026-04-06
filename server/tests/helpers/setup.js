@@ -12,7 +12,7 @@ const ADMIN_PASSWORD = 'admin123'
 const WORKER_PIN = '1234'
 
 const ALL_PERMISSIONS = [
-  'can_manage_cows',
+  'can_manage_animals',
   'can_manage_medications',
   'can_record_milk',
   'can_log_issues',
@@ -120,7 +120,7 @@ function tokenForFarm(
 
 async function seedCow(db, farmId, overrides = {}) {
   const id = randomUUID()
-  await db('cows').insert({
+  await db('animals').insert({
     id,
     farm_id: farmId,
     tag_number: `TAG-${id.slice(0, 8)}`,

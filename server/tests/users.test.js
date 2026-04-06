@@ -22,7 +22,7 @@ function makeWorker(overrides = {}) {
     full_name: 'Test Worker',
     role: 'worker',
     pin: '5678',
-    permissions: ['can_manage_cows'],
+    permissions: ['can_manage_animals'],
     ...overrides,
   }
 }
@@ -130,7 +130,7 @@ describe('POST /api/users', () => {
     expect(res.body.password_hash).toBeUndefined()
     expect(res.body.pin_hash).toBeUndefined()
     expect(Array.isArray(res.body.permissions)).toBe(true)
-    expect(res.body.permissions).toContain('can_manage_cows')
+    expect(res.body.permissions).toContain('can_manage_animals')
   })
 
   it('creates an admin with password', async () => {
@@ -236,7 +236,7 @@ describe('POST /api/users', () => {
       .send(makeAdmin())
 
     expect(res.status).toBe(201)
-    expect(res.body.permissions).toContain('can_manage_cows')
+    expect(res.body.permissions).toContain('can_manage_animals')
     expect(res.body.permissions).toContain('can_view_analytics')
     expect(res.body.permissions).not.toContain('can_manage_users')
     expect(res.body.permissions).toContain('can_manage_medications')
@@ -427,7 +427,7 @@ describe('POST /api/users/:id/revoke-sessions', () => {
         farm_id: DEFAULT_FARM_ID,
         username: createRes.body.username,
         role: 'worker',
-        permissions: ['can_manage_cows'],
+        permissions: ['can_manage_animals'],
         language: 'en',
         token_version: 0,
       },
@@ -436,7 +436,7 @@ describe('POST /api/users/:id/revoke-sessions', () => {
     )}`
 
     // Token works before revoke
-    const before = await request(app).get('/api/cows').set('Authorization', userToken)
+    const before = await request(app).get('/api/animals').set('Authorization', userToken)
     expect(before.status).toBe(200)
 
     // Revoke sessions
@@ -445,7 +445,7 @@ describe('POST /api/users/:id/revoke-sessions', () => {
       .set('Authorization', adminToken())
 
     // Old token now rejected
-    const after = await request(app).get('/api/cows').set('Authorization', userToken)
+    const after = await request(app).get('/api/animals').set('Authorization', userToken)
     expect(after.status).toBe(401)
     expect(after.body.error).toBe('Token revoked')
   })

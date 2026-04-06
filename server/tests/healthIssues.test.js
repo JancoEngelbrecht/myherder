@@ -14,9 +14,9 @@ afterAll(() => db.destroy())
 
 // ─── Factories ─────────────────────────────────────────────────────────────────
 
-async function createCow(overrides = {}) {
+async function createAnimal(overrides = {}) {
   const id = randomUUID()
-  await db('cows').insert({
+  await db('animals').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
     tag_number: `HI-${id.slice(0, 6)}`,
@@ -27,14 +27,14 @@ async function createCow(overrides = {}) {
   return id
 }
 
-async function createIssue(cowId, overrides = {}) {
+async function createIssue(animalId, overrides = {}) {
   const adminId = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa'
   const id = randomUUID()
   const now = new Date().toISOString()
   await db('health_issues').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
-    cow_id: cowId,
+    animal_id: animalId,
     reported_by: adminId,
     issue_types: JSON.stringify(['mastitis']),
     severity: 'medium',
@@ -61,16 +61,16 @@ describe('GET /api/health-issues', () => {
     expect(res.status).toBe(401)
   })
 
-  it('returns an array of issues with cow and user names', async () => {
-    const cowId = await createCow()
-    await createIssue(cowId)
+  it('returns an array of issues with animal and user names', async () => {
+    const animalId = await createAnimal()
+    await createIssue(animalId)
 
     const res = await request(app).get('/api/health-issues').set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body)).toBe(true)
     // Issues include joined cow/user fields
-    const issue = res.body.find((i) => i.cow_id === cowId)
+    const issue = res.body.find((i) => i.animal_id === animalId)
     expect(issue).toBeDefined()
     expect(issue.tag_number).toBeDefined()
     expect(issue.reported_by_name).toBeDefined()
@@ -78,25 +78,25 @@ describe('GET /api/health-issues', () => {
     expect(Array.isArray(issue.issue_types)).toBe(true)
   })
 
-  it('filters by cow_id', async () => {
-    const cow1 = await createCow()
-    const cow2 = await createCow()
-    await createIssue(cow1)
-    await createIssue(cow2)
+  it('filters by animal_id', async () => {
+    const animal1 = await createAnimal()
+    const animal2 = await createAnimal()
+    await createIssue(animal1)
+    await createIssue(animal2)
 
     const res = await request(app)
-      .get(`/api/health-issues?cow_id=${cow1}`)
+      .get(`/api/health-issues?animal_id=${animal1}`)
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    expect(res.body.every((i) => i.cow_id === cow1)).toBe(true)
+    expect(res.body.every((i) => i.animal_id === animal1)).toBe(true)
   })
 
   it('filters by status', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const now = new Date().toISOString()
-    await createIssue(cowId, { status: 'resolved', resolved_at: now })
-    await createIssue(cowId, { status: 'open' })
+    await createIssue(animalId, { status: 'resolved', resolved_at: now })
+    await createIssue(animalId, { status: 'open' })
 
     const res = await request(app)
       .get('/api/health-issues?status=resolved')
@@ -113,8 +113,8 @@ describe('GET /api/health-issues', () => {
   })
 
   it('paginates results when page param is provided', async () => {
-    const cowId = await createCow()
-    for (let i = 0; i < 3; i++) await createIssue(cowId)
+    const animalId = await createAnimal()
+    for (let i = 0; i < 3; i++) await createIssue(animalId)
 
     const res = await request(app)
       .get('/api/health-issues?page=1&limit=2')
@@ -131,9 +131,9 @@ describe('GET /api/health-issues', () => {
 
 describe('GET /api/health-issues/:id', () => {
   it('returns the issue with parsed JSON fields', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const now = new Date().toISOString()
-    const issueId = await createIssue(cowId, {
+    const issueId = await createIssue(animalId, {
       issue_types: JSON.stringify(['mastitis', 'lameness']),
       affected_teats: JSON.stringify(['front_left', 'rear_right']),
       severity: 'high',
@@ -168,17 +168,17 @@ describe('GET /api/health-issues/:id', () => {
 
 describe('POST /api/health-issues', () => {
   it('creates an issue and returns 201 with parsed fields', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
 
     const res = await postIssue({
-      cow_id: cowId,
+      animal_id: animalId,
       issue_types: ['mastitis'],
       severity: 'high',
       observed_at: '2026-01-10T08:00:00.000Z',
     })
 
     expect(res.status).toBe(201)
-    expect(res.body.cow_id).toBe(cowId)
+    expect(res.body.animal_id).toBe(animalId)
     expect(Array.isArray(res.body.issue_types)).toBe(true)
     expect(res.body.issue_types).toContain('mastitis')
     expect(res.body.severity).toBe('high')
@@ -188,10 +188,10 @@ describe('POST /api/health-issues', () => {
   })
 
   it('creates an issue with affected teats', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
 
     const res = await postIssue({
-      cow_id: cowId,
+      animal_id: animalId,
       issue_types: ['mastitis'],
       affected_teats: ['front_left', 'rear_right'],
       observed_at: '2026-01-10T08:00:00.000Z',
@@ -204,10 +204,10 @@ describe('POST /api/health-issues', () => {
   })
 
   it('creates an issue with multiple issue types', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
 
     const res = await postIssue({
-      cow_id: cowId,
+      animal_id: animalId,
       issue_types: ['mastitis', 'lameness'],
       observed_at: '2026-01-10T08:00:00.000Z',
     })
@@ -218,15 +218,15 @@ describe('POST /api/health-issues', () => {
   })
 
   it('returns 400 for missing issue_types', async () => {
-    const cowId = await createCow()
-    const res = await postIssue({ cow_id: cowId, observed_at: '2026-01-10T08:00:00.000Z' })
+    const animalId = await createAnimal()
+    const res = await postIssue({ animal_id: animalId, observed_at: '2026-01-10T08:00:00.000Z' })
     expect(res.status).toBe(400)
   })
 
   it('returns 400 for empty issue_types array', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const res = await postIssue({
-      cow_id: cowId,
+      animal_id: animalId,
       issue_types: [],
       observed_at: '2026-01-10T08:00:00.000Z',
     })
@@ -234,9 +234,9 @@ describe('POST /api/health-issues', () => {
   })
 
   it('returns 400 for invalid severity', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const res = await postIssue({
-      cow_id: cowId,
+      animal_id: animalId,
       issue_types: ['mastitis'],
       severity: 'critical',
       observed_at: '2026-01-10T08:00:00.000Z',
@@ -245,9 +245,9 @@ describe('POST /api/health-issues', () => {
   })
 
   it('returns 400 for invalid teat position', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const res = await postIssue({
-      cow_id: cowId,
+      animal_id: animalId,
       issue_types: ['mastitis'],
       affected_teats: ['invalid_teat'],
       observed_at: '2026-01-10T08:00:00.000Z',
@@ -255,20 +255,20 @@ describe('POST /api/health-issues', () => {
     expect(res.status).toBe(400)
   })
 
-  it('returns 404 for a nonexistent cow', async () => {
+  it('returns 404 for a nonexistent animal', async () => {
     const res = await postIssue({
-      cow_id: randomUUID(),
+      animal_id: randomUUID(),
       issue_types: ['mastitis'],
       observed_at: '2026-01-10T08:00:00.000Z',
     })
     expect(res.status).toBe(404)
-    expect(res.body.error).toMatch(/cow/i)
+    expect(res.body.error).toMatch(/animal/i)
   })
 
-  it('returns 404 for a soft-deleted cow', async () => {
-    const cowId = await createCow({ deleted_at: new Date().toISOString() })
+  it('returns 404 for a soft-deleted animal', async () => {
+    const animalId = await createAnimal({ deleted_at: new Date().toISOString() })
     const res = await postIssue({
-      cow_id: cowId,
+      animal_id: animalId,
       issue_types: ['mastitis'],
       observed_at: '2026-01-10T08:00:00.000Z',
     })
@@ -280,8 +280,8 @@ describe('POST /api/health-issues', () => {
 
 describe('PATCH /api/health-issues/:id/status', () => {
   it('updates status to treating', async () => {
-    const cowId = await createCow()
-    const issueId = await createIssue(cowId, { status: 'open' })
+    const animalId = await createAnimal()
+    const issueId = await createIssue(animalId, { status: 'open' })
 
     const res = await request(app)
       .patch(`/api/health-issues/${issueId}/status`)
@@ -293,8 +293,8 @@ describe('PATCH /api/health-issues/:id/status', () => {
   })
 
   it('sets resolved_at when status is changed to resolved', async () => {
-    const cowId = await createCow()
-    const issueId = await createIssue(cowId, { status: 'treating' })
+    const animalId = await createAnimal()
+    const issueId = await createIssue(animalId, { status: 'treating' })
 
     const res = await request(app)
       .patch(`/api/health-issues/${issueId}/status`)
@@ -309,8 +309,8 @@ describe('PATCH /api/health-issues/:id/status', () => {
   })
 
   it('returns 400 for an invalid status value', async () => {
-    const cowId = await createCow()
-    const issueId = await createIssue(cowId)
+    const animalId = await createAnimal()
+    const issueId = await createIssue(animalId)
 
     const res = await request(app)
       .patch(`/api/health-issues/${issueId}/status`)
@@ -330,8 +330,8 @@ describe('PATCH /api/health-issues/:id/status', () => {
   })
 
   it('a worker token can update status', async () => {
-    const cowId = await createCow()
-    const issueId = await createIssue(cowId, { status: 'open' })
+    const animalId = await createAnimal()
+    const issueId = await createIssue(animalId, { status: 'open' })
 
     const res = await request(app)
       .patch(`/api/health-issues/${issueId}/status`)
@@ -346,8 +346,8 @@ describe('PATCH /api/health-issues/:id/status', () => {
 
 describe('DELETE /api/health-issues/:id', () => {
   it('deletes the issue (admin only)', async () => {
-    const cowId = await createCow()
-    const issueId = await createIssue(cowId)
+    const animalId = await createAnimal()
+    const issueId = await createIssue(animalId)
 
     const res = await request(app)
       .delete(`/api/health-issues/${issueId}`)
@@ -359,8 +359,8 @@ describe('DELETE /api/health-issues/:id', () => {
   })
 
   it('deletes an issue that has comments', async () => {
-    const cowId = await createCow()
-    const issueId = await createIssue(cowId)
+    const animalId = await createAnimal()
+    const issueId = await createIssue(animalId)
     const adminId = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa'
     const now = new Date().toISOString()
     await db('health_issue_comments').insert({
@@ -383,8 +383,8 @@ describe('DELETE /api/health-issues/:id', () => {
   })
 
   it('returns 403 for a worker token', async () => {
-    const cowId = await createCow()
-    const issueId = await createIssue(cowId)
+    const animalId = await createAnimal()
+    const issueId = await createIssue(animalId)
 
     const res = await request(app)
       .delete(`/api/health-issues/${issueId}`)
@@ -406,8 +406,8 @@ describe('DELETE /api/health-issues/:id', () => {
 
 describe('GET /api/health-issues/:id/comments', () => {
   it('returns an empty array when there are no comments', async () => {
-    const cowId = await createCow()
-    const issueId = await createIssue(cowId)
+    const animalId = await createAnimal()
+    const issueId = await createIssue(animalId)
 
     const res = await request(app)
       .get(`/api/health-issues/${issueId}/comments`)
@@ -419,8 +419,8 @@ describe('GET /api/health-issues/:id/comments', () => {
   })
 
   it('returns comments with author names in chronological order', async () => {
-    const cowId = await createCow()
-    const issueId = await createIssue(cowId)
+    const animalId = await createAnimal()
+    const issueId = await createIssue(animalId)
     const adminId = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa'
     const now = new Date().toISOString()
 
@@ -459,8 +459,8 @@ describe('GET /api/health-issues/:id/comments', () => {
 
 describe('POST /api/health-issues/:id/comments', () => {
   it('adds a comment and returns 201 with author name', async () => {
-    const cowId = await createCow()
-    const issueId = await createIssue(cowId)
+    const animalId = await createAnimal()
+    const issueId = await createIssue(animalId)
 
     const res = await request(app)
       .post(`/api/health-issues/${issueId}/comments`)
@@ -475,8 +475,8 @@ describe('POST /api/health-issues/:id/comments', () => {
   })
 
   it('returns 400 for an empty comment', async () => {
-    const cowId = await createCow()
-    const issueId = await createIssue(cowId)
+    const animalId = await createAnimal()
+    const issueId = await createIssue(animalId)
 
     const res = await request(app)
       .post(`/api/health-issues/${issueId}/comments`)
@@ -496,8 +496,8 @@ describe('POST /api/health-issues/:id/comments', () => {
   })
 
   it('a worker token can add a comment', async () => {
-    const cowId = await createCow()
-    const issueId = await createIssue(cowId)
+    const animalId = await createAnimal()
+    const issueId = await createIssue(animalId)
 
     const res = await request(app)
       .post(`/api/health-issues/${issueId}/comments`)
@@ -510,8 +510,8 @@ describe('POST /api/health-issues/:id/comments', () => {
 
 describe('DELETE /api/health-issues/:id/comments/:commentId', () => {
   it('deletes a comment (admin only)', async () => {
-    const cowId = await createCow()
-    const issueId = await createIssue(cowId)
+    const animalId = await createAnimal()
+    const issueId = await createIssue(animalId)
     const adminId = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa'
     const commentId = randomUUID()
     const now = new Date().toISOString()
@@ -535,8 +535,8 @@ describe('DELETE /api/health-issues/:id/comments/:commentId', () => {
   })
 
   it('returns 403 for a worker token', async () => {
-    const cowId = await createCow()
-    const issueId = await createIssue(cowId)
+    const animalId = await createAnimal()
+    const issueId = await createIssue(animalId)
     const adminId = 'aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa'
     const commentId = randomUUID()
     const now = new Date().toISOString()
@@ -558,8 +558,8 @@ describe('DELETE /api/health-issues/:id/comments/:commentId', () => {
   })
 
   it('returns 404 for a nonexistent comment', async () => {
-    const cowId = await createCow()
-    const issueId = await createIssue(cowId)
+    const animalId = await createAnimal()
+    const issueId = await createIssue(animalId)
 
     const res = await request(app)
       .delete(`/api/health-issues/${issueId}/comments/${randomUUID()}`)

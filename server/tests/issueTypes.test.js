@@ -230,9 +230,9 @@ describe('DELETE /api/issue-types/:id', () => {
   it('returns 409 when the type is referenced in health_issues', async () => {
     const { id, code } = await createType({ name: `InUse-${randomUUID().slice(0, 6)}` })
 
-    // Create a cow and a health issue that references this code
+    // Create an animal and a health issue that references this code
     const cowId = randomUUID()
-    await db('cows').insert({
+    await db('animals').insert({
       id: cowId,
       farm_id: DEFAULT_FARM_ID,
       tag_number: `IT-${cowId.slice(0, 6)}`,
@@ -244,7 +244,7 @@ describe('DELETE /api/issue-types/:id', () => {
     await db('health_issues').insert({
       id: randomUUID(),
       farm_id: DEFAULT_FARM_ID,
-      cow_id: cowId,
+      animal_id: cowId,
       reported_by: adminId,
       issue_types: JSON.stringify([code]),
       severity: 'low',

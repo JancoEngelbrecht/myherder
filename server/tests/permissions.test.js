@@ -35,14 +35,14 @@ const noPerms = tokenWith([])
 
 // ── Seed helpers ───────────────────────────────────────────────────────────
 
-let cowId
+let animalId
 let medicationId
 
 beforeAll(async () => {
-  // Seed a cow for use in permission tests
-  cowId = randomUUID()
-  await db('cows').insert({
-    id: cowId,
+  // Seed an animal for use in permission tests
+  animalId = randomUUID()
+  await db('animals').insert({
+    id: animalId,
     farm_id: DEFAULT_FARM_ID,
     tag_number: 'PERM-001',
     sex: 'female',
@@ -68,7 +68,7 @@ beforeAll(async () => {
 describe('can_record_milk permission', () => {
   it('returns 403 on POST /api/milk-records without permission', async () => {
     const res = await request(app).post('/api/milk-records').set('Authorization', noPerms).send({
-      cow_id: cowId,
+      animal_id: animalId,
       litres: 5,
       session: 'morning',
       recording_date: '2026-03-01',
@@ -81,7 +81,7 @@ describe('can_record_milk permission', () => {
       .post('/api/milk-records')
       .set('Authorization', tokenWith(['can_record_milk']))
       .send({
-        cow_id: cowId,
+        animal_id: animalId,
         litres: 5,
         session: 'morning',
         recording_date: '2026-03-01',
@@ -98,7 +98,7 @@ describe('can_log_issues permission', () => {
       .post('/api/health-issues')
       .set('Authorization', noPerms)
       .send({
-        cow_id: cowId,
+        animal_id: animalId,
         issue_types: ['mastitis'],
         observed_at: '2026-03-01T08:00:00.000Z',
       })
@@ -110,7 +110,7 @@ describe('can_log_issues permission', () => {
       .post('/api/health-issues')
       .set('Authorization', tokenWith(['can_log_issues']))
       .send({
-        cow_id: cowId,
+        animal_id: animalId,
         issue_types: ['mastitis'],
         observed_at: '2026-03-01T08:00:00.000Z',
       })
@@ -126,7 +126,7 @@ describe('can_log_treatments permission', () => {
       .post('/api/treatments')
       .set('Authorization', noPerms)
       .send({
-        cow_id: cowId,
+        animal_id: animalId,
         medications: [{ medication_id: medicationId }],
         treatment_date: '2026-03-01T08:00:00.000Z',
       })
@@ -138,7 +138,7 @@ describe('can_log_treatments permission', () => {
       .post('/api/treatments')
       .set('Authorization', tokenWith(['can_log_treatments']))
       .send({
-        cow_id: cowId,
+        animal_id: animalId,
         medications: [{ medication_id: medicationId }],
         treatment_date: '2026-03-01T08:00:00.000Z',
       })
@@ -151,7 +151,7 @@ describe('can_log_treatments permission', () => {
 describe('can_log_breeding permission', () => {
   it('returns 403 on POST /api/breeding-events without permission', async () => {
     const res = await request(app).post('/api/breeding-events').set('Authorization', noPerms).send({
-      cow_id: cowId,
+      animal_id: animalId,
       event_type: 'heat_observed',
       event_date: '2026-03-01T08:00:00.000Z',
     })
@@ -163,7 +163,7 @@ describe('can_log_breeding permission', () => {
       .post('/api/breeding-events')
       .set('Authorization', tokenWith(['can_log_breeding']))
       .send({
-        cow_id: cowId,
+        animal_id: animalId,
         event_type: 'heat_observed',
         event_date: '2026-03-01T08:00:00.000Z',
       })
@@ -195,7 +195,7 @@ describe('admin bypasses all permission checks', () => {
       .post('/api/milk-records')
       .set('Authorization', adminToken())
       .send({
-        cow_id: cowId,
+        animal_id: animalId,
         litres: 8,
         session: 'afternoon',
         recording_date: '2026-03-01',

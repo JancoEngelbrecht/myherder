@@ -12,9 +12,9 @@ beforeAll(async () => {
 
 afterAll(() => db.destroy())
 
-async function createCow(overrides = {}) {
+async function createAnimal(overrides = {}) {
   const id = randomUUID()
-  await db('cows').insert({
+  await db('animals').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
     tag_number: `A-${id.slice(0, 8)}`,
@@ -43,13 +43,13 @@ describe('GET /api/analytics/age-distribution', () => {
   })
 
   it('excludes deleted cows', async () => {
-    await createCow({ deleted_at: new Date().toISOString() })
+    await createAnimal({ deleted_at: new Date().toISOString() })
     const beforeRes = await request(app)
       .get('/api/analytics/age-distribution')
       .set('Authorization', adminToken())
 
     // Create a non-deleted cow and verify count increases
-    await createCow({ dob: '2024-01-01' })
+    await createAnimal({ dob: '2024-01-01' })
     const afterRes = await request(app)
       .get('/api/analytics/age-distribution')
       .set('Authorization', adminToken())
@@ -58,7 +58,7 @@ describe('GET /api/analytics/age-distribution', () => {
   })
 
   it('puts cows with null dob in Unknown bracket', async () => {
-    await createCow({ dob: null })
+    await createAnimal({ dob: null })
 
     const res = await request(app)
       .get('/api/analytics/age-distribution')
@@ -70,8 +70,8 @@ describe('GET /api/analytics/age-distribution', () => {
   })
 
   it('includes males and females per bracket', async () => {
-    await createCow({ sex: 'male', dob: '2024-01-01' })
-    await createCow({ sex: 'female', dob: '2024-01-01' })
+    await createAnimal({ sex: 'male', dob: '2024-01-01' })
+    await createAnimal({ sex: 'female', dob: '2024-01-01' })
 
     const res = await request(app)
       .get('/api/analytics/age-distribution')
@@ -100,7 +100,7 @@ describe('GET /api/analytics/breed-composition', () => {
   })
 
   it('groups cows without breed as Unassigned', async () => {
-    await createCow({ breed_type_id: null })
+    await createAnimal({ breed_type_id: null })
 
     const res = await request(app)
       .get('/api/analytics/breed-composition')
@@ -179,8 +179,8 @@ describe('GET /api/analytics/herd-size-trend', () => {
 
   it('shows cumulative totals (non-decreasing)', async () => {
     // Create some cows to ensure data exists
-    await createCow()
-    await createCow()
+    await createAnimal()
+    await createAnimal()
 
     const res = await request(app)
       .get('/api/analytics/herd-size-trend')
@@ -240,7 +240,7 @@ describe('GET /api/analytics/herd-turnover', () => {
     const from = `${now.getFullYear()}-01-01`
     const to = `${now.getFullYear()}-12-31`
 
-    await createCow({ status: 'sold', updated_at: now.toISOString() })
+    await createAnimal({ status: 'sold', updated_at: now.toISOString() })
 
     const res = await request(app)
       .get(`/api/analytics/herd-turnover?from=${from}&to=${to}`)

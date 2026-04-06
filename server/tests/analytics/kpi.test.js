@@ -12,9 +12,9 @@ beforeAll(async () => {
 
 afterAll(() => db.destroy())
 
-async function createCow(overrides = {}) {
+async function createAnimal(overrides = {}) {
   const id = randomUUID()
-  await db('cows').insert({
+  await db('animals').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
     tag_number: `A-${id.slice(0, 8)}`,
@@ -25,12 +25,12 @@ async function createCow(overrides = {}) {
   return id
 }
 
-async function createHealthIssue(cowId, overrides = {}) {
+async function createHealthIssue(animalId, overrides = {}) {
   const id = randomUUID()
   await db('health_issues').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
-    cow_id: cowId,
+    animal_id: animalId,
     issue_types: JSON.stringify(['mastitis']),
     severity: 'medium',
     observed_at: new Date().toISOString(),
@@ -41,12 +41,12 @@ async function createHealthIssue(cowId, overrides = {}) {
   return id
 }
 
-async function createMilkRecord(cowId, overrides = {}) {
+async function createMilkRecord(animalId, overrides = {}) {
   const id = randomUUID()
   await db('milk_records').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
-    cow_id: cowId,
+    animal_id: animalId,
     recorded_by: ADMIN_ID,
     session: 'morning',
     litres: 10,
@@ -80,9 +80,9 @@ describe('GET /api/analytics/daily-kpis', () => {
   })
 
   it('counts today milk correctly', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const today = new Date().toISOString().slice(0, 10)
-    await createMilkRecord(cowId, { litres: 12, recording_date: today, session: 'evening' })
+    await createMilkRecord(animalId, { litres: 12, recording_date: today, session: 'evening' })
 
     const res = await request(app)
       .get('/api/analytics/daily-kpis')
@@ -94,9 +94,9 @@ describe('GET /api/analytics/daily-kpis', () => {
   })
 
   it('counts active health issues', async () => {
-    const cowId = await createCow()
-    await createHealthIssue(cowId, { status: 'open' })
-    await createHealthIssue(cowId, { status: 'treating' })
+    const animalId = await createAnimal()
+    await createHealthIssue(animalId, { status: 'open' })
+    await createHealthIssue(animalId, { status: 'treating' })
 
     const res = await request(app)
       .get('/api/analytics/daily-kpis')
@@ -131,9 +131,9 @@ describe('GET /api/analytics/herd-summary', () => {
   })
 
   it('returns total count and a by_status breakdown', async () => {
-    await createCow({ status: 'active' })
-    await createCow({ status: 'active' })
-    await createCow({ status: 'sick' })
+    await createAnimal({ status: 'active' })
+    await createAnimal({ status: 'active' })
+    await createAnimal({ status: 'sick' })
 
     const res = await request(app)
       .get('/api/analytics/herd-summary')
@@ -157,8 +157,8 @@ describe('GET /api/analytics/herd-summary', () => {
   })
 
   it('excludes soft-deleted cows from the count', async () => {
-    const id = await createCow({ status: 'active' })
-    await db('cows').where({ id }).update({ deleted_at: new Date().toISOString() })
+    const id = await createAnimal({ status: 'active' })
+    await db('animals').where({ id }).update({ deleted_at: new Date().toISOString() })
 
     const res = await request(app)
       .get('/api/analytics/herd-summary')
@@ -184,12 +184,12 @@ describe('GET /api/analytics/herd-summary', () => {
 
   it('counts heifers via life_phase_override', async () => {
     // heifer_count uses SUM(CASE WHEN life_phase_override = 'heifer' ...)
-    const heiferId = await createCow({
+    const heiferId = await createAnimal({
       sex: 'female',
       status: 'active',
       life_phase_override: 'heifer',
     })
-    const nonHeiferId = await createCow({ sex: 'female', status: 'active' })
+    const nonHeiferId = await createAnimal({ sex: 'female', status: 'active' })
 
     const res = await request(app)
       .get('/api/analytics/herd-summary')
@@ -198,11 +198,11 @@ describe('GET /api/analytics/herd-summary', () => {
     expect(res.body.heifer_count).toBeGreaterThanOrEqual(1)
     expect(res.body.heifer_count).toBeLessThan(res.body.females)
     // Clean up
-    await db('cows').whereIn('id', [heiferId, nonHeiferId]).del()
+    await db('animals').whereIn('id', [heiferId, nonHeiferId]).del()
   })
 
   it('excludes sold/dead from heifer count', async () => {
-    const soldHeifer = await createCow({ sex: 'female', status: 'sold' })
+    const soldHeifer = await createAnimal({ sex: 'female', status: 'sold' })
 
     const res = await request(app)
       .get('/api/analytics/herd-summary')
@@ -211,6 +211,6 @@ describe('GET /api/analytics/herd-summary', () => {
     // The sold cow should not be in heifer count
     // We can't check exact count but can verify sold cow exists in total
     expect(res.body.by_status.some((r) => r.status === 'sold')).toBe(true)
-    await db('cows').where('id', soldHeifer).del()
+    await db('animals').where('id', soldHeifer).del()
   })
 })

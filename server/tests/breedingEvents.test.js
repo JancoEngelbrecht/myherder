@@ -14,9 +14,9 @@ afterAll(() => db.destroy())
 
 // ─── Factories ─────────────────────────────────────────────────────────────────
 
-async function createCow(overrides = {}) {
+async function createAnimal(overrides = {}) {
   const id = randomUUID()
-  await db('cows').insert({
+  await db('animals').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
     tag_number: `BE-${id.slice(0, 6)}`,
@@ -27,13 +27,13 @@ async function createCow(overrides = {}) {
   return id
 }
 
-async function createBreedingEvent(cowId, overrides = {}) {
+async function createBreedingEvent(animalId, overrides = {}) {
   const id = randomUUID()
   const now = new Date().toISOString()
   await db('breeding_events').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
-    cow_id: cowId,
+    animal_id: animalId,
     event_type: 'ai_insemination',
     event_date: '2026-02-01T10:00',
     recorded_by: ADMIN_ID,
@@ -56,10 +56,10 @@ describe('GET /api/breeding-events', () => {
     expect(res.status).toBe(401)
   })
 
-  it('returns paginated { data, total } without cow_id', async () => {
-    const cowId = await createCow()
-    await createBreedingEvent(cowId)
-    await createBreedingEvent(cowId, { event_type: 'heat_observed', event_date: '2026-01-15' })
+  it('returns paginated { data, total } without animal_id', async () => {
+    const animalId = await createAnimal()
+    await createBreedingEvent(animalId)
+    await createBreedingEvent(animalId, { event_type: 'heat_observed', event_date: '2026-01-15' })
 
     const res = await request(app)
       .get('/api/breeding-events?page=1&limit=10')
@@ -74,10 +74,10 @@ describe('GET /api/breeding-events', () => {
   })
 
   it('paginates correctly with page and limit', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     // Create 3 events
     for (let i = 0; i < 3; i++) {
-      await createBreedingEvent(cowId, { event_date: `2026-03-0${i + 1}T10:00` })
+      await createBreedingEvent(animalId, { event_date: `2026-03-0${i + 1}T10:00` })
     }
 
     const page1 = await request(app)
@@ -89,12 +89,12 @@ describe('GET /api/breeding-events', () => {
     expect(page1.body.total).toBeGreaterThanOrEqual(3)
   })
 
-  it('returns plain array when cow_id is provided', async () => {
-    const cowId = await createCow()
-    await createBreedingEvent(cowId)
+  it('returns plain array when animal_id is provided', async () => {
+    const animalId = await createAnimal()
+    await createBreedingEvent(animalId)
 
     const res = await request(app)
-      .get(`/api/breeding-events?cow_id=${cowId}`)
+      .get(`/api/breeding-events?animal_id=${animalId}`)
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
@@ -105,13 +105,13 @@ describe('GET /api/breeding-events', () => {
   })
 
   it('filters by comma-separated event_type', async () => {
-    const cowId = await createCow()
-    await createBreedingEvent(cowId, { event_type: 'ai_insemination' })
-    await createBreedingEvent(cowId, { event_type: 'heat_observed' })
-    await createBreedingEvent(cowId, { event_type: 'calving', event_date: '2026-02-20' })
+    const animalId = await createAnimal()
+    await createBreedingEvent(animalId, { event_type: 'ai_insemination' })
+    await createBreedingEvent(animalId, { event_type: 'heat_observed' })
+    await createBreedingEvent(animalId, { event_type: 'calving', event_date: '2026-02-20' })
 
     const res = await request(app)
-      .get(`/api/breeding-events?cow_id=${cowId}&event_type=ai_insemination,heat_observed`)
+      .get(`/api/breeding-events?animal_id=${animalId}&event_type=ai_insemination,heat_observed`)
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
@@ -142,10 +142,10 @@ describe('GET /api/breeding-events', () => {
 
 describe('POST /api/breeding-events', () => {
   it('creates a breeding event with auto-calculated dates', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
 
     const res = await postEvent({
-      cow_id: cowId,
+      animal_id: animalId,
       event_type: 'ai_insemination',
       event_date: '2026-02-01T10:00',
     })
@@ -157,10 +157,10 @@ describe('POST /api/breeding-events', () => {
   })
 
   it('allows client to override expected_calving on preg_check_positive', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
 
     const res = await postEvent({
-      cow_id: cowId,
+      animal_id: animalId,
       event_type: 'preg_check_positive',
       event_date: '2026-03-10T10:00',
       expected_calving: '2026-10-15',
@@ -173,11 +173,11 @@ describe('POST /api/breeding-events', () => {
   })
 
   it('falls back to latest insemination calving date for preg_check_positive', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
 
     // First create an insemination with auto-calculated dates
     const insemRes = await postEvent({
-      cow_id: cowId,
+      animal_id: animalId,
       event_type: 'ai_insemination',
       event_date: '2026-01-15T10:00',
     })
@@ -185,7 +185,7 @@ describe('POST /api/breeding-events', () => {
 
     // Now create preg_check_positive WITHOUT providing expected_calving
     const res = await postEvent({
-      cow_id: cowId,
+      animal_id: animalId,
       event_type: 'preg_check_positive',
       event_date: '2026-02-20T10:00',
     })
@@ -196,10 +196,10 @@ describe('POST /api/breeding-events', () => {
   })
 
   it('rejects breeding events for male animals', async () => {
-    const cowId = await createCow({ sex: 'male' })
+    const animalId = await createAnimal({ sex: 'male' })
 
     const res = await postEvent({
-      cow_id: cowId,
+      animal_id: animalId,
       event_type: 'heat_observed',
       event_date: '2026-02-01T10:00',
     })
@@ -209,15 +209,15 @@ describe('POST /api/breeding-events', () => {
   })
 
   it('transitions cow status on preg_check_positive', async () => {
-    const cowId = await createCow({ status: 'active' })
+    const animalId = await createAnimal({ status: 'active' })
 
     await postEvent({
-      cow_id: cowId,
+      animal_id: animalId,
       event_type: 'preg_check_positive',
       event_date: '2026-02-20T10:00',
     })
 
-    const cow = await db('cows').where({ id: cowId }).first()
+    const cow = await db('animals').where({ id: animalId }).first()
     expect(cow.status).toBe('pregnant')
   })
 })
@@ -226,8 +226,8 @@ describe('POST /api/breeding-events', () => {
 
 describe('PATCH /api/breeding-events/:id', () => {
   it('updates expected_calving and expected_dry_off', async () => {
-    const cowId = await createCow()
-    const evId = await createBreedingEvent(cowId, { event_type: 'preg_check_positive' })
+    const animalId = await createAnimal()
+    const evId = await createBreedingEvent(animalId, { event_type: 'preg_check_positive' })
 
     const res = await request(app)
       .patch(`/api/breeding-events/${evId}`)
@@ -240,8 +240,8 @@ describe('PATCH /api/breeding-events/:id', () => {
   })
 
   it('requires admin role', async () => {
-    const cowId = await createCow()
-    const evId = await createBreedingEvent(cowId)
+    const animalId = await createAnimal()
+    const evId = await createBreedingEvent(animalId)
 
     const res = await request(app)
       .patch(`/api/breeding-events/${evId}`)
@@ -256,8 +256,8 @@ describe('PATCH /api/breeding-events/:id', () => {
 
 describe('PATCH /api/breeding-events/:id/dismiss', () => {
   it('dismisses an event', async () => {
-    const cowId = await createCow()
-    const evId = await createBreedingEvent(cowId)
+    const animalId = await createAnimal()
+    const evId = await createBreedingEvent(animalId)
 
     const res = await request(app)
       .patch(`/api/breeding-events/${evId}/dismiss`)
@@ -269,8 +269,8 @@ describe('PATCH /api/breeding-events/:id/dismiss', () => {
   })
 
   it('allows worker to dismiss', async () => {
-    const cowId = await createCow()
-    const evId = await createBreedingEvent(cowId)
+    const animalId = await createAnimal()
+    const evId = await createBreedingEvent(animalId)
 
     const res = await request(app)
       .patch(`/api/breeding-events/${evId}/dismiss`)
@@ -285,8 +285,8 @@ describe('PATCH /api/breeding-events/:id/dismiss', () => {
 
 describe('DELETE /api/breeding-events/:id', () => {
   it('deletes a breeding event (admin only)', async () => {
-    const cowId = await createCow()
-    const evId = await createBreedingEvent(cowId)
+    const animalId = await createAnimal()
+    const evId = await createBreedingEvent(animalId)
 
     const res = await request(app)
       .delete(`/api/breeding-events/${evId}`)
@@ -301,8 +301,8 @@ describe('DELETE /api/breeding-events/:id', () => {
   })
 
   it('rejects worker delete', async () => {
-    const cowId = await createCow()
-    const evId = await createBreedingEvent(cowId)
+    const animalId = await createAnimal()
+    const evId = await createBreedingEvent(animalId)
 
     const res = await request(app)
       .delete(`/api/breeding-events/${evId}`)
@@ -333,8 +333,8 @@ describe('PATCH /api/breeding-events/dismiss-batch validation', () => {
   })
 
   it('returns 400 when reason exceeds 500 chars', async () => {
-    const cowId = await createCow()
-    const evId = await createBreedingEvent(cowId)
+    const animalId = await createAnimal()
+    const evId = await createBreedingEvent(animalId)
     const res = await request(app)
       .patch('/api/breeding-events/dismiss-batch')
       .set('Authorization', adminToken())
@@ -343,9 +343,9 @@ describe('PATCH /api/breeding-events/dismiss-batch validation', () => {
   })
 
   it('dismisses multiple valid UUIDs successfully', async () => {
-    const cowId = await createCow()
-    const evId1 = await createBreedingEvent(cowId)
-    const evId2 = await createBreedingEvent(cowId)
+    const animalId = await createAnimal()
+    const evId1 = await createBreedingEvent(animalId)
+    const evId2 = await createBreedingEvent(animalId)
 
     const res = await request(app)
       .patch('/api/breeding-events/dismiss-batch')
@@ -360,8 +360,8 @@ describe('PATCH /api/breeding-events/dismiss-batch validation', () => {
 
 describe('PATCH /api/breeding-events/:id/dismiss reason validation', () => {
   it('returns 400 when reason exceeds 500 chars', async () => {
-    const cowId = await createCow()
-    const evId = await createBreedingEvent(cowId)
+    const animalId = await createAnimal()
+    const evId = await createBreedingEvent(animalId)
     const res = await request(app)
       .patch(`/api/breeding-events/${evId}/dismiss`)
       .set('Authorization', adminToken())
@@ -399,10 +399,10 @@ describe('GET /api/breeding-events permission enforcement', () => {
 
 describe('POST /api/breeding-events — sheep event types', () => {
   it('accepts ram_service event type', async () => {
-    const cowId = await createCow({ sex: 'female' })
+    const animalId = await createAnimal({ sex: 'female' })
 
     const res = await postEvent({
-      cow_id: cowId,
+      animal_id: animalId,
       event_type: 'ram_service',
       event_date: '2026-03-01T08:00',
     })
@@ -412,10 +412,10 @@ describe('POST /api/breeding-events — sheep event types', () => {
   })
 
   it('accepts lambing event type', async () => {
-    const cowId = await createCow({ sex: 'female' })
+    const animalId = await createAnimal({ sex: 'female' })
 
     const res = await postEvent({
-      cow_id: cowId,
+      animal_id: animalId,
       event_type: 'lambing',
       event_date: '2026-03-15T08:00',
     })
@@ -425,10 +425,10 @@ describe('POST /api/breeding-events — sheep event types', () => {
   })
 
   it('stores offspring_count on birth events', async () => {
-    const cowId = await createCow({ sex: 'female' })
+    const animalId = await createAnimal({ sex: 'female' })
 
     const res = await postEvent({
-      cow_id: cowId,
+      animal_id: animalId,
       event_type: 'lambing',
       event_date: '2026-04-01T08:00',
       offspring_count: 3,
@@ -442,10 +442,10 @@ describe('POST /api/breeding-events — sheep event types', () => {
   })
 
   it('defaults offspring_count to 1 when not provided', async () => {
-    const cowId = await createCow({ sex: 'female' })
+    const animalId = await createAnimal({ sex: 'female' })
 
     const res = await postEvent({
-      cow_id: cowId,
+      animal_id: animalId,
       event_type: 'calving',
       event_date: '2026-04-10T08:00',
     })
@@ -455,10 +455,10 @@ describe('POST /api/breeding-events — sheep event types', () => {
   })
 
   it('rejects offspring_count > 10', async () => {
-    const cowId = await createCow({ sex: 'female' })
+    const animalId = await createAnimal({ sex: 'female' })
 
     const res = await postEvent({
-      cow_id: cowId,
+      animal_id: animalId,
       event_type: 'lambing',
       event_date: '2026-04-15T08:00',
       offspring_count: 11,
@@ -472,9 +472,9 @@ describe('POST /api/breeding-events — sheep event types', () => {
 
 describe('GET /api/breeding-events/:id — registered_offspring', () => {
   it('includes registered_offspring count for birth events', async () => {
-    const damId = await createCow({ sex: 'female' })
+    const damId = await createAnimal({ sex: 'female' })
     const eventRes = await postEvent({
-      cow_id: damId,
+      animal_id: damId,
       event_type: 'calving',
       event_date: '2026-05-01T08:00',
       offspring_count: 2,
@@ -483,7 +483,7 @@ describe('GET /api/breeding-events/:id — registered_offspring', () => {
 
     // Register one offspring linked to this event
     const offspringTag = `REG-OFF-${randomUUID().slice(0, 6)}`
-    await db('cows').insert({
+    await db('animals').insert({
       id: randomUUID(),
       farm_id: DEFAULT_FARM_ID,
       tag_number: offspringTag,
@@ -502,9 +502,9 @@ describe('GET /api/breeding-events/:id — registered_offspring', () => {
   })
 
   it('registered_offspring is 0 when no offspring linked', async () => {
-    const damId = await createCow({ sex: 'female' })
+    const damId = await createAnimal({ sex: 'female' })
     const eventRes = await postEvent({
-      cow_id: damId,
+      animal_id: damId,
       event_type: 'lambing',
       event_date: '2026-05-15T08:00',
       offspring_count: 2,
@@ -519,9 +519,9 @@ describe('GET /api/breeding-events/:id — registered_offspring', () => {
   })
 
   it('does not include registered_offspring for non-birth events', async () => {
-    const cowId = await createCow({ sex: 'female' })
+    const animalId = await createAnimal({ sex: 'female' })
     const insemRes = await postEvent({
-      cow_id: cowId,
+      animal_id: animalId,
       event_type: 'ai_insemination',
       event_date: '2026-05-20T08:00',
     })
@@ -540,14 +540,14 @@ describe('GET /api/breeding-events/:id — registered_offspring', () => {
 
 describe('GET /api/breeding-events — filter accepts sheep event types', () => {
   it('accepts ram_service as event_type filter', async () => {
-    const cowId = await createCow({ sex: 'female' })
-    await createBreedingEvent(cowId, {
+    const animalId = await createAnimal({ sex: 'female' })
+    await createBreedingEvent(animalId, {
       event_type: 'ram_service',
       event_date: '2026-06-01T08:00',
     })
 
     const res = await request(app)
-      .get(`/api/breeding-events?cow_id=${cowId}&event_type=ram_service`)
+      .get(`/api/breeding-events?animal_id=${animalId}&event_type=ram_service`)
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
@@ -555,11 +555,11 @@ describe('GET /api/breeding-events — filter accepts sheep event types', () => 
   })
 
   it('accepts lambing as event_type filter', async () => {
-    const cowId = await createCow({ sex: 'female' })
-    await createBreedingEvent(cowId, { event_type: 'lambing', event_date: '2026-06-10T08:00' })
+    const animalId = await createAnimal({ sex: 'female' })
+    await createBreedingEvent(animalId, { event_type: 'lambing', event_date: '2026-06-10T08:00' })
 
     const res = await request(app)
-      .get(`/api/breeding-events?cow_id=${cowId}&event_type=lambing`)
+      .get(`/api/breeding-events?animal_id=${animalId}&event_type=lambing`)
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)

@@ -99,7 +99,7 @@ beforeAll(async () => {
   await db('milk_records').insert({
     id: mrId,
     farm_id: farmAId,
-    cow_id: cowA1,
+    animal_id: cowA1,
     recorded_by: farmAAdminId,
     session: 'morning',
     litres: 12.5,
@@ -114,7 +114,7 @@ beforeAll(async () => {
   await db('health_issues').insert({
     id: hiId,
     farm_id: farmAId,
-    cow_id: cowA1,
+    animal_id: cowA1,
     issue_types: JSON.stringify(['mastitis']),
     severity: 'high',
     status: 'open',
@@ -130,7 +130,7 @@ beforeAll(async () => {
   await db('treatments').insert({
     id: txId,
     farm_id: farmAId,
-    cow_id: cowA1,
+    animal_id: cowA1,
     medication_id: medId,
     treatment_date: '2026-03-01',
     administered_by: farmAAdminId,
@@ -145,7 +145,7 @@ beforeAll(async () => {
   await db('breeding_events').insert({
     id: beId,
     farm_id: farmAId,
-    cow_id: cowA1,
+    animal_id: cowA1,
     event_type: 'ai_insemination',
     event_date: '2026-02-15',
     notes: 'Test AI',
@@ -174,12 +174,12 @@ afterAll(() => db.destroy())
 
 describe('Cows isolation', () => {
   it('Farm B cannot GET Farm A cow by ID → 404', async () => {
-    const res = await request(app).get(`/api/cows/${cowA1}`).set('Authorization', farmBToken)
+    const res = await request(app).get(`/api/animals/${cowA1}`).set('Authorization', farmBToken)
     expect(res.status).toBe(404)
   })
 
   it('Farm B list returns zero Farm A cows', async () => {
-    const res = await request(app).get('/api/cows').set('Authorization', farmBToken)
+    const res = await request(app).get('/api/animals').set('Authorization', farmBToken)
     expect(res.status).toBe(200)
     const ids = res.body.map((c) => c.id)
     expect(ids).not.toContain(cowA1)
@@ -190,20 +190,24 @@ describe('Cows isolation', () => {
 
   it('Farm B cannot UPDATE Farm A cow → 404', async () => {
     const res = await request(app)
-      .put(`/api/cows/${cowA1}`)
+      .put(`/api/animals/${cowA1}`)
       .set('Authorization', farmBToken)
       .send({ name: 'Hacked' })
     expect(res.status).toBe(404)
   })
 
   it('Farm B cannot DELETE Farm A cow → 404', async () => {
-    const res = await request(app).delete(`/api/cows/${cowA1}`).set('Authorization', farmBToken)
+    const res = await request(app).delete(`/api/animals/${cowA1}`).set('Authorization', farmBToken)
     expect(res.status).toBe(404)
   })
 
   it('same tag_number allowed in both farms', async () => {
-    const resA = await request(app).get('/api/cows?search=COW001').set('Authorization', farmAToken)
-    const resB = await request(app).get('/api/cows?search=COW001').set('Authorization', farmBToken)
+    const resA = await request(app)
+      .get('/api/animals?search=COW001')
+      .set('Authorization', farmAToken)
+    const resB = await request(app)
+      .get('/api/animals?search=COW001')
+      .set('Authorization', farmBToken)
 
     expect(resA.body.length).toBeGreaterThanOrEqual(1)
     expect(resB.body.length).toBeGreaterThanOrEqual(1)
@@ -312,9 +316,9 @@ describe('Treatments isolation', () => {
     expect(ids).not.toContain(treatmentA)
   })
 
-  it('Farm B list with Farm A cow_id returns empty', async () => {
+  it('Farm B list with Farm A animal_id returns empty', async () => {
     const res = await request(app)
-      .get(`/api/treatments?cow_id=${cowA1}`)
+      .get(`/api/treatments?animal_id=${cowA1}`)
       .set('Authorization', farmBToken)
     expect(res.status).toBe(200)
     const body = Array.isArray(res.body) ? res.body : res.body.data
@@ -341,9 +345,9 @@ describe('Breeding Events isolation', () => {
     expect(res.status).toBe(404)
   })
 
-  it('Farm B list with Farm A cow_id returns empty', async () => {
+  it('Farm B list with Farm A animal_id returns empty', async () => {
     const res = await request(app)
-      .get(`/api/breeding-events?cow_id=${cowA1}`)
+      .get(`/api/breeding-events?animal_id=${cowA1}`)
       .set('Authorization', farmBToken)
     expect(res.status).toBe(200)
     const body = Array.isArray(res.body) ? res.body : res.body.data
@@ -377,7 +381,7 @@ describe('Breeding Events isolation', () => {
       ...(res.body.pregChecks || []),
       ...(res.body.dryOffs || []),
       ...(res.body.needsAttention || []),
-    ].map((e) => e.cow_id)
+    ].map((e) => e.animal_id)
     expect(allIds).not.toContain(cowA1)
   })
 })
@@ -429,7 +433,7 @@ describe('Analytics isolation', () => {
       {
         id: randomUUID(),
         farm_id: farmBId,
-        cow_id: cowB1,
+        animal_id: cowB1,
         recorded_by: farmBAdminId,
         session: 'morning',
         litres: 10,
@@ -440,7 +444,7 @@ describe('Analytics isolation', () => {
       {
         id: randomUUID(),
         farm_id: farmBId,
-        cow_id: cowB1,
+        animal_id: cowB1,
         recorded_by: farmBAdminId,
         session: 'morning',
         litres: 10,
@@ -451,7 +455,7 @@ describe('Analytics isolation', () => {
       {
         id: randomUUID(),
         farm_id: farmBId,
-        cow_id: cowB1,
+        animal_id: cowB1,
         recorded_by: farmBAdminId,
         session: 'morning',
         litres: 10,
@@ -520,13 +524,13 @@ describe('Export isolation', () => {
     expect(res.status).toBe(200)
 
     const { tables } = res.body
-    const allCowIds = tables.cows.map((c) => c.id)
+    const allCowIds = tables.animals.map((c) => c.id)
     expect(allCowIds).not.toContain(cowA1)
     expect(allCowIds).not.toContain(cowA2)
     expect(tables.treatments.length).toBe(0)
     expect(tables.health_issues.length).toBe(0)
     expect(tables.milk_records.length).toBe(3)
-    expect(tables.milk_records.every((r) => r.cow_id === cowB1)).toBe(true)
+    expect(tables.milk_records.every((r) => r.animal_id === cowB1)).toBe(true)
     expect(tables.breeding_events.length).toBe(0)
     expect(tables.medications.length).toBe(0)
   })
@@ -562,7 +566,7 @@ describe('Sync isolation', () => {
     const res = await request(app).get('/api/sync/pull?full=1').set('Authorization', farmBToken)
     expect(res.status).toBe(200)
 
-    const cowIds = (res.body.cows || []).map((c) => c.id)
+    const cowIds = (res.body.animals || []).map((c) => c.id)
     expect(cowIds).not.toContain(cowA1)
     expect(cowIds).not.toContain(cowA2)
     expect(cowIds).toContain(cowB1)
@@ -595,7 +599,7 @@ describe('Sync isolation', () => {
       })
     expect(res.status).toBe(200)
 
-    const cow = await db('cows').where({ id: newCowId }).first()
+    const cow = await db('animals').where({ id: newCowId }).first()
     expect(cow).toBeTruthy()
     expect(cow.farm_id).toBe(farmBId)
     expect(cow.farm_id).not.toBe(farmAId)
@@ -622,7 +626,7 @@ describe('Sync isolation', () => {
     expect(res.body.results[0].status).toBe('error')
 
     // Verify Farm A cow is unchanged
-    const cow = await db('cows').where({ id: cowA1 }).first()
+    const cow = await db('animals').where({ id: cowA1 }).first()
     expect(cow.name).toBe('Bessie')
   })
 })
@@ -705,7 +709,7 @@ describe('Auth isolation', () => {
 
 describe('Edge cases', () => {
   it('empty farm (Farm C) — cows list returns empty, not error', async () => {
-    const res = await request(app).get('/api/cows').set('Authorization', farmCToken)
+    const res = await request(app).get('/api/animals').set('Authorization', farmCToken)
     expect(res.status).toBe(200)
     expect(res.body).toEqual([])
   })
@@ -721,7 +725,7 @@ describe('Edge cases', () => {
   it('empty farm — export returns empty tables', async () => {
     const res = await request(app).get('/api/export').set('Authorization', farmCToken)
     expect(res.status).toBe(200)
-    expect(res.body.tables.cows.length).toBe(0)
+    expect(res.body.tables.animals.length).toBe(0)
   })
 
   it('deactivated user JWT returns 401', async () => {
@@ -732,7 +736,7 @@ describe('Edge cases', () => {
     const tempToken = tokenForFarm(farmAId, tempUserId)
     await db('users').where({ id: tempUserId }).update({ is_active: false })
 
-    const res = await request(app).get('/api/cows').set('Authorization', tempToken)
+    const res = await request(app).get('/api/animals').set('Authorization', tempToken)
     expect(res.status).toBe(401)
   })
 
@@ -744,7 +748,7 @@ describe('Edge cases', () => {
     const oldToken = tokenForFarm(farmAId, versionUser)
     await db('users').where({ id: versionUser }).update({ token_version: 1 })
 
-    const res = await request(app).get('/api/cows').set('Authorization', oldToken)
+    const res = await request(app).get('/api/animals').set('Authorization', oldToken)
     expect(res.status).toBe(401)
   })
 })

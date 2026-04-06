@@ -64,7 +64,7 @@ beforeEach(async () => {
   await db('treatments').del()
   await db('health_issues').del()
   await db('milk_records').del()
-  await db('cows').del()
+  await db('animals').del()
   await db('users').del()
   await db('farm_species').del()
   await db('farms').del()

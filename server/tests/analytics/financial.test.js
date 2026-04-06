@@ -12,9 +12,9 @@ beforeAll(async () => {
 
 afterAll(() => db.destroy())
 
-async function createCow(overrides = {}) {
+async function createAnimal(overrides = {}) {
   const id = randomUUID()
-  await db('cows').insert({
+  await db('animals').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
     tag_number: `A-${id.slice(0, 8)}`,
@@ -25,12 +25,12 @@ async function createCow(overrides = {}) {
   return id
 }
 
-async function createMilkRecord(cowId, overrides = {}) {
+async function createMilkRecord(animalId, overrides = {}) {
   const id = randomUUID()
   await db('milk_records').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
-    cow_id: cowId,
+    animal_id: animalId,
     recorded_by: ADMIN_ID,
     session: 'morning',
     litres: 10,
@@ -41,12 +41,12 @@ async function createMilkRecord(cowId, overrides = {}) {
   return id
 }
 
-async function createTreatment(cowId, medId, overrides = {}) {
+async function createTreatment(animalId, medId, overrides = {}) {
   const id = randomUUID()
   await db('treatments').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
-    cow_id: cowId,
+    animal_id: animalId,
     medication_id: medId,
     administered_by: ADMIN_ID,
     treatment_date: new Date().toISOString(),
@@ -72,9 +72,9 @@ async function createMedication(overrides = {}) {
 
 describe('GET /api/analytics/milk-trends', () => {
   it('returns months array with total_litres and record_count', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const today = new Date().toISOString().slice(0, 10)
-    await createMilkRecord(cowId, { litres: 15, recording_date: today })
+    await createMilkRecord(animalId, { litres: 15, recording_date: today })
 
     const res = await request(app)
       .get('/api/analytics/milk-trends')
@@ -95,8 +95,8 @@ describe('GET /api/analytics/milk-trends', () => {
   })
 
   it('respects from/to date range', async () => {
-    const cowId = await createCow()
-    await createMilkRecord(cowId, { litres: 20, recording_date: '2020-01-15' })
+    const animalId = await createAnimal()
+    await createMilkRecord(animalId, { litres: 20, recording_date: '2020-01-15' })
 
     const res = await request(app)
       .get('/api/analytics/milk-trends?from=2020-01-01&to=2020-01-31')
@@ -122,10 +122,10 @@ describe('GET /api/analytics/milk-trends', () => {
 
 describe('GET /api/analytics/top-producers', () => {
   it('returns array of cows with avg_daily_litres', async () => {
-    const cowId = await createCow()
-    await createMilkRecord(cowId, { litres: 25, recording_date: '2024-06-01' })
-    await createMilkRecord(cowId, { litres: 20, recording_date: '2024-06-02' })
-    await createMilkRecord(cowId, { litres: 22, recording_date: '2024-06-03' })
+    const animalId = await createAnimal()
+    await createMilkRecord(animalId, { litres: 25, recording_date: '2024-06-01' })
+    await createMilkRecord(animalId, { litres: 20, recording_date: '2024-06-02' })
+    await createMilkRecord(animalId, { litres: 22, recording_date: '2024-06-03' })
 
     const res = await request(app)
       .get('/api/analytics/top-producers?from=2024-06-01&to=2024-06-30')
@@ -134,7 +134,7 @@ describe('GET /api/analytics/top-producers', () => {
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body)).toBe(true)
 
-    const found = res.body.find((r) => r.id === cowId)
+    const found = res.body.find((r) => r.id === animalId)
     expect(found).toBeDefined()
     expect(found).toHaveProperty('avg_daily_litres')
     expect(found).toHaveProperty('total_litres')
@@ -151,32 +151,32 @@ describe('GET /api/analytics/top-producers', () => {
   })
 
   it('respects from/to date range', async () => {
-    const cowId = await createCow()
-    await createMilkRecord(cowId, { litres: 30, recording_date: '2020-04-15' })
-    await createMilkRecord(cowId, { litres: 28, recording_date: '2020-04-16' })
-    await createMilkRecord(cowId, { litres: 25, recording_date: '2020-04-17' })
+    const animalId = await createAnimal()
+    await createMilkRecord(animalId, { litres: 30, recording_date: '2020-04-15' })
+    await createMilkRecord(animalId, { litres: 28, recording_date: '2020-04-16' })
+    await createMilkRecord(animalId, { litres: 25, recording_date: '2020-04-17' })
 
     const res = await request(app)
       .get('/api/analytics/top-producers?from=2020-04-01&to=2020-04-30')
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const found = res.body.find((r) => r.id === cowId)
+    const found = res.body.find((r) => r.id === animalId)
     expect(found).toBeDefined()
     expect(found.total_litres).toBeGreaterThanOrEqual(30)
   })
 
   it('excludes cows with fewer than 3 recording days', async () => {
-    const cowId = await createCow()
-    await createMilkRecord(cowId, { litres: 50, recording_date: '2024-08-01' })
-    await createMilkRecord(cowId, { litres: 50, recording_date: '2024-08-02' })
+    const animalId = await createAnimal()
+    await createMilkRecord(animalId, { litres: 50, recording_date: '2024-08-01' })
+    await createMilkRecord(animalId, { litres: 50, recording_date: '2024-08-02' })
 
     const res = await request(app)
       .get('/api/analytics/top-producers?from=2024-08-01&to=2024-08-31')
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const found = res.body.find((r) => r.id === cowId)
+    const found = res.body.find((r) => r.id === animalId)
     expect(found).toBeUndefined()
   })
 
@@ -194,9 +194,9 @@ describe('GET /api/analytics/top-producers', () => {
 
 describe('GET /api/analytics/wasted-milk', () => {
   it('returns months array and total_discarded', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const today = new Date().toISOString().slice(0, 10)
-    await createMilkRecord(cowId, {
+    await createMilkRecord(animalId, {
       litres: 8,
       recording_date: today,
       milk_discarded: true,
@@ -220,8 +220,8 @@ describe('GET /api/analytics/wasted-milk', () => {
   })
 
   it('respects date range filter', async () => {
-    const cowId = await createCow()
-    await createMilkRecord(cowId, {
+    const animalId = await createAnimal()
+    await createMilkRecord(animalId, {
       litres: 5,
       recording_date: '2020-06-15',
       milk_discarded: true,
@@ -242,9 +242,9 @@ describe('GET /api/analytics/wasted-milk', () => {
 
 describe('GET /api/analytics/treatment-costs', () => {
   it('returns months array and grand_total', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const medId = await createMedication()
-    await createTreatment(cowId, medId, { cost: 250 })
+    await createTreatment(animalId, medId, { cost: 250 })
 
     const res = await request(app)
       .get('/api/analytics/treatment-costs')
@@ -264,9 +264,9 @@ describe('GET /api/analytics/treatment-costs', () => {
   })
 
   it('respects date range filter', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const medId = await createMedication()
-    await createTreatment(cowId, medId, {
+    await createTreatment(animalId, medId, {
       cost: 300,
       treatment_date: '2020-03-15T10:00:00.000Z',
     })
@@ -296,9 +296,9 @@ describe('GET /api/analytics/treatment-costs', () => {
 
 describe('GET /api/analytics/litres-per-cow', () => {
   it('returns months array with avg_litres_per_cow_per_day', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const today = new Date().toISOString().slice(0, 10)
-    await createMilkRecord(cowId, { litres: 20, recording_date: today })
+    await createMilkRecord(animalId, { litres: 20, recording_date: today })
 
     const res = await request(app)
       .get('/api/analytics/litres-per-cow')
@@ -318,8 +318,8 @@ describe('GET /api/analytics/litres-per-cow', () => {
   })
 
   it('respects date range', async () => {
-    const cowId = await createCow()
-    await createMilkRecord(cowId, { litres: 30, recording_date: '2020-05-10' })
+    const animalId = await createAnimal()
+    await createMilkRecord(animalId, { litres: 30, recording_date: '2020-05-10' })
 
     const res = await request(app)
       .get('/api/analytics/litres-per-cow?from=2020-05-01&to=2020-05-31')
@@ -336,10 +336,14 @@ describe('GET /api/analytics/litres-per-cow', () => {
 
 describe('GET /api/analytics/bottom-producers', () => {
   it('returns array sorted by avg_daily_litres ascending', async () => {
-    const cowId = await createCow()
-    await createMilkRecord(cowId, { litres: 2, recording_date: '2024-07-01', session: 'afternoon' })
-    await createMilkRecord(cowId, { litres: 3, recording_date: '2024-07-02' })
-    await createMilkRecord(cowId, { litres: 2, recording_date: '2024-07-03' })
+    const animalId = await createAnimal()
+    await createMilkRecord(animalId, {
+      litres: 2,
+      recording_date: '2024-07-01',
+      session: 'afternoon',
+    })
+    await createMilkRecord(animalId, { litres: 3, recording_date: '2024-07-02' })
+    await createMilkRecord(animalId, { litres: 2, recording_date: '2024-07-03' })
 
     const res = await request(app)
       .get('/api/analytics/bottom-producers?from=2024-07-01&to=2024-07-31')
@@ -348,7 +352,7 @@ describe('GET /api/analytics/bottom-producers', () => {
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body)).toBe(true)
 
-    const found = res.body.find((r) => r.id === cowId)
+    const found = res.body.find((r) => r.id === animalId)
     expect(found).toBeDefined()
     expect(found).toHaveProperty('avg_daily_litres')
     expect(found).toHaveProperty('total_litres')
@@ -364,32 +368,32 @@ describe('GET /api/analytics/bottom-producers', () => {
   })
 
   it('respects from/to date range', async () => {
-    const cowId = await createCow()
-    await createMilkRecord(cowId, { litres: 3, recording_date: '2020-05-10' })
-    await createMilkRecord(cowId, { litres: 4, recording_date: '2020-05-11' })
-    await createMilkRecord(cowId, { litres: 2, recording_date: '2020-05-12' })
+    const animalId = await createAnimal()
+    await createMilkRecord(animalId, { litres: 3, recording_date: '2020-05-10' })
+    await createMilkRecord(animalId, { litres: 4, recording_date: '2020-05-11' })
+    await createMilkRecord(animalId, { litres: 2, recording_date: '2020-05-12' })
 
     const res = await request(app)
       .get('/api/analytics/bottom-producers?from=2020-05-01&to=2020-05-31')
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const found = res.body.find((r) => r.id === cowId)
+    const found = res.body.find((r) => r.id === animalId)
     expect(found).toBeDefined()
     expect(found.total_litres).toBeGreaterThanOrEqual(3)
   })
 
   it('excludes cows with fewer than 3 recording days', async () => {
-    const cowId = await createCow()
-    await createMilkRecord(cowId, { litres: 1, recording_date: '2024-09-01' })
-    await createMilkRecord(cowId, { litres: 1, recording_date: '2024-09-02' })
+    const animalId = await createAnimal()
+    await createMilkRecord(animalId, { litres: 1, recording_date: '2024-09-01' })
+    await createMilkRecord(animalId, { litres: 1, recording_date: '2024-09-02' })
 
     const res = await request(app)
       .get('/api/analytics/bottom-producers?from=2024-09-01&to=2024-09-30')
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const found = res.body.find((r) => r.id === cowId)
+    const found = res.body.find((r) => r.id === animalId)
     expect(found).toBeUndefined()
   })
 

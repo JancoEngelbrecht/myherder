@@ -12,9 +12,9 @@ beforeAll(async () => {
 
 afterAll(() => db.destroy())
 
-async function createCow(overrides = {}) {
+async function createAnimal(overrides = {}) {
   const id = randomUUID()
-  await db('cows').insert({
+  await db('animals').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
     tag_number: `A-${id.slice(0, 8)}`,
@@ -25,12 +25,12 @@ async function createCow(overrides = {}) {
   return id
 }
 
-async function createHealthIssue(cowId, overrides = {}) {
+async function createHealthIssue(animalId, overrides = {}) {
   const id = randomUUID()
   await db('health_issues').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
-    cow_id: cowId,
+    animal_id: animalId,
     issue_types: JSON.stringify(['mastitis']),
     severity: 'medium',
     observed_at: new Date().toISOString(),
@@ -41,12 +41,12 @@ async function createHealthIssue(cowId, overrides = {}) {
   return id
 }
 
-async function createBreedingEvent(cowId, overrides = {}) {
+async function createBreedingEvent(animalId, overrides = {}) {
   const id = randomUUID()
   await db('breeding_events').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
-    cow_id: cowId,
+    animal_id: animalId,
     event_type: 'ai_insemination',
     event_date: new Date().toISOString(),
     recorded_by: ADMIN_ID,
@@ -83,7 +83,7 @@ describe('GET /api/analytics/breeding-overview', () => {
   })
 
   it('counts pregnant cows correctly', async () => {
-    await createCow({ status: 'pregnant' })
+    await createAnimal({ status: 'pregnant' })
 
     const res = await request(app)
       .get('/api/analytics/breeding-overview')
@@ -95,12 +95,12 @@ describe('GET /api/analytics/breeding-overview', () => {
   })
 
   it('includes expected calvings in calvings_by_month', async () => {
-    const cowId = await createCow({ status: 'pregnant' })
+    const animalId = await createAnimal({ status: 'pregnant' })
     const nextMonth = new Date()
     nextMonth.setMonth(nextMonth.getMonth() + 1)
     const expected = nextMonth.toISOString().slice(0, 10)
 
-    await createBreedingEvent(cowId, {
+    await createBreedingEvent(animalId, {
       event_type: 'preg_check_positive',
       expected_calving: expected,
     })
@@ -117,8 +117,8 @@ describe('GET /api/analytics/breeding-overview', () => {
   })
 
   it('respects from/to date range for abortion_count', async () => {
-    const cowId = await createCow()
-    await createBreedingEvent(cowId, {
+    const animalId = await createAnimal()
+    await createBreedingEvent(animalId, {
       event_type: 'abortion',
       event_date: '2020-06-15',
     })
@@ -132,9 +132,9 @@ describe('GET /api/analytics/breeding-overview', () => {
   })
 
   it('categorises bred_awaiting_check correctly', async () => {
-    const cowId = await createCow({ sex: 'female', status: 'active' })
+    const animalId = await createAnimal({ sex: 'female', status: 'active' })
     // Insemination with no subsequent preg check
-    await createBreedingEvent(cowId, {
+    await createBreedingEvent(animalId, {
       event_type: 'ai_insemination',
       event_date: '2025-11-01',
     })
@@ -149,7 +149,7 @@ describe('GET /api/analytics/breeding-overview', () => {
 
   it('categorises heifer_not_bred correctly', async () => {
     // Create a female cow with zero breeding events
-    await createCow({ sex: 'female', status: 'active' })
+    await createAnimal({ sex: 'female', status: 'active' })
 
     const res = await request(app)
       .get('/api/analytics/breeding-overview')
@@ -161,7 +161,7 @@ describe('GET /api/analytics/breeding-overview', () => {
   })
 
   it('categorises dry cows correctly', async () => {
-    await createCow({ sex: 'female', status: 'dry' })
+    await createAnimal({ sex: 'female', status: 'dry' })
 
     const res = await request(app)
       .get('/api/analytics/breeding-overview')
@@ -181,12 +181,12 @@ describe('GET /api/analytics/breeding-activity', () => {
   })
 
   it('returns months array with inseminations and conceptions', async () => {
-    const cowId = await createCow()
-    await createBreedingEvent(cowId, {
+    const animalId = await createAnimal()
+    await createBreedingEvent(animalId, {
       event_type: 'ai_insemination',
       event_date: '2025-08-15',
     })
-    await createBreedingEvent(cowId, {
+    await createBreedingEvent(animalId, {
       event_type: 'preg_check_positive',
       event_date: '2025-08-20',
     })
@@ -215,8 +215,8 @@ describe('GET /api/analytics/breeding-activity', () => {
   })
 
   it('includes bull_service events in inseminations count', async () => {
-    const cowId = await createCow()
-    await createBreedingEvent(cowId, {
+    const animalId = await createAnimal()
+    await createBreedingEvent(animalId, {
       event_type: 'bull_service',
       event_date: '2020-09-10',
     })
@@ -236,12 +236,12 @@ describe('GET /api/analytics/breeding-activity', () => {
 
 describe('GET /api/analytics/calving-interval', () => {
   it('returns avg_calving_interval_days and intervals array for cows with 2+ calvings', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     // Two calvings 365 days apart — use 2022→2023 (both non-leap years)
     const date1 = '2022-01-15'
     const date2 = '2023-01-15'
-    await createBreedingEvent(cowId, { event_type: 'calving', event_date: date1 })
-    await createBreedingEvent(cowId, { event_type: 'calving', event_date: date2 })
+    await createBreedingEvent(animalId, { event_type: 'calving', event_date: date1 })
+    await createBreedingEvent(animalId, { event_type: 'calving', event_date: date2 })
 
     const res = await request(app)
       .get('/api/analytics/calving-interval?from=2022-01-01&to=2023-12-31')
@@ -253,7 +253,7 @@ describe('GET /api/analytics/calving-interval', () => {
     expect(res.body).toHaveProperty('intervals')
     expect(Array.isArray(res.body.intervals)).toBe(true)
 
-    const found = res.body.intervals.find((r) => r.cow_id === cowId)
+    const found = res.body.intervals.find((r) => r.cow_id === animalId)
     expect(found).toBeDefined()
     expect(found.interval_days).toBe(365)
     expect(found.calving_count).toBe(2)
@@ -265,15 +265,15 @@ describe('GET /api/analytics/calving-interval', () => {
   })
 
   it('excludes cows with only 1 calving from intervals', async () => {
-    const cowId = await createCow()
-    await createBreedingEvent(cowId, { event_type: 'calving', event_date: '2024-06-01' })
+    const animalId = await createAnimal()
+    await createBreedingEvent(animalId, { event_type: 'calving', event_date: '2024-06-01' })
 
     const res = await request(app)
       .get('/api/analytics/calving-interval')
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const found = res.body.intervals.find((r) => r.cow_id === cowId)
+    const found = res.body.intervals.find((r) => r.cow_id === animalId)
     expect(found).toBeUndefined()
   })
 
@@ -295,12 +295,12 @@ describe('GET /api/analytics/calving-interval', () => {
 
 describe('GET /api/analytics/days-open', () => {
   it('returns avg_days_open and records with calving-to-conception pairs', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const calvingDate = '2025-06-01'
     const pregDate = '2025-09-01' // 92 days later
 
-    await createBreedingEvent(cowId, { event_type: 'calving', event_date: calvingDate })
-    await createBreedingEvent(cowId, {
+    await createBreedingEvent(animalId, { event_type: 'calving', event_date: calvingDate })
+    await createBreedingEvent(animalId, {
       event_type: 'preg_check_positive',
       event_date: pregDate,
     })
@@ -315,7 +315,7 @@ describe('GET /api/analytics/days-open', () => {
     expect(res.body).toHaveProperty('records')
     expect(Array.isArray(res.body.records)).toBe(true)
 
-    const found = res.body.records.find((r) => r.cow_id === cowId)
+    const found = res.body.records.find((r) => r.cow_id === animalId)
     expect(found).toBeDefined()
     expect(found.days_open).toBe(92)
     expect(found).toHaveProperty('tag_number')
@@ -324,37 +324,37 @@ describe('GET /api/analytics/days-open', () => {
 
   it('returns null avg_days_open when no calving-to-preg pairs exist', async () => {
     // Cow with only a preg_check_positive and no preceding calving in the window
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     // Set calving outside the 24-month window
-    await createBreedingEvent(cowId, { event_type: 'calving', event_date: '2000-01-01' })
-    await createBreedingEvent(cowId, {
+    await createBreedingEvent(animalId, { event_type: 'calving', event_date: '2000-01-01' })
+    await createBreedingEvent(animalId, {
       event_type: 'preg_check_positive',
       event_date: '2000-06-01',
     })
 
     // A separate cow with no preg check at all
-    const cow2Id = await createCow()
-    await createBreedingEvent(cow2Id, { event_type: 'calving', event_date: '2024-01-01' })
+    const animal2Id = await createAnimal()
+    await createBreedingEvent(animal2Id, { event_type: 'calving', event_date: '2024-01-01' })
 
     const res = await request(app)
       .get('/api/analytics/days-open')
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    // If cow2 has no preg check it won't appear in records — check overall shape
+    // If animal2 has no preg check it won't appear in records — check overall shape
     expect(res.body).toHaveProperty('avg_days_open')
     expect(res.body).toHaveProperty('cow_count')
     expect(Array.isArray(res.body.records)).toBe(true)
 
-    // cow2 specifically should not appear (no preg check)
-    const found = res.body.records.find((r) => r.cow_id === cow2Id)
+    // animal2 specifically should not appear (no preg check)
+    const found = res.body.records.find((r) => r.cow_id === animal2Id)
     expect(found).toBeUndefined()
   })
 
   it('respects from/to date range', async () => {
-    const cowId = await createCow()
-    await createBreedingEvent(cowId, { event_type: 'calving', event_date: '2020-02-01' })
-    await createBreedingEvent(cowId, {
+    const animalId = await createAnimal()
+    await createBreedingEvent(animalId, { event_type: 'calving', event_date: '2020-02-01' })
+    await createBreedingEvent(animalId, {
       event_type: 'preg_check_positive',
       event_date: '2020-05-01',
     })
@@ -364,7 +364,7 @@ describe('GET /api/analytics/days-open', () => {
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const found = res.body.records.find((r) => r.cow_id === cowId)
+    const found = res.body.records.find((r) => r.cow_id === animalId)
     expect(found).toBeDefined()
     expect(found.days_open).toBe(90)
   })
@@ -399,16 +399,16 @@ describe('GET /api/analytics/conception-rate', () => {
   })
 
   it('counts first-service conceptions correctly', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const resetDate = '2025-01-01'
     const serviceDate = '2025-02-01'
     const pregDate = '2025-03-01'
 
     // Calving acts as the cycle reset
-    await createBreedingEvent(cowId, { event_type: 'calving', event_date: resetDate })
+    await createBreedingEvent(animalId, { event_type: 'calving', event_date: resetDate })
     // Exactly one service before the positive preg check
-    await createBreedingEvent(cowId, { event_type: 'ai_insemination', event_date: serviceDate })
-    await createBreedingEvent(cowId, {
+    await createBreedingEvent(animalId, { event_type: 'ai_insemination', event_date: serviceDate })
+    await createBreedingEvent(animalId, {
       event_type: 'preg_check_positive',
       event_date: pregDate,
     })
@@ -424,9 +424,9 @@ describe('GET /api/analytics/conception-rate', () => {
   })
 
   it('does not count a preg check with zero services as a first service', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     // preg_check_positive with no preceding service events at all
-    await createBreedingEvent(cowId, {
+    await createBreedingEvent(animalId, {
       event_type: 'preg_check_positive',
       event_date: '2025-06-01',
     })
@@ -442,10 +442,10 @@ describe('GET /api/analytics/conception-rate', () => {
   })
 
   it('respects from/to date range', async () => {
-    const cowId = await createCow()
-    await createBreedingEvent(cowId, { event_type: 'calving', event_date: '2020-01-01' })
-    await createBreedingEvent(cowId, { event_type: 'ai_insemination', event_date: '2020-03-01' })
-    await createBreedingEvent(cowId, {
+    const animalId = await createAnimal()
+    await createBreedingEvent(animalId, { event_type: 'calving', event_date: '2020-01-01' })
+    await createBreedingEvent(animalId, { event_type: 'ai_insemination', event_date: '2020-03-01' })
+    await createBreedingEvent(animalId, {
       event_type: 'preg_check_positive',
       event_date: '2020-04-15',
     })
@@ -472,10 +472,10 @@ describe('GET /api/analytics/conception-rate', () => {
   })
 
   it('includes by_month with monthly rate breakdown', async () => {
-    const cowId = await createCow()
-    await createBreedingEvent(cowId, { event_type: 'calving', event_date: '2020-01-01' })
-    await createBreedingEvent(cowId, { event_type: 'ai_insemination', event_date: '2020-04-01' })
-    await createBreedingEvent(cowId, {
+    const animalId = await createAnimal()
+    await createBreedingEvent(animalId, { event_type: 'calving', event_date: '2020-01-01' })
+    await createBreedingEvent(animalId, { event_type: 'ai_insemination', event_date: '2020-04-01' })
+    await createBreedingEvent(animalId, {
       event_type: 'preg_check_positive',
       event_date: '2020-04-20',
     })
@@ -518,13 +518,13 @@ describe('GET /api/analytics/seasonal-prediction', () => {
 
   it('includes issue type names and historical averages', async () => {
     // Create a health issue in a month that will be predicted
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const nextMonth = new Date()
     nextMonth.setMonth(nextMonth.getMonth() + 1)
     // Create issue in the same calendar month last year
     const pastDate = new Date(nextMonth)
     pastDate.setFullYear(pastDate.getFullYear() - 1)
-    await createHealthIssue(cowId, {
+    await createHealthIssue(animalId, {
       issue_types: JSON.stringify(['mastitis']),
       observed_at: pastDate.toISOString(),
     })

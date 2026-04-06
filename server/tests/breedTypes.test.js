@@ -292,7 +292,7 @@ describe('DELETE /api/breed-types/:id', () => {
 
     // Create a cow referencing this breed
     const cowId = randomUUID()
-    await db('cows').insert({
+    await db('animals').insert({
       id: cowId,
       farm_id: DEFAULT_FARM_ID,
       tag_number: `BT-${cowId.slice(0, 6)}`,

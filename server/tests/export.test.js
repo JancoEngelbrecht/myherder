@@ -33,7 +33,7 @@ describe('GET /api/export', () => {
 
     const tables = res.body.tables
     expect(Array.isArray(tables.users)).toBe(true)
-    expect(Array.isArray(tables.cows)).toBe(true)
+    expect(Array.isArray(tables.animals)).toBe(true)
     expect(Array.isArray(tables.health_issues)).toBe(true)
     expect(Array.isArray(tables.treatments)).toBe(true)
     expect(Array.isArray(tables.medications)).toBe(true)

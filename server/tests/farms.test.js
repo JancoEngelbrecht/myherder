@@ -25,7 +25,7 @@ beforeEach(async () => {
   await db('treatments').del()
   await db('health_issues').del()
   await db('milk_records').del()
-  await db('cows').del()
+  await db('animals').del()
   await db('users').del()
   await db('farm_species').del()
   await db('farms').del()
@@ -62,7 +62,7 @@ describe('GET /api/farms', () => {
     const farm = res.body.find((f) => f.id === DEFAULT_FARM_ID)
     expect(farm).toBeDefined()
     expect(typeof farm.user_count).toBe('number')
-    expect(typeof farm.cow_count).toBe('number')
+    expect(typeof farm.animal_count).toBe('number')
   })
 
   it('rejects non-super-admin', async () => {
@@ -382,7 +382,7 @@ describe('DELETE /api/farms/:id — hard delete', () => {
       username: 'delme_admin',
       password: 'pass123',
     })
-    const cowId = await seedCow(db, targetFarmId)
+    const animalId = await seedCow(db, targetFarmId)
 
     const now = new Date().toISOString()
     const medId = randomUUID()
@@ -416,7 +416,7 @@ describe('DELETE /api/farms/:id — hard delete', () => {
     await db('health_issues').insert({
       id: hiId,
       farm_id: targetFarmId,
-      cow_id: cowId,
+      animal_id: animalId,
       reported_by: targetUserId,
       issue_types: JSON.stringify(['tst_issue']),
       severity: 'medium',
@@ -437,7 +437,7 @@ describe('DELETE /api/farms/:id — hard delete', () => {
     await db('treatments').insert({
       id: randomUUID(),
       farm_id: targetFarmId,
-      cow_id: cowId,
+      animal_id: animalId,
       medication_id: medId,
       administered_by: targetUserId,
       treatment_date: '2026-01-01',
@@ -447,7 +447,7 @@ describe('DELETE /api/farms/:id — hard delete', () => {
     await db('milk_records').insert({
       id: randomUUID(),
       farm_id: targetFarmId,
-      cow_id: cowId,
+      animal_id: animalId,
       recorded_by: targetUserId,
       session: 'morning',
       litres: 10,
@@ -458,7 +458,7 @@ describe('DELETE /api/farms/:id — hard delete', () => {
     await db('breeding_events').insert({
       id: randomUUID(),
       farm_id: targetFarmId,
-      cow_id: cowId,
+      animal_id: animalId,
       event_type: 'heat_observed',
       event_date: '2026-01-01',
       recorded_by: targetUserId,
@@ -485,7 +485,7 @@ describe('DELETE /api/farms/:id — hard delete', () => {
       user_id: targetUserId,
       action: 'create',
       entity_type: 'cow',
-      entity_id: cowId,
+      entity_id: animalId,
       created_at: now,
     })
     await db('sync_log').insert({
@@ -510,7 +510,7 @@ describe('DELETE /api/farms/:id — hard delete', () => {
     // Verify all data is gone
     expect(await db('farms').where('id', targetFarmId).first()).toBeUndefined()
     expect(await db('users').where('farm_id', targetFarmId).first()).toBeUndefined()
-    expect(await db('cows').where('farm_id', targetFarmId).first()).toBeUndefined()
+    expect(await db('animals').where('farm_id', targetFarmId).first()).toBeUndefined()
     expect(await db('treatments').where('farm_id', targetFarmId).first()).toBeUndefined()
     expect(await db('milk_records').where('farm_id', targetFarmId).first()).toBeUndefined()
     expect(await db('health_issues').where('farm_id', targetFarmId).first()).toBeUndefined()
@@ -572,18 +572,18 @@ describe('DELETE /api/farms/:id — hard delete', () => {
 
     // Verify farm data was NOT deleted
     expect(await db('farms').where('id', targetFarmId).first()).toBeDefined()
-    expect(await db('cows').where('farm_id', targetFarmId).first()).toBeDefined()
+    expect(await db('animals').where('farm_id', targetFarmId).first()).toBeDefined()
   })
 
   it('does not affect other farms data (cross-tenant safety)', async () => {
     // Count default farm data before
-    const cowsBefore = await db('cows').where('farm_id', DEFAULT_FARM_ID).count('* as c').first()
+    const cowsBefore = await db('animals').where('farm_id', DEFAULT_FARM_ID).count('* as c').first()
     const usersBefore = await db('users').where('farm_id', DEFAULT_FARM_ID).count('* as c').first()
 
     await request(app).delete(`/api/farms/${targetFarmId}`).set('Authorization', superAdminToken())
 
     // Default farm data unchanged
-    const cowsAfter = await db('cows').where('farm_id', DEFAULT_FARM_ID).count('* as c').first()
+    const cowsAfter = await db('animals').where('farm_id', DEFAULT_FARM_ID).count('* as c').first()
     const usersAfter = await db('users').where('farm_id', DEFAULT_FARM_ID).count('* as c').first()
     expect(Number(cowsAfter.c)).toBe(Number(cowsBefore.c))
     expect(Number(usersAfter.c)).toBe(Number(usersBefore.c))
@@ -656,7 +656,7 @@ describe('GET /api/farms/stats', () => {
     expect(typeof res.body.total_farms).toBe('number')
     expect(typeof res.body.active_farms).toBe('number')
     expect(typeof res.body.total_users).toBe('number')
-    expect(typeof res.body.total_cows).toBe('number')
+    expect(typeof res.body.total_animals).toBe('number')
     expect(res.body.total_farms).toBeGreaterThanOrEqual(1)
   })
 })

@@ -14,10 +14,10 @@ afterAll(() => db.destroy())
 
 // ── Shared seed helpers ─────────────────────────────────────
 
-async function seedCow(overrides = {}) {
+async function seedAnimal(overrides = {}) {
   const id = randomUUID()
   const now = new Date().toISOString()
-  await db('cows').insert({
+  await db('animals').insert({
     tag_number: `T${Date.now()}`,
     name: 'Test Cow',
     sex: 'female',
@@ -51,7 +51,7 @@ async function seedMedication(overrides = {}) {
   return id
 }
 
-async function seedTreatment(cowId, medId, overrides = {}) {
+async function seedTreatment(animalId, medId, overrides = {}) {
   const id = randomUUID()
   const now = new Date().toISOString()
   await db('treatments').insert({
@@ -68,7 +68,7 @@ async function seedTreatment(cowId, medId, overrides = {}) {
     updated_at: now,
     ...overrides,
     id,
-    cow_id: cowId,
+    animal_id: animalId,
     medication_id: medId,
   })
   await db('treatment_medications').insert({
@@ -80,7 +80,7 @@ async function seedTreatment(cowId, medId, overrides = {}) {
   return id
 }
 
-async function seedMilkRecord(cowId, overrides = {}) {
+async function seedMilkRecord(animalId, overrides = {}) {
   const id = randomUUID()
   const now = new Date().toISOString()
   await db('milk_records').insert({
@@ -96,7 +96,7 @@ async function seedMilkRecord(cowId, overrides = {}) {
     updated_at: now,
     ...overrides,
     id,
-    cow_id: cowId,
+    animal_id: animalId,
   })
   return id
 }
@@ -136,12 +136,12 @@ describe('Reports API — Auth & Validation', () => {
 // ── Treatment History Report ────────────────────────────────
 
 describe('GET /api/reports/treatment-history', () => {
-  let cowId2, medId2
+  let animalId2, medId2
 
   beforeAll(async () => {
-    cowId2 = await seedCow({ tag_number: 'TH001', name: 'Bessie' })
+    animalId2 = await seedAnimal({ tag_number: 'TH001', name: 'Bessie' })
     medId2 = await seedMedication({ name: 'Oxytetracycline', active_ingredient: 'OTC' })
-    await seedTreatment(cowId2, medId2, {
+    await seedTreatment(animalId2, medId2, {
       treatment_date: '2025-03-10',
       cost: 150.5,
       is_vet_visit: true,
@@ -185,9 +185,11 @@ describe('GET /api/reports/treatment-history', () => {
   })
 
   it('excludes soft-deleted cows', async () => {
-    const deletedCow = await seedCow({ tag_number: 'DEL001', name: 'Deleted Cow' })
-    await db('cows').where({ id: deletedCow }).update({ deleted_at: new Date().toISOString() })
-    await seedTreatment(deletedCow, medId2, { treatment_date: '2025-03-15' })
+    const deletedAnimal = await seedAnimal({ tag_number: 'DEL001', name: 'Deleted Cow' })
+    await db('animals')
+      .where({ id: deletedAnimal })
+      .update({ deleted_at: new Date().toISOString() })
+    await seedTreatment(deletedAnimal, medId2, { treatment_date: '2025-03-15' })
 
     const res = await request(app)
       .get('/api/reports/treatment-history?from=2025-03-01&to=2025-03-31&format=xlsx')
@@ -199,18 +201,18 @@ describe('GET /api/reports/treatment-history', () => {
 // ── Discarded Milk Report ───────────────────────────────────
 
 describe('GET /api/reports/discarded-milk', () => {
-  let cowId3
+  let animalId3
 
   beforeAll(async () => {
-    cowId3 = await seedCow({ tag_number: 'DM001', name: 'Rosie' })
-    await seedMilkRecord(cowId3, {
+    animalId3 = await seedAnimal({ tag_number: 'DM001', name: 'Rosie' })
+    await seedMilkRecord(animalId3, {
       recording_date: '2025-02-10',
       session: 'morning',
       litres: 5.5,
       milk_discarded: true,
       discard_reason: 'antibiotics',
     })
-    await seedMilkRecord(cowId3, {
+    await seedMilkRecord(animalId3, {
       recording_date: '2025-02-10',
       session: 'afternoon',
       litres: 4.2,
@@ -218,7 +220,7 @@ describe('GET /api/reports/discarded-milk', () => {
       discard_reason: 'antibiotics',
     })
     // Regular milk — should NOT appear
-    await seedMilkRecord(cowId3, {
+    await seedMilkRecord(animalId3, {
       recording_date: '2025-02-11',
       session: 'morning',
       litres: 12,
@@ -298,17 +300,25 @@ describe('GET /api/reports/medication-usage', () => {
 // ── Milk Production Report ──────────────────────────────────
 
 describe('GET /api/reports/milk-production', () => {
-  let cowProd
+  let animalProd
 
   beforeAll(async () => {
-    cowProd = await seedCow({ tag_number: 'MP001', name: 'Milky' })
-    await seedMilkRecord(cowProd, { recording_date: '2025-04-01', session: 'morning', litres: 15 })
-    await seedMilkRecord(cowProd, {
+    animalProd = await seedAnimal({ tag_number: 'MP001', name: 'Milky' })
+    await seedMilkRecord(animalProd, {
+      recording_date: '2025-04-01',
+      session: 'morning',
+      litres: 15,
+    })
+    await seedMilkRecord(animalProd, {
       recording_date: '2025-04-01',
       session: 'afternoon',
       litres: 12,
     })
-    await seedMilkRecord(cowProd, { recording_date: '2025-04-02', session: 'morning', litres: 14 })
+    await seedMilkRecord(animalProd, {
+      recording_date: '2025-04-02',
+      session: 'morning',
+      litres: 14,
+    })
   })
 
   it('returns PDF with correct headers', async () => {
@@ -348,11 +358,11 @@ describe('GET /api/reports/milk-production', () => {
 
 describe('GET /api/reports/breeding', () => {
   beforeAll(async () => {
-    const cowBreed = await seedCow({ tag_number: 'BR001', name: 'Bella' })
+    const animalBreed = await seedAnimal({ tag_number: 'BR001', name: 'Bella' })
     await db('breeding_events').insert({
       id: randomUUID(),
       farm_id: DEFAULT_FARM_ID,
-      cow_id: cowBreed,
+      animal_id: animalBreed,
       event_type: 'ai_insemination',
       event_date: '2025-05-10',
       semen_id: 'SEMEN-001',
@@ -365,7 +375,7 @@ describe('GET /api/reports/breeding', () => {
     await db('breeding_events').insert({
       id: randomUUID(),
       farm_id: DEFAULT_FARM_ID,
-      cow_id: cowBreed,
+      animal_id: animalBreed,
       event_type: 'preg_check_positive',
       event_date: '2025-06-15',
       preg_check_method: 'ultrasound',
@@ -412,11 +422,11 @@ describe('GET /api/reports/breeding', () => {
 
 describe('GET /api/reports/herd-health', () => {
   beforeAll(async () => {
-    const cowHealth = await seedCow({ tag_number: 'HH001', name: 'Dotty' })
+    const animalHealth = await seedAnimal({ tag_number: 'HH001', name: 'Dotty' })
     await db('health_issues').insert({
       id: randomUUID(),
       farm_id: DEFAULT_FARM_ID,
-      cow_id: cowHealth,
+      animal_id: animalHealth,
       reported_by: ADMIN_ID,
       issue_types: JSON.stringify(['mastitis']),
       severity: 'high',
@@ -429,7 +439,7 @@ describe('GET /api/reports/herd-health', () => {
     await db('health_issues').insert({
       id: randomUUID(),
       farm_id: DEFAULT_FARM_ID,
-      cow_id: cowHealth,
+      animal_id: animalHealth,
       reported_by: ADMIN_ID,
       issue_types: JSON.stringify(['lameness', 'fever']),
       severity: 'medium',

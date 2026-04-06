@@ -124,14 +124,14 @@ describe('errorHandler', () => {
   it('records 5xx errors in the recent errors buffer', () => {
     const err = { message: 'DB connection lost' }
     const res = mockRes()
-    const req = mockReq({ method: 'POST', originalUrl: '/api/cows' })
+    const req = mockReq({ method: 'POST', originalUrl: '/api/animals' })
 
     errorHandler(err, req, res, noop)
 
     const errors = getRecentErrors()
     expect(errors).toHaveLength(1)
     expect(errors[0].method).toBe('POST')
-    expect(errors[0].path).toBe('/api/cows')
+    expect(errors[0].path).toBe('/api/animals')
     expect(errors[0].status).toBe(500)
     expect(errors[0].message).toBe('DB connection lost')
   })

@@ -14,9 +14,9 @@ afterAll(() => db.destroy())
 
 // ─── Factories ─────────────────────────────────────────────────────────────────
 
-async function createCow(overrides = {}) {
+async function createAnimal(overrides = {}) {
   const id = randomUUID()
-  await db('cows').insert({
+  await db('animals').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
     tag_number: `T-COW-${id.slice(0, 6)}`,
@@ -52,29 +52,29 @@ function postTreatment(body) {
 
 describe('POST /api/treatments', () => {
   it('creates a treatment with a single medication and returns 201', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const medId = await createMedication()
 
     const res = await postTreatment({
-      cow_id: cowId,
+      animal_id: animalId,
       medications: [{ medication_id: medId, dosage: '5ml' }],
       treatment_date: '2026-01-15T10:00:00.000Z',
     })
 
     expect(res.status).toBe(201)
-    expect(res.body.cow_id).toBe(cowId)
+    expect(res.body.animal_id).toBe(animalId)
     expect(res.body.medications).toHaveLength(1)
     expect(res.body.medications[0].medication_id).toBe(medId)
     expect(res.body.medications[0].dosage).toBe('5ml')
   })
 
   it('creates a treatment with multiple medications', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const med1 = await createMedication()
     const med2 = await createMedication()
 
     const res = await postTreatment({
-      cow_id: cowId,
+      animal_id: animalId,
       medications: [
         { medication_id: med1, dosage: '2ml' },
         { medication_id: med2, dosage: '10ml' },
@@ -92,12 +92,12 @@ describe('POST /api/treatments', () => {
   })
 
   it('persists both medications in the junction table', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const med1 = await createMedication()
     const med2 = await createMedication()
 
     const res = await postTreatment({
-      cow_id: cowId,
+      animal_id: animalId,
       medications: [{ medication_id: med1 }, { medication_id: med2 }],
       treatment_date: '2026-01-15T10:00:00.000Z',
     })
@@ -107,7 +107,7 @@ describe('POST /api/treatments', () => {
   })
 
   it('stores the worst-case (max) withdrawal dates across all medications', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     // 24h milk withdrawal
     const med1 = await createMedication({ withdrawal_milk_hours: 24, withdrawal_meat_days: 0 })
     // 48h milk withdrawal (worse), 4-day meat withdrawal
@@ -115,7 +115,7 @@ describe('POST /api/treatments', () => {
 
     const treatmentDate = '2026-01-15T12:00:00.000Z'
     const res = await postTreatment({
-      cow_id: cowId,
+      animal_id: animalId,
       medications: [{ medication_id: med1 }, { medication_id: med2 }],
       treatment_date: treatmentDate,
     })
@@ -128,11 +128,11 @@ describe('POST /api/treatments', () => {
   })
 
   it('stores null withdrawal dates when no medication has withdrawal periods', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const medId = await createMedication({ withdrawal_milk_hours: 0, withdrawal_meat_days: 0 })
 
     const res = await postTreatment({
-      cow_id: cowId,
+      animal_id: animalId,
       medications: [{ medication_id: medId }],
       treatment_date: '2026-01-15T10:00:00.000Z',
     })
@@ -145,11 +145,11 @@ describe('POST /api/treatments', () => {
   it('stores null milk withdrawal for a heifer (non-milking life phase)', async () => {
     // 10-month-old female = heifer with default thresholds
     const dob = new Date(Date.now() - 10 * 30.44 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-    const heiferId = await createCow({ sex: 'female', dob })
+    const heiferId = await createAnimal({ sex: 'female', dob })
     const medId = await createMedication({ withdrawal_milk_hours: 48, withdrawal_meat_days: 7 })
 
     const res = await postTreatment({
-      cow_id: heiferId,
+      animal_id: heiferId,
       medications: [{ medication_id: medId }],
       treatment_date: '2026-01-15T10:00:00.000Z',
     })
@@ -161,14 +161,14 @@ describe('POST /api/treatments', () => {
     expect(res.body.withdrawal_end_meat).not.toBeNull()
   })
 
-  it('stores milk withdrawal for an adult cow', async () => {
+  it('stores milk withdrawal for an adult animal', async () => {
     // 20-month-old female = cow (past heiferMin=15)
     const dob = new Date(Date.now() - 20 * 30.44 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-    const adultId = await createCow({ sex: 'female', dob })
+    const adultId = await createAnimal({ sex: 'female', dob })
     const medId = await createMedication({ withdrawal_milk_hours: 48 })
 
     const res = await postTreatment({
-      cow_id: adultId,
+      animal_id: adultId,
       medications: [{ medication_id: medId }],
       treatment_date: '2026-01-15T10:00:00.000Z',
     })
@@ -178,9 +178,9 @@ describe('POST /api/treatments', () => {
   })
 
   it('returns 400 for empty medications array', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const res = await postTreatment({
-      cow_id: cowId,
+      animal_id: animalId,
       medications: [],
       treatment_date: '2026-01-15T10:00:00.000Z',
     })
@@ -188,41 +188,41 @@ describe('POST /api/treatments', () => {
   })
 
   it('returns 400 for missing medications field', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const res = await postTreatment({
-      cow_id: cowId,
+      animal_id: animalId,
       treatment_date: '2026-01-15T10:00:00.000Z',
     })
     expect(res.status).toBe(400)
   })
 
   it('returns 400 for missing treatment_date', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const medId = await createMedication()
     const res = await postTreatment({
-      cow_id: cowId,
+      animal_id: animalId,
       medications: [{ medication_id: medId }],
     })
     expect(res.status).toBe(400)
   })
 
-  it('returns 404 for a nonexistent cow', async () => {
+  it('returns 404 for a nonexistent animal', async () => {
     const medId = await createMedication()
     const res = await postTreatment({
-      cow_id: randomUUID(),
+      animal_id: randomUUID(),
       medications: [{ medication_id: medId }],
       treatment_date: '2026-01-15T10:00:00.000Z',
     })
     expect(res.status).toBe(404)
-    expect(res.body.error).toMatch(/cow/i)
+    expect(res.body.error).toMatch(/animal/i)
   })
 
   it('returns 404 for an inactive medication', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const medId = await createMedication({ is_active: false })
 
     const res = await postTreatment({
-      cow_id: cowId,
+      animal_id: animalId,
       medications: [{ medication_id: medId }],
       treatment_date: '2026-01-15T10:00:00.000Z',
     })
@@ -234,14 +234,14 @@ describe('POST /api/treatments', () => {
     // We simulate a failure by passing a nonexistent medication_id as the second item.
     // The first medication is valid, but the second is inactive — the handler should catch
     // this BEFORE inserting and return 404 without leaving any orphaned rows.
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const med1 = await createMedication()
     const fakeMedId = randomUUID()
 
     const countBefore = (await db('treatments').count('* as n').first()).n
 
     const res = await postTreatment({
-      cow_id: cowId,
+      animal_id: animalId,
       medications: [{ medication_id: med1 }, { medication_id: fakeMedId }],
       treatment_date: '2026-01-15T10:00:00.000Z',
     })
@@ -256,10 +256,10 @@ describe('POST /api/treatments', () => {
 
 describe('GET /api/treatments', () => {
   it('returns treatments enriched with a medications array', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const medId = await createMedication()
     await postTreatment({
-      cow_id: cowId,
+      animal_id: animalId,
       medications: [{ medication_id: medId, dosage: '3ml' }],
       treatment_date: '2026-01-20T10:00:00.000Z',
     })
@@ -272,42 +272,42 @@ describe('GET /api/treatments', () => {
     expect(res.body.every((t) => Array.isArray(t.medications))).toBe(true)
   })
 
-  it('filters by cow_id', async () => {
-    const cow1 = await createCow()
-    const cow2 = await createCow()
+  it('filters by animal_id', async () => {
+    const animal1 = await createAnimal()
+    const animal2 = await createAnimal()
     const medId = await createMedication()
     const date = '2026-01-21T10:00:00.000Z'
 
     await postTreatment({
-      cow_id: cow1,
+      animal_id: animal1,
       medications: [{ medication_id: medId }],
       treatment_date: date,
     })
     await postTreatment({
-      cow_id: cow2,
+      animal_id: animal2,
       medications: [{ medication_id: medId }],
       treatment_date: date,
     })
 
     const res = await request(app)
-      .get(`/api/treatments?cow_id=${cow1}`)
+      .get(`/api/treatments?animal_id=${animal1}`)
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    expect(res.body.every((t) => t.cow_id === cow1)).toBe(true)
+    expect(res.body.every((t) => t.animal_id === animal1)).toBe(true)
   })
 })
 
 // ─── GET /api/treatments/withdrawal ───────────────────────────────────────────
 
 describe('GET /api/treatments/withdrawal', () => {
-  it('returns only cows with an active milk withdrawal', async () => {
-    const cow = await createCow()
+  it('returns only animals with an active milk withdrawal', async () => {
+    const animal = await createAnimal()
     // Medication with a future milk withdrawal
     const medId = await createMedication({ withdrawal_milk_hours: 999 })
     // Treat 'now' so the withdrawal end is far in the future
     await postTreatment({
-      cow_id: cow,
+      animal_id: animal,
       medications: [{ medication_id: medId }],
       treatment_date: new Date().toISOString(),
     })
@@ -319,16 +319,16 @@ describe('GET /api/treatments/withdrawal', () => {
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body)).toBe(true)
     // The specific cow must appear with a future milk withdrawal end
-    const entry = res.body.find((t) => t.cow_id === cow)
+    const entry = res.body.find((t) => t.animal_id === animal)
     expect(entry).toBeDefined()
     expect(new Date(entry.withdrawal_end_milk) > new Date()).toBe(true)
   })
 
   it('includes males on meat-only withdrawal', async () => {
-    const bull = await createCow({ sex: 'male' })
+    const bull = await createAnimal({ sex: 'male' })
     const med = await createMedication({ withdrawal_milk_hours: 0, withdrawal_meat_days: 30 })
     await postTreatment({
-      cow_id: bull,
+      animal_id: bull,
       medications: [{ medication_id: med }],
       treatment_date: new Date().toISOString(),
     })
@@ -338,7 +338,7 @@ describe('GET /api/treatments/withdrawal', () => {
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
-    const entry = res.body.find((t) => t.cow_id === bull)
+    const entry = res.body.find((t) => t.animal_id === bull)
     expect(entry).toBeDefined()
     expect(entry.sex).toBe('male')
     expect(new Date(entry.withdrawal_end_meat) > new Date()).toBe(true)
@@ -347,10 +347,10 @@ describe('GET /api/treatments/withdrawal', () => {
   it('excludes heifer (by age) from milk withdrawal results', async () => {
     // A 10-month-old female with default breed thresholds is a heifer (calfMax=6, heiferMin=15)
     const dob = new Date(Date.now() - 10 * 30.44 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-    const heifer = await createCow({ sex: 'female', dob })
+    const heifer = await createAnimal({ sex: 'female', dob })
     const med = await createMedication({ withdrawal_milk_hours: 999, withdrawal_meat_days: 30 })
     await postTreatment({
-      cow_id: heifer,
+      animal_id: heifer,
       medications: [{ medication_id: med }],
       treatment_date: new Date().toISOString(),
     })
@@ -360,15 +360,15 @@ describe('GET /api/treatments/withdrawal', () => {
       .set('Authorization', adminToken())
     expect(res.status).toBe(200)
 
-    const entry = res.body.find((t) => t.cow_id === heifer)
+    const entry = res.body.find((t) => t.animal_id === heifer)
     // Heifer should appear (meat withdrawal is active) but milk withdrawal should be nulled
     expect(entry).toBeDefined()
     expect(entry.withdrawal_end_milk).toBeNull()
     expect(new Date(entry.withdrawal_end_meat) > new Date()).toBe(true)
   })
 
-  it('excludes sold/dead cows from withdrawal results entirely', async () => {
-    const soldCow = await createCow({ sex: 'female', status: 'sold' })
+  it('excludes sold/dead animals from withdrawal results entirely', async () => {
+    const soldAnimal = await createAnimal({ sex: 'female', status: 'sold' })
     const med = await createMedication({ withdrawal_milk_hours: 999 })
     // Directly insert treatment (POST would reject deleted cow but we want to test the withdrawal filter)
     const id = randomUUID()
@@ -377,7 +377,7 @@ describe('GET /api/treatments/withdrawal', () => {
     await db('treatments').insert({
       id,
       farm_id: DEFAULT_FARM_ID,
-      cow_id: soldCow,
+      animal_id: soldAnimal,
       medication_id: med,
       administered_by: (await db('users').where({ farm_id: DEFAULT_FARM_ID }).first()).id,
       treatment_date: now,
@@ -395,11 +395,11 @@ describe('GET /api/treatments/withdrawal', () => {
       .get('/api/treatments/withdrawal')
       .set('Authorization', adminToken())
     expect(res.status).toBe(200)
-    expect(res.body.find((t) => t.cow_id === soldCow)).toBeUndefined()
+    expect(res.body.find((t) => t.animal_id === soldAnimal)).toBeUndefined()
   })
 
-  it('returns at most one entry per cow (the latest withdrawal)', async () => {
-    const cow = await createCow()
+  it('returns at most one entry per animal (the latest withdrawal)', async () => {
+    const animal = await createAnimal()
     const med = await createMedication({ withdrawal_milk_hours: 500 })
     const base = new Date()
 
@@ -407,12 +407,12 @@ describe('GET /api/treatments/withdrawal', () => {
     const earlier = new Date(base.getTime() - 100_000).toISOString()
     const later = new Date(base.getTime() - 1_000).toISOString()
     await postTreatment({
-      cow_id: cow,
+      animal_id: animal,
       medications: [{ medication_id: med }],
       treatment_date: earlier,
     })
     await postTreatment({
-      cow_id: cow,
+      animal_id: animal,
       medications: [{ medication_id: med }],
       treatment_date: later,
     })
@@ -421,8 +421,8 @@ describe('GET /api/treatments/withdrawal', () => {
       .get('/api/treatments/withdrawal')
       .set('Authorization', adminToken())
 
-    const cowEntries = res.body.filter((t) => t.cow_id === cow)
-    expect(cowEntries).toHaveLength(1)
+    const animalEntries = res.body.filter((t) => t.animal_id === animal)
+    expect(animalEntries).toHaveLength(1)
   })
 })
 
@@ -430,10 +430,10 @@ describe('GET /api/treatments/withdrawal', () => {
 
 describe('GET /api/treatments/:id', () => {
   it('returns a single enriched treatment', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const medId = await createMedication({ name: 'DetailMed' })
     const { body: created } = await postTreatment({
-      cow_id: cowId,
+      animal_id: animalId,
       medications: [{ medication_id: medId, dosage: '7ml' }],
       treatment_date: '2026-02-01T08:00:00.000Z',
       notes: 'test note',
@@ -463,10 +463,10 @@ describe('GET /api/treatments/:id', () => {
 
 describe('DELETE /api/treatments/:id', () => {
   it('deletes the treatment and its junction rows (admin)', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const medId = await createMedication()
     const { body: created } = await postTreatment({
-      cow_id: cowId,
+      animal_id: animalId,
       medications: [{ medication_id: medId }],
       treatment_date: '2026-02-05T10:00:00.000Z',
     })
@@ -485,10 +485,10 @@ describe('DELETE /api/treatments/:id', () => {
   })
 
   it('returns 403 for a worker token', async () => {
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const medId = await createMedication()
     const { body: created } = await postTreatment({
-      cow_id: cowId,
+      animal_id: animalId,
       medications: [{ medication_id: medId }],
       treatment_date: '2026-02-05T10:00:00.000Z',
     })
@@ -512,9 +512,9 @@ describe('DELETE /api/treatments/:id', () => {
 // ─── Query Validation (12B.8) ───────────────────────────────────────────────
 
 describe('GET /api/treatments query validation', () => {
-  it('returns 400 for invalid cow_id', async () => {
+  it('returns 400 for invalid animal_id', async () => {
     const res = await request(app)
-      .get('/api/treatments?cow_id=not-a-uuid')
+      .get('/api/treatments?animal_id=not-a-uuid')
       .set('Authorization', adminToken())
     expect(res.status).toBe(400)
   })
@@ -525,11 +525,11 @@ describe('GET /api/treatments query validation', () => {
 describe('GET /api/treatments pagination (13B.4)', () => {
   beforeAll(async () => {
     // Create a fresh cow + medication and 3 treatments to paginate through
-    const cowId = await createCow()
+    const animalId = await createAnimal()
     const medId = await createMedication()
     for (let i = 0; i < 3; i++) {
       await postTreatment({
-        cow_id: cowId,
+        animal_id: animalId,
         medications: [{ medication_id: medId }],
         treatment_date: `2026-03-0${i + 1}T10:00:00.000Z`,
       })

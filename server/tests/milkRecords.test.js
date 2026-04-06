@@ -14,9 +14,9 @@ afterAll(() => db.destroy())
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 
-async function createCow(overrides = {}) {
+async function createAnimal(overrides = {}) {
   const id = randomUUID()
-  await db('cows').insert({
+  await db('animals').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
     tag_number: `M-${id.slice(0, 8)}`,
@@ -28,12 +28,12 @@ async function createCow(overrides = {}) {
   return id
 }
 
-async function createRecord(cowId, overrides = {}) {
+async function createRecord(animalId, overrides = {}) {
   const id = randomUUID()
   await db('milk_records').insert({
     id,
     farm_id: DEFAULT_FARM_ID,
-    cow_id: cowId,
+    animal_id: animalId,
     recorded_by: ADMIN_ID,
     session: 'morning',
     litres: 10.5,
@@ -48,12 +48,12 @@ async function createRecord(cowId, overrides = {}) {
 // ── GET /api/milk-records (legacy — plain array) ────────────────────────────
 
 describe('GET /api/milk-records (legacy)', () => {
-  let cowId
+  let animalId
 
   beforeAll(async () => {
-    cowId = await createCow({ tag_number: 'LEG-001', name: 'Legacy' })
-    await createRecord(cowId, { recording_date: '2026-01-10', session: 'morning' })
-    await createRecord(cowId, { recording_date: '2026-01-10', session: 'afternoon' })
+    animalId = await createAnimal({ tag_number: 'LEG-001', name: 'Legacy' })
+    await createRecord(animalId, { recording_date: '2026-01-10', session: 'morning' })
+    await createRecord(animalId, { recording_date: '2026-01-10', session: 'afternoon' })
   })
 
   it('returns plain array when no page/limit params', async () => {
@@ -95,26 +95,26 @@ describe('GET /api/milk-records (legacy)', () => {
 // ── GET /api/milk-records (paginated) ───────────────────────────────────────
 
 describe('GET /api/milk-records (paginated)', () => {
-  let cowA, cowB
+  let animalA, animalB
 
   beforeAll(async () => {
-    cowA = await createCow({ tag_number: 'PG-001', name: 'Alpha' })
-    cowB = await createCow({ tag_number: 'PG-002', name: 'Beta' })
+    animalA = await createAnimal({ tag_number: 'PG-001', name: 'Alpha' })
+    animalB = await createAnimal({ tag_number: 'PG-002', name: 'Beta' })
 
     // Create records across multiple dates
     for (let day = 1; day <= 5; day++) {
       const d = `2026-03-${String(day).padStart(2, '0')}`
-      await createRecord(cowA, { recording_date: d, session: 'morning', litres: day * 2 })
-      await createRecord(cowB, { recording_date: d, session: 'morning', litres: day * 3 })
+      await createRecord(animalA, { recording_date: d, session: 'morning', litres: day * 2 })
+      await createRecord(animalB, { recording_date: d, session: 'morning', litres: day * 3 })
     }
-    // Extra afternoon records for cowA
-    await createRecord(cowA, {
+    // Extra afternoon records for animalA
+    await createRecord(animalA, {
       recording_date: '2026-03-01',
       session: 'afternoon',
       litres: 5,
       recorded_by: WORKER_ID,
     })
-    await createRecord(cowA, { recording_date: '2026-03-02', session: 'afternoon', litres: 7 })
+    await createRecord(animalA, { recording_date: '2026-03-02', session: 'afternoon', litres: 7 })
   })
 
   it('returns paginated response with data + total', async () => {
@@ -225,14 +225,14 @@ describe('GET /api/milk-records (paginated)', () => {
     expect(res.body.total).toBeGreaterThan(2)
   })
 
-  it('includes joined fields (tag_number, cow_name, recorded_by_name)', async () => {
+  it('includes joined fields (tag_number, animal_name, recorded_by_name)', async () => {
     const res = await request(app)
       .get('/api/milk-records?page=1&limit=1')
       .set('Authorization', adminToken())
 
     const rec = res.body.data[0]
     expect(rec).toHaveProperty('tag_number')
-    expect(rec).toHaveProperty('cow_name')
+    expect(rec).toHaveProperty('animal_name')
     expect(rec).toHaveProperty('recorded_by_name')
   })
 
@@ -272,7 +272,7 @@ describe('GET /api/milk-records (paginated)', () => {
     expect(res.status).toBe(200)
     expect(res.body.data.length).toBeGreaterThanOrEqual(1)
     for (const r of res.body.data) {
-      expect(r.cow_name).toBe('Alpha')
+      expect(r.animal_name).toBe('Alpha')
     }
   })
 
@@ -287,8 +287,8 @@ describe('GET /api/milk-records (paginated)', () => {
 
   it('filters by discarded=true', async () => {
     // Create a discarded record
-    const discardCow = await createCow({ tag_number: 'DISC-001', name: 'Discard' })
-    await createRecord(discardCow, {
+    const discardAnimal = await createAnimal({ tag_number: 'DISC-001', name: 'Discard' })
+    await createRecord(discardAnimal, {
       recording_date: '2026-03-10',
       session: 'morning',
       milk_discarded: true,
