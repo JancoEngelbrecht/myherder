@@ -20,7 +20,7 @@ const medicationUsageColumns = [
 
 async function getMedicationUsageData(from, to, farmId) {
   const treatments = await db('treatments as t')
-    .join('cows as c', 't.cow_id', 'c.id')
+    .join('animals as c', 't.animal_id', 'c.id')
     .where('t.farm_id', farmId)
     .whereNull('c.deleted_at')
     .where('t.treatment_date', '>=', from)
@@ -95,7 +95,7 @@ const breedingColumns = [
 
 async function getBreedingData(from, to, farmId) {
   const events = await db('breeding_events as be')
-    .join('cows as c', 'be.cow_id', 'c.id')
+    .join('animals as c', 'be.animal_id', 'c.id')
     .leftJoin('users as u', 'be.recorded_by', 'u.id')
     .where('be.farm_id', farmId)
     .whereNull('c.deleted_at')
@@ -110,7 +110,7 @@ async function getBreedingData(from, to, farmId) {
       'be.preg_check_method',
       'be.notes',
       'c.tag_number',
-      'c.name as cow_name'
+      'c.name as animal_name'
     )
     .orderBy('be.event_date', 'asc')
 
@@ -121,7 +121,7 @@ async function getBreedingData(from, to, farmId) {
     return {
       date: formatDate(e.event_date),
       tag_number: e.tag_number,
-      cow_name: e.cow_name || '—',
+      cow_name: e.animal_name || '—',
       event_type: EVENT_TYPE_LABELS[e.event_type] || e.event_type,
       sire_semen: e.semen_id || '—',
       inseminator: e.inseminator || '—',
@@ -168,7 +168,7 @@ const herdHealthColumns = [
 
 async function getHerdHealthData(from, to, farmId) {
   const issues = await db('health_issues as hi')
-    .join('cows as c', 'hi.cow_id', 'c.id')
+    .join('animals as c', 'hi.animal_id', 'c.id')
     .join('users as u', 'hi.reported_by', 'u.id')
     .where('hi.farm_id', farmId)
     .whereNull('c.deleted_at')
@@ -182,7 +182,7 @@ async function getHerdHealthData(from, to, farmId) {
       'hi.status',
       'hi.resolved_at',
       'c.tag_number',
-      'c.name as cow_name',
+      'c.name as animal_name',
       'u.full_name as reported_by_name'
     )
     .orderBy('hi.observed_at', 'asc')
@@ -226,7 +226,7 @@ async function getHerdHealthData(from, to, farmId) {
     return {
       date: formatDate(i.observed_at),
       tag_number: i.tag_number,
-      cow_name: i.cow_name || '—',
+      cow_name: i.animal_name || '—',
       issue_types: names || '—',
       severity: i.severity,
       status: i.status,

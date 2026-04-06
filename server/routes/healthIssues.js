@@ -24,7 +24,7 @@ router.use(tenantScope)
 const TEAT_POSITIONS = ['front_left', 'front_right', 'rear_left', 'rear_right']
 
 const createSchema = Joi.object({
-  cow_id: Joi.string().uuid().required(),
+  animal_id: Joi.string().uuid().required(),
   issue_types: Joi.array().items(Joi.string().min(1).max(50)).min(1).required(),
   severity: Joi.string().valid('low', 'medium', 'high').default('medium'),
   affected_teats: Joi.array()
@@ -38,14 +38,14 @@ const statusSchema = Joi.object({
   status: Joi.string().valid('open', 'treating', 'resolved').required(),
 })
 
-// Base query with joined cow + user names
+// Base query with joined animal + user names
 function issueQuery(farmId) {
   return db('health_issues as h')
     .where('h.farm_id', farmId)
-    .join('cows as c', 'h.cow_id', 'c.id')
+    .join('animals as c', 'h.animal_id', 'c.id')
     .join('users as u', 'h.reported_by', 'u.id')
     .whereNull('c.deleted_at')
-    .select('h.*', 'c.tag_number', 'c.name as cow_name', 'u.full_name as reported_by_name')
+    .select('h.*', 'c.tag_number', 'c.name as animal_name', 'u.full_name as reported_by_name')
 }
 
 // Parse JSON columns from string (SQLite stores JSON as text)
@@ -69,7 +69,7 @@ function parseRow(row) {
 }
 
 const issueQuerySchema = Joi.object({
-  cow_id: Joi.string().uuid(),
+  animal_id: Joi.string().uuid(),
   status: Joi.string().valid('open', 'treating', 'resolved'),
   search: Joi.string().max(100).allow(''),
   page: Joi.number().integer().min(1),
@@ -83,7 +83,7 @@ router.get('/', authorize('can_log_issues'), async (req, res, next) => {
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
 
     const query = issueQuery(req.farmId).orderBy('h.observed_at', 'desc')
-    if (q.cow_id) query.where('h.cow_id', q.cow_id)
+    if (q.animal_id) query.where('h.animal_id', q.animal_id)
     if (q.status) query.where('h.status', q.status)
     if (q.search) {
       const s = `%${String(q.search).slice(0, MAX_SEARCH_LENGTH)}%`
@@ -129,12 +129,12 @@ router.post('/', authorize('can_log_issues'), async (req, res, next) => {
     const { error, value } = validateBody(createSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    const cow = await db('cows')
-      .where({ id: value.cow_id })
+    const animal = await db('animals')
+      .where({ id: value.animal_id })
       .where('farm_id', req.farmId)
       .whereNull('deleted_at')
       .first()
-    if (!cow) return res.status(404).json({ error: 'Cow not found' })
+    if (!animal) return res.status(404).json({ error: 'Animal not found' })
 
     const id = uuidv4()
     const now = new Date().toISOString()
@@ -142,7 +142,7 @@ router.post('/', authorize('can_log_issues'), async (req, res, next) => {
     await db('health_issues').insert({
       id,
       farm_id: req.user.farm_id,
-      cow_id: value.cow_id,
+      animal_id: value.animal_id,
       reported_by: req.user.id,
       issue_types: JSON.stringify(value.issue_types),
       severity: value.severity,

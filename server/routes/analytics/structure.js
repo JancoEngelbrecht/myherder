@@ -19,7 +19,7 @@ router.get('/age-distribution', async (req, res, next) => {
       ELSE '8+yr'
     END`
 
-    const rows = await db('cows')
+    const rows = await db('animals')
       .where('farm_id', req.farmId)
       .whereNull('deleted_at')
       .select(
@@ -57,16 +57,16 @@ router.get('/age-distribution', async (req, res, next) => {
 // GET /api/analytics/breed-composition
 router.get('/breed-composition', async (req, res, next) => {
   try {
-    const rows = await db('cows')
-      .where('cows.farm_id', req.farmId)
-      .whereNull('cows.deleted_at')
-      .leftJoin('breed_types', 'cows.breed_type_id', 'breed_types.id')
+    const rows = await db('animals')
+      .where('animals.farm_id', req.farmId)
+      .whereNull('animals.deleted_at')
+      .leftJoin('breed_types', 'animals.breed_type_id', 'breed_types.id')
       .select(
         db.raw("COALESCE(breed_types.name, 'Unassigned') as name"),
         'breed_types.code as code'
       )
-      .count('cows.id as count')
-      .groupBy('cows.breed_type_id')
+      .count('animals.id as count')
+      .groupBy('animals.breed_type_id')
       .orderBy('count', 'desc')
 
     const breeds = rows.map((r) => ({
@@ -89,12 +89,12 @@ router.get('/mortality-rate', async (req, res, next) => {
     const { start, endTs } = defaultRange(req.query.from, req.query.to)
 
     const [herdRow, rows] = await Promise.all([
-      db('cows')
+      db('animals')
         .where('farm_id', req.farmId)
         .whereNull('deleted_at')
         .count('id as herd_size')
         .first(),
-      db('cows')
+      db('animals')
         .where('farm_id', req.farmId)
         .whereNull('deleted_at')
         .whereIn('status', ['sold', 'dead'])
@@ -135,13 +135,13 @@ router.get('/herd-turnover', async (req, res, next) => {
     // Additions + removals in parallel
     const [addedRows, removedRows] = await Promise.all([
       // Include soft-deleted cows — they were real additions to the herd
-      db('cows')
+      db('animals')
         .where('farm_id', req.farmId)
         .whereBetween('created_at', [start, endTs])
         .select(db.raw(`${monthExpr('created_at')} as month`))
         .count('id as additions')
         .groupByRaw(`${monthExpr('created_at')}`),
-      db('cows')
+      db('animals')
         .where('farm_id', req.farmId)
         .whereNull('deleted_at')
         .whereIn('status', ['sold', 'dead'])
@@ -186,7 +186,7 @@ router.get('/herd-size-trend', async (req, res, next) => {
     const { start, end } = defaultRange(req.query.from, req.query.to)
 
     // Count cows added per month — include soft-deleted cows (they were real additions)
-    const addedRows = await db('cows')
+    const addedRows = await db('animals')
       .where('farm_id', req.farmId)
       .select(db.raw(`${monthExpr('created_at')} as month`))
       .count('id as added')

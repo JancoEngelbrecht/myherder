@@ -25,7 +25,7 @@ const treatmentHistoryColumns = [
 
 async function getTreatmentHistoryData(from, to, farmId) {
   const treatments = await db('treatments as t')
-    .join('cows as c', 't.cow_id', 'c.id')
+    .join('animals as c', 't.animal_id', 'c.id')
     .join('users as u', 't.administered_by', 'u.id')
     .where('t.farm_id', farmId)
     .whereNull('c.deleted_at')
@@ -41,7 +41,7 @@ async function getTreatmentHistoryData(from, to, farmId) {
       't.notes',
       't.health_issue_id',
       'c.tag_number',
-      'c.name as cow_name',
+      'c.name as animal_name',
       'u.full_name as administered_by_name'
     )
     .orderBy('t.treatment_date', 'asc')
@@ -88,7 +88,7 @@ async function getTreatmentHistoryData(from, to, farmId) {
 
     return {
       tag_number: t.tag_number,
-      cow_name: t.cow_name || '—',
+      cow_name: t.animal_name || '—',
       treatment_date: formatDate(t.treatment_date),
       medications: meds.map((m) => m.name).join(', ') || '—',
       active_ingredients:

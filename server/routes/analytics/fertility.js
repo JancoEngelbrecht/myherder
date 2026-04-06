@@ -23,7 +23,7 @@ router.get('/breeding-overview', async (req, res, next) => {
     const farmId = req.farmId
     // ── Repro status categories (current herd snapshot) ──────────
     // All active females (base population)
-    const activeFemales = await db('cows')
+    const activeFemales = await db('animals')
       .where('farm_id', farmId)
       .whereNull('deleted_at')
       .where('sex', 'female')
@@ -56,25 +56,25 @@ router.get('/breeding-overview', async (req, res, next) => {
         femaleIds.length > 0
           ? db('breeding_events as latest_ins')
               .where('latest_ins.farm_id', farmId)
-              .whereIn('latest_ins.cow_id', femaleIds)
+              .whereIn('latest_ins.animal_id', femaleIds)
               .whereIn('latest_ins.event_type', ['ai_insemination', 'bull_service'])
               .whereNotExists(function () {
                 this.select(db.raw(1))
                   .from('breeding_events as pc')
-                  .whereRaw('pc.cow_id = latest_ins.cow_id')
+                  .whereRaw('pc.animal_id = latest_ins.animal_id')
                   .whereIn('pc.event_type', ['preg_check_positive', 'preg_check_negative'])
                   .whereRaw('pc.event_date >= latest_ins.event_date')
               })
-              .select('latest_ins.cow_id')
-              .groupBy('latest_ins.cow_id')
+              .select('latest_ins.animal_id')
+              .groupBy('latest_ins.animal_id')
           : Promise.resolve([]),
         // Heifer not bred = active females with zero breeding events ever
         femaleIds.length > 0
           ? db('breeding_events')
               .where('farm_id', farmId)
-              .whereIn('cow_id', femaleIds)
-              .select('cow_id')
-              .groupBy('cow_id')
+              .whereIn('animal_id', femaleIds)
+              .select('animal_id')
+              .groupBy('animal_id')
           : Promise.resolve([]),
         // Abortion count in date range
         db('breeding_events')
@@ -88,7 +88,7 @@ router.get('/breeding-overview', async (req, res, next) => {
           .where('farm_id', farmId)
           .where('event_type', 'preg_check_positive')
           .whereBetween('event_date', [start, endTs])
-          .countDistinct('cow_id as count')
+          .countDistinct('animal_id as count')
           .first(),
         // Expected calvings per month (next 6 months)
         db('breeding_events')
@@ -105,19 +105,19 @@ router.get('/breeding-overview', async (req, res, next) => {
           .where('farm_id', farmId)
           .where('event_type', 'preg_check_positive')
           .whereBetween('event_date', [start, endTs])
-          .select('id', 'cow_id', 'event_date'),
+          .select('id', 'animal_id', 'event_date'),
       ])
 
     // ── Derive repro status categories from parallel results ─────
     const bredAwaitingIds = new Set()
     for (const row of bredRows) {
-      if (!pregnantIds.has(row.cow_id) && !dryIds.has(row.cow_id)) {
-        bredAwaitingIds.add(row.cow_id)
+      if (!pregnantIds.has(row.animal_id) && !dryIds.has(row.animal_id)) {
+        bredAwaitingIds.add(row.animal_id)
       }
     }
 
     const heiferNotBredIds = new Set()
-    const cowsWithEventsSet = new Set(cowsWithEvents.map((r) => r.cow_id))
+    const cowsWithEventsSet = new Set(cowsWithEvents.map((r) => r.animal_id))
     for (const cow of activeFemales) {
       if (
         !pregnantIds.has(cow.id) &&
@@ -240,7 +240,7 @@ router.get('/conception-rate', async (req, res, next) => {
       .where('farm_id', req.farmId)
       .where('event_type', 'preg_check_positive')
       .whereBetween('event_date', [start, endTs])
-      .select('id', 'cow_id', 'event_date')
+      .select('id', 'animal_id', 'event_date')
 
     const serviceCountMap = await batchCountServices(positiveChecks, req.farmId)
 
@@ -294,38 +294,38 @@ router.get('/calving-interval', async (req, res, next) => {
     const { start, endTs } = defaultRange(req.query.from, req.query.to)
     const rows = await db('breeding_events as be')
       .where('be.farm_id', req.farmId)
-      .join('cows as c', 'be.cow_id', 'c.id')
+      .join('animals as c', 'be.animal_id', 'c.id')
       .whereNull('c.deleted_at')
       .where('be.event_type', 'calving')
       .whereBetween('be.event_date', [start, endTs])
-      .select('be.cow_id', 'be.event_date', 'c.tag_number', 'c.name')
-      .orderBy(['be.cow_id', 'be.event_date'])
+      .select('be.animal_id', 'be.event_date', 'c.tag_number', 'c.name')
+      .orderBy(['be.animal_id', 'be.event_date'])
 
-    // Group calvings by cow
+    // Group calvings by animal
     const byCow = {}
     for (const row of rows) {
-      if (!byCow[row.cow_id]) {
-        byCow[row.cow_id] = { tag_number: row.tag_number, name: row.name, dates: [] }
+      if (!byCow[row.animal_id]) {
+        byCow[row.animal_id] = { tag_number: row.tag_number, name: row.name, dates: [] }
       }
-      byCow[row.cow_id].dates.push(row.event_date)
+      byCow[row.animal_id].dates.push(row.event_date)
     }
 
-    // Calculate per-cow average interval (only cows with 2+ calvings)
+    // Calculate per-animal average interval (only animals with 2+ calvings)
     const intervals = []
-    for (const [cow_id, cow] of Object.entries(byCow)) {
-      if (cow.dates.length < 2) continue
+    for (const [animal_id, animal] of Object.entries(byCow)) {
+      if (animal.dates.length < 2) continue
       let totalDays = 0
-      for (let i = 1; i < cow.dates.length; i++) {
-        const diff = new Date(cow.dates[i]) - new Date(cow.dates[i - 1])
+      for (let i = 1; i < animal.dates.length; i++) {
+        const diff = new Date(animal.dates[i]) - new Date(animal.dates[i - 1])
         totalDays += Math.round(diff / MS_PER_DAY)
       }
-      const interval_days = Math.round(totalDays / (cow.dates.length - 1))
+      const interval_days = Math.round(totalDays / (animal.dates.length - 1))
       intervals.push({
-        cow_id,
-        tag_number: cow.tag_number,
-        name: cow.name,
+        cow_id: animal_id,
+        tag_number: animal.tag_number,
+        name: animal.name,
         interval_days,
-        calving_count: cow.dates.length,
+        calving_count: animal.dates.length,
       })
     }
 
@@ -353,38 +353,38 @@ router.get('/days-open', async (req, res, next) => {
     const [calvings, pregChecks] = await Promise.all([
       db('breeding_events as be')
         .where('be.farm_id', req.farmId)
-        .join('cows as c', 'be.cow_id', 'c.id')
+        .join('animals as c', 'be.animal_id', 'c.id')
         .whereNull('c.deleted_at')
         .where('be.event_type', 'calving')
         .whereBetween('be.event_date', [start, endTs])
-        .select('be.cow_id', 'be.event_date', 'c.tag_number', 'c.name')
-        .orderBy(['be.cow_id', 'be.event_date']),
+        .select('be.animal_id', 'be.event_date', 'c.tag_number', 'c.name')
+        .orderBy(['be.animal_id', 'be.event_date']),
       db('breeding_events')
         .where('farm_id', req.farmId)
         .where('event_type', 'preg_check_positive')
         .whereBetween('event_date', [start, endTs])
-        .select('cow_id', 'event_date')
-        .orderBy(['cow_id', 'event_date']),
+        .select('animal_id', 'event_date')
+        .orderBy(['animal_id', 'event_date']),
     ])
 
-    // Index preg checks by cow for fast lookup
+    // Index preg checks by animal for fast lookup
     const pregByCow = {}
     for (const pc of pregChecks) {
-      if (!pregByCow[pc.cow_id]) pregByCow[pc.cow_id] = []
-      pregByCow[pc.cow_id].push(pc.event_date)
+      if (!pregByCow[pc.animal_id]) pregByCow[pc.animal_id] = []
+      pregByCow[pc.animal_id].push(pc.event_date)
     }
 
-    // For each calving, find the next preg_check_positive for the same cow
+    // For each calving, find the next preg_check_positive for the same animal
     const seen = new Set() // one record per calving event
     const records = []
 
     for (const calving of calvings) {
-      const checks = pregByCow[calving.cow_id] || []
+      const checks = pregByCow[calving.animal_id] || []
       const nextCheck = checks.find((d) => d > calving.event_date)
       if (!nextCheck) continue
 
-      // Deduplicate by calving event_date per cow
-      const key = `${calving.cow_id}:${calving.event_date}`
+      // Deduplicate by calving event_date per animal
+      const key = `${calving.animal_id}:${calving.event_date}`
       if (seen.has(key)) continue
       seen.add(key)
 
@@ -392,7 +392,7 @@ router.get('/days-open', async (req, res, next) => {
         (new Date(nextCheck) - new Date(calving.event_date)) / MS_PER_DAY
       )
       records.push({
-        cow_id: calving.cow_id,
+        cow_id: calving.animal_id,
         tag_number: calving.tag_number,
         name: calving.name,
         days_open,

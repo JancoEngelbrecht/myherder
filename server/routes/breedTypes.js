@@ -132,7 +132,7 @@ router.delete('/:id', requireAdmin, async (req, res, next) => {
       .first()
     if (!existing) return res.status(404).json({ error: 'Breed type not found' })
 
-    const usageResult = await db('cows')
+    const usageResult = await db('animals')
       .where({ breed_type_id: req.params.id })
       .where('farm_id', req.farmId)
       .whereNull('deleted_at')
@@ -142,7 +142,7 @@ router.delete('/:id', requireAdmin, async (req, res, next) => {
     const count = Number(usageResult?.count ?? 0)
     if (count > 0) {
       return res.status(409).json({
-        error: `Cannot delete: this breed is assigned to ${count} cow(s). Deactivate it instead.`,
+        error: `Cannot delete: this breed is assigned to ${count} animal(s). Deactivate it instead.`,
         count,
       })
     }

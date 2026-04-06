@@ -49,7 +49,7 @@ const EVENT_TYPE_LABELS = {
 }
 
 const createSchema = Joi.object({
-  cow_id: Joi.string().uuid().required(),
+  animal_id: Joi.string().uuid().required(),
   event_type: Joi.string()
     .valid(...VALID_EVENT_TYPES)
     .required(),
@@ -99,8 +99,12 @@ const updateSchema = Joi.object({
 })
 
 const breedingQuerySchema = Joi.object({
+  animal_id: Joi.string().uuid(),
+  // Legacy param - accept cow_id for backward compat
   cow_id: Joi.string().uuid(),
   event_type: Joi.string().max(200),
+  animal_status: Joi.string().valid('active', 'pregnant', 'dry'),
+  // Legacy param - accept cow_status for backward compat
   cow_status: Joi.string().valid('active', 'pregnant', 'dry'),
   date_from: Joi.string().pattern(ISO_DATE_RE),
   date_to: Joi.string().pattern(ISO_DATE_RE),

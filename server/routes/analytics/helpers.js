@@ -109,42 +109,42 @@ async function batchCountServices(positiveChecks, farmId) {
   const result = new Map()
   if (!positiveChecks.length) return result
 
-  const cowIds = [...new Set(positiveChecks.map((c) => c.cow_id))]
+  const animalIds = [...new Set(positiveChecks.map((c) => c.animal_id))]
 
-  // Bulk-fetch all calving/abortion (reset) events for these cows
+  // Bulk-fetch all calving/abortion (reset) events for these animals
   const resets = await db('breeding_events')
     .where('farm_id', farmId)
-    .whereIn('cow_id', cowIds)
+    .whereIn('animal_id', animalIds)
     .whereIn('event_type', ['calving', 'abortion'])
-    .select('cow_id', 'event_date')
+    .select('animal_id', 'event_date')
     .orderBy('event_date', 'desc')
 
-  // Build lookup: cow_id → sorted reset dates (desc)
+  // Build lookup: animal_id → sorted reset dates (desc)
   const resetMap = {}
   for (const r of resets) {
-    ;(resetMap[r.cow_id] ??= []).push(r.event_date)
+    ;(resetMap[r.animal_id] ??= []).push(r.event_date)
   }
 
-  // Bulk-fetch all insemination/bull_service events for these cows
+  // Bulk-fetch all insemination/bull_service events for these animals
   const services = await db('breeding_events')
     .where('farm_id', farmId)
-    .whereIn('cow_id', cowIds)
+    .whereIn('animal_id', animalIds)
     .whereIn('event_type', ['ai_insemination', 'bull_service'])
-    .select('cow_id', 'event_date')
+    .select('animal_id', 'event_date')
 
-  // Build lookup: cow_id → service dates array
+  // Build lookup: animal_id → service dates array
   const serviceMap = {}
   for (const s of services) {
-    ;(serviceMap[s.cow_id] ??= []).push(s.event_date)
+    ;(serviceMap[s.animal_id] ??= []).push(s.event_date)
   }
 
   // Compute per check in memory
   for (const check of positiveChecks) {
-    const cowResets = resetMap[check.cow_id] || []
+    const cowResets = resetMap[check.animal_id] || []
     // Find last reset before this check's date
     const lastReset = cowResets.find((d) => d < check.event_date) || null
 
-    const cowServices = serviceMap[check.cow_id] || []
+    const cowServices = serviceMap[check.animal_id] || []
     const count = cowServices.filter(
       (d) => d <= check.event_date && (!lastReset || d > lastReset)
     ).length

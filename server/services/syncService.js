@@ -8,11 +8,37 @@ const { randomUUID: uuidv4 } = require('crypto')
 // allowedFields: only these columns may be written (unknown fields are silently dropped).
 
 const ENTITY_MAP = {
-  cows: {
-    table: 'cows',
+  animals: {
+    table: 'animals',
     softDelete: true,
     requiredRole: null,
-    requiredPermission: 'can_manage_cows',
+    requiredPermission: 'can_manage_animals',
+    allowedFields: [
+      'tag_number',
+      'name',
+      'sex',
+      'dob',
+      'status',
+      'breed_type_id',
+      'sire_id',
+      'dam_id',
+      'breed',
+      'life_phase_override',
+      'species_id',
+      'birth_event_id',
+      'notes',
+      'created_by',
+      'created_at',
+      'updated_at',
+    ],
+  },
+  // Backward compat alias — accept 'cows' entity type for 1 release cycle
+  // (clients with queued offline changes from before the rename)
+  cows: {
+    table: 'animals',
+    softDelete: true,
+    requiredRole: null,
+    requiredPermission: 'can_manage_animals',
     allowedFields: [
       'tag_number',
       'name',
@@ -59,7 +85,7 @@ const ENTITY_MAP = {
     requiredPermission: 'can_log_treatments',
     ownerField: 'administered_by',
     allowedFields: [
-      'cow_id',
+      'animal_id',
       'medication_id',
       'dosage',
       'treatment_date',
@@ -82,7 +108,7 @@ const ENTITY_MAP = {
     requiredPermission: 'can_log_issues',
     ownerField: 'reported_by',
     allowedFields: [
-      'cow_id',
+      'animal_id',
       'issue_types',
       'severity',
       'status',
@@ -102,7 +128,7 @@ const ENTITY_MAP = {
     requiredPermission: 'can_record_milk',
     ownerField: 'recorded_by',
     allowedFields: [
-      'cow_id',
+      'animal_id',
       'recording_date',
       'session',
       'session_time',
@@ -122,7 +148,7 @@ const ENTITY_MAP = {
     requiredPermission: 'can_log_breeding',
     ownerField: 'recorded_by',
     allowedFields: [
-      'cow_id',
+      'animal_id',
       'event_type',
       'event_date',
       'notes',
@@ -284,11 +310,11 @@ async function handleCreate(qb, table, entityType, id, data, user, ownerField) {
     return { id, entityType, status: 'applied', serverData: existing }
   }
 
-  // Milk records: check business-key uniqueness (cow_id + session + recording_date)
-  if (table === 'milk_records' && data && data.cow_id && data.session && data.recording_date) {
+  // Milk records: check business-key uniqueness (animal_id + session + recording_date)
+  if (table === 'milk_records' && data && data.animal_id && data.session && data.recording_date) {
     const duplicate = await qb(table)
       .where('farm_id', user.farm_id)
-      .where('cow_id', data.cow_id)
+      .where('animal_id', data.animal_id)
       .where('session', data.session)
       .where('recording_date', data.recording_date)
       .first()
@@ -298,7 +324,7 @@ async function handleCreate(qb, table, entityType, id, data, user, ownerField) {
         entityType,
         status: 'conflict',
         serverData: duplicate,
-        error: 'Duplicate milk record for this cow/session/date',
+        error: 'Duplicate milk record for this animal/session/date',
       }
     }
   }
@@ -349,8 +375,8 @@ async function handleUpdate(qb, table, entityType, id, data, clientUpdatedAt, us
   const now = new Date().toISOString()
   const updateData = { ...data, updated_at: now }
 
-  // Track status change timestamp for cows
-  if (table === 'cows' && updateData.status && updateData.status !== existing.status) {
+  // Track status change timestamp for animals
+  if (table === 'animals' && updateData.status && updateData.status !== existing.status) {
     updateData.status_changed_at = now
   }
 
@@ -409,7 +435,7 @@ async function pullData(since, full, farmId, user) {
   const entries = Object.entries(ENTITY_MAP).filter(([entityType]) => {
     if (isAdmin) return true
     const requiredPerm = ENTITY_READ_PERMISSIONS[entityType]
-    if (!requiredPerm) return true // reference data (cows, breedTypes, issueTypes)
+    if (!requiredPerm) return true // reference data (animals, breedTypes, issueTypes)
     return userPerms.includes(requiredPerm)
   })
 

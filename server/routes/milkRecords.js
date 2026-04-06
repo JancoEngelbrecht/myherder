@@ -31,7 +31,7 @@ const querySchema = Joi.object({
   from: Joi.string().pattern(ISO_DATE_RE),
   to: Joi.string().pattern(ISO_DATE_RE),
   session: Joi.string().valid(...VALID_SESSIONS),
-  cow_id: Joi.string().uuid(),
+  animal_id: Joi.string().uuid(),
   recorded_by: Joi.string().uuid(),
   search: Joi.string().max(MAX_SEARCH_LENGTH).allow(''),
   discarded: Joi.boolean(),
@@ -42,7 +42,7 @@ const querySchema = Joi.object({
 })
 
 const createSchema = Joi.object({
-  cow_id: Joi.string().uuid().required(),
+  animal_id: Joi.string().uuid().required(),
   session: Joi.string()
     .valid(...VALID_SESSIONS)
     .required(),
@@ -67,14 +67,14 @@ const updateSchema = Joi.object({
 function milkQuery(farmId) {
   return db('milk_records as mr')
     .where('mr.farm_id', farmId)
-    .join('cows as c', 'mr.cow_id', 'c.id')
+    .join('animals as c', 'mr.animal_id', 'c.id')
     .join('users as u', 'mr.recorded_by', 'u.id')
     .whereNull('c.deleted_at')
     .select(
       'mr.*',
       'c.tag_number',
-      'c.name as cow_name',
-      'c.status as cow_status',
+      'c.name as animal_name',
+      'c.status as animal_status',
       'u.full_name as recorded_by_name'
     )
 }
@@ -82,12 +82,12 @@ function milkQuery(farmId) {
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function applyFilters(query, params) {
-  const { date, from, to, session, cow_id, recorded_by, search, discarded } = params
+  const { date, from, to, session, animal_id, recorded_by, search, discarded } = params
   if (date) query.where('mr.recording_date', date)
   if (from) query.where('mr.recording_date', '>=', from)
   if (to) query.where('mr.recording_date', '<=', to)
   if (session) query.where('mr.session', session)
-  if (cow_id) query.where('mr.cow_id', cow_id)
+  if (animal_id) query.where('mr.animal_id', animal_id)
   if (recorded_by) query.where('mr.recorded_by', recorded_by)
   if (search) {
     const s = `%${search}%`
@@ -135,7 +135,7 @@ router.get('/', authorize('can_record_milk'), async (req, res, next) => {
     // Count total matching rows
     const countQuery = db('milk_records as mr')
       .where('mr.farm_id', req.farmId)
-      .join('cows as c', 'mr.cow_id', 'c.id')
+      .join('animals as c', 'mr.animal_id', 'c.id')
       .join('users as u', 'mr.recorded_by', 'u.id')
       .whereNull('c.deleted_at')
     applyFilters(countQuery, value)
@@ -174,7 +174,7 @@ router.get('/summary', authorize('can_record_milk'), async (req, res, next) => {
 
     const rows = await db('milk_records as mr')
       .where('mr.farm_id', req.farmId)
-      .join('cows as c', 'mr.cow_id', 'c.id')
+      .join('animals as c', 'mr.animal_id', 'c.id')
       .whereNull('c.deleted_at')
       .where('mr.recording_date', date)
       .select(
@@ -225,13 +225,13 @@ router.post('/', authorize('can_record_milk'), async (req, res, next) => {
     const { error, value } = validateBody(createSchema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    const cow = await db('cows')
-      .where({ id: value.cow_id })
+    const animal = await db('animals')
+      .where({ id: value.animal_id })
       .where('farm_id', req.farmId)
       .whereNull('deleted_at')
       .first()
-    if (!cow) return res.status(404).json({ error: 'Cow not found' })
-    if (cow.sex === 'male')
+    if (!animal) return res.status(404).json({ error: 'Animal not found' })
+    if (animal.sex === 'male')
       return res.status(400).json({ error: 'Cannot record milk for a male animal' })
 
     // Check unique constraint before insert to return a clean 409
@@ -240,7 +240,7 @@ router.post('/', authorize('can_record_milk'), async (req, res, next) => {
       .leftJoin('users as u', 'milk_records.recorded_by', 'u.id')
       .where('milk_records.farm_id', req.farmId)
       .where({
-        'milk_records.cow_id': value.cow_id,
+        'milk_records.animal_id': value.animal_id,
         'milk_records.session': value.session,
         'milk_records.recording_date': value.recording_date,
         'milk_records.session_time': value.session_time,
@@ -259,7 +259,7 @@ router.post('/', authorize('can_record_milk'), async (req, res, next) => {
     if (!value.milk_discarded) {
       const withdrawal = await db('treatments')
         .where('farm_id', req.farmId)
-        .where('cow_id', value.cow_id)
+        .where('animal_id', value.animal_id)
         .where('withdrawal_end_milk', '>', now)
         .orderBy('withdrawal_end_milk', 'desc')
         .first()
@@ -276,7 +276,7 @@ router.post('/', authorize('can_record_milk'), async (req, res, next) => {
     await db('milk_records').insert({
       id,
       farm_id: req.user.farm_id,
-      cow_id: value.cow_id,
+      animal_id: value.animal_id,
       recorded_by: req.user.id,
       session: value.session,
       litres: Math.round(Number(value.litres) * 100) / 100,
@@ -320,12 +320,12 @@ router.put('/:id', authorize('can_record_milk'), async (req, res, next) => {
       return res.status(403).json({ error: 'Not authorised to edit this record' })
     }
 
-    // Re-check withdrawal: if cow is still on withdrawal, discard flag cannot be removed
+    // Re-check withdrawal: if animal is still on withdrawal, discard flag cannot be removed
     if (value.milk_discarded === false) {
       const now = new Date().toISOString()
       const activeWithdrawal = await db('treatments')
         .where('farm_id', req.farmId)
-        .where('cow_id', existing.cow_id)
+        .where('animal_id', existing.animal_id)
         .where('withdrawal_end_milk', '>', now)
         .first()
       if (activeWithdrawal) {

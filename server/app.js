@@ -27,7 +27,9 @@ if (nodeEnv !== 'test') {
 }
 
 app.use('/api/auth', require('./routes/auth'))
-app.use('/api/cows', require('./routes/cows'))
+app.use('/api/animals', require('./routes/animals'))
+// Temporary alias — keep for 1 release cycle while frontend migrates
+app.use('/api/cows', require('./routes/animals'))
 app.use('/api/analytics', require('./routes/analytics'))
 app.use('/api/medications', require('./routes/medications'))
 app.use('/api/treatments', require('./routes/treatments'))

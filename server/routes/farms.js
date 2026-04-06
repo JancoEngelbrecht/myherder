@@ -84,7 +84,7 @@ router.get('/', async (req, res, next) => {
           '(SELECT COUNT(*) FROM users WHERE users.farm_id = farms.id AND users.is_active = 1 AND users.deleted_at IS NULL) as user_count'
         ),
         db.raw(
-          '(SELECT COUNT(*) FROM cows WHERE cows.farm_id = farms.id AND cows.deleted_at IS NULL) as cow_count'
+          '(SELECT COUNT(*) FROM animals WHERE animals.farm_id = farms.id AND animals.deleted_at IS NULL) as animal_count'
         )
       )
       .orderBy('farms.name')
@@ -100,7 +100,7 @@ router.get('/', async (req, res, next) => {
           ...rest,
           species: species_id ? { id: species_id, code: species_code, name: species_name } : null,
           user_count: Number(f.user_count),
-          cow_count: Number(f.cow_count),
+          animal_count: Number(f.animal_count),
         }
       })
     )
@@ -142,7 +142,7 @@ router.get('/export', async (req, res, next) => {
 
     const [
       users,
-      cows,
+      animals,
       healthIssues,
       treatments,
       medications,
@@ -154,7 +154,7 @@ router.get('/export', async (req, res, next) => {
       featureFlags,
     ] = await Promise.all([
       db('users').whereIn('farm_id', farmIds).select(EXPORT_USER_FIELDS),
-      db('cows').whereIn('farm_id', farmIds),
+      db('animals').whereIn('farm_id', farmIds),
       db('health_issues').whereIn('farm_id', farmIds),
       db('treatments').whereIn('farm_id', farmIds),
       db('medications').whereIn('farm_id', farmIds),
@@ -168,7 +168,7 @@ router.get('/export', async (req, res, next) => {
 
     const grouped = {
       users: groupByFarm(users),
-      cows: groupByFarm(cows),
+      animals: groupByFarm(animals),
       health_issues: groupByFarm(healthIssues),
       treatments: groupByFarm(treatments),
       medications: groupByFarm(medications),
@@ -195,7 +195,7 @@ router.get('/export', async (req, res, next) => {
       return {
         farm: { id: farm.id, name: farm.name, code: farm.code },
         users: farmUsers,
-        cows: grouped.cows[farm.id] || [],
+        animals: grouped.animals[farm.id] || [],
         health_issues: grouped.health_issues[farm.id] || [],
         treatments: grouped.treatments[farm.id] || [],
         medications: grouped.medications[farm.id] || [],
@@ -236,15 +236,15 @@ router.get('/stats', async (req, res, next) => {
       [{ count: activeFarms }],
       [{ count: totalUsers }],
       [{ count: activeUsers }],
-      [{ count: totalCows }],
-      [{ count: activeCows }],
+      [{ count: totalAnimals }],
+      [{ count: activeAnimals }],
     ] = await Promise.all([
       db('farms').count('* as count'),
       db('farms').where('is_active', true).count('* as count'),
       db('users').whereNull('deleted_at').count('* as count'),
       db('users').where('is_active', true).whereNull('deleted_at').count('* as count'),
-      db('cows').whereNull('deleted_at').count('* as count'),
-      db('cows').where('status', 'active').whereNull('deleted_at').count('* as count'),
+      db('animals').whereNull('deleted_at').count('* as count'),
+      db('animals').where('status', 'active').whereNull('deleted_at').count('* as count'),
     ])
 
     res.json({
@@ -252,8 +252,8 @@ router.get('/stats', async (req, res, next) => {
       active_farms: Number(activeFarms),
       total_users: Number(totalUsers),
       active_users: Number(activeUsers),
-      total_cows: Number(totalCows),
-      active_cows: Number(activeCows),
+      total_animals: Number(totalAnimals),
+      active_animals: Number(activeAnimals),
     })
   } catch (err) {
     next(err)
@@ -417,7 +417,7 @@ router.post('/', async (req, res, next) => {
         full_name: value.admin_full_name,
         role: 'admin',
         permissions: JSON.stringify([
-          'can_manage_cows',
+          'can_manage_animals',
           'can_manage_medications',
           'can_log_issues',
           'can_log_treatments',
@@ -537,7 +537,7 @@ router.delete('/:id', async (req, res, next) => {
         await trx('milk_records').where('farm_id', farm.id).del()
         await trx('breeding_events').where('farm_id', farm.id).del()
         await trx('health_issues').where('farm_id', farm.id).del()
-        await trx('cows').where('farm_id', farm.id).del()
+        await trx('animals').where('farm_id', farm.id).del()
         await trx('medications').where('farm_id', farm.id).del()
         await trx('breed_types').where('farm_id', farm.id).del()
         await trx('issue_type_definitions').where('farm_id', farm.id).del()

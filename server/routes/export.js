@@ -24,7 +24,7 @@ router.get('/', async (req, res, next) => {
   try {
     const [
       users,
-      cows,
+      animals,
       healthIssues,
       treatments,
       medications,
@@ -36,7 +36,7 @@ router.get('/', async (req, res, next) => {
       featureFlags,
     ] = await Promise.all([
       db('users').where('farm_id', req.farmId).select('*'),
-      db('cows').where('farm_id', req.farmId).select('*'),
+      db('animals').where('farm_id', req.farmId).select('*'),
       db('health_issues').where('farm_id', req.farmId).select('*'),
       db('treatments').where('farm_id', req.farmId).select('*'),
       db('medications').where('farm_id', req.farmId).select('*'),
@@ -52,7 +52,7 @@ router.get('/', async (req, res, next) => {
 
     const tables = {
       users: sanitizeUsers(users),
-      cows,
+      animals,
       health_issues: healthIssues,
       treatments,
       medications,

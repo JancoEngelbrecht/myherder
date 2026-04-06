@@ -21,7 +21,7 @@ const discardedMilkColumns = [
 
 async function getDiscardedMilkData(from, to, farmId) {
   const records = await db('milk_records as mr')
-    .join('cows as c', 'mr.cow_id', 'c.id')
+    .join('animals as c', 'mr.animal_id', 'c.id')
     .join('users as u', 'mr.recorded_by', 'u.id')
     .where('mr.farm_id', farmId)
     .whereNull('c.deleted_at')
@@ -36,7 +36,7 @@ async function getDiscardedMilkData(from, to, farmId) {
       'mr.discard_reason',
       'mr.notes',
       'c.tag_number',
-      'c.name as cow_name',
+      'c.name as animal_name',
       'u.full_name as recorded_by_name'
     )
     .orderBy([{ column: 'mr.recording_date', order: 'asc' }, { column: 'mr.session' }])
@@ -49,7 +49,7 @@ async function getDiscardedMilkData(from, to, farmId) {
       date: formatDate(r.recording_date),
       session: r.session,
       tag_number: r.tag_number,
-      cow_name: r.cow_name || '—',
+      cow_name: r.animal_name || '—',
       litres: litres.toFixed(2),
       reason: r.discard_reason || '—',
       recorded_by: r.recorded_by_name,
@@ -94,16 +94,16 @@ const milkProductionColumns = [
 async function getMilkProductionData(from, to, farmId) {
   const endTs = to + 'T23:59:59'
 
-  // Per-cow aggregation via SQL — avoids loading all raw records into memory
+  // Per-animal aggregation via SQL — avoids loading all raw records into memory
   const cowRows = await db('milk_records as mr')
-    .join('cows as c', 'mr.cow_id', 'c.id')
+    .join('animals as c', 'mr.animal_id', 'c.id')
     .where('mr.farm_id', farmId)
     .whereBetween('mr.recording_date', [from, endTs])
     .whereNull('c.deleted_at')
     .select(
-      'mr.cow_id',
+      'mr.animal_id',
       'c.tag_number',
-      'c.name as cow_name',
+      'c.name as animal_name',
       db.raw('SUM(mr.litres) as total_litres'),
       db.raw('COUNT(DISTINCT mr.recording_date) as days_recorded'),
       db.raw("SUM(CASE WHEN mr.session = 'morning' THEN mr.litres ELSE 0 END) as morning_total"),
@@ -115,7 +115,7 @@ async function getMilkProductionData(from, to, farmId) {
       db.raw("SUM(CASE WHEN mr.session = 'evening' THEN mr.litres ELSE 0 END) as evening_total"),
       db.raw("SUM(CASE WHEN mr.session = 'evening' THEN 1 ELSE 0 END) as evening_count")
     )
-    .groupBy('mr.cow_id')
+    .groupBy('mr.animal_id')
     .orderBy('total_litres', 'desc')
 
   const sessionAvg = (total, count) =>
@@ -126,7 +126,7 @@ async function getMilkProductionData(from, to, farmId) {
     const daysRecorded = Number(r.days_recorded) || 0
     return {
       tag_number: r.tag_number,
-      cow_name: r.cow_name || '—',
+      cow_name: r.animal_name || '—',
       total_litres: totalLitres.toFixed(2),
       days_recorded: daysRecorded,
       avg_daily: daysRecorded > 0 ? (totalLitres / daysRecorded).toFixed(2) : '—',

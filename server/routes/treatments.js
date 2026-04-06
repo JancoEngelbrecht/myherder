@@ -18,7 +18,7 @@ router.use(authenticate)
 router.use(tenantScope)
 
 const schema = Joi.object({
-  cow_id: Joi.string().uuid().required(),
+  animal_id: Joi.string().uuid().required(),
   health_issue_id: Joi.string().uuid().allow(null),
   medications: Joi.array()
     .items(
@@ -41,7 +41,7 @@ function treatmentQuery(farmId) {
   return db('treatments as t')
     .where('t.farm_id', farmId)
     .join('medications as m', 't.medication_id', 'm.id')
-    .join('cows as c', 't.cow_id', 'c.id')
+    .join('animals as c', 't.animal_id', 'c.id')
     .join('users as u', 't.administered_by', 'u.id')
     .whereNull('c.deleted_at')
     .select(
@@ -52,7 +52,7 @@ function treatmentQuery(farmId) {
       'm.withdrawal_meat_hours',
       'm.withdrawal_meat_days',
       'c.tag_number',
-      'c.name as cow_name',
+      'c.name as animal_name',
       'c.sex',
       'u.full_name as administered_by_name'
     )
@@ -94,10 +94,10 @@ async function enrichWithMedications(rows, farmId) {
   })
 }
 
-const VALID_SORT_COLS = ['treatment_date', 'cost', 'tag_number', 'cow_name']
+const VALID_SORT_COLS = ['treatment_date', 'cost', 'tag_number', 'animal_name']
 
 const treatmentQuerySchema = Joi.object({
-  cow_id: Joi.string().uuid(),
+  animal_id: Joi.string().uuid(),
   page: Joi.number().integer().min(1),
   limit: Joi.number().integer().min(1).max(MAX_PAGE_SIZE),
   sort: Joi.string().valid(...VALID_SORT_COLS),
@@ -119,7 +119,7 @@ router.get('/', authorize('can_log_treatments'), async (req, res, next) => {
       treatment_date: 't.treatment_date',
       cost: 't.cost',
       tag_number: 'c.tag_number',
-      cow_name: 'c.name',
+      animal_name: 'c.name',
     }
     const orderCol = colMap[sortCol] || 't.treatment_date'
 
@@ -132,15 +132,15 @@ router.get('/', authorize('can_log_treatments'), async (req, res, next) => {
 
       const countQuery = db('treatments as t')
         .where('t.farm_id', req.farmId)
-        .join('cows as c', 't.cow_id', 'c.id')
+        .join('animals as c', 't.animal_id', 'c.id')
         .whereNull('c.deleted_at')
-      if (q.cow_id) countQuery.where('t.cow_id', q.cow_id)
+      if (q.animal_id) countQuery.where('t.animal_id', q.animal_id)
 
       const dataQuery = treatmentQuery(req.farmId)
         .orderBy(orderCol, sortDir)
         .limit(limit)
         .offset(offset)
-      if (q.cow_id) dataQuery.where('t.cow_id', q.cow_id)
+      if (q.animal_id) dataQuery.where('t.animal_id', q.animal_id)
 
       const [[{ total }], rawRows] = await Promise.all([
         countQuery.count('t.id as total'),
@@ -151,7 +151,7 @@ router.get('/', authorize('can_log_treatments'), async (req, res, next) => {
     }
 
     const query = treatmentQuery(req.farmId).orderBy(orderCol, sortDir)
-    if (q.cow_id) query.where('t.cow_id', q.cow_id)
+    if (q.animal_id) query.where('t.animal_id', q.animal_id)
     res.json(await enrichWithMedications(await query, req.farmId))
   } catch (err) {
     next(err)
@@ -204,12 +204,12 @@ router.get('/withdrawal', authorize('can_log_treatments'), async (req, res, next
       }
     }
 
-    // Aggregate per cow: keep the worst (latest) milk and meat end dates
-    const byCow = {}
+    // Aggregate per animal: keep the worst (latest) milk and meat end dates
+    const byAnimal = {}
     for (const row of filtered) {
-      const existing = byCow[row.cow_id]
+      const existing = byAnimal[row.animal_id]
       if (!existing) {
-        byCow[row.cow_id] = { ...row }
+        byAnimal[row.animal_id] = { ...row }
         continue
       }
       // Keep the latest milk withdrawal end
@@ -230,7 +230,7 @@ router.get('/withdrawal', authorize('can_log_treatments'), async (req, res, next
       }
     }
 
-    const result = Object.values(byCow)
+    const result = Object.values(byAnimal)
     result.sort((a, b) => {
       const aEnd = String(a.withdrawal_end_milk || a.withdrawal_end_meat || '')
       const bEnd = String(b.withdrawal_end_milk || b.withdrawal_end_meat || '')
@@ -261,22 +261,25 @@ router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
     const { error, value } = validateBody(schema, req.body)
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
-    const cow = await db('cows')
-      .where({ id: value.cow_id })
+    const animal = await db('animals')
+      .where({ id: value.animal_id })
       .where('farm_id', req.farmId)
       .whereNull('deleted_at')
       .first()
-    if (!cow) return res.status(404).json({ error: 'Cow not found' })
+    if (!animal) return res.status(404).json({ error: 'Animal not found' })
 
-    const isMale = cow.sex === 'male'
+    const isMale = animal.sex === 'male'
     // Fetch breed type for life phase computation
-    const breedType = cow.breed_type_id
-      ? await db('breed_types').where('id', cow.breed_type_id).where('farm_id', req.farmId).first()
+    const breedType = animal.breed_type_id
+      ? await db('breed_types')
+          .where('id', animal.breed_type_id)
+          .where('farm_id', req.farmId)
+          .first()
       : null
-    const species = cow.species_id
-      ? await db('species').where('id', cow.species_id).select('code').first()
+    const species = animal.species_id
+      ? await db('species').where('id', animal.species_id).select('code').first()
       : null
-    const lifePhase = computeLifePhase(cow, breedType, species?.code)
+    const lifePhase = computeLifePhase(animal, breedType, species?.code)
     const skipMilkWithdrawal = isMale || NON_MILKING_PHASES.has(lifePhase)
 
     // Batch-fetch all medications in a single query and build a lookup map
@@ -328,7 +331,7 @@ router.post('/', authorize('can_log_treatments'), async (req, res, next) => {
       await trx('treatments').insert({
         id,
         farm_id: req.user.farm_id,
-        cow_id: value.cow_id,
+        animal_id: value.animal_id,
         health_issue_id: value.health_issue_id ?? null,
         // Keep medication_id pointing to the first medication — required by treatmentQuery JOIN
         medication_id: primary.med.id,

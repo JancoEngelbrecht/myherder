@@ -28,9 +28,9 @@ router.get('/daily-kpis', async (req, res, next) => {
       db('milk_records')
         .where('farm_id', farmId)
         .where('recording_date', today)
-        .countDistinct('cow_id as count')
+        .countDistinct('animal_id as count')
         .first(),
-      db('cows')
+      db('animals')
         .where('farm_id', farmId)
         .whereNull('deleted_at')
         .where('sex', 'female')
@@ -81,7 +81,7 @@ router.get('/herd-summary', async (req, res, next) => {
     const farmId = req.farmId
     // Run aggregation and status breakdown in parallel
     const [[summary], statusRows] = await Promise.all([
-      db('cows')
+      db('animals')
         .where('farm_id', farmId)
         .whereNull('deleted_at')
         .select(
@@ -96,7 +96,7 @@ router.get('/herd-summary', async (req, res, next) => {
             "SUM(CASE WHEN life_phase_override IN ('heifer', 'ewe') THEN 1 ELSE 0 END) as heifer_count"
           )
         ),
-      db('cows')
+      db('animals')
         .where('farm_id', farmId)
         .whereNull('deleted_at')
         .select('status')

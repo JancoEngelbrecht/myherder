@@ -11,13 +11,13 @@ router.get('/milk-trends', async (req, res, next) => {
 
     const rows = await db('milk_records')
       .where('milk_records.farm_id', req.farmId)
-      .join('cows', 'milk_records.cow_id', 'cows.id')
-      .whereNull('cows.deleted_at')
+      .join('animals', 'milk_records.animal_id', 'animals.id')
+      .whereNull('animals.deleted_at')
       .whereBetween('recording_date', [start, end])
       .select(db.raw(`${monthExpr('recording_date')} as month`))
       .sum('litres as total_litres')
       .count('* as record_count')
-      .countDistinct('cow_id as cow_count')
+      .countDistinct('animal_id as animal_count')
       .groupByRaw(monthExpr('recording_date'))
       .orderBy('month')
 
@@ -25,7 +25,7 @@ router.get('/milk-trends', async (req, res, next) => {
       month: row.month,
       total_litres: round2(Number(row.total_litres) || 0),
       record_count: Number(row.record_count),
-      avg_per_cow: round2((Number(row.total_litres) || 0) / (Number(row.cow_count) || 1)),
+      avg_per_cow: round2((Number(row.total_litres) || 0) / (Number(row.animal_count) || 1)),
     }))
 
     res.json({ months })
@@ -41,7 +41,7 @@ router.get('/top-producers', async (req, res, next) => {
 
     const rows = await db('milk_records as m')
       .where('m.farm_id', req.farmId)
-      .join('cows as c', 'm.cow_id', 'c.id')
+      .join('animals as c', 'm.animal_id', 'c.id')
       .whereNull('c.deleted_at')
       .whereBetween('m.recording_date', [start, end])
       .select('c.id', 'c.tag_number', 'c.name')
@@ -132,26 +132,28 @@ router.get('/litres-per-cow', async (req, res, next) => {
   try {
     const { start, end } = defaultRange(req.query.from, req.query.to)
 
-    // Count distinct (cow_id, recording_date) pairs as cow-days for accurate per-cow-per-day avg
+    // Count distinct (animal_id, recording_date) pairs as animal-days for accurate per-animal-per-day avg
     const rows = await db('milk_records')
       .where('farm_id', req.farmId)
       .whereBetween('recording_date', [start, end])
       .select(
         db.raw(`${monthExpr('recording_date')} as month`),
         db.raw('SUM(litres) as total_litres'),
-        db.raw('COUNT(DISTINCT cow_id) as cow_count'),
-        db.raw(`COUNT(DISTINCT (${concatExpr('cow_id', "'-'", 'recording_date')})) as cow_days`)
+        db.raw('COUNT(DISTINCT animal_id) as animal_count'),
+        db.raw(
+          `COUNT(DISTINCT (${concatExpr('animal_id', "'-'", 'recording_date')})) as animal_days`
+        )
       )
       .groupByRaw(monthExpr('recording_date'))
       .orderBy('month')
 
     const months = rows.map((r) => {
       const totalLitres = Number(r.total_litres) || 0
-      const cowDays = Number(r.cow_days) || 1
+      const animalDays = Number(r.animal_days) || 1
       return {
         month: r.month,
-        avg_litres_per_cow_per_day: round2(totalLitres / cowDays),
-        cow_count: Number(r.cow_count),
+        avg_litres_per_cow_per_day: round2(totalLitres / animalDays),
+        cow_count: Number(r.animal_count),
       }
     })
 
@@ -168,7 +170,7 @@ router.get('/bottom-producers', async (req, res, next) => {
 
     const rows = await db('milk_records as m')
       .where('m.farm_id', req.farmId)
-      .join('cows as c', 'm.cow_id', 'c.id')
+      .join('animals as c', 'm.animal_id', 'c.id')
       .whereNull('c.deleted_at')
       .whereBetween('m.recording_date', [start, end])
       .select('c.id', 'c.tag_number', 'c.name')

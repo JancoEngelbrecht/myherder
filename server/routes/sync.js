@@ -24,7 +24,8 @@ const pushSchema = Joi.object({
       Joi.object({
         entityType: Joi.string()
           .valid(
-            'cows',
+            'animals',
+            'cows', // backward compat alias — accept for 1 release cycle
             'medications',
             'treatments',
             'healthIssues',
