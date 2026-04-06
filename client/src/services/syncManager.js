@@ -153,7 +153,7 @@ async function pullChanges(fullPull = false) {
 
     // Bulk upsert into IndexedDB tables
     const tables = {
-      cows: data.cows,
+      animals: data.animals,
       medications: data.medications,
       treatments: data.treatments,
       healthIssues: data.healthIssues,

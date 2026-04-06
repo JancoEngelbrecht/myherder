@@ -38,7 +38,7 @@ export const useAuthStore = defineStore('auth', () => {
     return (user.value?.permissions || []).includes(perm)
   }
 
-  const canManageCows = computed(() => hasPermission('can_manage_cows'))
+  const canManageAnimals = computed(() => hasPermission('can_manage_animals'))
 
   async function hydrate() {
     if (hydrated.value) return
@@ -168,10 +168,10 @@ export const useAuthStore = defineStore('auth', () => {
     const speciesStore = useSpeciesStore()
     speciesStore.fetchAll().catch(() => {})
     initialSync().catch(() => {})
-    // Eagerly fetch cows after login
-    const { useCowsStore } = await import('./cows.js')
-    const cowsStore = useCowsStore()
-    cowsStore.fetchAll().catch(() => {})
+    // Eagerly fetch animals after login
+    const { useAnimalsStore } = await import('./animals.js')
+    const animalsStore = useAnimalsStore()
+    animalsStore.fetchAll().catch(() => {})
     // Load farm list for farm switcher (non-super-admin only)
     fetchMyFarms().catch(() => {})
   }
@@ -453,7 +453,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAdmin,
     isSuperAdmin,
     isInFarmContext,
-    canManageCows,
+    canManageAnimals,
     hasPermission,
     hydrate,
     login,

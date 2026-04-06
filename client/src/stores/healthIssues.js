@@ -20,13 +20,13 @@ export const useHealthIssuesStore = defineStore('healthIssues', () => {
     loadingByCow.value = true
     error.value = null
     try {
-      const { data } = await api.get('/health-issues', { params: { cow_id: cowId } })
-      issues.value = [...issues.value.filter((i) => i.cow_id !== cowId), ...data]
+      const { data } = await api.get('/health-issues', { params: { animal_id: cowId } })
+      issues.value = [...issues.value.filter((i) => i.animal_id !== cowId), ...data]
       await db.healthIssues.bulkPut(data)
       return data
     } catch (err) {
-      const local = await db.healthIssues.where('cow_id').equals(cowId).toArray()
-      issues.value = [...issues.value.filter((i) => i.cow_id !== cowId), ...local]
+      const local = await db.healthIssues.where('animal_id').equals(cowId).toArray()
+      issues.value = [...issues.value.filter((i) => i.animal_id !== cowId), ...local]
       error.value = extractApiError(err)
       return local
     } finally {
@@ -132,7 +132,7 @@ export const useHealthIssuesStore = defineStore('healthIssues', () => {
   }
 
   function getCowIssues(cowId) {
-    return issues.value.filter((i) => i.cow_id === cowId)
+    return issues.value.filter((i) => i.animal_id === cowId)
   }
 
   async function fetchAll(params = {}) {

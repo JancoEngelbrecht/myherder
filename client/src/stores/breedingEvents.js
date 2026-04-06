@@ -6,11 +6,11 @@ import db from '../db/indexedDB'
 import { enqueue, dequeueByEntityId, isOfflineError } from '../services/syncManager'
 import { extractApiError } from '../utils/apiError'
 
-/** Keep only the latest event per cow, sorted by the given date field */
+/** Keep only the latest event per animal, sorted by the given date field */
 function latestPerCow(arr, field) {
   const map = {}
   for (const e of arr) {
-    if (!map[e.cow_id] || e.event_date > map[e.cow_id].event_date) map[e.cow_id] = e
+    if (!map[e.animal_id] || e.event_date > map[e.animal_id].event_date) map[e.animal_id] = e
   }
   return Object.values(map).sort((a, b) => (a[field] || '').localeCompare(b[field] || ''))
 }
@@ -36,8 +36,8 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
     try {
       const payload = (await api.get('/breeding-events', { params: filters })).data
 
-      if (filters.cow_id && !filters.page && !filters.limit) {
-        // cow_id without pagination → plain array; return directly without updating global paginated state
+      if (filters.animal_id && !filters.page && !filters.limit) {
+        // animal_id without pagination → plain array; return directly without updating global paginated state
         await db.breedingEvents.bulkPut(payload)
         return payload
       }
@@ -49,14 +49,14 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
       return payload.data
     } catch (err) {
       error.value = extractApiError(err)
-      if (filters.cow_id && !filters.page && !filters.limit) {
-        // Non-paginated cow query — return plain array from IndexedDB
-        return db.breedingEvents.where('cow_id').equals(filters.cow_id).toArray()
+      if (filters.animal_id && !filters.page && !filters.limit) {
+        // Non-paginated animal query — return plain array from IndexedDB
+        return db.breedingEvents.where('animal_id').equals(filters.animal_id).toArray()
       }
-      // Paginated fallback (global or cow-filtered)
+      // Paginated fallback (global or animal-filtered)
       let local = await db.breedingEvents.orderBy('event_date').reverse().toArray()
-      if (filters.cow_id) {
-        local = local.filter((e) => e.cow_id === filters.cow_id)
+      if (filters.animal_id) {
+        local = local.filter((e) => e.animal_id === filters.animal_id)
       }
       events.value = local
       total.value = local.length
@@ -67,7 +67,7 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
   }
 
   function fetchForCow(cowId) {
-    return fetchAll({ cow_id: cowId })
+    return fetchAll({ animal_id: cowId })
   }
 
   async function fetchUpcoming() {
@@ -254,9 +254,9 @@ export const useBreedingEventsStore = defineStore('breedingEvents', () => {
       upcoming.needsAttention.length
   )
 
-  // Latest event per cow — used in CowDetailView repro summary
+  // Latest event per animal — used in AnimalDetailView repro summary
   function latestForCow(cowId, eventsArr) {
-    const arr = (eventsArr || events.value).filter((e) => e.cow_id === cowId)
+    const arr = (eventsArr || events.value).filter((e) => e.animal_id === cowId)
     if (arr.length === 0) return null
     return arr.reduce(
       (latest, e) => (!latest || e.event_date > latest.event_date ? e : latest),

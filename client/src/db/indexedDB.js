@@ -3,14 +3,14 @@ import { ref } from 'vue'
 
 // ── Schema (single source of truth) ────────────────────────────
 const CURRENT_SCHEMA = {
-  cows: 'id, tag_number, name, status, sex, updated_at',
+  animals: 'id, tag_number, name, status, sex, updated_at',
   auth: 'key',
   medications: 'id, name, is_active, updated_at',
-  treatments: 'id, cow_id, medication_id, treatment_date, withdrawal_end_milk, updated_at',
-  healthIssues: 'id, cow_id, issue_type, status, observed_at, updated_at',
-  milkRecords: 'id, cow_id, session, recording_date, updated_at',
+  treatments: 'id, animal_id, medication_id, treatment_date, withdrawal_end_milk, updated_at',
+  healthIssues: 'id, animal_id, issue_type, status, observed_at, updated_at',
+  milkRecords: 'id, animal_id, session, recording_date, updated_at',
   breedingEvents:
-    'id, cow_id, event_type, event_date, expected_calving, expected_next_heat, updated_at',
+    'id, animal_id, event_type, event_date, expected_calving, expected_next_heat, updated_at',
   breedTypes: 'id, code, name, is_active, sort_order',
   issueTypes: 'id, code, is_active, sort_order',
   syncQueue: '++autoId, id, entityType, action, createdAt, attempts, [entityType+id]',
@@ -36,6 +36,8 @@ function createDb(dbName) {
   instance.version(10).stores(CURRENT_SCHEMA)
   // v11: added species table
   instance.version(11).stores(CURRENT_SCHEMA)
+  // v12: renamed cows → animals table; cow_id → animal_id indexes
+  instance.version(12).stores(CURRENT_SCHEMA)
   return instance
 }
 

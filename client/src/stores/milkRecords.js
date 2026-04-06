@@ -9,13 +9,13 @@ import { extractApiError } from '../utils/apiError'
 const DEBOUNCE_MS = 1500
 
 export const useMilkRecordsStore = defineStore('milkRecords', () => {
-  // Map: cow_id → record (for the currently viewed session/date)
+  // Map: animal_id → record (for the currently viewed session/date)
   const records = reactive({})
-  // Map: cow_id → 'idle' | 'saving' | 'saved' | 'error'
+  // Map: animal_id → 'idle' | 'saving' | 'saved' | 'error'
   const syncStatus = reactive({})
-  // Non-reactive debounce timers: cow_id → timeoutId
+  // Non-reactive debounce timers: animal_id → timeoutId
   const debounceTimers = {}
-  // Non-reactive pending write args: cow_id → latest autoSave args (kept in sync with debounceTimers)
+  // Non-reactive pending write args: animal_id → latest autoSave args (kept in sync with debounceTimers)
   const pendingData = {}
 
   const loading = ref(false)
@@ -28,7 +28,7 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
   // ── Fetch ───────────────────────────────────────────────────────────────────
 
   async function fetchSession(date, session) {
-    // Show loading immediately so the cow list is hidden during flush + fetch
+    // Show loading immediately so the animal list is hidden during flush + fetch
     loading.value = true
     error.value = null
 
@@ -53,7 +53,7 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
     try {
       const { data } = await api.get('/milk-records', { params: { date, session } })
       for (const row of data) {
-        records[row.cow_id] = row
+        records[row.animal_id] = row
       }
       await db.milkRecords.bulkPut(data)
     } catch (err) {
@@ -64,7 +64,7 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
         .and((r) => r.recording_date === date)
         .toArray()
       for (const row of local) {
-        records[row.cow_id] = row
+        records[row.animal_id] = row
       }
       error.value = extractApiError(err)
     } finally {
@@ -74,12 +74,12 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
 
   async function fetchCowHistory(cowId) {
     try {
-      const { data } = await api.get('/milk-records', { params: { cow_id: cowId } })
+      const { data } = await api.get('/milk-records', { params: { animal_id: cowId } })
       await db.milkRecords.bulkPut(data)
       return data
     } catch (err) {
       error.value = extractApiError(err)
-      return db.milkRecords.where('cow_id').equals(cowId).toArray()
+      return db.milkRecords.where('animal_id').equals(cowId).toArray()
     }
   }
 
@@ -112,7 +112,7 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
       }
     } else {
       records[cowId] = {
-        cow_id: cowId,
+        animal_id: cowId,
         litres,
         session,
         recording_date: date,
@@ -195,7 +195,7 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
     // Build local record for IndexedDB + queue
     const localRecord = {
       id: existingId || uuidv4(),
-      cow_id: cowId,
+      animal_id: cowId,
       session,
       recording_date: date,
       session_time: effectiveTime,
@@ -210,7 +210,7 @@ export const useMilkRecordsStore = defineStore('milkRecords', () => {
         result = data
       } else {
         const { data } = await api.post('/milk-records', {
-          cow_id: cowId,
+          animal_id: cowId,
           session,
           recording_date: date,
           session_time: effectiveTime,

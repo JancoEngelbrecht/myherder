@@ -5,7 +5,7 @@ import api from '../services/api'
 import db from '../db/indexedDB'
 import { enqueue, dequeueByEntityId, isOfflineError } from '../services/syncManager'
 import { extractApiError } from '../utils/apiError'
-import { computeLifePhase } from './cows'
+import { computeLifePhase } from './animals'
 
 export const useTreatmentsStore = defineStore('treatments', () => {
   const treatments = ref([])
@@ -20,13 +20,13 @@ export const useTreatmentsStore = defineStore('treatments', () => {
     loadingByCow.value = true
     error.value = null
     try {
-      const { data } = await api.get('/treatments', { params: { cow_id: cowId } })
-      treatments.value = [...treatments.value.filter((t) => t.cow_id !== cowId), ...data]
+      const { data } = await api.get('/treatments', { params: { animal_id: cowId } })
+      treatments.value = [...treatments.value.filter((t) => t.animal_id !== cowId), ...data]
       await db.treatments.bulkPut(data)
       return data
     } catch (err) {
-      const local = await db.treatments.where('cow_id').equals(cowId).toArray()
-      treatments.value = [...treatments.value.filter((t) => t.cow_id !== cowId), ...local]
+      const local = await db.treatments.where('animal_id').equals(cowId).toArray()
+      treatments.value = [...treatments.value.filter((t) => t.animal_id !== cowId), ...local]
       error.value = extractApiError(err)
       return local
     } finally {
@@ -53,9 +53,9 @@ export const useTreatmentsStore = defineStore('treatments', () => {
 
       const byCow = {}
       for (const t of active) {
-        const existing = byCow[t.cow_id]
+        const existing = byCow[t.animal_id]
         if (!existing) {
-          byCow[t.cow_id] = { ...t }
+          byCow[t.animal_id] = { ...t }
           continue
         }
         if (
@@ -73,13 +73,13 @@ export const useTreatmentsStore = defineStore('treatments', () => {
           existing.withdrawal_end_meat = t.withdrawal_end_meat
         }
       }
-      // Resolve sex + life phase from cached cows so the frontend can split milk vs meat
-      const cowIds = Object.keys(byCow)
-      if (cowIds.length > 0) {
-        const cows = await db.cows.bulkGet(cowIds)
+      // Resolve sex + life phase from cached animals so the frontend can split milk vs meat
+      const animalIds = Object.keys(byCow)
+      if (animalIds.length > 0) {
+        const animalList = await db.animals.bulkGet(animalIds)
         // Try to fetch breed types for accurate life phase thresholds
         const breedTypeIds = [
-          ...new Set(cows.filter((c) => c?.breed_type_id).map((c) => c.breed_type_id)),
+          ...new Set(animalList.filter((a) => a?.breed_type_id).map((a) => a.breed_type_id)),
         ]
         const breedTypeMap = {}
         try {
@@ -92,14 +92,14 @@ export const useTreatmentsStore = defineStore('treatments', () => {
         } catch {
           // breed_types table may not exist offline — use defaults
         }
-        for (const cow of cows) {
-          if (cow && byCow[cow.id]) {
-            byCow[cow.id].sex = cow.sex
-            byCow[cow.id].tag_number = byCow[cow.id].tag_number || cow.tag_number
-            byCow[cow.id].cow_name = byCow[cow.id].cow_name || cow.name
-            byCow[cow.id].life_phase = computeLifePhase(
-              cow,
-              breedTypeMap[cow.breed_type_id] ?? null
+        for (const animal of animalList) {
+          if (animal && byCow[animal.id]) {
+            byCow[animal.id].sex = animal.sex
+            byCow[animal.id].tag_number = byCow[animal.id].tag_number || animal.tag_number
+            byCow[animal.id].animal_name = byCow[animal.id].animal_name || animal.name
+            byCow[animal.id].life_phase = computeLifePhase(
+              animal,
+              breedTypeMap[animal.breed_type_id] ?? null
             )
           }
         }
@@ -190,7 +190,7 @@ export const useTreatmentsStore = defineStore('treatments', () => {
   }
 
   function getCowTreatments(cowId) {
-    return treatments.value.filter((t) => t.cow_id === cowId)
+    return treatments.value.filter((t) => t.animal_id === cowId)
   }
 
   function getById(id) {
