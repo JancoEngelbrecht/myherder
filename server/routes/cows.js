@@ -13,7 +13,7 @@ const {
   MAX_PAGE_SIZE,
   DEFAULT_PAGE_SIZE,
   parsePagination,
-  COW_STATUSES,
+  ANIMAL_STATUSES,
   joiMsg,
   validateBody,
   validateQuery,
@@ -34,7 +34,7 @@ const cowSchema = Joi.object({
   breed_type_id: Joi.string().max(36).allow(null, ''),
   sex: Joi.string().valid('female', 'male').default('female'),
   status: Joi.string()
-    .valid(...COW_STATUSES)
+    .valid(...ANIMAL_STATUSES)
     .default('active'),
   sire_id: Joi.string().uuid().allow(null),
   dam_id: Joi.string().uuid().allow(null),
@@ -51,7 +51,7 @@ const cowUpdateSchema = cowSchema.fork('tag_number', (s) => s.optional())
 
 const cowQuerySchema = Joi.object({
   search: Joi.string().max(100).allow(''),
-  status: Joi.string().valid(...COW_STATUSES),
+  status: Joi.string().valid(...ANIMAL_STATUSES),
   sex: Joi.string().valid('female', 'male'),
   breed_type_id: Joi.string().max(36),
   life_phase: Joi.string().valid(

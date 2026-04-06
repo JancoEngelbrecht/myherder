@@ -48,8 +48,8 @@ function parsePagination(query, defaults = {}) {
 /** Milliseconds per day */
 const MS_PER_DAY = 1000 * 60 * 60 * 24
 
-/** All valid cow status values */
-const COW_STATUSES = ['active', 'dry', 'pregnant', 'sick', 'sold', 'dead']
+/** All valid animal status values */
+const ANIMAL_STATUSES = ['active', 'dry', 'pregnant', 'sick', 'sold', 'dead']
 
 /** Extract a clean error message from a Joi validation error */
 function joiMsg(error) {
@@ -86,7 +86,7 @@ module.exports = {
   MAX_SEARCH_LENGTH,
   parsePagination,
   MS_PER_DAY,
-  COW_STATUSES,
+  ANIMAL_STATUSES,
   joiMsg,
   validateBody,
   validateQuery,
