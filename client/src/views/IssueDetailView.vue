@@ -18,13 +18,13 @@
         <!-- Date & cow -->
         <div class="card">
           <div class="detail-date mono">{{ formatDateTime(issue.observed_at) }}</div>
-          <RouterLink :to="`/cows/${issue.cow_id}`" class="cow-row">
-            <span class="cow-emoji">🐄</span>
-            <div class="cow-info">
-              <span class="cow-tag mono">{{ issue.tag_number }}</span>
-              <span class="cow-name">{{ issue.cow_name || '—' }}</span>
+          <RouterLink :to="`/animals/${issue.cow_id}`" class="animal-row">
+            <span class="animal-emoji">🐄</span>
+            <div class="animal-info">
+              <span class="animal-tag mono">{{ issue.tag_number }}</span>
+              <span class="animal-name">{{ issue.cow_name || '—' }}</span>
             </div>
-            <span class="cow-chevron">›</span>
+            <span class="animal-chevron">›</span>
           </RouterLink>
         </div>
 
@@ -145,7 +145,7 @@
               {{ t('healthIssues.markResolved') }}
             </button>
             <RouterLink
-              :to="`/log/treatment?cow_id=${issue.cow_id}&health_issue_id=${route.params.id}`"
+              :to="`/log/treatment?animal_id=${issue.cow_id}&health_issue_id=${route.params.id}`"
               class="btn-secondary action-btn log-treatment-link"
             >
               💊 {{ t('healthIssues.logTreatment') }}
@@ -317,7 +317,7 @@ async function handleDelete() {
   margin-bottom: 12px;
 }
 
-.cow-row {
+.animal-row {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -327,29 +327,29 @@ async function handleDelete() {
   color: var(--text);
 }
 
-.cow-emoji {
+.animal-emoji {
   font-size: 1.25rem;
 }
 
-.cow-info {
+.animal-info {
   display: flex;
   flex-direction: column;
   gap: 1px;
   flex: 1;
 }
 
-.cow-tag {
+.animal-tag {
   font-size: 0.8rem;
   color: var(--primary);
   font-weight: 600;
 }
 
-.cow-name {
+.animal-name {
   font-size: 0.9rem;
   font-weight: 500;
 }
 
-.cow-chevron {
+.animal-chevron {
   color: var(--primary);
   font-size: 1.1rem;
   font-weight: 600;

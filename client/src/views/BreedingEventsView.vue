@@ -27,7 +27,10 @@
         <!-- Cow group -->
         <div class="filter-group">
           <span class="filter-group-title">{{ t('breeding.filterGroupCow') }}</span>
-          <CowSearchDropdown v-model="cowFilter" :placeholder="t('breeding.form.cowPlaceholder')" />
+          <AnimalSearchDropdown
+            v-model="cowFilter"
+            :placeholder="t('breeding.form.cowPlaceholder')"
+          />
           <div class="filter-chips filter-chips-wrap">
             <button
               class="chip"
@@ -151,7 +154,7 @@ import { useRouter } from 'vue-router'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import BreedingEventCard from '../components/molecules/BreedingEventCard.vue'
 import ConfirmDialog from '../components/molecules/ConfirmDialog.vue'
-import CowSearchDropdown from '../components/molecules/CowSearchDropdown.vue'
+import AnimalSearchDropdown from '../components/molecules/AnimalSearchDropdown.vue'
 import PaginationBar from '../components/atoms/PaginationBar.vue'
 import { useBreedingEventsStore } from '../stores/breedingEvents'
 import { useAuthStore } from '../stores/auth'

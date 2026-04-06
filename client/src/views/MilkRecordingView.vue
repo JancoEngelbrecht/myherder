@@ -101,7 +101,7 @@ import AppHeader from '../components/organisms/AppHeader.vue'
 import MilkEntryCard from '../components/molecules/MilkEntryCard.vue'
 import SearchInput from '../components/atoms/SearchInput.vue'
 import TourButton from '../components/atoms/TourButton.vue'
-import { useCowsStore, computeLifePhase } from '../stores/cows'
+import { useAnimalsStore, computeLifePhase } from '../stores/animals'
 import { useTreatmentsStore } from '../stores/treatments'
 import { useMilkRecordsStore } from '../stores/milkRecords'
 import { resolveError } from '../utils/apiError'
@@ -109,7 +109,7 @@ import { useTour } from '../composables/useTour.js'
 
 const { t } = useI18n()
 
-const cowsStore = useCowsStore()
+const animalsStore = useAnimalsStore()
 const treatmentsStore = useTreatmentsStore()
 const milkStore = useMilkRecordsStore()
 
@@ -143,7 +143,7 @@ const MILKING_PHASES = new Set(['cow', 'ewe'])
 const isMilkable = (c) => c.sex !== 'male' && MILKING_PHASES.has(computeLifePhase(c))
 
 const qualifyingCows = computed(() =>
-  cowsStore.cows.filter((c) => isMilkable(c) && c.status === 'active')
+  animalsStore.animals.filter((c) => isMilkable(c) && c.status === 'active')
 )
 
 const filteredCows = computed(() => {
@@ -235,7 +235,7 @@ async function loadRecords() {
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 onMounted(async () => {
-  await cowsStore.fetchAll()
+  await animalsStore.fetchAll()
   await loadRecords()
 })
 

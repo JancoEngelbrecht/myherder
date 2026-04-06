@@ -88,14 +88,14 @@ import { useRouter } from 'vue-router'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import TourButton from '../components/atoms/TourButton.vue'
 import { useBreedingEventsStore } from '../stores/breedingEvents'
-import { useCowsStore } from '../stores/cows'
+import { useAnimalsStore } from '../stores/animals'
 import { resolveError } from '../utils/apiError'
 import { useTour } from '../composables/useTour.js'
 
 const { t } = useI18n()
 const router = useRouter()
 const breedingStore = useBreedingEventsStore()
-const cowsStore = useCowsStore()
+const animalsStore = useAnimalsStore()
 
 const { startTour } = useTour('breeding-hub', () => [
   {
@@ -134,12 +134,12 @@ function goTo(path) {
 
 // ── Stats ────────────────────────────────────────────────────────────────────
 const pregnantCount = computed(
-  () => cowsStore.cows.filter((c) => c.sex !== 'male' && c.status === 'pregnant').length
+  () => animalsStore.animals.filter((c) => c.sex !== 'male' && c.status === 'pregnant').length
 )
 
 const openCount = computed(
   () =>
-    cowsStore.cows.filter(
+    animalsStore.animals.filter(
       (c) =>
         c.sex !== 'male' && c.status !== 'pregnant' && c.status !== 'sold' && c.status !== 'dead'
     ).length
@@ -179,7 +179,7 @@ const latestEventLabel = computed(() => {
 
 // ── Lifecycle ────────────────────────────────────────────────────────────────
 onMounted(async () => {
-  if (cowsStore.cows.length === 0) await cowsStore.fetchAll()
+  if (animalsStore.animals.length === 0) await animalsStore.fetchAll()
   const [eventsData] = await Promise.all([
     breedingStore.fetchAll({ limit: 1 }),
     breedingStore.fetchUpcoming(),

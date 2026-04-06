@@ -505,7 +505,7 @@ const dismissingAll = ref(false)
 const dismissAllIds = ref([])
 
 function goToRepro(cowId) {
-  router.push(`/cows/${cowId}/repro`)
+  router.push(`/animals/${cowId}/repro`)
 }
 
 function openDismiss(item) {

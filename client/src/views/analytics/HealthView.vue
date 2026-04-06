@@ -181,17 +181,17 @@
           <p class="chart-subtitle">{{ t('analytics.health.slowestToResolveDesc', sp) }}</p>
           <div v-if="slowestLoading" class="center-spinner"><div class="spinner" /></div>
           <template v-else-if="slowestCows.length > 0">
-            <div class="cow-list">
+            <div class="animal-list">
               <RouterLink
                 v-for="(cow, i) in slowestCows"
                 :key="cow.id"
-                :to="`/cows/${cow.id}`"
-                class="cow-item"
+                :to="`/animals/${cow.id}`"
+                class="animal-item"
               >
-                <span class="cow-rank mono">{{ i + 1 }}</span>
-                <span class="mono cow-tag">{{ cow.tag_number }}</span>
-                <span class="cow-name">{{ cow.name || '—' }}</span>
-                <span class="cow-days mono"
+                <span class="animal-rank mono">{{ i + 1 }}</span>
+                <span class="mono animal-tag">{{ cow.tag_number }}</span>
+                <span class="animal-name">{{ cow.name || '—' }}</span>
+                <span class="animal-days mono"
                   >{{ cow.avg_days }} {{ t('analytics.health.daysAvg') }}</span
                 >
               </RouterLink>
@@ -205,17 +205,17 @@
           <h2 class="analytics-title">{{ t('analytics.health.unhealthiestCows', sp) }}</h2>
           <div v-if="unhealthiestLoading" class="center-spinner"><div class="spinner" /></div>
           <template v-else-if="unhealthiest.length > 0">
-            <div class="cow-list">
+            <div class="animal-list">
               <RouterLink
                 v-for="(cow, i) in unhealthiest"
                 :key="cow.id"
-                :to="`/cows/${cow.id}`"
-                class="cow-item"
+                :to="`/animals/${cow.id}`"
+                class="animal-item"
               >
-                <span class="cow-rank mono">{{ i + 1 }}</span>
-                <span class="mono cow-tag">{{ cow.tag_number }}</span>
-                <span class="cow-name">{{ cow.name || '—' }}</span>
-                <span class="cow-count mono warn">{{ cow.issue_count }}</span>
+                <span class="animal-rank mono">{{ i + 1 }}</span>
+                <span class="mono animal-tag">{{ cow.tag_number }}</span>
+                <span class="animal-name">{{ cow.name || '—' }}</span>
+                <span class="animal-count mono warn">{{ cow.issue_count }}</span>
               </RouterLink>
             </div>
           </template>

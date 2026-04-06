@@ -32,7 +32,12 @@ const animalsLabelKey = computed(() => (speciesCode.value === 'sheep' ? 'nav.she
 
 const allTabs = computed(() => [
   { name: 'home', to: '/', icon: '🏠', labelKey: 'nav.home' },
-  { name: 'cows', to: '/cows', icon: speciesEmoji.value.female, labelKey: animalsLabelKey.value },
+  {
+    name: 'animals',
+    to: '/animals',
+    icon: speciesEmoji.value.female,
+    labelKey: animalsLabelKey.value,
+  },
   {
     name: 'milk',
     to: '/milk',
@@ -61,7 +66,8 @@ const visibleTabs = computed(() =>
 
 function isActive(tab) {
   if (tab.name === 'home') return route.path === '/'
-  if (tab.name === 'cows') return route.path.startsWith('/cows')
+  if (tab.name === 'animals')
+    return route.path.startsWith('/animals') || route.path.startsWith('/cows')
   if (tab.name === 'breed') return route.path.startsWith('/breed')
   return route.path === tab.to
 }

@@ -120,12 +120,12 @@
 
 /* ── Cow ranking lists ──────────────────────────────── */
 
-.cow-list,
+.animal-list,
 .producers-list {
   margin-top: 12px;
 }
 
-.cow-item,
+.animal-item,
 .producer-item {
   display: flex;
   align-items: center;
@@ -137,12 +137,12 @@
   font-size: 0.875rem;
 }
 
-.cow-item:last-child,
+.animal-item:last-child,
 .producer-item:last-child {
   border-bottom: none;
 }
 
-.cow-rank,
+.animal-rank,
 .producer-rank {
   width: 20px;
   text-align: center;
@@ -151,25 +151,25 @@
   font-size: 0.75rem;
 }
 
-.cow-tag,
+.animal-tag,
 .producer-tag {
   font-size: 0.8125rem;
   color: var(--primary);
   font-weight: 600;
 }
 
-.cow-name,
+.animal-name,
 .producer-name {
   flex: 1;
   font-weight: 500;
 }
 
-.cow-count {
+.animal-count {
   font-size: 0.8125rem;
   font-weight: 700;
 }
 
-.cow-count.warn,
+.animal-count.warn,
 .producer-avg.warn {
   color: var(--danger);
 }
@@ -260,7 +260,7 @@
 
 /* ── Cow days (slowest-to-resolve value) ──────────────── */
 
-.cow-days {
+.animal-days {
   font-size: 0.8125rem;
   font-weight: 700;
   color: var(--warning);

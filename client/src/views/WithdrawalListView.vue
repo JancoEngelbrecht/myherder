@@ -56,7 +56,7 @@
                   <span class="tag-number mono">{{ item.tag_number }}</span>
                   <span v-if="item.cow_name" class="cow-name">{{ item.cow_name }}</span>
                 </div>
-                <RouterLink :to="`/cows/${item.cow_id}`" class="view-link">
+                <RouterLink :to="`/animals/${item.cow_id}`" class="view-link">
                   {{ $t('common.view') }} →
                 </RouterLink>
               </div>
@@ -123,7 +123,7 @@
                   <span class="tag-number mono">{{ item.tag_number }}</span>
                   <span v-if="item.cow_name" class="cow-name">{{ item.cow_name }}</span>
                 </div>
-                <RouterLink :to="`/cows/${item.cow_id}`" class="view-link">
+                <RouterLink :to="`/animals/${item.cow_id}`" class="view-link">
                   {{ $t('common.view') }} →
                 </RouterLink>
               </div>

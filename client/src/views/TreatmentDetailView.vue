@@ -18,13 +18,13 @@
         <!-- Date & cow -->
         <div class="card">
           <div class="detail-date mono">{{ formatDateTime(treatment.treatment_date) }}</div>
-          <RouterLink :to="`/cows/${treatment.cow_id}`" class="cow-row">
-            <span class="cow-emoji">🐄</span>
-            <div class="cow-info">
-              <span class="cow-tag mono">{{ treatment.tag_number }}</span>
-              <span class="cow-name">{{ treatment.cow_name || '—' }}</span>
+          <RouterLink :to="`/animals/${treatment.cow_id}`" class="animal-row">
+            <span class="animal-emoji">🐄</span>
+            <div class="animal-info">
+              <span class="animal-tag mono">{{ treatment.tag_number }}</span>
+              <span class="animal-name">{{ treatment.cow_name || '—' }}</span>
             </div>
-            <span class="cow-chevron">›</span>
+            <span class="animal-chevron">›</span>
           </RouterLink>
         </div>
 
@@ -202,7 +202,7 @@ async function handleDelete() {
   margin-bottom: 12px;
 }
 
-.cow-row {
+.animal-row {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -212,29 +212,29 @@ async function handleDelete() {
   color: var(--text);
 }
 
-.cow-emoji {
+.animal-emoji {
   font-size: 1.25rem;
 }
 
-.cow-info {
+.animal-info {
   display: flex;
   flex-direction: column;
   gap: 1px;
   flex: 1;
 }
 
-.cow-tag {
+.animal-tag {
   font-size: 0.8rem;
   color: var(--primary);
   font-weight: 600;
 }
 
-.cow-name {
+.animal-name {
   font-size: 0.9rem;
   font-weight: 500;
 }
 
-.cow-chevron {
+.animal-chevron {
   color: var(--primary);
   font-size: 1.1rem;
   font-weight: 600;

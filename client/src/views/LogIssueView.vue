@@ -7,7 +7,7 @@
         <!-- Cow selector -->
         <div data-tour="issue-cow" class="form-group">
           <label>{{ animalLabel }} *</label>
-          <CowSearchDropdown
+          <AnimalSearchDropdown
             v-model="form.cow_id"
             :placeholder="$t('healthIssues.cowPlaceholder', { animal: animalLabel })"
             :error="errors.cow_id"
@@ -106,7 +106,7 @@ import { useI18n } from 'vue-i18n'
 import { useHealthIssuesStore } from '../stores/healthIssues'
 import { useIssueTypesStore } from '../stores/issueTypes'
 import AppHeader from '../components/organisms/AppHeader.vue'
-import CowSearchDropdown from '../components/molecules/CowSearchDropdown.vue'
+import AnimalSearchDropdown from '../components/molecules/AnimalSearchDropdown.vue'
 import TeatSelector from '../components/molecules/TeatSelector.vue'
 import TourButton from '../components/atoms/TourButton.vue'
 import { extractApiError, resolveError } from '../utils/apiError'
@@ -158,8 +158,8 @@ const { startTour } = useTour('health-issues', () => [
   },
 ])
 
-const prefillCowId = route.query.cow_id || ''
-const backRoute = prefillCowId ? `/cows/${prefillCowId}` : '/'
+const prefillCowId = route.query.cow_id || route.query.animal_id || ''
+const backRoute = prefillCowId ? `/animals/${prefillCowId}` : '/'
 
 const issueTypes = computed(() => issueTypesStore.activeTypes)
 

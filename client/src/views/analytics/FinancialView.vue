@@ -97,7 +97,7 @@
               <RouterLink
                 v-for="(cow, i) in topProducers"
                 :key="cow.id"
-                :to="`/cows/${cow.id}`"
+                :to="`/animals/${cow.id}`"
                 class="producer-item"
               >
                 <span class="producer-rank mono">{{ i + 1 }}</span>
@@ -122,7 +122,7 @@
               <RouterLink
                 v-for="(cow, i) in bottomProducers"
                 :key="cow.id"
-                :to="`/cows/${cow.id}`"
+                :to="`/animals/${cow.id}`"
                 class="producer-item"
               >
                 <span class="producer-rank mono">{{ i + 1 }}</span>

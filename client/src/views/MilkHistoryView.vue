@@ -63,7 +63,7 @@
         <!-- Cow filter -->
         <div class="filter-group">
           <span class="filter-group-title">{{ t('milkHistory.filterCow') }}</span>
-          <CowSearchDropdown
+          <AnimalSearchDropdown
             v-model="cowFilter"
             :placeholder="t('milkHistory.searchPlaceholder')"
             sex-filter="female"
@@ -149,7 +149,7 @@ import AppHeader from '../components/organisms/AppHeader.vue'
 import MilkRecordCard from '../components/molecules/MilkRecordCard.vue'
 import SearchInput from '../components/atoms/SearchInput.vue'
 import PaginationBar from '../components/atoms/PaginationBar.vue'
-import CowSearchDropdown from '../components/molecules/CowSearchDropdown.vue'
+import AnimalSearchDropdown from '../components/molecules/AnimalSearchDropdown.vue'
 import TourButton from '../components/atoms/TourButton.vue'
 import api from '../services/api'
 import db from '../db/indexedDB'

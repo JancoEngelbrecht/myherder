@@ -136,7 +136,7 @@ function formatDate(iso) {
 
 function navigateToEvent() {
   if (props.showCow && props.event.cow_id) {
-    router.push(`/cows/${props.event.cow_id}`)
+    router.push(`/animals/${props.event.cow_id}`)
   }
 }
 </script>

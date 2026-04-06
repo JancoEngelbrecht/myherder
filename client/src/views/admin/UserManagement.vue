@@ -336,7 +336,7 @@ const revokeLoading = ref(false)
 
 const permLogging = ['can_log_issues', 'can_log_treatments', 'can_log_breeding', 'can_record_milk']
 const permViewing = ['can_view_analytics']
-const permManagement = ['can_manage_cows', 'can_manage_medications']
+const permManagement = ['can_manage_animals', 'can_manage_medications']
 
 const defaultForm = {
   username: '',

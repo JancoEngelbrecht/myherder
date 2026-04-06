@@ -20,7 +20,7 @@
             <span class="mono">{{ editCowLabel }}</span>
           </div>
           <template v-else>
-            <CowSearchDropdown
+            <AnimalSearchDropdown
               v-model="form.cow_id"
               :placeholder="t('breeding.form.cowPlaceholder')"
               :error="errors.cow_id"
@@ -85,7 +85,7 @@
         <template v-if="form.event_type === 'bull_service' || form.event_type === 'ram_service'">
           <div class="form-group">
             <label>{{ t(`breeding.form.sire_${speciesCode}`, t('breeding.form.sire')) }}</label>
-            <CowSearchDropdown
+            <AnimalSearchDropdown
               v-model="form.sire_id"
               :placeholder="
                 t(
@@ -235,11 +235,11 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/organisms/AppHeader.vue'
-import CowSearchDropdown from '../components/molecules/CowSearchDropdown.vue'
+import AnimalSearchDropdown from '../components/molecules/AnimalSearchDropdown.vue'
 import { useBreedingEventsStore } from '../stores/breedingEvents'
 import { getEventType, getEventTypesForSpecies } from '../config/breedingEventTypes'
 import { useBreedTypesStore } from '../stores/breedTypes'
-import { useCowsStore } from '../stores/cows'
+import { useAnimalsStore } from '../stores/animals'
 import { useSpeciesTerms } from '../composables/useSpeciesTerms'
 import api from '../services/api'
 import { extractApiError, resolveError } from '../utils/apiError'
@@ -249,7 +249,7 @@ const route = useRoute()
 const router = useRouter()
 const breedingStore = useBreedingEventsStore()
 const breedTypesStore = useBreedTypesStore()
-const cowsStore = useCowsStore()
+const animalsStore = useAnimalsStore()
 const { speciesCode, typicalMultipleBirths, maxOffspring } = useSpeciesTerms()
 
 const PREG_CHECK_METHODS = ['manual', 'ultrasound', 'blood_test']
@@ -293,7 +293,7 @@ const lastSavedCowId = ref(null)
 
 const backRoute = computed(() => {
   if (route.query.from) return String(route.query.from)
-  if (route.query.cow_id) return `/cows/${route.query.cow_id}/repro`
+  if (route.query.cow_id) return `/animals/${route.query.cow_id}/repro`
   return '/breed'
 })
 
@@ -308,7 +308,7 @@ const isBirthEvent = computed(() => ['calving', 'lambing'].includes(form.value.e
 // Look up breed timings for the selected cow
 const selectedCowBreed = computed(() => {
   if (!form.value.cow_id) return null
-  const cow = cowsStore.cows.find((c) => c.id === form.value.cow_id)
+  const cow = animalsStore.animals.find((c) => c.id === form.value.cow_id)
   if (!cow?.breed_type_id) return null
   return breedTypesStore.getById(cow.breed_type_id)
 })
@@ -416,13 +416,13 @@ function goRegisterOffspring() {
     offspring_index: '1',
     dob: new Date().toISOString().slice(0, 10),
   }
-  router.replace({ path: '/cows/new', query: q })
+  router.replace({ path: '/animals/new', query: q })
 }
 
 function skipOffspring() {
   showOffspringPrompt.value = false
   if (lastSavedCowId.value) {
-    router.replace(`/cows/${lastSavedCowId.value}/repro`)
+    router.replace(`/animals/${lastSavedCowId.value}/repro`)
   } else {
     router.replace('/breed')
   }
@@ -499,7 +499,7 @@ async function submit() {
         lastSavedCowId.value = created.cow_id
         showOffspringPrompt.value = true
       } else if (route.query.cow_id) {
-        router.replace(`/cows/${created.cow_id}/repro`)
+        router.replace(`/animals/${created.cow_id}/repro`)
       } else {
         router.replace('/breed')
       }
@@ -517,8 +517,8 @@ onMounted(async () => {
     breedTypesStore.fetchActive().catch(() => {})
   }
   // Ensure cows list is loaded for breed lookup
-  if (cowsStore.cows.length === 0) {
-    cowsStore.fetchAll().catch(() => {})
+  if (animalsStore.animals.length === 0) {
+    animalsStore.fetchAll().catch(() => {})
   }
 
   if (editMode.value) {

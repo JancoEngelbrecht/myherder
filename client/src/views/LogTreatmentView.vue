@@ -7,7 +7,7 @@
         <!-- Cow selector -->
         <div data-tour="treat-cow" class="form-group">
           <label>{{ animalLabel }} *</label>
-          <CowSearchDropdown
+          <AnimalSearchDropdown
             v-model="form.cow_id"
             :placeholder="$t('treatments.cowPlaceholder', { animal: animalLabel })"
             :error="errors.cow_id"
@@ -194,7 +194,7 @@ import { useHealthIssuesStore } from '../stores/healthIssues'
 import { useIssueTypesStore } from '../stores/issueTypes'
 import { formatDate, formatDateTime } from '../utils/format'
 import AppHeader from '../components/organisms/AppHeader.vue'
-import CowSearchDropdown from '../components/molecules/CowSearchDropdown.vue'
+import AnimalSearchDropdown from '../components/molecules/AnimalSearchDropdown.vue'
 import TourButton from '../components/atoms/TourButton.vue'
 import { extractApiError, resolveError } from '../utils/apiError'
 import { useTour } from '../composables/useTour.js'
@@ -249,9 +249,9 @@ const { startTour } = useTour('treatments', () => [
 
 const medications = computed(() => medicationsStore.medications)
 
-const prefillCowId = route.query.cow_id || ''
+const prefillCowId = route.query.cow_id || route.query.animal_id || ''
 const prefillHealthIssueId = route.query.health_issue_id || ''
-const backRoute = prefillCowId ? `/cows/${prefillCowId}` : '/'
+const backRoute = prefillCowId ? `/animals/${prefillCowId}` : '/'
 
 const form = ref({
   cow_id: prefillCowId,
