@@ -177,7 +177,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useTreatmentsStore } from '../stores/treatments'
 import { useSpeciesTerms } from '../composables/useSpeciesTerms'

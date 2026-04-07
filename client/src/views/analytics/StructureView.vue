@@ -154,7 +154,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useSpeciesTerms } from '../../composables/useSpeciesTerms'
 import { Line, Bar, Doughnut } from 'vue-chartjs'

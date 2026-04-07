@@ -275,7 +275,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useMedicationsStore } from '../../stores/medications'
 import AppHeader from '../../components/organisms/AppHeader.vue'

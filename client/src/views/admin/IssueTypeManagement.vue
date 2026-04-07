@@ -208,7 +208,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useIssueTypesStore } from '../../stores/issueTypes'
 import AppHeader from '../../components/organisms/AppHeader.vue'
