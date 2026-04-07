@@ -8,4 +8,4 @@
 //
 // In cPanel → Node.js App Setup, set "Application startup file" to: app.js
 
-module.exports = require('./server/app')
+module.exports = require('./dist/app')

@@ -14,10 +14,12 @@
     "paths": {
       "@shared/*": ["../shared/types/*"]
     },
-    "noEmit": true,
+    "outDir": "../dist",
+    "rootDir": ".",
+    "declaration": false,
     "types": ["jest", "node"],
     "ignoreDeprecations": "6.0"
   },
-  "include": ["./**/*.ts", "../shared/**/*.ts"],
+  "include": ["./**/*.ts"],
   "exclude": ["node_modules", "migrations", "seeds", "dist", "tests/**/*.ts"]
 }
