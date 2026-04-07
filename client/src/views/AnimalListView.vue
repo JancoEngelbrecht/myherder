@@ -474,8 +474,9 @@ loadAnimals()
 </script>
 
 <style scoped>
+/* 3.9 — refined search bar and filter area spacing */
 .search-bar {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .filter-chips {
@@ -492,12 +493,19 @@ loadAnimals()
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
-  padding: 0 0 12px;
+  padding: 2px 0 14px;
+  transition: color 0.15s;
+}
+
+@media (hover: hover) {
+  .advanced-toggle:hover {
+    color: var(--text);
+  }
 }
 
 .toggle-arrow {
   font-size: 0.7rem;
-  transition: transform 0.2s;
+  transition: transform 0.2s ease;
 }
 
 .toggle-arrow.open {
@@ -519,14 +527,15 @@ loadAnimals()
 }
 
 .advanced-filters {
-  background: var(--bg);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
   margin-bottom: 16px;
   display: flex;
   flex-direction: column;
   gap: 0;
+  box-shadow: var(--shadow-card);
 }
 
 .filter-group {
@@ -631,7 +640,7 @@ loadAnimals()
 @media (min-width: 600px) {
   .animal-list {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
+    gap: 14px;
   }
 }
 </style>

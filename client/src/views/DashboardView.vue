@@ -340,36 +340,39 @@ onMounted(async () => {
 <style scoped>
 /* ── Greeting ─────────────────────────────────────────────────────────── */
 .greeting {
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 
+/* 3.1 — stronger greeting typography */
 .greeting-text {
-  font-size: 1.5rem;
+  font-size: 1.625rem;
   color: var(--text-secondary);
-  font-weight: 400;
-  line-height: 1.3;
+  font-weight: 300;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 .greeting-text strong {
   color: var(--text);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* ── Section labels ───────────────────────────────────────────────────── */
 .section-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
   margin-bottom: 12px;
   display: block;
 }
 
 .section-label--spaced {
-  margin-top: 24px;
+  margin-top: 28px;
 }
 
 /* ── Herd card ────────────────────────────────────────────────────────── */
+/* 3.2 — card-accent left border + refined shadow/hover */
 .herd-card {
   display: flex;
   align-items: center;
@@ -377,20 +380,25 @@ onMounted(async () => {
   padding: 16px;
   background: var(--surface);
   border: 1px solid var(--border);
+  border-left: 3px solid rgba(4, 120, 87, 0.2);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   text-decoration: none;
   color: var(--text);
   margin-bottom: 12px;
   transition:
-    transform 0.1s,
-    box-shadow 0.15s,
-    border-color 0.15s;
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
-.herd-card:hover {
-  box-shadow: var(--shadow);
-  border-color: var(--primary-light);
+@media (hover: hover) {
+  .herd-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-colored);
+    border-color: rgba(4, 120, 87, 0.35);
+    border-left-color: rgba(4, 120, 87, 0.5);
+  }
 }
 
 .herd-card:active {
@@ -402,7 +410,7 @@ onMounted(async () => {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: rgba(45, 106, 79, 0.12);
+  background: var(--primary-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -414,13 +422,13 @@ onMounted(async () => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
 }
 
 .herd-title {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
 }
 
@@ -431,7 +439,7 @@ onMounted(async () => {
 
 .herd-chevron {
   font-size: 1.5rem;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   line-height: 1;
   flex-shrink: 0;
 }
@@ -445,6 +453,7 @@ onMounted(async () => {
 }
 
 /* ── Action card ──────────────────────────────────────────────────────── */
+/* 3.3 — improved spacing + hover lift */
 .action-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -452,19 +461,22 @@ onMounted(async () => {
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   text-decoration: none;
   color: var(--text);
   box-shadow: var(--shadow-card);
   transition:
-    transform 0.1s,
-    box-shadow 0.15s,
-    border-color 0.15s;
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
-.action-card:hover {
-  box-shadow: var(--shadow);
-  border-color: var(--primary-light);
+@media (hover: hover) {
+  .action-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    border-color: var(--border-strong);
+  }
 }
 
 .action-card:active {
@@ -478,39 +490,50 @@ onMounted(async () => {
 }
 
 /* ── Icon circle ──────────────────────────────────────────────────────── */
+/* 3.3 — slightly larger, consistent sizing */
 .icon-circle {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   flex-shrink: 0;
 }
 
 .icon-circle--blue {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.1);
 }
 
 .icon-circle--purple {
-  background: rgba(139, 92, 246, 0.12);
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.icon-circle--teal {
+  background: rgba(20, 184, 166, 0.1);
+}
+
+.icon-circle--green {
+  background: var(--primary-bg);
 }
 
 .action-title {
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
-  line-height: 1.25;
+  line-height: 1.2;
 }
 
 .action-subtitle {
   font-size: 0.8125rem;
   color: var(--text-secondary);
   line-height: 1.3;
+  margin-top: -4px;
 }
 
 /* ── More options ─────────────────────────────────────────────────────── */
+/* 3.5 — better circle sizing + label spacing */
 .more-options {
   display: flex;
   justify-content: space-evenly;
@@ -522,64 +545,77 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   text-decoration: none;
   color: var(--text);
   flex: 1;
   max-width: 96px;
+  padding: 8px 4px;
+  border-radius: var(--radius);
+  transition: background 0.15s;
+}
+
+@media (hover: hover) {
+  .option-btn:hover {
+    background: var(--surface-2);
+  }
 }
 
 .option-circle {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
-  transition: transform 0.1s;
+  font-size: 1.375rem;
+  transition: transform 0.12s ease;
 }
 
 .option-btn:active .option-circle {
-  transform: scale(0.93);
+  transform: scale(0.9);
 }
 
 .option-circle--red {
-  background: rgba(214, 40, 40, 0.12);
+  background: rgba(220, 38, 38, 0.1);
 }
 
 .option-circle--orange {
-  background: rgba(224, 124, 36, 0.12);
+  background: rgba(217, 119, 6, 0.1);
 }
 
 .option-circle--indigo {
-  background: rgba(99, 102, 241, 0.12);
+  background: rgba(99, 102, 241, 0.1);
 }
 
 .option-circle--teal {
-  background: rgba(20, 184, 166, 0.12);
+  background: rgba(20, 184, 166, 0.1);
 }
 
 .option-circle--green {
-  background: rgba(45, 106, 79, 0.12);
+  background: var(--primary-bg);
 }
 
 .option-label {
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   text-align: center;
   color: var(--text-secondary);
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .option-count {
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border-radius: var(--radius-full);
+  padding: 1px 7px;
 }
 
-/* ── Super-admin stats (unchanged) ───────────────────────────────────── */
+/* ── Super-admin stats ────────────────────────────────────────────────── */
+/* 3.4 — refine stat chips with better radius + inner shadow */
 .section {
   margin-bottom: 24px;
 }
@@ -595,21 +631,22 @@ onMounted(async () => {
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 10px;
+  gap: 6px;
+  padding: 8px 12px;
   border-radius: var(--radius);
   border: 1px solid transparent;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .stat-count {
   font-family: var(--font-mono);
-  font-size: 1rem;
+  font-size: 1.0625rem;
   font-weight: 700;
   line-height: 1;
 }
 
 .stat-label {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   line-height: 1.1;
   overflow: hidden;
@@ -635,7 +672,7 @@ onMounted(async () => {
   border-color: rgba(29, 78, 216, 0.15);
 }
 
-/* ── Super-admin actions grid (unchanged) ─────────────────────────────── */
+/* ── Super-admin actions grid ─────────────────────────────────────────── */
 .actions-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

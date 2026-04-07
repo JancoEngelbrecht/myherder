@@ -256,25 +256,28 @@ function handlePinLogin() {
 </script>
 
 <style scoped>
+/* 3.12 — refined gradient stops */
 .login-page {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   background: linear-gradient(
-    160deg,
+    165deg,
     var(--primary-dark) 0%,
-    var(--primary) 45%,
+    var(--primary) 40%,
+    #059669 70%,
     var(--primary-light) 100%
   );
 }
 
+/* 3.12 — hero section with subtle text shadow */
 .login-hero {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px 24px 24px;
+  padding: 48px 24px 28px;
   text-align: center;
   position: relative;
 }
@@ -301,28 +304,30 @@ function handlePinLogin() {
 }
 
 .login-logo {
-  font-size: 4rem;
-  margin-bottom: 12px;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+  font-size: 4.5rem;
+  margin-bottom: 14px;
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.25));
 }
 
 .login-title {
-  font-size: 2rem;
+  font-size: 2.125rem;
   font-weight: 700;
   color: #fff;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .login-farm-name {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.92);
   font-weight: 500;
-  margin-top: 4px;
+  margin-top: 6px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 .login-subtitle {
   font-size: 0.9375rem;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.72);
   margin-top: 4px;
 }
 
@@ -330,7 +335,7 @@ function handlePinLogin() {
   background: var(--bg);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   padding: 24px 20px 32px;
-  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.15);
 }
 
 .farm-code-group {
@@ -344,6 +349,7 @@ function handlePinLogin() {
   font-weight: 600;
 }
 
+/* 3.11 — tab switcher with smoother active transition */
 .login-tabs {
   display: flex;
   background: var(--surface-2);
@@ -364,9 +370,9 @@ function handlePinLogin() {
   color: var(--text-muted);
   cursor: pointer;
   transition:
-    background 0.15s,
-    color 0.15s,
-    box-shadow 0.15s;
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .login-tab.active {
@@ -396,41 +402,53 @@ function handlePinLogin() {
   border: 2px solid var(--border-strong);
   background: transparent;
   transition:
-    background 0.15s,
-    border-color 0.15s;
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
 }
 
 .pin-dot.filled {
   background: var(--primary);
   border-color: var(--primary);
+  transform: scale(1.15);
 }
 
-/* PIN keypad */
+/* 3.10 — PIN keypad with rounder keys + better press feedback */
 .pin-keypad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 10px;
   margin-top: 4px;
 }
 
 .pin-key {
-  padding: 14px;
-  border-radius: var(--radius);
-  border: 1.5px solid var(--border);
+  padding: 15px 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
   background: var(--surface);
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text);
   cursor: pointer;
   transition:
-    background 0.1s,
-    transform 0.1s;
+    background 0.12s ease,
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
   font-family: var(--font-mono);
+  box-shadow: var(--shadow-card);
+}
+
+@media (hover: hover) {
+  .pin-key:hover {
+    background: var(--surface-2);
+  }
 }
 
 .pin-key:active {
   background: var(--primary-bg);
-  transform: scale(0.94);
+  border-color: rgba(4, 120, 87, 0.25);
+  transform: scale(0.92);
+  box-shadow: none;
 }
 
 /* Language row */

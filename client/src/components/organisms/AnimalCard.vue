@@ -70,6 +70,7 @@ const lifePhase = computed(() => {
 </script>
 
 <style scoped>
+/* 3.6 — subtle left-border accent + softer shadow */
 .animal-card {
   display: flex;
   align-items: center;
@@ -77,14 +78,26 @@ const lifePhase = computed(() => {
   padding: 12px 14px;
   background: var(--surface);
   border: 1px solid var(--border);
+  border-left: 3px solid rgba(4, 120, 87, 0.2);
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
   text-decoration: none;
   color: var(--text);
   transition:
-    transform 0.1s,
-    box-shadow 0.1s;
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
   cursor: pointer;
+}
+
+/* 3.8 — desktop hover lift */
+@media (hover: hover) {
+  .animal-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    border-color: var(--border-strong);
+    border-left-color: rgba(4, 120, 87, 0.45);
+  }
 }
 
 .animal-card:active {
@@ -116,17 +129,21 @@ const lifePhase = computed(() => {
   min-width: 0;
 }
 
+/* 3.7 — tighter badge grouping */
 .animal-top {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 2px;
+  gap: 6px;
+  margin-bottom: 3px;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
 
 .animal-tag {
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--primary);
+  flex-shrink: 0;
 }
 
 .animal-name {
@@ -172,12 +189,13 @@ const lifePhase = computed(() => {
   flex-shrink: 0;
 }
 
+/* 3.8 — desktop grid card layout */
 @media (min-width: 600px) {
   .animal-card {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
-    padding: 16px;
+    padding: 16px 16px 16px 14px;
   }
 
   .animal-avatar {
@@ -196,6 +214,12 @@ const lifePhase = computed(() => {
 
   .animal-meta {
     white-space: normal;
+  }
+
+  /* 3.7 — badges wrap on desktop cards */
+  .animal-top {
+    flex-wrap: wrap;
+    overflow: visible;
   }
 }
 </style>
