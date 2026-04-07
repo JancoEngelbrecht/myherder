@@ -162,9 +162,9 @@ describe('IssueDetailView', () => {
     mockRouteParams = { id: 'issue-1' }
     setActivePinia(createPinia())
 
-    const { useHealthIssuesStore } = await import('../stores/healthIssues.js')
-    const { useIssueTypesStore } = await import('../stores/issueTypes.js')
-    const { useAuthStore } = await import('../stores/auth.js')
+    const { useHealthIssuesStore } = await import('../stores/healthIssues')
+    const { useIssueTypesStore } = await import('../stores/issueTypes')
+    const { useAuthStore } = await import('../stores/auth')
 
     healthIssuesStore = useHealthIssuesStore()
     issueTypesStore = useIssueTypesStore()

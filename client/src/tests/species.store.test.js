@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { useSpeciesStore } from '../stores/species.js'
+import { useSpeciesStore } from '../stores/species'
 import api from '../services/api.js'
 
 vi.mock('../services/api.js', () => ({

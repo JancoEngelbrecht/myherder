@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import OpenIssuesView from '../views/OpenIssuesView.vue'
-import { useHealthIssuesStore } from '../stores/healthIssues.js'
-import { useIssueTypesStore } from '../stores/issueTypes.js'
+import { useHealthIssuesStore } from '../stores/healthIssues'
+import { useIssueTypesStore } from '../stores/issueTypes'
 
 vi.mock('../services/api.js', () => ({
   default: {

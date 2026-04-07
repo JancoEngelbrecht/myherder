@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import FarmDetailView from '../views/super/FarmDetailView.vue'
-import { useAuthStore } from '../stores/auth.js'
+import { useAuthStore } from '../stores/auth'
 
 const mockGet = vi.fn()
 const mockPatch = vi.fn()

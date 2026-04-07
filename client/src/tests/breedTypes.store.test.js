@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { useBreedTypesStore } from '../stores/breedTypes.js'
+import { useBreedTypesStore } from '../stores/breedTypes'
 import api from '../services/api.js'
 import db from '../db/indexedDB.js'
 

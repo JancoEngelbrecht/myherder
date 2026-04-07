@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises, RouterLinkStub } from '@vue/test-utils'
 import SuperAdminLoginView from '../views/SuperAdminLoginView.vue'
-import { useAuthStore } from '../stores/auth.js'
+import { useAuthStore } from '../stores/auth'
 
 const mockRouter = { push: vi.fn() }
 

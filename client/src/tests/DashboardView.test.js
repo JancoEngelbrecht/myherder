@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import DashboardView from '../views/DashboardView.vue'
-import { useAuthStore } from '../stores/auth.js'
-import { useFeatureFlagsStore } from '../stores/featureFlags.js'
+import { useAuthStore } from '../stores/auth'
+import { useFeatureFlagsStore } from '../stores/featureFlags'
 
 const mockGet = vi.fn()
 

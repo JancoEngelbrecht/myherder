@@ -341,7 +341,7 @@ describe('HealthView', () => {
   it('hides health sections when healthIssues flag is off', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
-    const { useFeatureFlagsStore } = await import('../../stores/featureFlags.js')
+    const { useFeatureFlagsStore } = await import('../../stores/featureFlags')
     const flagsStore = useFeatureFlagsStore()
     flagsStore.flags.healthIssues = false
 
@@ -357,7 +357,7 @@ describe('HealthView', () => {
   it('hides treatment cost section when treatments flag is off', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
-    const { useFeatureFlagsStore } = await import('../../stores/featureFlags.js')
+    const { useFeatureFlagsStore } = await import('../../stores/featureFlags')
     const flagsStore = useFeatureFlagsStore()
     flagsStore.flags.treatments = false
 

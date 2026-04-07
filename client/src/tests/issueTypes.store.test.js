@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { useIssueTypesStore } from '../stores/issueTypes.js'
+import { useIssueTypesStore } from '../stores/issueTypes'
 import api from '../services/api.js'
 
 vi.mock('../services/api.js', () => ({

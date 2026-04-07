@@ -13,7 +13,7 @@ vi.mock('driver.js', () => ({
 vi.mock('driver.js/dist/driver.css', () => ({}))
 
 // Mock auth store
-vi.mock('../stores/auth.js', () => ({
+vi.mock('../stores/auth', () => ({
   useAuthStore: () => ({
     user: { id: 'user-1', role: 'admin' },
   }),

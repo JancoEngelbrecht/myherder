@@ -192,7 +192,7 @@ describe('FinancialView', () => {
   it('hides milk sections when milkRecording flag is off', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
-    const { useFeatureFlagsStore } = await import('../../stores/featureFlags.js')
+    const { useFeatureFlagsStore } = await import('../../stores/featureFlags')
     const flagsStore = useFeatureFlagsStore()
     flagsStore.flags.milkRecording = false
 
@@ -207,7 +207,7 @@ describe('FinancialView', () => {
   it('hides treatment section when treatments flag is off', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
-    const { useFeatureFlagsStore } = await import('../../stores/featureFlags.js')
+    const { useFeatureFlagsStore } = await import('../../stores/featureFlags')
     const flagsStore = useFeatureFlagsStore()
     flagsStore.flags.treatments = false
 

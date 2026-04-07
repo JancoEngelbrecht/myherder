@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import BreedingEventsView from '../views/BreedingEventsView.vue'
-import { useBreedingEventsStore } from '../stores/breedingEvents.js'
-import { useAuthStore } from '../stores/auth.js'
+import { useBreedingEventsStore } from '../stores/breedingEvents'
+import { useAuthStore } from '../stores/auth'
 
 const mockRouter = { push: vi.fn(), back: vi.fn() }
 

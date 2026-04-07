@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { useMilkRecordsStore } from '../stores/milkRecords.js'
+import { useMilkRecordsStore } from '../stores/milkRecords'
 import api from '../services/api.js'
 
 vi.mock('../services/api.js', () => ({

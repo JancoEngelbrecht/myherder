@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { useSyncStore } from '../stores/sync.js'
+import { useSyncStore } from '../stores/sync'
 import db from '../db/indexedDB.js'
 import {
   isOnline,

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import AppHeader from '../components/organisms/AppHeader.vue'
-import { useAuthStore } from '../stores/auth.js'
+import { useAuthStore } from '../stores/auth'
 
 const mockRouter = { push: vi.fn(), back: vi.fn() }
 

@@ -174,8 +174,8 @@ describe('AnimalTreatmentHistoryView', () => {
     mockRouteParams = { id: 'animal-1' }
     setActivePinia(createPinia())
 
-    const { useAnimalsStore } = await import('../stores/animals.js')
-    const { useTreatmentsStore } = await import('../stores/treatments.js')
+    const { useAnimalsStore } = await import('../stores/animals')
+    const { useTreatmentsStore } = await import('../stores/treatments')
 
     animalsStore = useAnimalsStore()
     treatmentsStore = useTreatmentsStore()

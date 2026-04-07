@@ -153,7 +153,7 @@ describe('AnalyticsView (Landing Page)', () => {
   it('hides milk KPI cards when milkRecording flag is off', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
-    const { useFeatureFlagsStore } = await import('../stores/featureFlags.js')
+    const { useFeatureFlagsStore } = await import('../stores/featureFlags')
     const flagsStore = useFeatureFlagsStore()
     flagsStore.flags.milkRecording = false
 
@@ -168,7 +168,7 @@ describe('AnalyticsView (Landing Page)', () => {
   it('hides breeding KPI card when breeding flag is off', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
-    const { useFeatureFlagsStore } = await import('../stores/featureFlags.js')
+    const { useFeatureFlagsStore } = await import('../stores/featureFlags')
     const flagsStore = useFeatureFlagsStore()
     flagsStore.flags.breeding = false
 
@@ -186,7 +186,7 @@ describe('AnalyticsView (Landing Page)', () => {
   it('hides health KPI card when healthIssues flag is off', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
-    const { useFeatureFlagsStore } = await import('../stores/featureFlags.js')
+    const { useFeatureFlagsStore } = await import('../stores/featureFlags')
     const flagsStore = useFeatureFlagsStore()
     flagsStore.flags.healthIssues = false
 
@@ -222,7 +222,7 @@ describe('AnalyticsView (Landing Page)', () => {
   it('structure category card is always visible', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
-    const { useFeatureFlagsStore } = await import('../stores/featureFlags.js')
+    const { useFeatureFlagsStore } = await import('../stores/featureFlags')
     const flagsStore = useFeatureFlagsStore()
     flagsStore.flags.milkRecording = false
     flagsStore.flags.breeding = false

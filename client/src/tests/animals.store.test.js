@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { useAnimalsStore, computeLifePhase, computeIsReadyToBreed } from '../stores/animals.js'
+import { useAnimalsStore, computeLifePhase, computeIsReadyToBreed } from '../stores/animals'
 import api from '../services/api.js'
 import db from '../db/indexedDB.js'
 import { destroyListeners, pendingCount, isOnline } from '../services/syncManager.js'

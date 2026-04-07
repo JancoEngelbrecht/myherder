@@ -157,8 +157,8 @@ describe('TreatmentDetailView', () => {
     mockRouteParams = { id: 'tx-1' }
     setActivePinia(createPinia())
 
-    const { useTreatmentsStore } = await import('../stores/treatments.js')
-    const { useAuthStore } = await import('../stores/auth.js')
+    const { useTreatmentsStore } = await import('../stores/treatments')
+    const { useAuthStore } = await import('../stores/auth')
 
     treatmentsStore = useTreatmentsStore()
     authStore = useAuthStore()
@@ -207,8 +207,8 @@ describe('TreatmentDetailView', () => {
     // Worker does not see delete
     vi.clearAllMocks()
     setActivePinia(createPinia())
-    const { useTreatmentsStore: useTx2 } = await import('../stores/treatments.js')
-    const { useAuthStore: useAuth2 } = await import('../stores/auth.js')
+    const { useTreatmentsStore: useTx2 } = await import('../stores/treatments')
+    const { useAuthStore: useAuth2 } = await import('../stores/auth')
     const tx2 = useTx2()
     const auth2 = useAuth2()
     auth2.user = { id: 'user-2', role: 'worker', permissions: [] }

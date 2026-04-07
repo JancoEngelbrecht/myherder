@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import WithdrawalListView from '../views/WithdrawalListView.vue'
-import { useTreatmentsStore } from '../stores/treatments.js'
+import { useTreatmentsStore } from '../stores/treatments'
 
 vi.mock('../services/api.js', () => ({
   default: {

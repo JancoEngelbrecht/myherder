@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import AnimalListView from '../views/AnimalListView.vue'
-import { useAnimalsStore } from '../stores/animals.js'
-import { useAuthStore } from '../stores/auth.js'
+import { useAnimalsStore } from '../stores/animals'
+import { useAuthStore } from '../stores/auth'
 
 const mockRouter = { push: vi.fn() }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { useFeatureFlagsStore } from '../stores/featureFlags.js'
+import { useFeatureFlagsStore } from '../stores/featureFlags'
 import api from '../services/api.js'
 
 vi.mock('../services/api.js', () => ({

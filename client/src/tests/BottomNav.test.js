@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import BottomNav from '../components/organisms/BottomNav.vue'
-import { useFeatureFlagsStore } from '../stores/featureFlags.js'
-import { useAuthStore } from '../stores/auth.js'
+import { useFeatureFlagsStore } from '../stores/featureFlags'
+import { useAuthStore } from '../stores/auth'
 
 // vi.hoisted ensures the variable is initialized before the hoisted vi.mock factory runs
 const { mockUseRoute } = vi.hoisted(() => ({

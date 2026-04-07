@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { useMedicationsStore } from '../stores/medications.js'
+import { useMedicationsStore } from '../stores/medications'
 import api from '../services/api.js'
 import db from '../db/indexedDB.js'
 
