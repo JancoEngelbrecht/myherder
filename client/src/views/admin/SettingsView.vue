@@ -184,11 +184,11 @@ import { ref, computed, reactive, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import TourButton from '../../components/atoms/TourButton.vue'
-import { initialSync, lastSyncTime as syncLastTime } from '../../services/syncManager.js'
-import { useFeatureFlagsStore } from '../../stores/featureFlags.js'
-import { useToast } from '../../composables/useToast.js'
-import { useTour } from '../../composables/useTour.js'
-import api from '../../services/api.js'
+import { initialSync, lastSyncTime as syncLastTime } from '../../services/syncManager'
+import { useFeatureFlagsStore } from '../../stores/featureFlags'
+import { useToast } from '../../composables/useToast'
+import { useTour } from '../../composables/useTour'
+import api from '../../services/api'
 
 const { t } = useI18n()
 const featureFlagsStore = useFeatureFlagsStore()

@@ -110,7 +110,7 @@ import AnimalSearchDropdown from '../components/molecules/AnimalSearchDropdown.v
 import TeatSelector from '../components/molecules/TeatSelector.vue'
 import TourButton from '../components/atoms/TourButton.vue'
 import { extractApiError, resolveError } from '../utils/apiError'
-import { useTour } from '../composables/useTour.js'
+import { useTour } from '../composables/useTour'
 import { useSpeciesTerms } from '../composables/useSpeciesTerms'
 
 const { t } = useI18n()

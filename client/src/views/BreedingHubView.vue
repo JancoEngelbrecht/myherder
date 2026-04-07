@@ -90,7 +90,7 @@ import TourButton from '../components/atoms/TourButton.vue'
 import { useBreedingEventsStore } from '../stores/breedingEvents'
 import { useAnimalsStore } from '../stores/animals'
 import { resolveError } from '../utils/apiError'
-import { useTour } from '../composables/useTour.js'
+import { useTour } from '../composables/useTour'
 
 const { t } = useI18n()
 const router = useRouter()

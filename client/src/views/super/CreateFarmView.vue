@@ -95,9 +95,9 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import api from '../../services/api.js'
+import api from '../../services/api'
 import AppHeader from '../../components/organisms/AppHeader.vue'
-import { useToast } from '../../composables/useToast.js'
+import { useToast } from '../../composables/useToast'
 
 const { t } = useI18n()
 const router = useRouter()

@@ -60,7 +60,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import FlowDiagram from '../components/molecules/FlowDiagram.vue'
-import { helpTopics } from '../config/helpTopicData.js'
+import { helpTopics } from '../config/helpTopicData'
 
 const { t, tm } = useI18n()
 const route = useRoute()

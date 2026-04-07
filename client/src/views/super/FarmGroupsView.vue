@@ -161,11 +161,11 @@
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import api from '../../services/api.js'
+import api from '../../services/api'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
-import { useToast } from '../../composables/useToast.js'
-import { extractApiError, resolveError } from '../../utils/apiError.js'
+import { useToast } from '../../composables/useToast'
+import { extractApiError, resolveError } from '../../utils/apiError'
 
 const { t } = useI18n()
 const { showToast } = useToast()

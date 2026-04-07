@@ -105,7 +105,7 @@ import { useAnimalsStore, computeLifePhase } from '../stores/animals'
 import { useTreatmentsStore } from '../stores/treatments'
 import { useMilkRecordsStore } from '../stores/milkRecords'
 import { resolveError } from '../utils/apiError'
-import { useTour } from '../composables/useTour.js'
+import { useTour } from '../composables/useTour'
 
 const { t } = useI18n()
 

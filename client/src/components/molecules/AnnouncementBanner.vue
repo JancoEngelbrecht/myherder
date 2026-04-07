@@ -20,7 +20,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import api from '../../services/api'
-import { useAuthStore } from '../../stores/auth.js'
+import { useAuthStore } from '../../stores/auth'
 
 const authStore = useAuthStore()
 const announcements = ref([])

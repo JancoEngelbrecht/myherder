@@ -219,13 +219,13 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '../stores/auth.js'
-import { useFeatureFlagsStore } from '../stores/featureFlags.js'
-import { useSpeciesTerms } from '../composables/useSpeciesTerms.js'
-import api from '../services/api.js'
+import { useAuthStore } from '../stores/auth'
+import { useFeatureFlagsStore } from '../stores/featureFlags'
+import { useSpeciesTerms } from '../composables/useSpeciesTerms'
+import api from '../services/api'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import TourButton from '../components/atoms/TourButton.vue'
-import { useTour } from '../composables/useTour.js'
+import { useTour } from '../composables/useTour'
 
 const { t } = useI18n()
 const authStore = useAuthStore()

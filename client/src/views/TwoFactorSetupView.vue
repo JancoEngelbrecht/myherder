@@ -88,7 +88,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { extractApiError, resolveError } from '../utils/apiError'
-import { useAuthStore } from '../stores/auth.js'
+import { useAuthStore } from '../stores/auth'
 import QRCode from 'qrcode'
 
 const { t } = useI18n()

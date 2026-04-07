@@ -76,7 +76,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '../stores/auth.js'
+import { useAuthStore } from '../stores/auth'
 
 const { t, locale } = useI18n()
 const router = useRouter()

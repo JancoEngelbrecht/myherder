@@ -18,9 +18,9 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { useFeatureFlagsStore } from '../../stores/featureFlags.js'
-import { useAuthStore } from '../../stores/auth.js'
-import { useSpeciesTerms } from '../../composables/useSpeciesTerms.js'
+import { useFeatureFlagsStore } from '../../stores/featureFlags'
+import { useAuthStore } from '../../stores/auth'
+import { useSpeciesTerms } from '../../composables/useSpeciesTerms'
 
 const { t } = useI18n()
 const route = useRoute()

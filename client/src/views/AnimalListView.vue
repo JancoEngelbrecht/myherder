@@ -265,17 +265,17 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useAnimalsStore, computeIsReadyToBreed } from '../stores/animals.js'
-import { useAuthStore } from '../stores/auth.js'
-import { useBreedTypesStore } from '../stores/breedTypes.js'
-import { useFeatureFlagsStore } from '../stores/featureFlags.js'
-import { useSpeciesTerms } from '../composables/useSpeciesTerms.js'
+import { useAnimalsStore, computeIsReadyToBreed } from '../stores/animals'
+import { useAuthStore } from '../stores/auth'
+import { useBreedTypesStore } from '../stores/breedTypes'
+import { useFeatureFlagsStore } from '../stores/featureFlags'
+import { useSpeciesTerms } from '../composables/useSpeciesTerms'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import AnimalCard from '../components/organisms/AnimalCard.vue'
 import SearchInput from '../components/atoms/SearchInput.vue'
 import PaginationBar from '../components/atoms/PaginationBar.vue'
 import TourButton from '../components/atoms/TourButton.vue'
-import { useTour } from '../composables/useTour.js'
+import { useTour } from '../composables/useTour'
 
 const { t } = useI18n()
 const router = useRouter()

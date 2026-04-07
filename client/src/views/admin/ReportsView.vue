@@ -72,7 +72,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import TourButton from '../../components/atoms/TourButton.vue'
-import api from '../../services/api.js'
+import api from '../../services/api'
 import { extractApiError, resolveError } from '../../utils/apiError'
 import { useTour } from '../../composables/useTour'
 

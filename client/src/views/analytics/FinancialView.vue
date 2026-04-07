@@ -141,11 +141,11 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useSpeciesTerms } from '../../composables/useSpeciesTerms.js'
+import { useSpeciesTerms } from '../../composables/useSpeciesTerms'
 import { Line, Bar } from 'vue-chartjs'
 import '../../utils/chartSetup.js'
 import '../../assets/analytics.css'
-import api from '../../services/api.js'
+import api from '../../services/api'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import {
   useAnalytics,
@@ -156,7 +156,7 @@ import {
   horizontalBarOptions,
   useTimeRange,
   TIME_RANGE_OPTIONS,
-} from '../../composables/useAnalytics.js'
+} from '../../composables/useAnalytics'
 
 const { offline, flags, handleError, t } = useAnalytics()
 const { selectedRange, dateRange } = useTimeRange()

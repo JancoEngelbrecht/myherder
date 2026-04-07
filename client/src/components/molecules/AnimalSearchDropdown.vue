@@ -51,10 +51,10 @@
 <script setup>
 import { ref, watch, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useSpeciesTerms } from '../../composables/useSpeciesTerms.js'
-import api from '../../services/api.js'
-import db from '../../db/indexedDB.js'
-import { isOfflineError } from '../../services/syncManager.js'
+import { useSpeciesTerms } from '../../composables/useSpeciesTerms'
+import api from '../../services/api'
+import db from '../../db/indexedDB'
+import { isOfflineError } from '../../services/syncManager'
 
 const { emoji: speciesEmoji } = useSpeciesTerms()
 

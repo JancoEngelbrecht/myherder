@@ -64,8 +64,8 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '../stores/auth.js'
-import { getInitials } from '../utils/initials.js'
+import { useAuthStore } from '../stores/auth'
+import { getInitials } from '../utils/initials'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../components/molecules/ConfirmDialog.vue'
 

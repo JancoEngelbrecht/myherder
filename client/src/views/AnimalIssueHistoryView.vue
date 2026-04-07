@@ -70,10 +70,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useAnimalsStore } from '../stores/animals.js'
-import { useHealthIssuesStore } from '../stores/healthIssues.js'
-import { useIssueTypesStore } from '../stores/issueTypes.js'
-import { formatDate } from '../utils/format.js'
+import { useAnimalsStore } from '../stores/animals'
+import { useHealthIssuesStore } from '../stores/healthIssues'
+import { useIssueTypesStore } from '../stores/issueTypes'
+import { formatDate } from '../utils/format'
 import AppHeader from '../components/organisms/AppHeader.vue'
 
 const { t } = useI18n()

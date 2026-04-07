@@ -25,7 +25,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '../stores/auth.js'
+import { useAuthStore } from '../stores/auth'
 import AppHeader from '../components/organisms/AppHeader.vue'
 
 const { t } = useI18n()

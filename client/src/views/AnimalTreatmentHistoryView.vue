@@ -89,10 +89,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useAnimalsStore, computeLifePhase } from '../stores/animals.js'
-import { useTreatmentsStore } from '../stores/treatments.js'
-import { useBreedTypesStore } from '../stores/breedTypes.js'
-import { formatDate, formatDateTime } from '../utils/format.js'
+import { useAnimalsStore, computeLifePhase } from '../stores/animals'
+import { useTreatmentsStore } from '../stores/treatments'
+import { useBreedTypesStore } from '../stores/breedTypes'
+import { formatDate, formatDateTime } from '../utils/format'
 import AppHeader from '../components/organisms/AppHeader.vue'
 
 const { t } = useI18n()

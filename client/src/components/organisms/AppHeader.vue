@@ -73,13 +73,13 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '../../stores/auth.js'
-import { getInitials } from '../../utils/initials.js'
+import { useAuthStore } from '../../stores/auth'
+import { getInitials } from '../../utils/initials'
 import SyncIndicator from '../atoms/SyncIndicator.vue'
 import SyncPanel from '../molecules/SyncPanel.vue'
 import ConfirmDialog from '../molecules/ConfirmDialog.vue'
-import { extractApiError, resolveError } from '../../utils/apiError.js'
-import { useToast } from '../../composables/useToast.js'
+import { extractApiError, resolveError } from '../../utils/apiError'
+import { useToast } from '../../composables/useToast'
 
 const showSyncPanel = ref(false)
 const farmDropdownOpen = ref(false)

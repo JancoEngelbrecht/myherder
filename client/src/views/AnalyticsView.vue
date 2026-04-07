@@ -156,12 +156,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import api from '../services/api.js'
+import api from '../services/api'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import TourButton from '../components/atoms/TourButton.vue'
-import { useAnalytics } from '../composables/useAnalytics.js'
-import { useSpeciesTerms } from '../composables/useSpeciesTerms.js'
-import { useTour } from '../composables/useTour.js'
+import { useAnalytics } from '../composables/useAnalytics'
+import { useSpeciesTerms } from '../composables/useSpeciesTerms'
+import { useTour } from '../composables/useTour'
 import '../assets/analytics.css'
 
 const { offline, flags, handleError, t } = useAnalytics()

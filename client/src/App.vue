@@ -52,13 +52,13 @@
 import { computed, watch, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from './stores/auth.js'
-import { useSyncStore } from './stores/sync.js'
+import { useAuthStore } from './stores/auth'
+import { useSyncStore } from './stores/sync'
 import BottomNav from './components/organisms/BottomNav.vue'
 import ToastMessage from './components/molecules/ToastMessage.vue'
 import AnnouncementBanner from './components/molecules/AnnouncementBanner.vue'
-import { init as initSync, destroyListeners as destroySync } from './services/syncManager.js'
-import { dbRecovered, clearRecoveredFlag } from './db/indexedDB.js'
+import { init as initSync, destroyListeners as destroySync } from './services/syncManager'
+import { dbRecovered, clearRecoveredFlag } from './db/indexedDB'
 
 const { t } = useI18n()
 const router = useRouter()

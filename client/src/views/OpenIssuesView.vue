@@ -100,9 +100,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useHealthIssuesStore } from '../stores/healthIssues.js'
-import { useIssueTypesStore } from '../stores/issueTypes.js'
-import { formatDate } from '../utils/format.js'
+import { useHealthIssuesStore } from '../stores/healthIssues'
+import { useIssueTypesStore } from '../stores/issueTypes'
+import { formatDate } from '../utils/format'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import SearchInput from '../components/atoms/SearchInput.vue'
 import PaginationBar from '../components/atoms/PaginationBar.vue'

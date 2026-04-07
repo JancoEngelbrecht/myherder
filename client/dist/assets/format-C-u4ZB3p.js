@@ -1,1 +1,0 @@
-const e={day:"2-digit",month:"short",year:"numeric"},n={...e,hour:"2-digit",minute:"2-digit"};function i(t){return t?new Date(t).toLocaleDateString(void 0,e):"—"}function r(t){return t?new Date(t).toLocaleString(void 0,n):"—"}export{r as a,i as f};

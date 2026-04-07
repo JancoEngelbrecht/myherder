@@ -120,9 +120,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useTreatmentsStore } from '../stores/treatments.js'
-import { useAuthStore } from '../stores/auth.js'
-import { formatDateTime } from '../utils/format.js'
+import { useTreatmentsStore } from '../stores/treatments'
+import { useAuthStore } from '../stores/auth'
+import { formatDateTime } from '../utils/format'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../components/molecules/ConfirmDialog.vue'
 

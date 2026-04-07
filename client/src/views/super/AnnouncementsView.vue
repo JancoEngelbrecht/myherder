@@ -159,7 +159,7 @@ import api from '../../services/api'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import { extractApiError, resolveError } from '../../utils/apiError'
-import { useToast } from '../../composables/useToast.js'
+import { useToast } from '../../composables/useToast'
 
 const { showToast } = useToast()
 

@@ -231,12 +231,12 @@
 import { ref, watch, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from '../../stores/auth.js'
-import api from '../../services/api.js'
+import { useAuthStore } from '../../stores/auth'
+import api from '../../services/api'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
-import { useToast } from '../../composables/useToast.js'
-import { extractApiError, resolveError } from '../../utils/apiError.js'
+import { useToast } from '../../composables/useToast'
+import { extractApiError, resolveError } from '../../utils/apiError'
 
 const { t } = useI18n()
 const route = useRoute()

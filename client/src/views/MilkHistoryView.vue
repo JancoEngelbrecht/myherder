@@ -155,7 +155,7 @@ import api from '../services/api'
 import db from '../db/indexedDB'
 import { extractApiError, resolveError } from '../utils/apiError'
 import { useToast } from '../composables/useToast'
-import { useTour } from '../composables/useTour.js'
+import { useTour } from '../composables/useTour'
 
 const { t } = useI18n()
 const toast = useToast()

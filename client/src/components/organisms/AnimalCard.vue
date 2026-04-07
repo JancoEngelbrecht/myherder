@@ -39,9 +39,9 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { computeLifePhase } from '../../stores/animals.js'
-import { useBreedTypesStore } from '../../stores/breedTypes.js'
-import { useSpeciesTerms } from '../../composables/useSpeciesTerms.js'
+import { computeLifePhase } from '../../stores/animals'
+import { useBreedTypesStore } from '../../stores/breedTypes'
+import { useSpeciesTerms } from '../../composables/useSpeciesTerms'
 
 const { t } = useI18n()
 const breedTypesStore = useBreedTypesStore()
