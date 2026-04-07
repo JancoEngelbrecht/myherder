@@ -1,16 +1,18 @@
-const { randomUUID: uuidv4 } = require('crypto')
-const db = require('../config/database')
+import { randomUUID as uuidv4 } from 'crypto'
+import db from '../config/database'
+
+interface LogAuditOptions {
+  farmId: string
+  userId: string
+  action: 'create' | 'update' | 'delete'
+  entityType: string
+  entityId: string
+  oldValues?: Record<string, unknown> | null
+  newValues?: Record<string, unknown> | null
+}
 
 /**
  * Log an audit entry.
- * @param {object} opts
- * @param {string} opts.farmId - ID of the farm (tenant)
- * @param {string} opts.userId - ID of the user performing the action
- * @param {string} opts.action - 'create' | 'update' | 'delete'
- * @param {string} opts.entityType - e.g. 'user', 'cow', 'setting'
- * @param {string} opts.entityId - ID of the affected entity
- * @param {object|null} [opts.oldValues] - previous state (for update/delete)
- * @param {object|null} [opts.newValues] - new state (for create/update)
  */
 async function logAudit({
   farmId,
@@ -20,7 +22,7 @@ async function logAudit({
   entityId,
   oldValues = null,
   newValues = null,
-}) {
+}: LogAuditOptions): Promise<void> {
   try {
     await db('audit_log').insert({
       id: uuidv4(),
@@ -33,7 +35,7 @@ async function logAudit({
       new_values: newValues ? JSON.stringify(newValues) : null,
       created_at: new Date().toISOString(),
     })
-  } catch (err) {
+  } catch (err: any) {
     // Audit logging should never break the main operation — best-effort only
     console.error('[audit] Failed to write audit log:', err.message)
   }

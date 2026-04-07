@@ -1,22 +1,60 @@
-const PDFDocument = require('pdfkit')
-const ExcelJS = require('exceljs')
-const db = require('../config/database')
+import PDFDocument from 'pdfkit'
+import ExcelJS from 'exceljs'
+import db from '../config/database'
+import type { Response } from 'express'
+
+// ── Types ────────────────────────────────────────────────────────
+
+interface DateRange {
+  from: string
+  to: string
+}
+
+interface PdfOptions {
+  title: string
+  farmName: string
+  dateRange: DateRange
+  generatedBy: string
+}
+
+interface TableColumn {
+  header: string
+  key: string
+  width?: number
+}
+
+interface PdfTableOptions {
+  columns: TableColumn[]
+  rows: Record<string, unknown>[]
+  summaryRow?: Record<string, unknown>
+}
+
+interface ExcelReportOptions {
+  title: string
+  sheetName?: string
+  farmName: string
+  dateRange: DateRange
+  generatedBy: string
+  columns: TableColumn[]
+  rows: Record<string, unknown>[]
+  summaryRow?: Record<string, unknown>
+}
 
 // ── Helpers ──────────────────────────────────────────────────
 
-async function getFarmName(farmId) {
+async function getFarmName(farmId: string | null | undefined): Promise<string> {
   if (!farmId) return 'MyHerder Farm'
   const row = await db('app_settings').where({ key: 'farm_name' }).where('farm_id', farmId).first()
   return row?.value || 'MyHerder Farm'
 }
 
-function formatDate(dateStr) {
+function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return ''
   const d = new Date(dateStr)
   return d.toISOString().slice(0, 10)
 }
 
-function formatDateTime(dateStr) {
+function formatDateTime(dateStr: string | null | undefined): string {
   if (!dateStr) return ''
   const d = new Date(dateStr)
   return `${d.toISOString().slice(0, 10)} ${d.toISOString().slice(11, 16)}`
@@ -29,7 +67,10 @@ const PAGE_MARGIN = 40
 const FONT_REGULAR = 'Helvetica'
 const FONT_BOLD = 'Helvetica-Bold'
 
-function createPdfDocument({ title, farmName, dateRange, generatedBy }) {
+function createPdfDocument({ title, farmName, dateRange, generatedBy }: PdfOptions): {
+  doc: typeof PDFDocument.prototype
+  finalize: () => Promise<Buffer>
+} {
   const doc = new PDFDocument({
     size: 'A4',
     layout: 'landscape',
@@ -37,8 +78,8 @@ function createPdfDocument({ title, farmName, dateRange, generatedBy }) {
     bufferPages: true,
   })
 
-  const chunks = []
-  doc.on('data', (chunk) => chunks.push(chunk))
+  const chunks: Buffer[] = []
+  doc.on('data', (chunk: Buffer) => chunks.push(chunk))
 
   // Header
   doc.fontSize(18).fillColor(BRAND_GREEN).font(FONT_BOLD).text(farmName, { align: 'center' })
@@ -56,7 +97,7 @@ function createPdfDocument({ title, farmName, dateRange, generatedBy }) {
   })
   doc.moveDown(1)
 
-  function finalize() {
+  function finalize(): Promise<Buffer> {
     const pageCount = doc.bufferedPageRange().count
 
     // Suppress auto-pagination while adding page numbers — PDFKit's text()
@@ -87,7 +128,10 @@ function createPdfDocument({ title, farmName, dateRange, generatedBy }) {
   return { doc, finalize }
 }
 
-function drawPdfTable(doc, { columns, rows, summaryRow }) {
+function drawPdfTable(
+  doc: typeof PDFDocument.prototype,
+  { columns, rows, summaryRow }: PdfTableOptions
+): void {
   const pageWidth = doc.page.width - PAGE_MARGIN * 2
   const totalWeight = columns.reduce((sum, c) => sum + (c.width || 1), 0)
   const colWidths = columns.map((c) => ((c.width || 1) / totalWeight) * pageWidth)
@@ -96,7 +140,12 @@ function drawPdfTable(doc, { columns, rows, summaryRow }) {
   const fontSize = 7.5
   const headerFontSize = 8
 
-  function drawRow(y, cells, isHeader, isSummary) {
+  function drawRow(
+    y: number,
+    cells: unknown[],
+    isHeader: boolean,
+    isSummary: boolean
+  ): number {
     const height = isHeader ? headerHeight : rowHeight
     let x = PAGE_MARGIN
 
@@ -129,7 +178,7 @@ function drawPdfTable(doc, { columns, rows, summaryRow }) {
     return height
   }
 
-  function checkPageBreak(y, needed) {
+  function checkPageBreak(y: number, needed: number): number {
     if (y + needed > doc.page.height - PAGE_MARGIN - 30) {
       doc.addPage()
       return PAGE_MARGIN
@@ -179,7 +228,7 @@ async function createExcelReport({
   columns,
   rows,
   summaryRow,
-}) {
+}: ExcelReportOptions): Promise<Buffer | ArrayBuffer> {
   const wb = new ExcelJS.Workbook()
   wb.creator = 'MyHerder'
   wb.created = new Date()
@@ -252,7 +301,12 @@ async function createExcelReport({
 
 // ── Response Helper ──────────────────────────────────────────
 
-function sendFile(res, buffer, filename, format) {
+function sendFile(
+  res: Response,
+  buffer: Buffer | ArrayBuffer,
+  filename: string,
+  format: string
+): void {
   if (format === 'xlsx') {
     res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     res.set('Content-Disposition', `attachment; filename="${filename}.xlsx"`)

@@ -1,6 +1,17 @@
-const { recordError } = require('../helpers/requestStats')
+import { recordError } from '../helpers/requestStats'
+import type { Request, Response, NextFunction } from 'express'
 
-module.exports = function errorHandler(err, req, res, _next) {
+interface AppError extends Error {
+  status?: number
+  code?: string
+}
+
+module.exports = function errorHandler(
+  err: AppError,
+  req: Request,
+  res: Response,
+  _next: NextFunction
+): void {
   console.error(err.stack || err.message || err)
 
   // Database unique constraint violations (SQLite + MySQL)
@@ -9,7 +20,8 @@ module.exports = function errorHandler(err, req, res, _next) {
     err.code === 'ER_DUP_ENTRY' ||
     (err.message && err.message.includes('UNIQUE'))
   ) {
-    return res.status(409).json({ error: 'A record with that value already exists' })
+    res.status(409).json({ error: 'A record with that value already exists' })
+    return
   }
 
   // Joi / validation errors forwarded with status
@@ -29,7 +41,7 @@ module.exports = function errorHandler(err, req, res, _next) {
     recordError(req.method, req.originalUrl || req.url, status, errorMsg)
   }
 
-  const response = { error: message }
+  const response: Record<string, unknown> = { error: message }
   if (status === 500 && err.code && process.env.NODE_ENV !== 'production') {
     response.code = err.code
   }

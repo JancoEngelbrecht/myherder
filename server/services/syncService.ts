@@ -1,5 +1,31 @@
-const db = require('../config/database')
-const { randomUUID: uuidv4 } = require('crypto')
+import db from '../config/database'
+import { randomUUID as uuidv4 } from 'crypto'
+
+// ── Types ────────────────────────────────────────────────────────
+
+interface SyncUser {
+  id: string
+  role: 'admin' | 'worker' | 'super_admin'
+  farm_id: string | null
+  permissions?: string[]
+}
+
+interface EntityMapping {
+  table: string
+  softDelete: boolean
+  requiredRole: string | null
+  requiredPermission: string | null
+  ownerField?: string
+  allowedFields: string[]
+}
+
+interface ChangeResult {
+  id: string
+  entityType: string
+  status: 'applied' | 'conflict' | 'error'
+  serverData?: Record<string, unknown>
+  error?: string
+}
 
 // ── Entity-to-Table Mapping ─────────────────────────────────────
 //
@@ -7,7 +33,7 @@ const { randomUUID: uuidv4 } = require('crypto')
 // requiredPermission: workers need this permission to write the entity.
 // allowedFields: only these columns may be written (unknown fields are silently dropped).
 
-const ENTITY_MAP = {
+const ENTITY_MAP: Record<string, EntityMapping> = {
   animals: {
     table: 'animals',
     softDelete: true,
@@ -215,7 +241,7 @@ const ENTITY_MAP = {
 
 // ── Permission Check ────────────────────────────────────────────
 
-function checkPermission(entityType, user) {
+function checkPermission(entityType: string, user: SyncUser): string | null {
   const mapping = ENTITY_MAP[entityType]
   if (!mapping) return null // unknown entity handled elsewhere
 
@@ -240,7 +266,15 @@ function checkPermission(entityType, user) {
 
 // ── Process a Single Change ─────────────────────────────────────
 
-async function processChange(entityType, action, id, data, clientUpdatedAt, user, trx) {
+async function processChange(
+  entityType: string,
+  action: string,
+  id: string,
+  data: Record<string, unknown> | null,
+  clientUpdatedAt: string | null,
+  user: SyncUser,
+  trx: any
+): Promise<ChangeResult> {
   const qb = trx || db
   const mapping = ENTITY_MAP[entityType]
   if (!mapping) {
@@ -277,7 +311,7 @@ async function processChange(entityType, action, id, data, clientUpdatedAt, user
     } else {
       return { id, entityType, status: 'error', error: `Unknown action: ${action}` }
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error(`[sync] processChange error — entity=${entityType} id=${id}:`, err.message)
     return { id, entityType, status: 'error', error: 'Failed to apply change' }
   }
@@ -285,8 +319,11 @@ async function processChange(entityType, action, id, data, clientUpdatedAt, user
 
 // ── Field Allowlist ─────────────────────────────────────────────
 
-function pickFields(data, allowedFields) {
-  const result = {}
+function pickFields(
+  data: Record<string, unknown>,
+  allowedFields: string[]
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {}
   for (const field of allowedFields) {
     if (Object.prototype.hasOwnProperty.call(data, field)) {
       result[field] = data[field]
@@ -295,7 +332,15 @@ function pickFields(data, allowedFields) {
   return result
 }
 
-async function handleCreate(qb, table, entityType, id, data, user, ownerField) {
+async function handleCreate(
+  qb: any,
+  table: string,
+  entityType: string,
+  id: string,
+  data: Record<string, unknown> | null,
+  user: SyncUser,
+  ownerField?: string
+): Promise<ChangeResult> {
   const existing = await qb(table).where({ id }).where('farm_id', user.farm_id).first()
   if (existing) {
     // Already exists — verify ownership before returning data
@@ -330,7 +375,12 @@ async function handleCreate(qb, table, entityType, id, data, user, ownerField) {
   }
 
   const now = new Date().toISOString()
-  const row = { ...data, id, created_at: data.created_at || now, updated_at: now }
+  const row: Record<string, unknown> = {
+    ...data,
+    id,
+    created_at: (data && data.created_at) || now,
+    updated_at: now,
+  }
 
   // Enforce ownership: non-admin users must own their own records
   if (ownerField && user && user.role !== 'admin') {
@@ -349,7 +399,16 @@ async function handleCreate(qb, table, entityType, id, data, user, ownerField) {
   return { id, entityType, status: 'applied', serverData: row }
 }
 
-async function handleUpdate(qb, table, entityType, id, data, clientUpdatedAt, user, ownerField) {
+async function handleUpdate(
+  qb: any,
+  table: string,
+  entityType: string,
+  id: string,
+  data: Record<string, unknown> | null,
+  clientUpdatedAt: string | null,
+  user: SyncUser,
+  ownerField?: string
+): Promise<ChangeResult> {
   const existing = await qb(table).where({ id }).where('farm_id', user.farm_id).first()
   if (!existing) {
     return { id, entityType, status: 'error', error: 'Record not found' }
@@ -357,7 +416,12 @@ async function handleUpdate(qb, table, entityType, id, data, clientUpdatedAt, us
 
   // Ownership check: non-admin users can only update their own records
   if (ownerField && user && user.role !== 'admin' && existing[ownerField] !== user.id) {
-    return { id, entityType, status: 'error', error: 'Cannot modify records owned by another user' }
+    return {
+      id,
+      entityType,
+      status: 'error',
+      error: 'Cannot modify records owned by another user',
+    }
   }
 
   // Conflict check: last-write-wins (use Date objects for reliable comparison)
@@ -373,7 +437,7 @@ async function handleUpdate(qb, table, entityType, id, data, clientUpdatedAt, us
 
   // Client is newer or equal — apply
   const now = new Date().toISOString()
-  const updateData = { ...data, updated_at: now }
+  const updateData: Record<string, unknown> = { ...data, updated_at: now }
 
   // Track status change timestamp for animals
   if (table === 'animals' && updateData.status && updateData.status !== existing.status) {
@@ -389,7 +453,15 @@ async function handleUpdate(qb, table, entityType, id, data, clientUpdatedAt, us
   return { id, entityType, status: 'applied', serverData: { ...existing, ...updateData } }
 }
 
-async function handleDelete(qb, table, entityType, id, softDelete, user, ownerField) {
+async function handleDelete(
+  qb: any,
+  table: string,
+  entityType: string,
+  id: string,
+  softDelete: boolean,
+  user: SyncUser,
+  ownerField?: string
+): Promise<ChangeResult> {
   const existing = await qb(table).where({ id }).where('farm_id', user.farm_id).first()
   if (!existing) {
     return { id, entityType, status: 'applied' } // Already gone
@@ -397,7 +469,12 @@ async function handleDelete(qb, table, entityType, id, softDelete, user, ownerFi
 
   // Ownership check: non-admin users can only delete their own records
   if (ownerField && user && user.role !== 'admin' && existing[ownerField] !== user.id) {
-    return { id, entityType, status: 'error', error: 'Cannot delete records owned by another user' }
+    return {
+      id,
+      entityType,
+      status: 'error',
+      error: 'Cannot delete records owned by another user',
+    }
   }
 
   if (softDelete) {
@@ -418,7 +495,7 @@ async function handleDelete(qb, table, entityType, id, softDelete, user, ownerFi
 // Permission-to-entity mapping for read access filtering.
 // Reference data (cows, breedTypes, issueTypes) is always included.
 // Other entities require the matching permission.
-const ENTITY_READ_PERMISSIONS = {
+const ENTITY_READ_PERMISSIONS: Record<string, string> = {
   milkRecords: 'can_record_milk',
   treatments: 'can_log_treatments',
   medications: 'can_log_treatments',
@@ -426,8 +503,13 @@ const ENTITY_READ_PERMISSIONS = {
   breedingEvents: 'can_log_breeding',
 }
 
-async function pullData(since, full, farmId, user) {
-  const deleted = []
+async function pullData(
+  since: string | null,
+  full: boolean,
+  farmId: string,
+  user: SyncUser
+): Promise<Record<string, unknown>> {
+  const deleted: Array<{ entityType: string; id: string }> = []
 
   // Filter entities by user permissions (admin/super_admin bypass)
   const isAdmin = user && (user.role === 'admin' || user.role === 'super_admin')
@@ -465,25 +547,32 @@ async function pullData(since, full, farmId, user) {
           .whereNotNull('deleted_at')
           .select('id')
 
-        const entityDeleted = deletedRows.map((row) => ({ entityType, id: row.id }))
-        return { entityType, rows: rows.filter((r) => !r.deleted_at), deleted: entityDeleted }
+        const entityDeleted = deletedRows.map((row: { id: string }) => ({
+          entityType,
+          id: row.id,
+        }))
+        return {
+          entityType,
+          rows: rows.filter((r: any) => !r.deleted_at),
+          deleted: entityDeleted,
+        }
       }
 
       return { entityType, rows, deleted: [] }
     })
   )
 
-  const result = {}
+  const result: Record<string, unknown> = {}
   for (const { entityType, rows, deleted: entityDeleted } of entityResults) {
     result[entityType] = rows
     deleted.push(...entityDeleted)
   }
 
   // Include species data (small static table, always included)
-  let species = []
+  let species: unknown[] = []
   try {
     species = await db('species').where('is_active', true).orderBy('sort_order')
-    species = species.map((row) => {
+    species = (species as any[]).map((row) => {
       if (row.config && typeof row.config === 'string') {
         try {
           row.config = JSON.parse(row.config)
@@ -510,7 +599,15 @@ async function pullData(since, full, farmId, user) {
 
 // ── Sync Log ────────────────────────────────────────────────────
 
-async function logSync(userId, deviceId, action, recordsCount, status, errorMessage, farmId) {
+async function logSync(
+  userId: string,
+  deviceId: string,
+  action: string,
+  recordsCount: number,
+  status: string,
+  errorMessage: string | null,
+  farmId: string | null
+): Promise<void> {
   await db('sync_log').insert({
     id: uuidv4(),
     farm_id: farmId || null,
@@ -526,12 +623,12 @@ async function logSync(userId, deviceId, action, recordsCount, status, errorMess
 
 // ── Helpers ─────────────────────────────────────────────────────
 
-const TABLE_TO_ENTITY = Object.fromEntries(
+const TABLE_TO_ENTITY: Record<string, string> = Object.fromEntries(
   Object.entries(ENTITY_MAP).map(([entity, { table }]) => [table, entity])
 )
 
 // eslint-disable-next-line no-unused-vars
-function tableToEntity(table) {
+function tableToEntity(table: string): string {
   return TABLE_TO_ENTITY[table] || table
 }
 

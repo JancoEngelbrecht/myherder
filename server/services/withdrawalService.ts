@@ -1,19 +1,18 @@
+interface WithdrawalDates {
+  withdrawalEndMilk: Date | null
+  withdrawalEndMeat: Date | null
+}
+
 /**
  * Calculates withdrawal end dates for a treatment.
- * @param {Date|string} treatmentDate
- * @param {number} withdrawalMilkHours
- * @param {number} withdrawalMilkDays
- * @param {number} withdrawalMeatHours
- * @param {number} withdrawalMeatDays
- * @returns {{ withdrawalEndMilk: Date|null, withdrawalEndMeat: Date|null }}
  */
 function calcWithdrawalDates(
-  treatmentDate,
-  withdrawalMilkHours,
-  withdrawalMilkDays,
-  withdrawalMeatHours,
-  withdrawalMeatDays
-) {
+  treatmentDate: Date | string,
+  withdrawalMilkHours: number,
+  withdrawalMilkDays: number,
+  withdrawalMeatHours: number,
+  withdrawalMeatDays: number
+): WithdrawalDates {
   const base = new Date(treatmentDate)
   const totalMilkHours = (withdrawalMilkHours || 0) + (withdrawalMilkDays || 0) * 24
   const totalMeatHours = (withdrawalMeatHours || 0) + (withdrawalMeatDays || 0) * 24

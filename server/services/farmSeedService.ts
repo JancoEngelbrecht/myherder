@@ -1,4 +1,4 @@
-const { randomUUID: uuidv4 } = require('crypto')
+import { randomUUID as uuidv4 } from 'crypto'
 
 // ── Hardcoded fallback defaults (used when global tables are empty) ──
 // These are cattle-only defaults. Sheep defaults live in global default_* tables
@@ -156,29 +156,37 @@ const DEFAULT_FLAGS = ['breeding', 'milk_recording', 'health_issues', 'treatment
 // Flags to disable for non-dairy species
 const NON_DAIRY_DISABLED_FLAGS = ['milk_recording']
 
+interface SeedOptions {
+  speciesId?: string
+}
+
 /**
  * Seed default reference data for a newly created farm.
  * Reads from global default_* tables; falls back to hardcoded arrays if empty.
  * Must be called within a transaction (trx) for atomicity.
  *
- * @param {string} farmId - The farm UUID
- * @param {string} farmName - The farm name (for app_settings)
- * @param {object} trx - Knex transaction object
- * @param {object} [options] - Optional species config
- * @param {string} [options.speciesId] - Species UUID to filter defaults by. If omitted, seeds all defaults (backward compat).
+ * @param farmId - The farm UUID
+ * @param farmName - The farm name (for app_settings)
+ * @param trx - Knex transaction object
+ * @param options - Optional species config
  */
-async function seedFarmDefaults(farmId, farmName, trx, options = {}) {
+async function seedFarmDefaults(
+  farmId: string,
+  farmName: string,
+  trx: any,
+  options: SeedOptions = {}
+): Promise<void> {
   const now = trx.fn.now()
   let { speciesId } = options
 
   // Default to cattle species if no speciesId provided (backward compat).
   // The species table may not exist yet (pre-migration-035), so guard the lookup.
-  let speciesRow = null
+  let speciesRow: any = null
   if (!speciesId) {
     try {
       speciesRow = await trx('species').where('code', 'cattle').first()
       if (speciesRow) speciesId = speciesRow.id
-    } catch (err) {
+    } catch (err: any) {
       // Only suppress "table doesn't exist" errors (pre-migration-035 DB)
       const msg = (err.message || '').toLowerCase()
       const isTableMissing =
@@ -196,7 +204,7 @@ async function seedFarmDefaults(farmId, farmName, trx, options = {}) {
   if (breedDefaults.length === 0) breedDefaults = FALLBACK_BREED_TYPES
 
   await trx('breed_types').insert(
-    breedDefaults.map((d) => ({
+    breedDefaults.map((d: any) => ({
       id: uuidv4(),
       farm_id: farmId,
       code: d.code,
@@ -227,7 +235,7 @@ async function seedFarmDefaults(farmId, farmName, trx, options = {}) {
   if (issueDefaults.length === 0) issueDefaults = FALLBACK_ISSUE_TYPES
 
   await trx('issue_type_definitions').insert(
-    issueDefaults.map((d) => ({
+    issueDefaults.map((d: any) => ({
       id: uuidv4(),
       farm_id: farmId,
       code: d.code,
@@ -246,7 +254,7 @@ async function seedFarmDefaults(farmId, farmName, trx, options = {}) {
   if (medDefaults.length === 0) medDefaults = FALLBACK_MEDICATIONS
 
   await trx('medications').insert(
-    medDefaults.map((d) => ({
+    medDefaults.map((d: any) => ({
       id: uuidv4(),
       farm_id: farmId,
       name: d.name,

@@ -1,24 +1,28 @@
-const jwt = require('jsonwebtoken')
-const db = require('../config/database')
-const { jwtSecret } = require('../config/env')
+import jwt from 'jsonwebtoken'
+import db from '../config/database'
+import { jwtSecret } from '../config/env'
+import type { Request, Response, NextFunction } from 'express'
 
-module.exports = async function auth(req, res, next) {
+module.exports = async function auth(req: Request, res: Response, next: NextFunction): Promise<void> {
   const header = req.headers.authorization
   if (!header || !header.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'No token provided' })
+    res.status(401).json({ error: 'No token provided' })
+    return
   }
 
   const token = header.slice(7)
-  let decoded
+  let decoded: any
   try {
     decoded = jwt.verify(token, jwtSecret)
   } catch {
-    return res.status(401).json({ error: 'Invalid or expired token' })
+    res.status(401).json({ error: 'Invalid or expired token' })
+    return
   }
 
   // Temp tokens (2FA flow) cannot access regular endpoints
   if (decoded.type === 'temp') {
-    return res.status(401).json({ error: 'Temporary token not valid for this endpoint' })
+    res.status(401).json({ error: 'Temporary token not valid for this endpoint' })
+    return
   }
 
   req.user = decoded
@@ -30,10 +34,12 @@ module.exports = async function auth(req, res, next) {
       .select('token_version', 'is_active')
       .first()
     if (!user || !user.is_active) {
-      return res.status(401).json({ error: 'User not found or inactive' })
+      res.status(401).json({ error: 'User not found or inactive' })
+      return
     }
     if (typeof decoded.token_version !== 'number' || decoded.token_version !== user.token_version) {
-      return res.status(401).json({ error: 'Token revoked' })
+      res.status(401).json({ error: 'Token revoked' })
+      return
     }
     next()
   } catch (err) {
