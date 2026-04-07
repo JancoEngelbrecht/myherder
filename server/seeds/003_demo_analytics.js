@@ -28,14 +28,14 @@ exports.seed = async function (knex) {
   const reporters = [adminId, workerId]
 
   // Milkable cows: match the daily-kpis "expected" criteria (active/pregnant, not dry)
-  const milkingCows = await knex('cows')
+  const milkingCows = await knex('animals')
     .whereNull('deleted_at')
     .where('sex', 'female')
     .whereIn('status', ['active', 'pregnant'])
     .where('is_dry', false)
     .select('id', 'tag_number', 'name', 'breed', 'status')
 
-  const allFemaleCows = await knex('cows')
+  const allFemaleCows = await knex('animals')
     .whereNull('deleted_at')
     .where('sex', 'female')
     .whereNotIn('status', ['sold', 'dead'])
@@ -154,7 +154,7 @@ exports.seed = async function (knex) {
         milkRecords.push({
           id: uuidv4(),
           farm_id: DEFAULT_FARM_ID,
-          cow_id: cow.id,
+          animal_id: cow.id,
           recorded_by: pick(reporters),
           session: 'morning',
           litres: Math.max(0.5, morningLitres),
@@ -170,7 +170,7 @@ exports.seed = async function (knex) {
         milkRecords.push({
           id: uuidv4(),
           farm_id: DEFAULT_FARM_ID,
-          cow_id: cow.id,
+          animal_id: cow.id,
           recorded_by: pick(reporters),
           session: 'afternoon',
           litres: Math.max(0.5, afternoonLitres),
@@ -296,7 +296,7 @@ exports.seed = async function (knex) {
           const issue = {
             id: uuidv4(),
             farm_id: DEFAULT_FARM_ID,
-            cow_id: cow.id,
+            animal_id: cow.id,
             reported_by: pick(reporters),
             issue_types: JSON.stringify([it.code]),
             severity,
@@ -454,7 +454,7 @@ exports.seed = async function (knex) {
       treatments.push({
         id: treatmentId,
         farm_id: DEFAULT_FARM_ID,
-        cow_id: issue.cow_id,
+        animal_id: issue.cow_id,
         health_issue_id: issue.id,
         medication_id: med.id,
         administered_by: pick(reporters),
@@ -508,7 +508,7 @@ exports.seed = async function (knex) {
   // Goal: realistic calving intervals (365-420d), days-open data, varied conception rates
 
   // Get ALL female cows that have been alive long enough to have breeding history
-  const breedingCows = await knex('cows')
+  const breedingCows = await knex('animals')
     .whereNull('deleted_at')
     .where('sex', 'female')
     .whereNotIn('status', ['sold', 'dead'])
@@ -536,7 +536,7 @@ exports.seed = async function (knex) {
   }
 
   // Bulls for sire assignment
-  const bulls = await knex('cows')
+  const bulls = await knex('animals')
     .whereNull('deleted_at')
     .where('sex', 'male')
     .select('id', 'breed_type_id')
@@ -554,7 +554,7 @@ exports.seed = async function (knex) {
     if (!existingCalvings.has(monthKey)) {
       events.push({
         id: uuidv4(),
-        cow_id: cowId,
+        animal_id: cowId,
         event_type: 'calving',
         event_date: isoDate(calvingDate),
         sire_id: pick(bullIds),
@@ -584,7 +584,7 @@ exports.seed = async function (knex) {
     ])
     events.push({
       id: uuidv4(),
-      cow_id: cowId,
+      animal_id: cowId,
       event_type: 'heat_observed',
       event_date: isoDate(heatDate),
       heat_signs: JSON.stringify(heatSigns),
@@ -601,7 +601,7 @@ exports.seed = async function (knex) {
     const sireId = pick(bullIds)
     events.push({
       id: uuidv4(),
-      cow_id: cowId,
+      animal_id: cowId,
       event_type: 'ai_insemination',
       event_date: isoDate(aiDate),
       sire_id: sireId,
@@ -626,7 +626,7 @@ exports.seed = async function (knex) {
 
       events.push({
         id: uuidv4(),
-        cow_id: cowId,
+        animal_id: cowId,
         event_type: 'preg_check_negative',
         event_date: isoDate(negCheckDate),
         preg_check_method: pick(['manual', 'ultrasound', 'blood_test']),
@@ -642,7 +642,7 @@ exports.seed = async function (knex) {
 
       events.push({
         id: uuidv4(),
-        cow_id: cowId,
+        animal_id: cowId,
         event_type: 'heat_observed',
         event_date: isoDate(reHeatDate),
         heat_signs: JSON.stringify(pick([['standing_heat'], ['standing_heat', 'mucus_discharge']])),
@@ -658,7 +658,7 @@ exports.seed = async function (knex) {
 
       events.push({
         id: uuidv4(),
-        cow_id: cowId,
+        animal_id: cowId,
         event_type: 'ai_insemination',
         event_date: isoDate(reAiDate),
         sire_id: pick(bullIds),
@@ -687,7 +687,7 @@ exports.seed = async function (knex) {
 
     events.push({
       id: uuidv4(),
-      cow_id: cowId,
+      animal_id: cowId,
       event_type: 'preg_check_positive',
       event_date: isoDate(posCheckDate),
       preg_check_method: pick(['manual', 'ultrasound']),
@@ -783,7 +783,7 @@ exports.seed = async function (knex) {
       // First attempt
       breedingEvents.push({
         id: uuidv4(),
-        cow_id: cowId,
+        animal_id: cowId,
         event_type: 'heat_observed',
         event_date: isoDate(heatDate),
         heat_signs: JSON.stringify(['standing_heat']),
@@ -793,7 +793,7 @@ exports.seed = async function (knex) {
       })
       breedingEvents.push({
         id: uuidv4(),
-        cow_id: cowId,
+        animal_id: cowId,
         event_type: 'ai_insemination',
         event_date: isoDate(aiDate),
         sire_id: pick(bullIds),
@@ -810,7 +810,7 @@ exports.seed = async function (knex) {
         negDate.setDate(negDate.getDate() + 35)
         breedingEvents.push({
           id: uuidv4(),
-          cow_id: cowId,
+          animal_id: cowId,
           event_type: 'preg_check_negative',
           event_date: isoDate(negDate),
           preg_check_method: pick(['manual', 'ultrasound']),
@@ -823,7 +823,7 @@ exports.seed = async function (knex) {
         reHeat.setDate(reHeat.getDate() + 21)
         breedingEvents.push({
           id: uuidv4(),
-          cow_id: cowId,
+          animal_id: cowId,
           event_type: 'heat_observed',
           event_date: isoDate(reHeat),
           heat_signs: JSON.stringify(['standing_heat']),
@@ -836,7 +836,7 @@ exports.seed = async function (knex) {
         reAi.setDate(reAi.getDate() + 1)
         breedingEvents.push({
           id: uuidv4(),
-          cow_id: cowId,
+          animal_id: cowId,
           event_type: 'ai_insemination',
           event_date: isoDate(reAi),
           sire_id: pick(bullIds),
@@ -854,7 +854,7 @@ exports.seed = async function (knex) {
       posDate.setDate(posDate.getDate() + 35)
       breedingEvents.push({
         id: uuidv4(),
-        cow_id: cowId,
+        animal_id: cowId,
         event_type: 'preg_check_positive',
         event_date: isoDate(posDate),
         preg_check_method: pick(['manual', 'ultrasound']),

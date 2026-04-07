@@ -32,7 +32,7 @@ exports.seed = async function (knex) {
   if (!admin) return
 
   // Get some cows to attach issues to
-  const cows = await knex('cows')
+  const cows = await knex('animals')
     .where('farm_id', DEFAULT_FARM_ID)
     .whereNull('deleted_at')
     .where('sex', 'female')
@@ -60,7 +60,7 @@ exports.seed = async function (knex) {
       {
         id: uuidv4(),
         farm_id: DEFAULT_FARM_ID,
-        cow_id: cows[0]?.id,
+        animal_id: cows[0]?.id,
         reported_by: admin.id,
         issue_types: JSON.stringify(['lameness']),
         severity: 'medium',
@@ -75,7 +75,7 @@ exports.seed = async function (knex) {
       {
         id: uuidv4(),
         farm_id: DEFAULT_FARM_ID,
-        cow_id: cows[1]?.id || cows[0]?.id,
+        animal_id: cows[1]?.id || cows[0]?.id,
         reported_by: admin.id,
         issue_types: JSON.stringify(['mastitis']),
         severity: 'high',
@@ -90,7 +90,7 @@ exports.seed = async function (knex) {
       {
         id: uuidv4(),
         farm_id: DEFAULT_FARM_ID,
-        cow_id: cows[2]?.id || cows[0]?.id,
+        animal_id: cows[2]?.id || cows[0]?.id,
         reported_by: sipho?.id || admin.id,
         issue_types: JSON.stringify(['eye']),
         severity: 'low',

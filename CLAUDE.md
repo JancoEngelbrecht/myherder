@@ -25,7 +25,7 @@ npm run build         # outputs client/dist/
 cd client && npm run test:run          # Frontend (Vitest, 645+ tests)
 npm test                                # Backend (Jest, 575+ tests)
 npm test -- --testPathPattern=cows      # Single backend test file
-cd client && npx vitest run src/tests/CowCard.test.js  # Single frontend test
+cd client && npx vitest run src/tests/AnimalCard.test.js  # Single frontend test
 
 # Lint & format
 npm run lint / npm run lint:fix        # ESLint 9 flat config
@@ -46,7 +46,7 @@ npm run knip                           # Dead code detection
 
 **Multi-Tenancy:** All tenant-scoped tables have `farm_id NOT NULL`. The `tenantScope` middleware (applied to all `/api/*` except auth/settings/announcements) extracts `farm_id` from JWT and sets `req.farmId`. Three roles: `super_admin` (cross-farm, no farm*id), `admin` (farm-scoped), `worker` (farm-scoped). Super-admin can "enter" a farm via `POST /api/farms/:id/enter` (4h scoped JWT). Frontend stores original token and restores on exit. IndexedDB is farm-scoped (`myherder_db*<farmId>`).
 
-**Auth:** Two login modes — admin password (`POST /api/auth/login`, 24h JWT) and worker PIN (`POST /api/auth/login-pin`, 7d JWT, PIN is exactly 4 digits). Login accepts optional `farm_code`; PIN login requires it. Optional TOTP 2FA (setup-2fa, confirm-2fa, verify-2fa endpoints). `POST /api/auth/refresh` renews a valid JWT (auto-called when <1h from expiry). Offline login falls back to cached JWT in IndexedDB if not expired. JWT payload includes `{ id, username, full_name, role, permissions[], language, farm_id }`. Admin role bypasses permission checks; workers need specific permissions (e.g., `can_manage_cows`). Token versioning: auth middleware checks `token_version` per request to support session revocation. Token stored in both localStorage and IndexedDB.
+**Auth:** Two login modes — admin password (`POST /api/auth/login`, 24h JWT) and worker PIN (`POST /api/auth/login-pin`, 7d JWT, PIN is exactly 4 digits). Login accepts optional `farm_code`; PIN login requires it. Optional TOTP 2FA (setup-2fa, confirm-2fa, verify-2fa endpoints). `POST /api/auth/refresh` renews a valid JWT (auto-called when <1h from expiry). Offline login falls back to cached JWT in IndexedDB if not expired. JWT payload includes `{ id, username, full_name, role, permissions[], language, farm_id }`. Admin role bypasses permission checks; workers need specific permissions (e.g., `can_manage_animals`). Token versioning: auth middleware checks `token_version` per request to support session revocation. Token stored in both localStorage and IndexedDB.
 
 **Permission Enforcement:** The `authorize(permission)` middleware in `server/middleware/authorize.js` gates write routes by permission. Admin role auto-bypasses. Route → permission mapping:
 | Permission | Routes gated |
@@ -63,9 +63,9 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
 
 - All routes except `/api/auth/*` require `Authorization: Bearer <token>`
 - **Read-mirrors-write model:** GET routes require the same permission as their corresponding write routes. Workers only see data for features they have permission to use. Sync pull (`/api/sync/pull`) also filters entities by permission — unpermitted entity keys are omitted entirely.
-- `GET /api/cows` returns a **plain array**, not `{ cows: [] }`
-- `GET /api/cows/:id` returns cow with `sire_name`/`dam_name` strings + `breed_type_name`/`breed_type_code` via left-joins
-- Cow date field is `dob`, not `date_of_birth`
+- `GET /api/animals` returns a **plain array**, not `{ cows: [] }`
+- `GET /api/animals/:id` returns animal with `sire_name`/`dam_name` strings + `breed_type_name`/`breed_type_code` via left-joins
+- Animal date field is `dob`, not `date_of_birth`
 - `GET /api/analytics/herd-summary` returns `{ total, by_status: [{status, count}], milking_count, dry_count, heifer_count, males, females, replacement_rate }`
 - `GET /api/analytics/unhealthiest?from&to` — top 10 cows by issue count; returns `[{ id, tag_number, name, sex, issue_count }]`
 - `GET /api/analytics/milk-trends?from&to` — monthly milk totals (default last 12 months); returns `{ months: [{ month, total_litres, record_count, avg_per_cow }] }`
@@ -76,10 +76,10 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
 - `GET /api/analytics/treatment-costs?from&to` — monthly treatment spend; returns `{ months: [{ month, total_cost, treatment_count }], grand_total }`
 - `GET /api/analytics/seasonal-prediction` — top 3 predicted issue types for next 2 months; returns `{ predictions: [{ month, month_name, issues: [{ type, code, emoji, historical_avg }] }], years_of_data }`
 - `GET /api/analytics/daily-kpis` — today's snapshot: `{ litres_today, litres_7day_avg, cows_milked_today, cows_expected, active_health_issues, breeding_actions_due }`
-- `GET /api/analytics/litres-per-cow?from&to` — monthly avg litres per cow per day; returns `{ months: [{ month, avg_litres_per_cow_per_day, cow_count }] }`
+- `GET /api/analytics/litres-per-cow?from&to` — monthly avg litres per cow per day; returns `{ months: [{ month, avg_litres_per_cow_per_day, animal_count }] }`
 - `GET /api/analytics/bottom-producers?from&to` — bottom 10 cows by avg daily litres (min 3 recording days); returns `[{ id, tag_number, name, total_litres, days_recorded, avg_daily_litres }]`
-- `GET /api/analytics/calving-interval?from&to` — avg days between successive calvings per cow; returns `{ avg_calving_interval_days, cow_count, intervals: [{ cow_id, tag_number, name, interval_days, calving_count }] }`
-- `GET /api/analytics/days-open?from&to` — avg days from calving to next confirmed pregnancy; returns `{ avg_days_open, cow_count, records: [{ cow_id, tag_number, name, days_open }] }`
+- `GET /api/analytics/calving-interval?from&to` — avg days between successive calvings per cow; returns `{ avg_calving_interval_days, animal_count, intervals: [{ animal_id, tag_number, name, interval_days, calving_count }] }`
+- `GET /api/analytics/days-open?from&to` — avg days from calving to next confirmed pregnancy; returns `{ avg_days_open, animal_count, records: [{ animal_id, tag_number, name, days_open }] }`
 - `GET /api/analytics/conception-rate?from&to` — first-service conception rate; returns `{ first_service_rate, total_first_services, first_service_conceptions, by_month: [{ month, rate, total, conceptions }] }`
 - `GET /api/analytics/issue-frequency?from&to` — issue count by type + trend by month; returns `{ by_type: [{ code, name, emoji, count }], by_month: [{ month, counts: { code: count } }] }`
 - `GET /api/analytics/mastitis-rate?from&to` — mastitis cases per 100 cows per month; returns `{ months: [{ month, rate, cases, herd_size }], avg_rate }`
@@ -95,23 +95,23 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
 - `GET /api/analytics/health-cure-rate-trend?from&to` — monthly cure rate; returns `{ months: [{ month, rate, total, resolved }] }`
 - `GET /api/analytics/slowest-to-resolve?from&to` — top 10 cows by avg resolution time; returns `[{ id, tag_number, name, avg_days, issue_count }]`
 - Cows API supports `search`, `status`, `sex`, `breed_type_id`, `is_dry`, `page`, `limit` query params
-- Soft delete: `DELETE /api/cows/:id` sets `deleted_at` (admin only)
-- **Cow IDs are UUIDs** — never use `Number(route.params.id)`
+- Soft delete: `DELETE /api/animals/:id` sets `deleted_at` (admin only)
+- **Animal IDs are UUIDs** — never use `Number(route.params.id)`
 - `GET /api/medications` — active only; `?all=1` for all (admin)
-- `GET /api/milk-records` — **dual mode**: without `page`/`limit` returns plain array (legacy recording page); with `page`/`limit` returns `{ data: [...], total: N }` (history view). Optional filters: `date`, `from`/`to` (date range), `session`, `cow_id`, `recorded_by`, `search` (LIKE on tag_number/cow_name/recorded_by_name), `discarded` (boolean). Sort: `sort=recording_date|litres|tag_number`, `order=asc|desc` (default: recording_date desc). Joined fields: `tag_number`, `cow_name`, `recorded_by_name`
+- `GET /api/milk-records` — **dual mode**: without `page`/`limit` returns plain array (legacy recording page); with `page`/`limit` returns `{ data: [...], total: N }` (history view). Optional filters: `date`, `from`/`to` (date range), `session`, `animal_id`, `recorded_by`, `search` (LIKE on tag_number/animal_name/recorded_by_name), `discarded` (boolean). Sort: `sort=recording_date|litres|tag_number`, `order=asc|desc` (default: recording_date desc). Joined fields: `tag_number`, `animal_name`, `recorded_by_name`
 - `GET /api/milk-records/recorders` — distinct users who recorded milk on the farm; returns `[{ id, full_name }]`
 - `GET /api/milk-records/summary?date=YYYY-MM-DD` — session totals for a date
 - `GET /api/milk-records/:id` — single record with joins
 - `POST /api/milk-records` — create; auto-flags withdrawal; unique per cow/session/date (409 on duplicate)
 - `PUT /api/milk-records/:id` — update litres/discard; owner or admin only
 - `DELETE /api/milk-records/:id` — admin only
-- `GET /api/treatments?cow_id=X` — with medication/user names joined; `GET /api/treatments/withdrawal` — latest per cow on withdrawal; POST auto-calculates `withdrawal_end_milk`/`withdrawal_end_meat`
+- `GET /api/treatments?animal_id=X` — with medication/user names joined; `GET /api/treatments/withdrawal` — latest per cow on withdrawal; POST auto-calculates `withdrawal_end_milk`/`withdrawal_end_meat`
 - `GET/POST /api/health-issues`, `PATCH /api/health-issues/:id/status`, `DELETE /api/health-issues/:id`
 - `affected_teats` stored as JSON string in SQLite — always `JSON.parse()` when reading
 - `GET /api/issue-types` — active only; `?all=1` for all; CRUD admin-only; DELETE blocked if `code` referenced in `health_issues`; `code` is immutable slug auto-generated from `name`
 - `GET /api/breed-types` — active only; `?all=1` for all; CRUD admin-only; DELETE blocked if cows reference breed; `code` is immutable slug auto-generated from `name`
 - `GET /api/breeding-events?page=N&limit=N&event_type=X` — paginated; returns `{ data: [...], total: N }` (event_type accepts comma-separated values e.g. `ai_insemination,bull_service`)
-- `GET /api/breeding-events?cow_id=X` — plain array (no pagination; used by per-cow repro views)
+- `GET /api/breeding-events?animal_id=X` — plain array (no pagination; used by per-cow repro views)
 - `POST /api/breeding-events`, `PATCH /:id` (admin), `PATCH /:id/dismiss` (any user), `DELETE /:id` (admin)
 - `GET /api/breeding-events/upcoming` returns `{ heats, calvings, pregChecks, dryOffs, needsAttention }` — excludes dismissed events
 - Breeding auto-dates use breed-specific timings from `breed_types` table (gestation, heat cycle, preg check, dry-off days)
@@ -135,7 +135,7 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
   - `GET /api/reports/breeding` — all breeding events with type breakdown
   - `GET /api/reports/herd-health` — health issues with severity, resolution time, linked treatment count
 - `GET /api/audit-log` — admin only; paginated `{ data: [...], total }`. Filters: `entity_type`, `entity_id`, `user_id`, `action`, `from`, `to`
-- `GET /api/farms` — super-admin only; returns farms array with `user_count`, `cow_count` stats. `?active=0|1` filter
+- `GET /api/farms` — super-admin only; returns farms array with `user_count`, `animal_count` stats. `?active=0|1` filter
 - `GET /api/farms/:id` — super-admin only; farm detail with `users` array (sanitized)
 - `POST /api/farms` — super-admin only; atomic create: farm + admin user + seed defaults (breed types, issue types, medications, feature flags, settings). Body: `{ name, code, admin_username, admin_password, admin_full_name }`. Code: uppercase alphanumeric 3-10 chars
 - `PATCH /api/farms/:id` — super-admin only; update `{ name?, code?, is_active? }`. Use `{ is_active: false/true }` for deactivation/reactivation
@@ -174,12 +174,12 @@ Two locales: `en.json` and `af.json` in `client/src/i18n/`. Locale persisted to 
 
 All frontend components live under `client/src/components/` in atomic tiers:
 
-| Tier          | Path                    | Contents                                           |
-| ------------- | ----------------------- | -------------------------------------------------- |
-| **atoms**     | `components/atoms/`     | SyncIndicator — purely visual, no children         |
-| **molecules** | `components/molecules/` | TeatSelector, CowSearchDropdown, **ConfirmDialog** |
-| **organisms** | `components/organisms/` | AppHeader, BottomNav, CowCard                      |
-| **views**     | `src/views/`            | Full pages — never import from `components/` root  |
+| Tier          | Path                    | Contents                                              |
+| ------------- | ----------------------- | ----------------------------------------------------- |
+| **atoms**     | `components/atoms/`     | SyncIndicator — purely visual, no children            |
+| **molecules** | `components/molecules/` | TeatSelector, AnimalSearchDropdown, **ConfirmDialog** |
+| **organisms** | `components/organisms/` | AppHeader, BottomNav, AnimalCard                      |
+| **views**     | `src/views/`            | Full pages — never import from `components/` root     |
 
 **Rules:**
 
@@ -189,7 +189,7 @@ All frontend components live under `client/src/components/` in atomic tiers:
 - **Every delete action** must use `ConfirmDialog` (`molecules/ConfirmDialog.vue`) — never inline a delete dialog
   - Props: `:show`, `:message`, `:confirm-label`, `:cancel-label`, `:loading`; emits `@confirm`, `@cancel`
 - Display issue types via `issueTypesStore.getByCode(code)?.name|emoji` — never i18n keys
-- Milk withdrawal badge: always guard with `if (cow.value?.sex === 'male') return false`
+- Milk withdrawal badge: always guard with `if (animal.value?.sex === 'male') return false`
 
 **Action buttons in detail views:**
 

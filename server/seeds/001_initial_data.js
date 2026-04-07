@@ -42,7 +42,7 @@ exports.seed = async function (knex) {
     } catch {
       /* table may not exist */
     }
-    await knex('cows').del()
+    await knex('animals').del()
     await knex('users').del()
     await knex('farms').del()
   } finally {
@@ -92,7 +92,7 @@ exports.seed = async function (knex) {
       password_hash: await bcrypt.hash('admin123', 10),
       full_name: 'Farm Admin',
       role: 'admin',
-      permissions: JSON.stringify(['can_manage_cows', 'can_manage_users']),
+      permissions: JSON.stringify(['can_manage_animals', 'can_manage_users']),
       language: 'en',
       is_active: true,
       failed_attempts: 0,
@@ -104,7 +104,7 @@ exports.seed = async function (knex) {
       pin_hash: await bcrypt.hash('1234', 10),
       full_name: 'Sipho Ndlovu',
       role: 'worker',
-      permissions: JSON.stringify(['can_manage_cows']),
+      permissions: JSON.stringify(['can_manage_animals']),
       language: 'af',
       is_active: true,
       failed_attempts: 0,
@@ -1519,7 +1519,7 @@ exports.seed = async function (knex) {
     ...c,
   }))
 
-  await knex.batchInsert('cows', normalisedCows, 50)
+  await knex.batchInsert('animals', normalisedCows, 50)
 
   // ── Breeding events ───────────────────────────────────────────────────────
   //
@@ -1617,7 +1617,7 @@ exports.seed = async function (knex) {
     // C001 Bella – 3 calvings (2020, 2022, 2024)
     {
       id: uuidv4(),
-      cow_id: C001,
+      animal_id: C001,
       event_type: 'calving',
       event_date: '2020-06-14',
       sire_id: B001,
@@ -1632,7 +1632,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C001,
+      animal_id: C001,
       event_type: 'calving',
       event_date: '2022-08-02',
       sire_id: B001,
@@ -1642,7 +1642,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C001,
+      animal_id: C001,
       event_type: 'calving',
       event_date: '2024-07-18',
       sire_id: B001,
@@ -1658,7 +1658,7 @@ exports.seed = async function (knex) {
     // C001 current cycle – heat observed, AI done, now waiting
     {
       id: uuidv4(),
-      cow_id: C001,
+      animal_id: C001,
       event_type: 'heat_observed',
       event_date: daysAgo(32),
       heat_signs: JSON.stringify(['standing_heat', 'vulva_swelling']),
@@ -1666,7 +1666,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C001,
+      animal_id: C001,
       event_type: 'ai_insemination',
       event_date: daysAgo(30),
       sire_id: B001,
@@ -1681,7 +1681,7 @@ exports.seed = async function (knex) {
     // C002 Daisy – 2 calvings, now dry
     {
       id: uuidv4(),
-      cow_id: C002,
+      animal_id: C002,
       event_type: 'calving',
       event_date: '2021-11-20',
       sire_id: B005,
@@ -1695,7 +1695,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C002,
+      animal_id: C002,
       event_type: 'calving',
       event_date: '2024-09-03',
       sire_id: B005,
@@ -1710,7 +1710,7 @@ exports.seed = async function (knex) {
     // C002 dried off 45 days ago
     {
       id: uuidv4(),
-      cow_id: C002,
+      animal_id: C002,
       event_type: 'dry_off',
       event_date: daysAgo(45),
       notes: 'Routine 60-day dry period. Good body condition score.',
@@ -1720,7 +1720,7 @@ exports.seed = async function (knex) {
     // C003 Rosie – 2 historical calvings; now inseminated, upcoming dry-off
     {
       id: uuidv4(),
-      cow_id: C003,
+      animal_id: C003,
       event_type: 'calving',
       event_date: '2021-09-10',
       sire_id: B001,
@@ -1729,7 +1729,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C003,
+      animal_id: C003,
       event_type: 'calving',
       event_date: '2023-11-05',
       sire_id: B001,
@@ -1743,7 +1743,7 @@ exports.seed = async function (knex) {
     // Inseminated ~8 months ago; approaching dry-off in 8 days
     {
       id: uuidv4(),
-      cow_id: C003,
+      animal_id: C003,
       event_type: 'ai_insemination',
       event_date: ai003,
       sire_id: B001,
@@ -1756,7 +1756,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C003,
+      animal_id: C003,
       event_type: 'preg_check_positive',
       event_date: daysAgo(170),
       preg_check_method: 'ultrasound',
@@ -1769,7 +1769,7 @@ exports.seed = async function (knex) {
     // C004 Buttercup – upcoming calving in 6 days
     {
       id: uuidv4(),
-      cow_id: C004,
+      animal_id: C004,
       event_type: 'calving',
       event_date: '2022-05-14',
       sire_id: B005,
@@ -1782,7 +1782,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C004,
+      animal_id: C004,
       event_type: 'ai_insemination',
       event_date: ai004,
       sire_id: B005,
@@ -1795,7 +1795,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C004,
+      animal_id: C004,
       event_type: 'preg_check_positive',
       event_date: daysAgo(215),
       preg_check_method: 'ultrasound',
@@ -1807,7 +1807,7 @@ exports.seed = async function (knex) {
     // C005 Clover – had a failed cycle; now overdue heat
     {
       id: uuidv4(),
-      cow_id: C005,
+      animal_id: C005,
       event_type: 'calving',
       event_date: '2022-12-01',
       calving_details: JSON.stringify({ calf_sex: 'male', calf_alive: true }),
@@ -1815,7 +1815,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C005,
+      animal_id: C005,
       event_type: 'heat_observed',
       event_date: daysAgo(25),
       heat_signs: JSON.stringify(['standing_heat', 'mucus_discharge']),
@@ -1824,7 +1824,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C005,
+      animal_id: C005,
       event_type: 'ai_insemination',
       event_date: daysAgo(25),
       inseminator: 'Dr. H. Botha',
@@ -1835,7 +1835,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C005,
+      animal_id: C005,
       event_type: 'preg_check_negative',
       event_date: daysAgo(10),
       preg_check_method: 'manual',
@@ -1847,7 +1847,7 @@ exports.seed = async function (knex) {
     // C006 Molly – dismissed event (sick cow, breeding postponed)
     {
       id: uuidv4(),
-      cow_id: C006,
+      animal_id: C006,
       event_type: 'heat_observed',
       event_date: daysAgo(18),
       heat_signs: JSON.stringify(['restlessness']),
@@ -1864,7 +1864,7 @@ exports.seed = async function (knex) {
     // C007 Star – 1 historical calving, heat cycle
     {
       id: uuidv4(),
-      cow_id: C007,
+      animal_id: C007,
       event_type: 'calving',
       event_date: '2023-04-22',
       sire_id: B005,
@@ -1877,7 +1877,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C007,
+      animal_id: C007,
       event_type: 'heat_observed',
       event_date: daysAgo(21),
       heat_signs: JSON.stringify(['standing_heat']),
@@ -1886,7 +1886,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C007,
+      animal_id: C007,
       event_type: 'ai_insemination',
       event_date: daysAgo(21),
       sire_id: B005,
@@ -1900,7 +1900,7 @@ exports.seed = async function (knex) {
     // C008 Patches – overdue preg check (7 days past due)
     {
       id: uuidv4(),
-      cow_id: C008,
+      animal_id: C008,
       event_type: 'heat_observed',
       event_date: daysAgo(43),
       heat_signs: JSON.stringify(['standing_heat', 'increased_activity']),
@@ -1908,7 +1908,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C008,
+      animal_id: C008,
       event_type: 'bull_service',
       event_date: ai008,
       sire_id: B002,
@@ -1921,7 +1921,7 @@ exports.seed = async function (knex) {
     // C009 Lena – upcoming heat in 2 days
     {
       id: uuidv4(),
-      cow_id: C009,
+      animal_id: C009,
       event_type: 'calving',
       event_date: '2023-01-18',
       sire_id: B001,
@@ -1930,7 +1930,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C009,
+      animal_id: C009,
       event_type: 'heat_observed',
       event_date: daysAgo(19),
       heat_signs: JSON.stringify(['standing_heat']),
@@ -1939,7 +1939,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C009,
+      animal_id: C009,
       event_type: 'preg_check_negative',
       event_date: daysAgo(14),
       preg_check_method: 'manual',
@@ -1951,7 +1951,7 @@ exports.seed = async function (knex) {
     // C010 Grietjie – upcoming calving in 11 days
     {
       id: uuidv4(),
-      cow_id: C010,
+      animal_id: C010,
       event_type: 'ai_insemination',
       event_date: ai010,
       sire_id: B001,
@@ -1963,7 +1963,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C010,
+      animal_id: C010,
       event_type: 'preg_check_positive',
       event_date: daysAgo(210),
       preg_check_method: 'ultrasound',
@@ -1975,7 +1975,7 @@ exports.seed = async function (knex) {
     // C011 Nandi – natural service cycle
     {
       id: uuidv4(),
-      cow_id: C011,
+      animal_id: C011,
       event_type: 'calving',
       event_date: '2022-09-15',
       sire_id: B002,
@@ -1984,7 +1984,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C011,
+      animal_id: C011,
       event_type: 'bull_service',
       event_date: daysAgo(60),
       sire_id: B002,
@@ -1994,7 +1994,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C011,
+      animal_id: C011,
       event_type: 'preg_check_positive',
       event_date: daysAgo(25),
       preg_check_method: 'manual',
@@ -2006,7 +2006,7 @@ exports.seed = async function (knex) {
     // C012 Sarie – dried off 20 days ago
     {
       id: uuidv4(),
-      cow_id: C012,
+      animal_id: C012,
       event_type: 'calving',
       event_date: '2024-01-12',
       sire_id: B005,
@@ -2015,7 +2015,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C012,
+      animal_id: C012,
       event_type: 'dry_off',
       event_date: daysAgo(20),
       notes: 'BCS 3.0 at drying off. Dry cow therapy applied.',
@@ -2025,7 +2025,7 @@ exports.seed = async function (knex) {
     // C013 Hettie – upcoming heat tomorrow
     {
       id: uuidv4(),
-      cow_id: C013,
+      animal_id: C013,
       event_type: 'calving',
       event_date: '2023-06-08',
       sire_id: B001,
@@ -2034,7 +2034,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C013,
+      animal_id: C013,
       event_type: 'heat_observed',
       event_date: daysAgo(20),
       heat_signs: JSON.stringify(['standing_heat', 'chin_resting']),
@@ -2043,7 +2043,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C013,
+      animal_id: C013,
       event_type: 'ai_insemination',
       event_date: daysAgo(20),
       sire_id: B004,
@@ -2055,7 +2055,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C013,
+      animal_id: C013,
       event_type: 'preg_check_negative',
       event_date: daysAgo(6),
       preg_check_method: 'blood_test',
@@ -2067,7 +2067,7 @@ exports.seed = async function (knex) {
     // C014 Fiona – upcoming dry-off in 10 days, calving in 70 days
     {
       id: uuidv4(),
-      cow_id: C014,
+      animal_id: C014,
       event_type: 'ai_insemination',
       event_date: ai014,
       sire_id: B007,
@@ -2080,7 +2080,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C014,
+      animal_id: C014,
       event_type: 'preg_check_positive',
       event_date: daysAgo(180),
       preg_check_method: 'ultrasound',
@@ -2093,7 +2093,7 @@ exports.seed = async function (knex) {
     // C016 Thandi – upcoming heat in 3 days
     {
       id: uuidv4(),
-      cow_id: C016,
+      animal_id: C016,
       event_type: 'calving',
       event_date: '2024-02-20',
       sire_id: B004,
@@ -2102,7 +2102,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C016,
+      animal_id: C016,
       event_type: 'heat_observed',
       event_date: daysAgo(18),
       heat_signs: JSON.stringify(['mucus_discharge', 'restlessness']),
@@ -2113,7 +2113,7 @@ exports.seed = async function (knex) {
     // C017 Lydia – dried off 30 days ago (60-day dry period)
     {
       id: uuidv4(),
-      cow_id: C017,
+      animal_id: C017,
       event_type: 'calving',
       event_date: '2024-10-15',
       sire_id: B005,
@@ -2122,7 +2122,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C017,
+      animal_id: C017,
       event_type: 'dry_off',
       event_date: daysAgo(30),
       notes: 'BCS 3.2. Teat sealant applied.',
@@ -2132,7 +2132,7 @@ exports.seed = async function (knex) {
     // C018 Boetie-se-ma – overdue calving (5 days past expected date)
     {
       id: uuidv4(),
-      cow_id: C018,
+      animal_id: C018,
       event_type: 'ai_insemination',
       event_date: ai018,
       sire_id: B007,
@@ -2142,7 +2142,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C018,
+      animal_id: C018,
       event_type: 'preg_check_positive',
       event_date: daysAgo(220),
       preg_check_method: 'ultrasound',
@@ -2154,7 +2154,7 @@ exports.seed = async function (knex) {
     // C019 Florrie – upcoming heat in 1 day (failed previous attempt)
     {
       id: uuidv4(),
-      cow_id: C019,
+      animal_id: C019,
       event_type: 'calving',
       event_date: '2023-12-04',
       sire_id: B001,
@@ -2163,7 +2163,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C019,
+      animal_id: C019,
       event_type: 'heat_observed',
       event_date: daysAgo(42),
       heat_signs: JSON.stringify(['standing_heat']),
@@ -2172,7 +2172,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C019,
+      animal_id: C019,
       event_type: 'ai_insemination',
       event_date: daysAgo(42),
       sire_id: B001,
@@ -2184,7 +2184,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C019,
+      animal_id: C019,
       event_type: 'preg_check_negative',
       event_date: daysAgo(7),
       preg_check_method: 'blood_test',
@@ -2194,7 +2194,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C019,
+      animal_id: C019,
       event_type: 'heat_observed',
       event_date: daysAgo(22),
       heat_signs: JSON.stringify(['standing_heat', 'vulva_swelling']),
@@ -2205,7 +2205,7 @@ exports.seed = async function (knex) {
     // C020 Sanna – upcoming calving in 4 days
     {
       id: uuidv4(),
-      cow_id: C020,
+      animal_id: C020,
       event_type: 'ai_insemination',
       event_date: ai020,
       sire_id: B005,
@@ -2217,7 +2217,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C020,
+      animal_id: C020,
       event_type: 'preg_check_positive',
       event_date: daysAgo(218),
       preg_check_method: 'ultrasound',
@@ -2229,7 +2229,7 @@ exports.seed = async function (knex) {
     // C021 Trudie – complete recent cycle
     {
       id: uuidv4(),
-      cow_id: C021,
+      animal_id: C021,
       event_type: 'calving',
       event_date: '2024-04-10',
       sire_id: B004,
@@ -2238,7 +2238,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C021,
+      animal_id: C021,
       event_type: 'heat_observed',
       event_date: daysAgo(35),
       heat_signs: JSON.stringify(['standing_heat', 'clear_mucus']),
@@ -2246,7 +2246,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C021,
+      animal_id: C021,
       event_type: 'ai_insemination',
       event_date: daysAgo(34),
       sire_id: B004,
@@ -2260,7 +2260,7 @@ exports.seed = async function (knex) {
     // C024 Elna – upcoming calving in 13 days
     {
       id: uuidv4(),
-      cow_id: C024,
+      animal_id: C024,
       event_type: 'ai_insemination',
       event_date: ai024,
       sire_id: B001,
@@ -2272,7 +2272,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C024,
+      animal_id: C024,
       event_type: 'preg_check_positive',
       event_date: daysAgo(228),
       preg_check_method: 'ultrasound',
@@ -2283,7 +2283,7 @@ exports.seed = async function (knex) {
     // Liesel (C032) is her calf — calved 2024 Feb
     {
       id: uuidv4(),
-      cow_id: C024,
+      animal_id: C024,
       event_type: 'calving',
       event_date: '2025-02-14',
       sire_id: B001,
@@ -2300,7 +2300,7 @@ exports.seed = async function (knex) {
     // C026 Betsie – upcoming heat in 2 days
     {
       id: uuidv4(),
-      cow_id: C026,
+      animal_id: C026,
       event_type: 'calving',
       event_date: '2024-05-22',
       sire_id: B004,
@@ -2309,7 +2309,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C026,
+      animal_id: C026,
       event_type: 'heat_observed',
       event_date: daysAgo(19),
       heat_signs: JSON.stringify(['standing_heat', 'chin_resting', 'increased_activity']),
@@ -2318,7 +2318,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C026,
+      animal_id: C026,
       event_type: 'ai_insemination',
       event_date: daysAgo(19),
       sire_id: B004,
@@ -2330,7 +2330,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C026,
+      animal_id: C026,
       event_type: 'preg_check_negative',
       event_date: daysAgo(5),
       preg_check_method: 'manual',
@@ -2342,7 +2342,7 @@ exports.seed = async function (knex) {
     // C029 Noxolo – dismissed event (sick, breeding postponed)
     {
       id: uuidv4(),
-      cow_id: C029,
+      animal_id: C029,
       event_type: 'heat_observed',
       event_date: daysAgo(10),
       heat_signs: JSON.stringify(['mucus_discharge']),
@@ -2359,7 +2359,7 @@ exports.seed = async function (knex) {
     // C032 Liesel – upcoming preg check in 5 days (inseminated 30 days ago)
     {
       id: uuidv4(),
-      cow_id: C032,
+      animal_id: C032,
       event_type: 'heat_observed',
       event_date: daysAgo(31),
       heat_signs: JSON.stringify(['standing_heat', 'vulva_swelling']),
@@ -2367,7 +2367,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C032,
+      animal_id: C032,
       event_type: 'ai_insemination',
       event_date: ai032,
       sire_id: B001,
@@ -2381,7 +2381,7 @@ exports.seed = async function (knex) {
     // C032 prior calving (Lina + twins C090-C092 born 2025-02-20 attributed to Liesel)
     {
       id: uuidv4(),
-      cow_id: C032,
+      animal_id: C032,
       event_type: 'calving',
       event_date: '2025-02-20',
       sire_id: B001,
@@ -2400,7 +2400,7 @@ exports.seed = async function (knex) {
     // C035 Amanda – upcoming preg check in 3 days
     {
       id: uuidv4(),
-      cow_id: C035,
+      animal_id: C035,
       event_type: 'heat_observed',
       event_date: daysAgo(33),
       heat_signs: JSON.stringify(['standing_heat']),
@@ -2408,7 +2408,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C035,
+      animal_id: C035,
       event_type: 'ai_insemination',
       event_date: ai035,
       sire_id: B005,
@@ -2423,7 +2423,7 @@ exports.seed = async function (knex) {
     // C036 Ronel – overdue dry-off (should have dried off 3 days ago)
     {
       id: uuidv4(),
-      cow_id: C036,
+      animal_id: C036,
       event_type: 'ai_insemination',
       event_date: daysAgo(213),
       sire_id: B004,
@@ -2435,7 +2435,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C036,
+      animal_id: C036,
       event_type: 'preg_check_positive',
       event_date: daysAgo(178),
       preg_check_method: 'ultrasound',
@@ -2448,7 +2448,7 @@ exports.seed = async function (knex) {
     // C039 Gladys – dried off 15 days ago, upcoming calving
     {
       id: uuidv4(),
-      cow_id: C039,
+      animal_id: C039,
       event_type: 'ai_insemination',
       event_date: daysAgo(255),
       sire_id: B005,
@@ -2459,7 +2459,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C039,
+      animal_id: C039,
       event_type: 'preg_check_positive',
       event_date: daysAgo(220),
       preg_check_method: 'ultrasound',
@@ -2468,7 +2468,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C039,
+      animal_id: C039,
       event_type: 'dry_off',
       event_date: daysAgo(15),
       notes: 'Dried off 60 days before expected calving. BCS 3.0.',
@@ -2478,7 +2478,7 @@ exports.seed = async function (knex) {
     // C043 Alet – upcoming preg check in 7 days
     {
       id: uuidv4(),
-      cow_id: C043,
+      animal_id: C043,
       event_type: 'heat_observed',
       event_date: daysAgo(29),
       heat_signs: JSON.stringify(['standing_heat', 'mucus_discharge']),
@@ -2486,7 +2486,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C043,
+      animal_id: C043,
       event_type: 'ai_insemination',
       event_date: ai043,
       sire_id: B001,
@@ -2501,7 +2501,7 @@ exports.seed = async function (knex) {
     // C056 Madelief – dried off 10 days ago
     {
       id: uuidv4(),
-      cow_id: C056,
+      animal_id: C056,
       event_type: 'calving',
       event_date: '2024-08-30',
       sire_id: B001,
@@ -2510,7 +2510,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C056,
+      animal_id: C056,
       event_type: 'ai_insemination',
       event_date: daysAgo(240),
       sire_id: B001,
@@ -2522,7 +2522,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C056,
+      animal_id: C056,
       event_type: 'preg_check_positive',
       event_date: daysAgo(205),
       preg_check_method: 'ultrasound',
@@ -2531,7 +2531,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C056,
+      animal_id: C056,
       event_type: 'dry_off',
       event_date: daysAgo(10),
       notes: 'Third parity cow. Excellent BCS 3.5. Teat sealant applied.',
@@ -2543,7 +2543,7 @@ exports.seed = async function (knex) {
     // C023 Wilna – completed full cycle, in calf
     {
       id: uuidv4(),
-      cow_id: C023,
+      animal_id: C023,
       event_type: 'heat_observed',
       event_date: daysAgo(55),
       heat_signs: JSON.stringify(['standing_heat']),
@@ -2551,7 +2551,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C023,
+      animal_id: C023,
       event_type: 'ai_insemination',
       event_date: daysAgo(54),
       sire_id: B007,
@@ -2563,7 +2563,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C023,
+      animal_id: C023,
       event_type: 'preg_check_positive',
       event_date: daysAgo(19),
       preg_check_method: 'ultrasound',
@@ -2575,7 +2575,7 @@ exports.seed = async function (knex) {
     // C025 Riana – completed full cycle, in calf
     {
       id: uuidv4(),
-      cow_id: C025,
+      animal_id: C025,
       event_type: 'heat_observed',
       event_date: daysAgo(62),
       heat_signs: JSON.stringify(['standing_heat', 'clear_mucus']),
@@ -2583,7 +2583,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C025,
+      animal_id: C025,
       event_type: 'ai_insemination',
       event_date: daysAgo(61),
       sire_id: B005,
@@ -2596,7 +2596,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C025,
+      animal_id: C025,
       event_type: 'preg_check_positive',
       event_date: daysAgo(26),
       preg_check_method: 'manual',
@@ -2607,7 +2607,7 @@ exports.seed = async function (knex) {
     // C028 Corrie – natural service, confirmed
     {
       id: uuidv4(),
-      cow_id: C028,
+      animal_id: C028,
       event_type: 'bull_service',
       event_date: daysAgo(70),
       sire_id: B004,
@@ -2618,7 +2618,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C028,
+      animal_id: C028,
       event_type: 'preg_check_positive',
       event_date: daysAgo(35),
       preg_check_method: 'manual',
@@ -2630,7 +2630,7 @@ exports.seed = async function (knex) {
     // C030 Miems – recent insemination, preg check upcoming
     {
       id: uuidv4(),
-      cow_id: C030,
+      animal_id: C030,
       event_type: 'heat_observed',
       event_date: daysAgo(36),
       heat_signs: JSON.stringify(['standing_heat']),
@@ -2638,7 +2638,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C030,
+      animal_id: C030,
       event_type: 'ai_insemination',
       event_date: daysAgo(35),
       sire_id: B005,
@@ -2651,7 +2651,7 @@ exports.seed = async function (knex) {
     // C034 Patricia – recent AI, preg check upcoming
     {
       id: uuidv4(),
-      cow_id: C034,
+      animal_id: C034,
       event_type: 'heat_observed',
       event_date: daysAgo(37),
       heat_signs: JSON.stringify(['mucus_discharge', 'restlessness']),
@@ -2659,7 +2659,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C034,
+      animal_id: C034,
       event_type: 'ai_insemination',
       event_date: daysAgo(36),
       sire_id: B007,
@@ -2672,7 +2672,7 @@ exports.seed = async function (knex) {
     // C037 Siphokazi – Brahman natural service cycle
     {
       id: uuidv4(),
-      cow_id: C037,
+      animal_id: C037,
       event_type: 'bull_service',
       event_date: daysAgo(80),
       sire_id: B003,
@@ -2683,7 +2683,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C037,
+      animal_id: C037,
       event_type: 'preg_check_positive',
       event_date: daysAgo(45),
       preg_check_method: 'manual',
@@ -2695,7 +2695,7 @@ exports.seed = async function (knex) {
     // C045 Nokwanda – Brahman, natural service confirmed
     {
       id: uuidv4(),
-      cow_id: C045,
+      animal_id: C045,
       event_type: 'bull_service',
       event_date: daysAgo(75),
       sire_id: B003,
@@ -2706,7 +2706,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C045,
+      animal_id: C045,
       event_type: 'preg_check_positive',
       event_date: daysAgo(40),
       preg_check_method: 'manual',
@@ -2717,7 +2717,7 @@ exports.seed = async function (knex) {
     // C052 Nosipho – recent first heat, AI done
     {
       id: uuidv4(),
-      cow_id: C052,
+      animal_id: C052,
       event_type: 'heat_observed',
       event_date: daysAgo(25),
       heat_signs: JSON.stringify(['standing_heat']),
@@ -2725,7 +2725,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C052,
+      animal_id: C052,
       event_type: 'ai_insemination',
       event_date: daysAgo(24),
       sire_id: B004,
@@ -2738,7 +2738,7 @@ exports.seed = async function (knex) {
     // C058 Corlia – abortion history, back in cycle
     {
       id: uuidv4(),
-      cow_id: C058,
+      animal_id: C058,
       event_type: 'ai_insemination',
       event_date: daysAgo(180),
       sire_id: B004,
@@ -2748,7 +2748,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C058,
+      animal_id: C058,
       event_type: 'preg_check_positive',
       event_date: daysAgo(145),
       preg_check_method: 'ultrasound',
@@ -2757,7 +2757,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C058,
+      animal_id: C058,
       event_type: 'abortion',
       event_date: daysAgo(80),
       notes:
@@ -2766,7 +2766,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C058,
+      animal_id: C058,
       event_type: 'heat_observed',
       event_date: daysAgo(30),
       heat_signs: JSON.stringify(['standing_heat', 'vulva_swelling']),
@@ -2775,7 +2775,7 @@ exports.seed = async function (knex) {
     },
     {
       id: uuidv4(),
-      cow_id: C058,
+      animal_id: C058,
       event_type: 'ai_insemination',
       event_date: daysAgo(29),
       sire_id: B001,
@@ -2788,7 +2788,7 @@ exports.seed = async function (knex) {
     // C059 Thozama – Brahman, natural service in progress
     {
       id: uuidv4(),
-      cow_id: C059,
+      animal_id: C059,
       event_type: 'bull_service',
       event_date: daysAgo(30),
       sire_id: B003,
