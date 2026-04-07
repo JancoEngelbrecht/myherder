@@ -1,6 +1,15 @@
 import { describe, it, expect, vi } from 'vitest'
 import { useSpeciesTerms } from '../composables/useSpeciesTerms'
 
+vi.mock('../i18n', () => ({
+  default: {
+    global: {
+      t: (key: string) => key,
+      te: () => false,
+    },
+  },
+}))
+
 vi.mock('../services/api', () => ({
   default: { get: vi.fn() },
 }))

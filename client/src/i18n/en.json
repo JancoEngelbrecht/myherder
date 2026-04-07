@@ -2181,5 +2181,31 @@
     "loadError": "Could not load system health data.",
     "recentErrors": "Recent Errors",
     "noRecentErrors": "No recent server errors"
+  },
+  "speciesTerminology": {
+    "cattle": {
+      "singular": "Cow",
+      "plural": "Cows",
+      "maleSingular": "Bull",
+      "femaleSingular": "Cow",
+      "youngSingular": "Calf",
+      "youngPlural": "Calves",
+      "collectiveNoun": "Herd",
+      "birthEvent": "Calving",
+      "birthEventPast": "Calved",
+      "maleService": "Bull Service"
+    },
+    "sheep": {
+      "singular": "Sheep",
+      "plural": "Sheep",
+      "maleSingular": "Ram",
+      "femaleSingular": "Ewe",
+      "youngSingular": "Lamb",
+      "youngPlural": "Lambs",
+      "collectiveNoun": "Flock",
+      "birthEvent": "Lambing",
+      "birthEventPast": "Lambed",
+      "maleService": "Ram Service"
+    }
   }
 }

@@ -1,14 +1,17 @@
 import { computed } from 'vue'
 import { useSpeciesStore } from '../stores/species'
+import i18n from '../i18n'
 
 /**
- * Provides reactive species terminology for the current farm.
+ * Provides reactive, locale-aware species terminology for the current farm.
  * Falls back to cattle terminology if species data hasn't loaded yet.
+ * Terminology is translated via i18n (speciesTerminology.<code>.<term>),
+ * falling back to the DB-stored English terms if no translation exists.
  *
  * Usage:
  *   const { singular, plural, collectiveNoun, emoji } = useSpeciesTerms()
- *   // For sheep farm: singular='Sheep', collectiveNoun='Flock', emoji.female='🐑'
- *   // For cattle farm: singular='Cow', collectiveNoun='Herd', emoji.female='🐄'
+ *   // For sheep farm (af): singular='Skaap', collectiveNoun='Trop', emoji.female='🐑'
+ *   // For cattle farm (en): singular='Cow', collectiveNoun='Herd', emoji.female='🐄'
  */
 export function useSpeciesTerms() {
   const speciesStore = useSpeciesStore()
@@ -18,16 +21,25 @@ export function useSpeciesTerms() {
   const terminology = computed(() => config.value.terminology)
   const emoji = computed(() => config.value.emoji)
 
-  const singular = computed(() => terminology.value.singular)
-  const plural = computed(() => terminology.value.plural)
-  const maleSingular = computed(() => terminology.value.maleSingular)
-  const femaleSingular = computed(() => terminology.value.femaleSingular)
-  const youngSingular = computed(() => terminology.value.youngSingular)
-  const youngPlural = computed(() => terminology.value.youngPlural)
-  const collectiveNoun = computed(() => terminology.value.collectiveNoun)
-  const birthEvent = computed(() => terminology.value.birthEvent)
-  const birthEventPast = computed(() => terminology.value.birthEventPast)
-  const maleService = computed(() => terminology.value.maleService)
+  /** Return translated term if available, otherwise fall back to DB value */
+  const term = (key: string) =>
+    computed(() => {
+      const code = species.value.code
+      const i18nKey = `speciesTerminology.${code}.${key}`
+      const { t, te } = i18n.global
+      return te(i18nKey) ? t(i18nKey) : terminology.value[key]
+    })
+
+  const singular = term('singular')
+  const plural = term('plural')
+  const maleSingular = term('maleSingular')
+  const femaleSingular = term('femaleSingular')
+  const youngSingular = term('youngSingular')
+  const youngPlural = term('youngPlural')
+  const collectiveNoun = term('collectiveNoun')
+  const birthEvent = term('birthEvent')
+  const birthEventPast = term('birthEventPast')
+  const maleService = term('maleService')
 
   const speciesCode = computed(() => species.value.code)
   const lifePhasesConfig = computed(() => config.value.life_phases)

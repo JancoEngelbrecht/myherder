@@ -41,7 +41,7 @@
     "logIssue": "Teken Gesondheidsprobleem aan",
     "openIssues": "Oop Probleme",
     "recordMilk": "Teken Melk aan",
-    "breed": "Teelt",
+    "breed": "Teel",
     "viewCows": "Sien Koeie",
     "viewAnimals": "Sien {collectiveNoun}",
     "analytics": "Analise",
@@ -331,7 +331,7 @@
       "litresToday": "Liter Vandag",
       "cowsMilked": "{animals} Gemelk",
       "activeIssues": "Aktiewe Kwessies",
-      "breedingDue": "Teelt Aksies",
+      "breedingDue": "Teel Aksies",
       "totalHerd": "Totale Kudde",
       "vs7dayAvg": "vs 7-dag gem.",
       "vsExpected": "vs verwag",
@@ -342,7 +342,7 @@
       "financial": "Finansieel",
       "financialDesc": "Inkomste, koste & produksie",
       "fertility": "Vrugbaarheid",
-      "fertilityDesc": "Teelt & voortplanting KPIs",
+      "fertilityDesc": "Teel & voortplanting KPIs",
       "health": "Tropgesondheid",
       "healthDesc": "Kwessies, behandelings & voorspellings",
       "structure": "Tropstruktuur",
@@ -369,10 +369,10 @@
       "avgDaysOpen": "Gem. Dae Oop",
       "conceptionRate": "1ste Diens Koers",
       "reproStatus": "Reproduksiestatus",
-      "reproStatusDesc": "Huidige dragtigheid- en teeltstatus van die kudde.",
+      "reproStatusDesc": "Huidige dragtigheid- en teelstatus van die kudde.",
       "inseminations": "Inseminasies",
       "conceptions": "Bevestig Dragtig",
-      "breedingActivity": "Teeltaktiwiteit",
+      "breedingActivity": "Teelaktiwiteit",
       "breedingActivityDesc": "Maandelikse inseminasies teenoor bevestigde dragtighede.",
       "conceptionTrend": "Bevrugtingskoers Neiging",
       "conceptionTrendDesc": "Persentasie {animals} wat by die eerste diens bevrug word, per maand.",
@@ -704,17 +704,17 @@
     "filterAllSessions": "Alle sessies"
   },
   "breeding": {
-    "title": "Teelt & Reproduksie",
-    "hubTitle": "Teelt Sentrum",
-    "eventsTitle": "Teelt Geleenthede",
-    "logTitle": "Aanteken Teelt Geleentheid",
-    "editTitle": "Wysig Teelt Geleentheid",
+    "title": "Teel & Reproduksie",
+    "hubTitle": "Teel Sentrum",
+    "eventsTitle": "Teel Geleenthede",
+    "logTitle": "Aanteken Teel Geleentheid",
+    "editTitle": "Wysig Teel Geleentheid",
     "reproTitle": "Reproduksie",
     "logEvent": "Aanteken Geleentheid",
-    "noEvents": "Geen teelt geleenthede aangeteken nie",
+    "noEvents": "Geen teel geleenthede aangeteken nie",
     "recentEvents": "Onlangse Aantekeninge",
     "viewAll": "Sien alles",
-    "deleteConfirm": "Permanent verwyder hierdie teelt geleentheid?",
+    "deleteConfirm": "Permanent verwyder hierdie teel geleentheid?",
     "needsAttention": "Benodig Aandag",
     "dismiss": "Verwerp",
     "dismissReason": "Rede (opsioneel)",
@@ -881,8 +881,8 @@
     "sectionTitle": "Modules",
     "sectionDesc": "Aktiveer of deaktiveer app-modules",
     "breeding": {
-      "name": "Teelt",
-      "desc": "Teelt sentrum, geleenthede en reproduksie opsporing"
+      "name": "Teel",
+      "desc": "Teel sentrum, geleenthede en reproduksie opsporing"
     },
     "milkRecording": {
       "name": "Melk Optekening",
@@ -946,7 +946,7 @@
     "permissionLabels": {
       "can_log_issues": "Teken Probleme Aan",
       "can_log_treatments": "Teken Behandelings Aan",
-      "can_log_breeding": "Teken Teelt Aan",
+      "can_log_breeding": "Teken Teel Aan",
       "can_record_milk": "Teken Melk Op",
       "can_view_analytics": "Sien Analise",
       "can_manage_animals": "Bestuur Diere",
@@ -1115,7 +1115,7 @@
     "typeToConfirm": "Tik \"{name}\" om te bevestig:",
     "farmDeleted": "Plaas permanent verwyder",
     "speciesLabel": "Spesie",
-    "speciesHint": "Bepaal watter ras tipes, probleemtipes en teeltgebeurtenisse vir hierdie plaas gesaai word.",
+    "speciesHint": "Bepaal watter ras tipes, probleemtipes en teelgebeurtenisse vir hierdie plaas gesaai word.",
     "speciesManagement": "Spesie Bestuur",
     "speciesTerminology": "Terminologie",
     "speciesLifePhases": "Lewensfases",
@@ -2181,5 +2181,31 @@
     "loadError": "Kon nie stelselgesondheid data laai nie.",
     "recentErrors": "Onlangse Foute",
     "noRecentErrors": "Geen onlangse bediener foute nie"
+  },
+  "speciesTerminology": {
+    "cattle": {
+      "singular": "Koei",
+      "plural": "Koeie",
+      "maleSingular": "Bul",
+      "femaleSingular": "Koei",
+      "youngSingular": "Kalf",
+      "youngPlural": "Kalwers",
+      "collectiveNoun": "Kudde",
+      "birthEvent": "Kalwing",
+      "birthEventPast": "Gekalf",
+      "maleService": "Bul Diens"
+    },
+    "sheep": {
+      "singular": "Skaap",
+      "plural": "Skape",
+      "maleSingular": "Ram",
+      "femaleSingular": "Ooi",
+      "youngSingular": "Lam",
+      "youngPlural": "Lammers",
+      "collectiveNoun": "Trop",
+      "birthEvent": "Lam",
+      "birthEventPast": "Gelam",
+      "maleService": "Ram Diens"
+    }
   }
 }
