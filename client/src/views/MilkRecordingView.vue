@@ -283,6 +283,7 @@ const { startTour } = useTour('milk-recording', () => [
   font-size: 0.85rem;
   font-weight: 500;
   border: 1px solid rgba(220, 38, 38, 0.2);
+  border-left: 3px solid var(--danger);
 }
 
 .controls {
@@ -330,26 +331,29 @@ const { startTour } = useTour('milk-recording', () => [
 
 .session-tabs {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.375rem;
+  background: var(--surface-2);
+  padding: 3px;
+  border-radius: var(--radius-sm);
 }
 
 .session-tab {
   flex: 1;
-  padding: 0.55rem 0;
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-  color: var(--text);
+  padding: 0.5rem 0;
+  border: none;
+  border-radius: calc(var(--radius-sm) - 2px);
+  background: transparent;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.2s;
 }
 
 .session-tab.active {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #fff;
+  background: var(--surface);
+  color: var(--primary);
+  box-shadow: var(--shadow-sm);
 }
 
 .cow-list {
@@ -361,7 +365,7 @@ const { startTour } = useTour('milk-recording', () => [
 }
 
 .history-link-row {
-  padding: 0 1rem;
+  padding: 0.25rem 1rem 0;
   text-align: right;
 }
 
@@ -370,6 +374,13 @@ const { startTour } = useTour('milk-recording', () => [
   font-weight: 600;
   color: var(--primary);
   text-decoration: none;
+  opacity: 0.85;
+  transition: opacity 0.15s;
+}
+
+.history-link:hover {
+  opacity: 1;
+  text-decoration: underline;
 }
 
 .summary-footer {

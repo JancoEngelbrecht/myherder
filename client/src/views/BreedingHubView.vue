@@ -218,6 +218,7 @@ onMounted(async () => {
   border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 
 .stat-num {
@@ -257,11 +258,22 @@ onMounted(async () => {
   gap: 0.85rem;
   padding: 1rem;
   cursor: pointer;
-  transition: box-shadow 0.15s;
+  border-left: 3px solid var(--primary);
+  transition:
+    box-shadow 0.18s,
+    transform 0.18s;
+}
+
+@media (hover: hover) {
+  .nav-card:hover {
+    box-shadow: var(--shadow-colored);
+    transform: translateY(-1px);
+  }
 }
 
 .nav-card:active {
-  box-shadow: 0 0 0 2px var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-ring);
+  transform: translateY(0);
 }
 
 .nav-card-icon {
@@ -339,5 +351,6 @@ onMounted(async () => {
   font-size: 0.85rem;
   font-weight: 500;
   border: 1px solid rgba(220, 38, 38, 0.2);
+  border-left: 3px solid var(--danger);
 }
 </style>

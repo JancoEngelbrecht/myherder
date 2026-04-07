@@ -89,23 +89,26 @@ async function handleLogout() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin-bottom: 32px;
   padding-top: 8px;
 }
 
 .profile-avatar {
-  width: 64px;
-  height: 64px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   background: var(--primary);
   color: #fff;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 4px;
+  box-shadow: var(--shadow-colored);
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  outline: 2px solid var(--primary-ring);
 }
 
 .profile-name {
@@ -123,10 +126,11 @@ async function handleLogout() {
 .role-badge {
   font-size: 0.6875rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: 3px 10px;
+  letter-spacing: 0.06em;
+  padding: 4px 12px;
   border-radius: var(--radius-full);
   text-transform: uppercase;
+  box-shadow: var(--shadow-sm);
 }
 
 .role-admin {
@@ -170,6 +174,12 @@ async function handleLogout() {
   cursor: pointer;
   font: inherit;
   text-align: left;
+}
+
+@media (hover: hover) {
+  .settings-item:hover {
+    background: var(--surface-2);
+  }
 }
 
 .settings-item:active {
