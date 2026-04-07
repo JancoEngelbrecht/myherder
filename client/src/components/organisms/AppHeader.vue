@@ -203,7 +203,9 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   height: var(--header-height);
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.85);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -241,36 +243,50 @@ onUnmounted(() => {
 }
 
 .lang-toggle {
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
+  padding: 4px 9px;
+  border-radius: var(--radius-full);
   background: var(--surface-2);
   color: var(--text-secondary);
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   cursor: pointer;
-  transition: background 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.lang-toggle:hover {
+  background: var(--border);
+  color: var(--text);
 }
 
 .lang-toggle:active {
-  background: var(--border);
+  background: var(--border-strong);
 }
 
 .btn-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius);
   border: none;
   background: transparent;
   font-size: 1.5rem;
   color: var(--text);
   cursor: pointer;
-  transition: background 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   line-height: 1;
+}
+
+.btn-icon:hover {
+  background: var(--surface-2);
 }
 
 .btn-icon:active {
@@ -281,8 +297,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: var(--primary);
   color: #fff;
@@ -291,6 +307,12 @@ onUnmounted(() => {
   text-decoration: none;
   line-height: 1;
   flex-shrink: 0;
+  border: 2px solid var(--primary-ring);
+  transition: transform 0.15s;
+}
+
+.avatar-circle:hover {
+  transform: scale(1.08);
 }
 
 /* Farm switcher */

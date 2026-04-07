@@ -87,7 +87,9 @@ function isActive(tab) {
   align-items: flex-start;
   justify-content: space-around;
   z-index: 200;
-  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 -1px 0 var(--border),
+    0 -4px 16px rgba(0, 0, 0, 0.04);
 }
 
 .nav-tab {
@@ -95,22 +97,44 @@ function isActive(tab) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 2px;
   flex: 1;
   height: var(--nav-height);
   color: var(--text-muted);
-  transition: color 0.15s;
+  transition:
+    color 0.2s,
+    transform 0.15s;
   text-decoration: none;
   padding-top: 8px;
+  position: relative;
+}
+
+.nav-tab:active {
+  transform: scale(0.92);
 }
 
 .nav-tab.active {
   color: var(--primary);
 }
 
+/* Pill background behind active tab */
+.nav-tab.active::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 52px;
+  height: 34px;
+  border-radius: var(--radius-lg);
+  background: var(--primary-bg);
+  transition: opacity 0.2s;
+}
+
 .nav-icon {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   line-height: 1;
+  position: relative;
 }
 
 .nav-label {
@@ -121,5 +145,6 @@ function isActive(tab) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  position: relative;
 }
 </style>
