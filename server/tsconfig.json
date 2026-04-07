@@ -1,9 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
-    "moduleResolution": "Node10",
-    "ignoreDeprecations": "6.0",
+    "module": "Node16",
+    "moduleResolution": "Node16",
     "moduleDetection": "force",
     "strict": false,
     "allowJs": true,
@@ -11,12 +10,13 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
     "paths": {
       "@shared/*": ["../shared/types/*"]
     },
-    "baseUrl": ".",
     "noEmit": true,
-    "types": ["jest", "node"]
+    "types": ["jest", "node"],
+    "ignoreDeprecations": "6.0"
   },
   "include": ["./**/*.ts", "../shared/**/*.ts"],
   "exclude": ["node_modules", "migrations", "seeds", "dist", "tests/**/*.ts"]
