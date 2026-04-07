@@ -1,6 +1,7 @@
 // eslint.config.js
 const js = require('@eslint/js')
 const pluginN = require('eslint-plugin-n')
+const pluginSecurity = require('eslint-plugin-security')
 const pluginVue = require('eslint-plugin-vue')
 const vueParser = require('vue-eslint-parser')
 const tsParser = require('@typescript-eslint/parser')
@@ -24,7 +25,7 @@ module.exports = [
   // 2. Server + root CJS files
   {
     files: ['server/**/*.js', 'knexfile.js', 'jest.config.js'],
-    plugins: { n: pluginN },
+    plugins: { n: pluginN, security: pluginSecurity },
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'commonjs',
@@ -37,6 +38,9 @@ module.exports = [
     rules: {
       ...js.configs.recommended.rules,
       ...pluginN.configs['flat/recommended-script'].rules,
+      ...pluginSecurity.configs.recommended.rules,
+      'security/detect-object-injection': 'off',
+      'security/detect-non-literal-fs-filename': 'off',
       'no-console': 'off',
       semi: ['error', 'never'],
       'prefer-const': 'error',
@@ -48,7 +52,7 @@ module.exports = [
   // 2c. Server TypeScript files
   {
     files: ['server/**/*.ts'],
-    plugins: { n: pluginN, '@typescript-eslint': tsPlugin },
+    plugins: { n: pluginN, security: pluginSecurity, '@typescript-eslint': tsPlugin },
     languageOptions: {
       parser: tsParser,
       ecmaVersion: 2022,
@@ -60,6 +64,9 @@ module.exports = [
     },
     rules: {
       ...js.configs.recommended.rules,
+      ...pluginSecurity.configs.recommended.rules,
+      'security/detect-object-injection': 'off',
+      'security/detect-non-literal-fs-filename': 'off',
       'no-console': 'off',
       semi: ['error', 'never'],
       'prefer-const': 'error',

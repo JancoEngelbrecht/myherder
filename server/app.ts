@@ -11,7 +11,22 @@ const app = express()
 // Trust first proxy (Passenger/cPanel reverse proxy) so express-rate-limit reads X-Forwarded-For correctly
 if (isProduction) app.set('trust proxy', 1)
 
-app.use(helmet())
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        imgSrc: ["'self'", 'data:', 'blob:'],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+      },
+    },
+  })
+)
 // corsOrigins is always a non-null array — never pass undefined to cors()
 app.use(cors({ origin: corsOrigins, credentials: true }))
 app.use(express.json({ limit: '1mb' }))

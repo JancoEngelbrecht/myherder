@@ -5,7 +5,51 @@ on:
     branches: [main]
 
 jobs:
+  quality-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            client/package-lock.json
+
+      - name: Install server dependencies
+        run: npm ci
+
+      - name: Install client dependencies
+        run: cd client && npm ci
+
+      - name: Lint (includes security rules)
+        run: npm run lint
+
+      - name: Backend type check
+        run: npm run typecheck
+
+      - name: Frontend type check
+        run: cd client && npx vue-tsc --noEmit
+
+      - name: Backend tests
+        run: npm test
+        timeout-minutes: 5
+
+      - name: Frontend tests
+        run: cd client && npm run test:run
+
+      - name: Dependency audit
+        run: npm audit --audit-level=high || true
+
+      - name: Dead code check (knip)
+        run: npx knip || true
+
   deploy:
+    needs: quality-gates
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
