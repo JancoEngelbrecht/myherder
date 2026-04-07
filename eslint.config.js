@@ -3,6 +3,7 @@ const js = require('@eslint/js')
 const pluginN = require('eslint-plugin-n')
 const pluginVue = require('eslint-plugin-vue')
 const vueParser = require('vue-eslint-parser')
+const tsParser = require('@typescript-eslint/parser')
 const configPrettier = require('eslint-config-prettier')
 const globals = require('globals')
 
@@ -15,6 +16,7 @@ module.exports = [
       'client/dist/**',
       'coverage/**',
       '**/*.min.js',
+      '**/*.d.ts',
     ],
   },
 
@@ -27,6 +29,10 @@ module.exports = [
       sourceType: 'commonjs',
       globals: { ...globals.node },
     },
+    settings: {
+      // Allow require() to resolve .ts files (TypeScript migration — .js files require .ts modules)
+      n: { tryExtensions: ['.js', '.ts', '.json', '.node'] },
+    },
     rules: {
       ...js.configs.recommended.rules,
       ...pluginN.configs['flat/recommended-script'].rules,
@@ -35,6 +41,30 @@ module.exports = [
       'prefer-const': 'error',
       'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'n/no-unpublished-require': 'off',
+    },
+  },
+
+  // 2c. Server TypeScript files
+  {
+    files: ['server/**/*.ts'],
+    plugins: { n: pluginN },
+    languageOptions: {
+      parser: tsParser,
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: { ...globals.node },
+    },
+    settings: {
+      n: { tryExtensions: ['.js', '.ts', '.json', '.node'] },
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      'no-console': 'off',
+      semi: ['error', 'never'],
+      'prefer-const': 'error',
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      // module.exports is valid in TS files transpiled to CJS
+      'n/no-unsupported-features/es-syntax': 'off',
     },
   },
 

@@ -1,9 +1,9 @@
-require('dotenv').config({ quiet: true })
+import 'dotenv/config'
 
-const nodeEnv = process.env.NODE_ENV || 'development'
-const isProduction = nodeEnv === 'production'
-const isTest = nodeEnv === 'test'
-const isDevelopment = !isProduction && !isTest
+const nodeEnv: string = process.env.NODE_ENV || 'development'
+const isProduction: boolean = nodeEnv === 'production'
+const isTest: boolean = nodeEnv === 'test'
+const isDevelopment: boolean = !isProduction && !isTest
 
 const JWT_SECRET_MIN_LENGTH = 32
 const DEFAULT_JWT_SECRET = 'dev-secret-change-in-production-32chars'
@@ -14,7 +14,7 @@ const DEFAULT_JWT_SECRET = 'dev-secret-change-in-production-32chars'
 // - development: warn loudly but allow fallback
 // - production/staging: require a strong secret or refuse to start
 
-let jwtSecret
+let jwtSecret: string
 
 if (isTest) {
   // Tests need a stable, predictable secret
@@ -61,7 +61,7 @@ if (isProduction) {
 // - development: default to localhost dev origins
 // - production: require explicit ALLOWED_ORIGINS or refuse to start
 
-let corsOrigins
+let corsOrigins: string[]
 
 if (isProduction) {
   if (!process.env.ALLOWED_ORIGINS) {
@@ -78,8 +78,27 @@ if (isProduction) {
   corsOrigins = ['http://localhost:5173', 'http://localhost:3000']
 }
 
-module.exports = {
-  port: parseInt(process.env.PORT, 10) || 3000,
+export interface EnvConfig {
+  port: number
+  nodeEnv: string
+  isProduction: boolean
+  isDevelopment: boolean
+  isTest: boolean
+  jwtSecret: string
+  dbPath: string
+  jwtExpiryPassword: string
+  jwtExpiryPin: string
+  loginRateLimitWindow: number
+  loginRateLimitMax: number
+  lockoutDuration: number
+  lockoutThreshold: number
+  corsOrigins: string[]
+  /** @deprecated use corsOrigins */
+  allowedOrigins: string[]
+}
+
+const envConfig: EnvConfig = {
+  port: parseInt(process.env.PORT ?? '', 10) || 3000,
   nodeEnv,
   isProduction,
   isDevelopment,
@@ -90,10 +109,10 @@ module.exports = {
   // Auth configuration
   jwtExpiryPassword: process.env.JWT_EXPIRY_PASSWORD || '24h',
   jwtExpiryPin: process.env.JWT_EXPIRY_PIN || '7d',
-  loginRateLimitWindow: parseInt(process.env.LOGIN_RATE_LIMIT_WINDOW, 10) || 15 * 60 * 1000,
-  loginRateLimitMax: parseInt(process.env.LOGIN_RATE_LIMIT_MAX, 10) || 10,
-  lockoutDuration: parseInt(process.env.LOCKOUT_DURATION, 10) || 15 * 60 * 1000,
-  lockoutThreshold: parseInt(process.env.LOCKOUT_THRESHOLD, 10) || 5,
+  loginRateLimitWindow: parseInt(process.env.LOGIN_RATE_LIMIT_WINDOW ?? '', 10) || 15 * 60 * 1000,
+  loginRateLimitMax: parseInt(process.env.LOGIN_RATE_LIMIT_MAX ?? '', 10) || 10,
+  lockoutDuration: parseInt(process.env.LOCKOUT_DURATION ?? '', 10) || 15 * 60 * 1000,
+  lockoutThreshold: parseInt(process.env.LOCKOUT_THRESHOLD ?? '', 10) || 5,
 
   // CORS — always a non-null array
   corsOrigins,
@@ -101,3 +120,5 @@ module.exports = {
   // Legacy alias (kept for any existing code that imports allowedOrigins)
   allowedOrigins: corsOrigins,
 }
+
+module.exports = envConfig

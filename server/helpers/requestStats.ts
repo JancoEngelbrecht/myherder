@@ -1,10 +1,44 @@
 // In-memory request stats — resets on process restart (ephemeral by design)
+import type { Request, Response, NextFunction } from 'express'
+
 const WINDOW_SIZE = 1000
 const ERROR_BUFFER_SIZE = 20
 
-let stats = createFreshStats()
+interface StatsState {
+  startedAt: string
+  totalRequests: number
+  errors4xx: number
+  errors5xx: number
+  responseTimes: Array<number | undefined>
+  writeIndex: number
+  count: number
+  recentErrors: Array<RecentError | undefined>
+  errorWriteIndex: number
+  errorCount: number
+}
 
-function createFreshStats() {
+interface RecentError {
+  timestamp: string
+  method: string
+  path: string
+  status: number
+  message: string
+}
+
+export interface StatsSnapshot {
+  started_at: string
+  total: number
+  errors_4xx: number
+  errors_5xx: number
+  error_rate_5xx_pct: number
+  avg_response_ms: number
+  p95_response_ms: number
+  window_size: number
+}
+
+let stats: StatsState = createFreshStats()
+
+function createFreshStats(): StatsState {
   return {
     startedAt: new Date().toISOString(),
     totalRequests: 0,
@@ -21,7 +55,7 @@ function createFreshStats() {
   }
 }
 
-function recordRequest(durationMs, statusCode) {
+export function recordRequest(durationMs: number, statusCode: number): void {
   stats.totalRequests++
   if (statusCode >= 400 && statusCode < 500) stats.errors4xx++
   if (statusCode >= 500) stats.errors5xx++
@@ -30,8 +64,8 @@ function recordRequest(durationMs, statusCode) {
   if (stats.count < WINDOW_SIZE) stats.count++
 }
 
-function getStats() {
-  const filled = stats.responseTimes.slice(0, stats.count)
+export function getStats(): StatsSnapshot {
+  const filled = stats.responseTimes.slice(0, stats.count) as number[]
   let avgMs = 0
   let p95Ms = 0
 
@@ -58,7 +92,12 @@ function getStats() {
   }
 }
 
-function recordError(method, path, status, message) {
+export function recordError(
+  method: string,
+  path: string,
+  status: number,
+  message: string | unknown
+): void {
   // Strip query string to avoid leaking tokens/secrets
   const cleanPath = (path || '/unknown').split('?')[0]
   // Coerce to string and truncate to avoid storing huge error strings
@@ -75,19 +114,19 @@ function recordError(method, path, status, message) {
   if (stats.errorCount < ERROR_BUFFER_SIZE) stats.errorCount++
 }
 
-function getRecentErrors() {
+export function getRecentErrors(): RecentError[] {
   if (stats.errorCount === 0) return []
-  const filled = []
+  const filled: RecentError[] = []
   // Read from buffer in reverse insertion order (newest first)
   for (let i = 0; i < stats.errorCount; i++) {
     const idx = (stats.errorWriteIndex - 1 - i + ERROR_BUFFER_SIZE) % ERROR_BUFFER_SIZE
-    filled.push(stats.recentErrors[idx])
+    filled.push(stats.recentErrors[idx] as RecentError)
   }
   return filled
 }
 
 /** Express middleware — call app.use(requestStatsMiddleware) */
-function requestStatsMiddleware(req, res, next) {
+export function requestStatsMiddleware(req: Request, res: Response, next: NextFunction): void {
   const start = process.hrtime.bigint()
   res.on('finish', () => {
     const durationMs = Number(process.hrtime.bigint() - start) / 1e6
@@ -97,7 +136,7 @@ function requestStatsMiddleware(req, res, next) {
 }
 
 /** Reset all counters — used in tests to isolate state between suites */
-function resetStats() {
+export function resetStats(): void {
   stats = createFreshStats()
 }
 

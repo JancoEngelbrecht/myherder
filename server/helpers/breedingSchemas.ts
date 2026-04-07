@@ -1,10 +1,11 @@
-const Joi = require('joi')
+import Joi, { ObjectSchema } from 'joi'
 const { ISO_DATE_RE } = require('./constants')
 
-const PREG_CHECK_METHODS = ['manual', 'ultrasound', 'blood_test']
+export const PREG_CHECK_METHODS = ['manual', 'ultrasound', 'blood_test'] as const
+export type PregCheckMethod = (typeof PREG_CHECK_METHODS)[number]
 
 // Status transitions triggered by certain event types
-const STATUS_TRANSITIONS = {
+export const STATUS_TRANSITIONS: Record<string, string> = {
   preg_check_positive: 'pregnant',
   calving: 'active',
   lambing: 'active',
@@ -16,7 +17,7 @@ const STATUS_TRANSITIONS = {
 // Fixed workflow event types — not configurable
 // Includes both cattle-specific (bull_service, calving, dry_off) and
 // sheep-specific (ram_service, lambing) types for universal livestock support.
-const VALID_EVENT_TYPES = [
+export const VALID_EVENT_TYPES = [
   'heat_observed',
   'ai_insemination',
   'bull_service',
@@ -27,15 +28,16 @@ const VALID_EVENT_TYPES = [
   'lambing',
   'abortion',
   'dry_off',
-]
+] as const
+export type ValidEventType = (typeof VALID_EVENT_TYPES)[number]
 
 // Birth event types that produce offspring
-const BIRTH_EVENT_TYPES = ['calving', 'lambing']
+export const BIRTH_EVENT_TYPES = ['calving', 'lambing'] as const
 
 // Service/insemination event types (natural mating)
-const SERVICE_EVENT_TYPES = ['bull_service', 'ram_service']
+export const SERVICE_EVENT_TYPES = ['bull_service', 'ram_service'] as const
 
-const EVENT_TYPE_LABELS = {
+export const EVENT_TYPE_LABELS: Record<string, string> = {
   heat_observed: 'Heat Observed',
   ai_insemination: 'AI Insemination',
   bull_service: 'Bull Service',
@@ -48,7 +50,7 @@ const EVENT_TYPE_LABELS = {
   dry_off: 'Dry Off',
 }
 
-const createSchema = Joi.object({
+export const createSchema: ObjectSchema = Joi.object({
   animal_id: Joi.string().uuid().required(),
   event_type: Joi.string()
     .valid(...VALID_EVENT_TYPES)
@@ -74,7 +76,7 @@ const createSchema = Joi.object({
   expected_dry_off: Joi.string().isoDate().allow(null, '').default(null),
 })
 
-const updateSchema = Joi.object({
+export const updateSchema: ObjectSchema = Joi.object({
   event_type: Joi.string()
     .valid(...VALID_EVENT_TYPES)
     .optional(),
@@ -98,7 +100,7 @@ const updateSchema = Joi.object({
   expected_dry_off: Joi.string().isoDate().allow(null, '').optional(),
 })
 
-const breedingQuerySchema = Joi.object({
+export const breedingQuerySchema: ObjectSchema = Joi.object({
   animal_id: Joi.string().uuid(),
   // Legacy param - accept cow_id for backward compat
   cow_id: Joi.string().uuid(),
