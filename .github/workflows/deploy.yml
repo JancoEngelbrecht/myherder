@@ -46,9 +46,10 @@ jobs:
             source /home/myherder/nodevenv/repositories/myherder/24/bin/activate
             cd /home/myherder/repositories/myherder
 
-            # Clean any dirty files that block git pull
-            git checkout -- package.json package-lock.json 2>/dev/null || true
-
+            # Reset tracked files so git pull never fails on dirty working tree
+            # (SCP-uploaded client/dist replaces git-tracked hashed assets,
+            #  leaving hundreds of "deleted" files that block a normal pull)
+            git reset --hard HEAD
             git pull origin main
 
             npm install --production
