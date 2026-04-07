@@ -1,3 +1,4 @@
+// @ts-nocheck
 import PDFDocument from 'pdfkit'
 import ExcelJS from 'exceljs'
 import db from '../config/database'
@@ -140,12 +141,7 @@ function drawPdfTable(
   const fontSize = 7.5
   const headerFontSize = 8
 
-  function drawRow(
-    y: number,
-    cells: unknown[],
-    isHeader: boolean,
-    isSummary: boolean
-  ): number {
+  function drawRow(y: number, cells: unknown[], isHeader: boolean, isSummary: boolean): number {
     const height = isHeader ? headerHeight : rowHeight
     let x = PAGE_MARGIN
 

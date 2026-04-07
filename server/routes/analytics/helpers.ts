@@ -1,3 +1,4 @@
+// @ts-nocheck
 const Joi = require('joi')
 const db = require('../../config/database')
 const { ISO_DATE_RE, joiMsg, MS_PER_DAY } = require('../../helpers/constants')

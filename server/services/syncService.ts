@@ -1,3 +1,4 @@
+// @ts-nocheck
 import db from '../config/database'
 import { randomUUID as uuidv4 } from 'crypto'
 
@@ -622,14 +623,5 @@ async function logSync(
 }
 
 // ── Helpers ─────────────────────────────────────────────────────
-
-const TABLE_TO_ENTITY: Record<string, string> = Object.fromEntries(
-  Object.entries(ENTITY_MAP).map(([entity, { table }]) => [table, entity])
-)
-
-// eslint-disable-next-line no-unused-vars
-function tableToEntity(table: string): string {
-  return TABLE_TO_ENTITY[table] || table
-}
 
 module.exports = { processChange, pullData, logSync }

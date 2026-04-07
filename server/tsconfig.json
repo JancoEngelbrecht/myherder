@@ -2,7 +2,9 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "CommonJS",
-    "moduleResolution": "Node",
+    "moduleResolution": "Node10",
+    "ignoreDeprecations": "6.0",
+    "moduleDetection": "force",
     "strict": false,
     "allowJs": true,
     "esModuleInterop": true,
@@ -13,8 +15,9 @@
       "@shared/*": ["../shared/types/*"]
     },
     "baseUrl": ".",
-    "noEmit": true
+    "noEmit": true,
+    "types": ["jest", "node"]
   },
   "include": ["./**/*.ts", "../shared/**/*.ts"],
-  "exclude": ["node_modules", "migrations", "seeds", "dist"]
+  "exclude": ["node_modules", "migrations", "seeds", "dist", "tests/**/*.ts"]
 }

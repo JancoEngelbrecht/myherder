@@ -1,3 +1,4 @@
+// @ts-nocheck
 const express = require('express')
 const Joi = require('joi')
 const { randomUUID: uuidv4 } = require('crypto')

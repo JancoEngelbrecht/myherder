@@ -1,9 +1,13 @@
 import jwt from 'jsonwebtoken'
-import db from '../config/database'
-import { jwtSecret } from '../config/env'
+const db = require('../config/database')
+const { jwtSecret } = require('../config/env')
 import type { Request, Response, NextFunction } from 'express'
 
-module.exports = async function auth(req: Request, res: Response, next: NextFunction): Promise<void> {
+module.exports = async function auth(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   const header = req.headers.authorization
   if (!header || !header.startsWith('Bearer ')) {
     res.status(401).json({ error: 'No token provided' })

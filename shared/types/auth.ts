@@ -28,8 +28,9 @@ export interface JwtPayload {
 
 /**
  * Express Request with decoded JWT attached by the auth middleware.
+ * We omit Express's `farmId` (string) to redefine it as a number for our tenant scope.
  */
-export interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends Omit<Request, 'farmId'> {
   user: JwtPayload
-  farmId?: number
+  farmId?: number | null
 }

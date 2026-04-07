@@ -4,6 +4,7 @@ const pluginN = require('eslint-plugin-n')
 const pluginVue = require('eslint-plugin-vue')
 const vueParser = require('vue-eslint-parser')
 const tsParser = require('@typescript-eslint/parser')
+const tsPlugin = require('@typescript-eslint/eslint-plugin')
 const configPrettier = require('eslint-config-prettier')
 const globals = require('globals')
 
@@ -47,7 +48,7 @@ module.exports = [
   // 2c. Server TypeScript files
   {
     files: ['server/**/*.ts'],
-    plugins: { n: pluginN },
+    plugins: { n: pluginN, '@typescript-eslint': tsPlugin },
     languageOptions: {
       parser: tsParser,
       ecmaVersion: 2022,
@@ -62,9 +63,36 @@ module.exports = [
       'no-console': 'off',
       semi: ['error', 'never'],
       'prefer-const': 'error',
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
       // module.exports is valid in TS files transpiled to CJS
       'n/no-unsupported-features/es-syntax': 'off',
+    },
+  },
+
+  // 3b. Client TypeScript files (ESM)
+  {
+    files: ['client/src/**/*.ts'],
+    plugins: { '@typescript-eslint': tsPlugin },
+    languageOptions: {
+      parser: tsParser,
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: { ...globals.browser, ...globals.es2022 },
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      semi: ['error', 'never'],
+      'prefer-const': 'error',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
     },
   },
 
@@ -108,7 +136,14 @@ module.exports = [
 
   // 5. Test files — relax rules
   {
-    files: ['server/tests/**/*.js', 'client/src/**/*.test.js', 'client/src/**/*.spec.js'],
+    files: [
+      'server/tests/**/*.js',
+      'server/tests/**/*.ts',
+      'client/src/**/*.test.js',
+      'client/src/**/*.test.ts',
+      'client/src/**/*.spec.js',
+      'client/src/**/*.spec.ts',
+    ],
     languageOptions: {
       globals: {
         ...globals.node,

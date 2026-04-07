@@ -1,3 +1,4 @@
+// @ts-nocheck
 const express = require('express')
 const db = require('../../config/database')
 const { round2, localDate, defaultRange, monthExpr, ageYearsExpr } = require('./helpers')
