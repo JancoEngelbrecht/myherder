@@ -5,23 +5,23 @@
     <div class="page-content">
       <div class="actions-grid">
         <RouterLink to="/super/global/medications" class="action-card active-action">
-          <span class="action-icon">💊</span>
+          <span class="action-icon"><AppIcon name="pill" :size="32" /></span>
           <span class="action-label">{{ t('globalDefaults.medications') }}</span>
         </RouterLink>
         <RouterLink to="/super/global/issue-types" class="action-card active-action">
-          <span class="action-icon">🩺</span>
+          <span class="action-icon"><AppIcon name="stethoscope" :size="32" /></span>
           <span class="action-label">{{ t('globalDefaults.issueTypes') }}</span>
         </RouterLink>
         <RouterLink to="/super/global/breed-types" class="action-card active-action">
-          <span class="action-icon">🐄</span>
+          <span class="action-icon"><AppIcon name="dna" :size="32" /></span>
           <span class="action-label">{{ t('globalDefaults.breedTypes') }}</span>
         </RouterLink>
         <RouterLink to="/super/global/push" class="action-card active-action">
-          <span class="action-icon">📤</span>
+          <span class="action-icon"><AppIcon name="upload" :size="32" /></span>
           <span class="action-label">{{ t('globalDefaults.pushDefaults') }}</span>
         </RouterLink>
         <RouterLink to="/super/species" class="action-card active-action">
-          <span class="action-icon">🐾</span>
+          <span class="action-icon"><AppIcon name="layers" :size="32" /></span>
           <span class="action-label">{{ t('superAdmin.speciesManagement') }}</span>
         </RouterLink>
       </div>
@@ -32,6 +32,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import AppHeader from '../../components/organisms/AppHeader.vue'
+import AppIcon from '../../components/atoms/AppIcon.vue'
 
 const { t } = useI18n()
 </script>
@@ -81,7 +82,10 @@ const { t } = useI18n()
 }
 
 .action-icon {
-  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
   line-height: 1;
 }
 
@@ -99,10 +103,6 @@ const { t } = useI18n()
     justify-content: flex-start;
     text-align: left;
     aspect-ratio: unset;
-  }
-
-  .action-icon {
-    font-size: 1.75rem;
   }
 
   .action-label {

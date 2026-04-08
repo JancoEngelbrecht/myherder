@@ -111,6 +111,9 @@ import {
   BarChart,
   BarChart2,
   TrendingDown,
+  Wrench,
+  Signal,
+  Tag,
 } from 'lucide-vue-next'
 
 /**
@@ -264,4 +267,9 @@ export const iconMap: Record<string, object> = {
   'hard-drive': HardDrive,
   wifi: Wifi,
   'wifi-off': WifiOff,
+  wrench: Wrench,
+  maintenance: Wrench,
+  signal: Signal,
+  tag: Tag,
+  label: Tag,
 }

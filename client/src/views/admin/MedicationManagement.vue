@@ -173,7 +173,7 @@
               v-if="med.withdrawal_milk_hours > 0 || med.withdrawal_milk_days > 0"
               class="withdrawal-pill milk"
             >
-              🥛
+              <AppIcon name="droplets" :size="13" />
               <template v-if="med.withdrawal_milk_days > 0"
                 >{{ med.withdrawal_milk_days }}d </template
               ><template v-if="med.withdrawal_milk_hours > 0"
@@ -184,7 +184,7 @@
               v-if="med.withdrawal_meat_hours > 0 || med.withdrawal_meat_days > 0"
               class="withdrawal-pill meat"
             >
-              🥩
+              <AppIcon name="utensils" :size="13" />
               <template v-if="med.withdrawal_meat_days > 0"
                 >{{ med.withdrawal_meat_days }}d </template
               ><template v-if="med.withdrawal_meat_hours > 0"
@@ -279,6 +279,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useMedicationsStore } from '../../stores/medications'
 import AppHeader from '../../components/organisms/AppHeader.vue'
+import AppIcon from '../../components/atoms/AppIcon.vue'
 import TourButton from '../../components/atoms/TourButton.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import SearchInput from '../../components/atoms/SearchInput.vue'

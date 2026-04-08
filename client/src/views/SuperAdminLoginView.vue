@@ -1,7 +1,9 @@
 <template>
   <div class="login-page">
     <div class="login-hero">
-      <div class="login-logo">🐄</div>
+      <div class="login-logo">
+        <span class="login-logo-mark">M</span>
+      </div>
       <h1 class="login-title">{{ t('login.title') }}</h1>
       <p class="login-subtitle">{{ t('login.superAdminSubtitle') }}</p>
     </div>
@@ -142,9 +144,24 @@ async function handleLogin() {
 }
 
 .login-logo {
-  font-size: 4rem;
   margin-bottom: 12px;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+}
+
+.login-logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.04em;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  font-family: var(--font-body);
 }
 
 .login-title {

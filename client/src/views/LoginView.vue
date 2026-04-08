@@ -4,7 +4,9 @@
       <router-link to="/login/super" class="sa-link">
         {{ t('login.superAdminLink') }}
       </router-link>
-      <div class="login-logo">🐄</div>
+      <div class="login-logo">
+        <span class="login-logo-mark">M</span>
+      </div>
       <h1 class="login-title">{{ t('login.title') }}</h1>
       <p v-if="farmName" class="login-farm-name">{{ farmName }}</p>
       <p class="login-subtitle">{{ t('login.subtitle') }}</p>
@@ -304,9 +306,24 @@ function handlePinLogin() {
 }
 
 .login-logo {
-  font-size: 4.5rem;
   margin-bottom: 14px;
-  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.25));
+}
+
+.login-logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.04em;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  font-family: var(--font-body);
 }
 
 .login-title {

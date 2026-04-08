@@ -36,7 +36,7 @@
           <select id="cf-species" v-model="form.species_code" class="form-input" required>
             <option v-if="loadingSpecies" value="" disabled>{{ t('common.loading') }}</option>
             <option v-for="sp in species" :key="sp.code" :value="sp.code">
-              {{ speciesEmoji(sp.code) }} {{ sp.name }}
+              {{ sp.name }}
             </option>
           </select>
           <p class="hint-text">{{ t('superAdmin.speciesHint') }}</p>
@@ -118,10 +118,6 @@ const form = ref({
 const saving = ref(false)
 const errorMsg = ref('')
 const codeManuallyEdited = ref(false)
-
-function speciesEmoji(code) {
-  return code === 'sheep' ? '🐑' : '🐄'
-}
 
 function onCodeInput() {
   codeManuallyEdited.value = true

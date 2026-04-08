@@ -21,9 +21,12 @@
           class="dropdown-item"
           @mousedown.prevent="select(animal)"
         >
-          <span class="item-icon">{{
-            animal.sex === 'male' ? speciesEmoji.male : speciesEmoji.female
-          }}</span>
+          <span class="item-icon">
+            <AppIcon
+              :name="animal.sex === 'male' ? speciesIcon.male : speciesIcon.female"
+              :size="16"
+            />
+          </span>
           <span class="item-tag mono">{{ animal.tag_number }}</span>
           <span class="item-name">{{ animal.name || '—' }}</span>
         </button>
@@ -40,10 +43,16 @@
     </Transition>
 
     <div v-if="selectedAnimal" class="selected-animal">
-      <span>{{ selectedAnimal.sex === 'male' ? speciesEmoji.male : speciesEmoji.female }}</span>
+      <span
+        ><AppIcon
+          :name="selectedAnimal.sex === 'male' ? speciesIcon.male : speciesIcon.female"
+          :size="16"
+      /></span>
       <span class="mono">{{ selectedAnimal.tag_number }}</span>
       <span>{{ selectedAnimal.name }}</span>
-      <button type="button" class="clear-btn" @click="clear">✕</button>
+      <button type="button" class="clear-btn" @click="clear">
+        <AppIcon name="x" :size="14" />
+      </button>
     </div>
   </div>
 </template>
@@ -55,8 +64,9 @@ import { useSpeciesTerms } from '../../composables/useSpeciesTerms'
 import api from '../../services/api'
 import db from '../../db/indexedDB'
 import { isOfflineError } from '../../services/syncManager'
+import AppIcon from '../atoms/AppIcon.vue'
 
-const { emoji: speciesEmoji } = useSpeciesTerms()
+const { icon: speciesIcon } = useSpeciesTerms()
 
 const props = defineProps({
   modelValue: { type: [String, null], default: null }, // animal id
@@ -258,7 +268,9 @@ onUnmounted(() => {
 }
 
 .item-icon {
-  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
 }
 
 .item-tag {
@@ -295,10 +307,11 @@ onUnmounted(() => {
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: 0.75rem;
   cursor: pointer;
   padding: 2px 6px;
   border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
 }
 
 .clear-btn:hover {

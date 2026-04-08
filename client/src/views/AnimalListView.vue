@@ -218,7 +218,7 @@
 
       <!-- Empty state -->
       <div v-else-if="displayedAnimals.length === 0" class="empty-state">
-        <div class="empty-state-icon">{{ speciesEmoji }}</div>
+        <div class="empty-state-icon"><AppIcon :name="speciesIconName" :size="48" /></div>
         <div class="empty-state-title">
           {{ t('animals.emptyTitle', { speciesPlural: plural }) }}
         </div>
@@ -271,6 +271,7 @@ import { useBreedTypesStore } from '../stores/breedTypes'
 import { useFeatureFlagsStore } from '../stores/featureFlags'
 import { useSpeciesTerms } from '../composables/useSpeciesTerms'
 import AppHeader from '../components/organisms/AppHeader.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 import AnimalCard from '../components/organisms/AnimalCard.vue'
 import SearchInput from '../components/atoms/SearchInput.vue'
 import PaginationBar from '../components/atoms/PaginationBar.vue'
@@ -288,12 +289,12 @@ const {
   singular,
   plural,
   collectiveNoun,
-  emoji: speciesEmojiConfig,
+  icon: speciesIconConfig,
   lifePhasesConfig,
 } = useSpeciesTerms()
 
-// Pick a single emoji for the animal list (prefer female)
-const speciesEmoji = computed(() => speciesEmojiConfig.value?.female ?? '🐄')
+// Pick a single icon name for the animal list (prefer female)
+const speciesIconName = computed(() => speciesIconConfig.value?.female ?? 'cow')
 
 const searchQuery = ref('')
 const activeFilter = ref('')

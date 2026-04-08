@@ -12,9 +12,9 @@
             :to="topic.route || `/help/${topic.slug}`"
             class="help-topic-item"
           >
-            <span class="help-topic-icon">{{ topic.icon }}</span>
+            <span class="help-topic-icon"><AppIcon :name="topic.icon" :size="22" /></span>
             <span class="help-topic-name">{{ t(`help.topics.${topic.slug}.title`) }}</span>
-            <span class="help-topic-arrow">›</span>
+            <span class="help-topic-arrow"><AppIcon name="chevron-right" :size="16" /></span>
           </RouterLink>
         </div>
       </div>
@@ -27,6 +27,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import AppHeader from '../components/organisms/AppHeader.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -35,51 +36,51 @@ const categories = [
   {
     key: 'dailyTasks',
     topics: [
-      { slug: 'recording-milk', icon: '🥛' },
-      { slug: 'milk-history', icon: '📊' },
+      { slug: 'recording-milk', icon: 'milk' },
+      { slug: 'milk-history', icon: 'bar-chart-2' },
     ],
   },
   {
     key: 'healthTreatment',
     topics: [
-      { slug: 'logging-health-issue', icon: '🩺' },
-      { slug: 'adding-treatment', icon: '💊' },
-      { slug: 'withdrawal-periods', icon: '⏳' },
-      { slug: 'resolving-health-issue', icon: '✅' },
+      { slug: 'logging-health-issue', icon: 'stethoscope' },
+      { slug: 'adding-treatment', icon: 'pill' },
+      { slug: 'withdrawal-periods', icon: 'clock' },
+      { slug: 'resolving-health-issue', icon: 'check-circle' },
     ],
   },
   {
     key: 'breeding',
     topics: [
-      { slug: 'breeding-lifecycle', icon: '🔄', route: '/help/breeding-lifecycle' },
-      { slug: 'logging-heat', icon: '🌡' },
-      { slug: 'logging-insemination', icon: '💉' },
-      { slug: 'pregnancy-check', icon: '🤰' },
-      { slug: 'dry-off', icon: '🚫' },
-      { slug: 'logging-calving', icon: '🐄' },
-      { slug: 'breeding-notifications', icon: '🔔' },
+      { slug: 'breeding-lifecycle', icon: 'refresh-cw', route: '/help/breeding-lifecycle' },
+      { slug: 'logging-heat', icon: 'thermometer' },
+      { slug: 'logging-insemination', icon: 'syringe' },
+      { slug: 'pregnancy-check', icon: 'heart-pulse' },
+      { slug: 'dry-off', icon: 'leaf' },
+      { slug: 'logging-calving', icon: 'baby' },
+      { slug: 'breeding-notifications', icon: 'bell' },
     ],
   },
   {
     key: 'cowManagement',
     topics: [
-      { slug: 'adding-cow', icon: '➕' },
-      { slug: 'cow-status', icon: '📋' },
-      { slug: 'cow-details', icon: '🔍' },
+      { slug: 'adding-cow', icon: 'plus' },
+      { slug: 'cow-status', icon: 'clipboard-list' },
+      { slug: 'cow-details', icon: 'search' },
     ],
   },
   {
     key: 'adminSettings',
     adminOnly: true,
     topics: [
-      { slug: 'managing-users', icon: '👥' },
-      { slug: 'managing-breed-types', icon: '🐮' },
-      { slug: 'managing-issue-types', icon: '🏷' },
-      { slug: 'managing-medications', icon: '💊' },
-      { slug: 'feature-flags', icon: '🚩' },
-      { slug: 'farm-settings', icon: '⚙' },
-      { slug: 'running-reports', icon: '📄' },
-      { slug: 'audit-log', icon: '📝' },
+      { slug: 'managing-users', icon: 'users' },
+      { slug: 'managing-breed-types', icon: 'dna' },
+      { slug: 'managing-issue-types', icon: 'tag' },
+      { slug: 'managing-medications', icon: 'pill' },
+      { slug: 'feature-flags', icon: 'toggle-right' },
+      { slug: 'farm-settings', icon: 'settings' },
+      { slug: 'running-reports', icon: 'file-text' },
+      { slug: 'audit-log', icon: 'list' },
     ],
   },
 ]
@@ -129,10 +130,12 @@ const visibleCategories = computed(() =>
 }
 
 .help-topic-icon {
-  font-size: 1.25rem;
   flex-shrink: 0;
   width: 28px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
 }
 
 .help-topic-name {
@@ -142,8 +145,9 @@ const visibleCategories = computed(() =>
 }
 
 .help-topic-arrow {
-  font-size: 1.25rem;
   color: var(--text-secondary);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 </style>

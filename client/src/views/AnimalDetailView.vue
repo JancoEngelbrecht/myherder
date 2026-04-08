@@ -208,7 +208,7 @@
               <div class="tx-summary-body">
                 <div class="tx-summary-last-med">
                   <template v-if="latestReproEvent">
-                    {{ getEventType(latestReproEvent.event_type)?.emoji ?? '📋' }}
+                    {{ getEventType(latestReproEvent.event_type)?.emoji }}
                     {{
                       t(
                         `breeding.eventTypes.${latestReproEvent.event_type}`,

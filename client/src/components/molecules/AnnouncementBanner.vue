@@ -11,7 +11,7 @@
         <span v-if="ann.message"> — {{ ann.message }}</span>
       </div>
       <button class="dismiss-btn" :title="$t('announcements.dismiss')" @click="dismiss(ann.id)">
-        ✕
+        <AppIcon name="x" :size="16" />
       </button>
     </div>
   </div>
@@ -21,6 +21,7 @@
 import { ref, computed, onMounted } from 'vue'
 import api from '../../services/api'
 import { useAuthStore } from '../../stores/auth'
+import AppIcon from '../atoms/AppIcon.vue'
 
 const authStore = useAuthStore()
 const announcements = ref([])
@@ -101,10 +102,12 @@ function dismiss(id) {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
   opacity: 0.6;
   padding: 4px;
   color: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .dismiss-btn:hover {

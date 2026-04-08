@@ -28,7 +28,7 @@
 
         <!-- On withdrawal badge (females only) -->
         <div v-if="onWithdrawal" class="withdrawal-active-badge">
-          🚫 {{ t('cowDetail.onWithdrawal') }}
+          <AppIcon name="ban" :size="14" /> {{ t('cowDetail.onWithdrawal') }}
           <span class="mono">{{ formatDateTime(animalWithdrawalEnd) }}</span>
         </div>
 
@@ -75,7 +75,7 @@
               "
               class="tx-withdrawal"
             >
-              🥛 {{ t('cowDetail.milkClear') }}:
+              <AppIcon name="droplets" :size="13" /> {{ t('cowDetail.milkClear') }}:
               <span class="mono">{{ formatDateTime(tx.withdrawal_end_milk) }}</span>
             </div>
           </RouterLink>
@@ -94,6 +94,7 @@ import { useTreatmentsStore } from '../stores/treatments'
 import { useBreedTypesStore } from '../stores/breedTypes'
 import { formatDate, formatDateTime } from '../utils/format'
 import AppHeader from '../components/organisms/AppHeader.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 
 const { t } = useI18n()
 const route = useRoute()

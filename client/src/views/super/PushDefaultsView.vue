@@ -40,7 +40,7 @@
               :class="{ active: selectedSpecies === sp.code }"
               @click="selectedSpecies = sp.code"
             >
-              {{ sp.code === 'sheep' ? '🐑' : '🐄' }} {{ sp.name }}
+              <AppIcon :name="sp.code === 'sheep' ? 'sheep' : 'cow'" :size="14" /> {{ sp.name }}
             </button>
           </div>
         </div>
@@ -56,9 +56,9 @@
           <div v-else class="farm-checkboxes">
             <label v-for="farm in filteredFarms" :key="farm.id" class="checkbox-label">
               <input v-model="selectedFarms" type="checkbox" :value="farm.id" />
-              <span class="farm-species-emoji">{{
-                farm.species?.code === 'sheep' ? '🐑' : '🐄'
-              }}</span>
+              <span class="farm-species-icon">
+                <AppIcon :name="farm.species?.code === 'sheep' ? 'sheep' : 'cow'" :size="14" />
+              </span>
               {{ farm.name }} <span class="mono farm-code">{{ farm.code }}</span>
             </label>
             <p v-if="!filteredFarms.length" class="no-farms-hint">
@@ -117,6 +117,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import api from '../../services/api'
 import AppHeader from '../../components/organisms/AppHeader.vue'
+import AppIcon from '../../components/atoms/AppIcon.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import { extractApiError, resolveError } from '../../utils/apiError'
 import { useToast } from '../../composables/useToast'
@@ -262,8 +263,11 @@ async function doPush() {
   font-size: 0.8rem;
   color: var(--text-muted);
 }
-.farm-species-emoji {
-  font-size: 1rem;
+.farm-species-icon {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  color: var(--text-muted);
 }
 .no-farms-hint {
   font-size: 0.8125rem;

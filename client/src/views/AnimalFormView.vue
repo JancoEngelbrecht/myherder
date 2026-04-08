@@ -79,7 +79,7 @@
               :class="{ active: form.sex === 'female' }"
               @click="form.sex = 'female'"
             >
-              {{ speciesEmoji.female }} {{ t('animalForm.sexFemale') }}
+              <AppIcon :name="speciesIcon.female" :size="16" /> {{ t('animalForm.sexFemale') }}
             </button>
             <button
               type="button"
@@ -87,7 +87,7 @@
               :class="{ active: form.sex === 'male' }"
               @click="form.sex = 'male'"
             >
-              {{ speciesEmoji.male }} {{ t('animalForm.sexMale') }}
+              <AppIcon :name="speciesIcon.male" :size="16" /> {{ t('animalForm.sexMale') }}
             </button>
           </div>
           <span v-if="errors.sex" class="form-error">{{ errors.sex }}</span>
@@ -235,6 +235,7 @@ import { useAnimalsStore } from '../stores/animals'
 import { useBreedTypesStore } from '../stores/breedTypes'
 import { useSpeciesTerms } from '../composables/useSpeciesTerms'
 import AppHeader from '../components/organisms/AppHeader.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 import AnimalSearchDropdown from '../components/molecules/AnimalSearchDropdown.vue'
 import { extractApiError, resolveError } from '../utils/apiError'
 
@@ -243,7 +244,7 @@ const route = useRoute()
 const router = useRouter()
 const animalsStore = useAnimalsStore()
 const breedTypesStore = useBreedTypesStore()
-const { singular, speciesCode, emoji: speciesEmoji, lifePhasesConfig } = useSpeciesTerms()
+const { singular, speciesCode, icon: speciesIcon, lifePhasesConfig } = useSpeciesTerms()
 
 const isEdit = computed(() => !!route.params.id && route.path.endsWith('/edit'))
 const fromCalving = computed(() => route.query.from_calving === 'true')

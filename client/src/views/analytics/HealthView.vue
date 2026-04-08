@@ -4,7 +4,7 @@
 
     <div class="page-content">
       <div v-if="offline" class="offline-banner">
-        <span>📡</span>
+        <AppIcon name="wifi-off" :size="18" />
         <span>{{ t('analytics.connectToView') }}</span>
       </div>
 
@@ -266,6 +266,7 @@ import '../../utils/chartSetup.js'
 import '../../assets/analytics.css'
 import api from '../../services/api'
 import AppHeader from '../../components/organisms/AppHeader.vue'
+import AppIcon from '../../components/atoms/AppIcon.vue'
 import {
   useAnalytics,
   chartColors,

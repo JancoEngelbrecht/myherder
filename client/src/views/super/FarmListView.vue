@@ -4,8 +4,15 @@
 
     <div class="page-content">
       <div class="list-header">
-        <button class="btn-secondary btn-sm-pill" :disabled="exporting" @click="handleExport">
-          {{ exporting ? '...' : '📥 ' + t('globalDefaults.export') }}
+        <button
+          class="btn-secondary btn-sm-pill export-btn"
+          :disabled="exporting"
+          @click="handleExport"
+        >
+          <span v-if="exporting">...</span>
+          <span v-else class="btn-icon-label"
+            ><AppIcon name="download" :size="15" />{{ t('globalDefaults.export') }}</span
+          >
         </button>
         <RouterLink to="/super/farms/new" class="btn-primary btn-sm-pill">
           + {{ t('superAdmin.createFarm') }}
@@ -66,6 +73,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import api from '../../services/api'
 import AppHeader from '../../components/organisms/AppHeader.vue'
+import AppIcon from '../../components/atoms/AppIcon.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import { useToast } from '../../composables/useToast'
 import { extractApiError, resolveError } from '../../utils/apiError'
@@ -150,7 +158,14 @@ async function confirmPendingEnter() {
 .list-header {
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
   margin-bottom: 16px;
+}
+
+.btn-icon-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .farm-list {

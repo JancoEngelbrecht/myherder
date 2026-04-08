@@ -5,7 +5,7 @@
     <div class="page-content">
       <!-- Offline banner -->
       <div v-if="offline" class="offline-banner">
-        <span>📡</span>
+        <AppIcon name="wifi-off" :size="18" />
         <span>{{ t('analytics.connectToView') }}</span>
       </div>
 
@@ -107,21 +107,25 @@
               to="/analytics/financial"
               class="category-card"
             >
-              <div class="category-icon-wrap category-icon-financial">📈</div>
+              <div class="category-icon-wrap category-icon-financial">
+                <AppIcon name="trending-up" :size="24" />
+              </div>
               <div class="category-text">
                 <div class="category-name">{{ t('analytics.categories.financial') }}</div>
                 <div class="category-desc">{{ t('analytics.categories.financialDesc') }}</div>
               </div>
-              <div class="category-arrow">›</div>
+              <div class="category-arrow"><AppIcon name="chevron-right" :size="20" /></div>
             </RouterLink>
 
             <RouterLink v-if="flags.breeding" to="/analytics/fertility" class="category-card">
-              <div class="category-icon-wrap category-icon-fertility">🐄</div>
+              <div class="category-icon-wrap category-icon-fertility">
+                <AppIcon name="heart-pulse" :size="24" />
+              </div>
               <div class="category-text">
                 <div class="category-name">{{ t('analytics.categories.fertility') }}</div>
                 <div class="category-desc">{{ t('analytics.categories.fertilityDesc') }}</div>
               </div>
-              <div class="category-arrow">›</div>
+              <div class="category-arrow"><AppIcon name="chevron-right" :size="20" /></div>
             </RouterLink>
 
             <RouterLink
@@ -129,21 +133,25 @@
               to="/analytics/health"
               class="category-card"
             >
-              <div class="category-icon-wrap category-icon-health">🩺</div>
+              <div class="category-icon-wrap category-icon-health">
+                <AppIcon name="stethoscope" :size="24" />
+              </div>
               <div class="category-text">
                 <div class="category-name">{{ t('analytics.categories.health') }}</div>
                 <div class="category-desc">{{ t('analytics.categories.healthDesc') }}</div>
               </div>
-              <div class="category-arrow">›</div>
+              <div class="category-arrow"><AppIcon name="chevron-right" :size="20" /></div>
             </RouterLink>
 
             <RouterLink to="/analytics/structure" class="category-card">
-              <div class="category-icon-wrap category-icon-structure">🥧</div>
+              <div class="category-icon-wrap category-icon-structure">
+                <AppIcon name="pie-chart" :size="24" />
+              </div>
               <div class="category-text">
                 <div class="category-name">{{ t('analytics.categories.structure') }}</div>
                 <div class="category-desc">{{ t('analytics.categories.structureDesc') }}</div>
               </div>
-              <div class="category-arrow">›</div>
+              <div class="category-arrow"><AppIcon name="chevron-right" :size="20" /></div>
             </RouterLink>
           </div>
         </section>
@@ -158,6 +166,7 @@
 import { ref, computed, onMounted } from 'vue'
 import api from '../services/api'
 import AppHeader from '../components/organisms/AppHeader.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 import TourButton from '../components/atoms/TourButton.vue'
 import { useAnalytics } from '../composables/useAnalytics'
 import { useSpeciesTerms } from '../composables/useSpeciesTerms'
@@ -413,21 +422,24 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.375rem;
   flex-shrink: 0;
 }
 
 .category-icon-financial {
   background: #e8f5e9;
+  color: #2d6a4f;
 }
 .category-icon-fertility {
   background: #ede7f6;
+  color: #7c3aed;
 }
 .category-icon-health {
   background: #e3f2fd;
+  color: #1565c0;
 }
 .category-icon-structure {
   background: #fff3e0;
+  color: #e65100;
 }
 
 .category-text {
@@ -454,9 +466,9 @@ onMounted(() => {
 }
 
 .category-arrow {
-  font-size: 1.5rem;
   color: var(--text-muted);
   flex-shrink: 0;
-  font-weight: 300;
+  display: flex;
+  align-items: center;
 }
 </style>

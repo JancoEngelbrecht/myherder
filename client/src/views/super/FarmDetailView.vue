@@ -24,7 +24,8 @@
               {{ new Date(farm.created_at).toLocaleDateString() }}</span
             >
             <span v-if="farm.species" class="detail-species">
-              {{ farm.species.code === 'sheep' ? '🐑' : '🐄' }} {{ farm.species.name }}
+              <AppIcon :name="farm.species.code === 'sheep' ? 'sheep' : 'cow'" :size="14" />
+              {{ farm.species.name }}
             </span>
           </div>
 
@@ -234,6 +235,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import api from '../../services/api'
 import AppHeader from '../../components/organisms/AppHeader.vue'
+import AppIcon from '../../components/atoms/AppIcon.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import { useToast } from '../../composables/useToast'
 import { extractApiError, resolveError } from '../../utils/apiError'
@@ -470,6 +472,9 @@ async function revokeAllSessions() {
 .detail-species {
   font-weight: 600;
   color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .detail-actions {
