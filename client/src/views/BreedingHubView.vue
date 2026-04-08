@@ -194,13 +194,13 @@ onMounted(async () => {
   padding: calc(var(--header-height) + 1rem) 1rem 5rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .section {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.75rem;
 }
 
 /* ── Stats ── */
@@ -257,17 +257,18 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 0.85rem;
-  padding: 1rem;
+  padding: 1.25rem;
   cursor: pointer;
-  border-left: 3px solid var(--primary);
   transition:
     box-shadow 0.18s,
-    transform 0.18s;
+    transform 0.18s,
+    border-color 0.18s;
 }
 
 @media (hover: hover) {
   .nav-card:hover {
-    box-shadow: var(--shadow-colored);
+    box-shadow: var(--shadow);
+    border-color: var(--border-strong);
     transform: translateY(-1px);
   }
 }

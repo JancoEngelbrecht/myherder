@@ -93,7 +93,7 @@
   --shadow: 0 2px 4px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.05), 0 8px 24px rgba(0, 0, 0, 0.1);
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.03), 0 2px 8px rgba(0, 0, 0, 0.05);
-  --shadow-colored: 0 2px 4px rgba(4, 120, 87, 0.08), 0 4px 16px rgba(4, 120, 87, 0.12);
+  --shadow-colored: var(--shadow);
 
   /* Spacing */
   --nav-height: 64px;
@@ -166,23 +166,14 @@ a {
   justify-content: center;
   gap: 8px;
   padding: 12px 24px;
-  background: linear-gradient(
-    135deg,
-    var(--primary-light) 0%,
-    var(--primary) 50%,
-    var(--primary-dark) 100%
-  );
-  background-size: 200% 100%;
-  background-position: center;
+  background: var(--primary);
   color: var(--text-on-primary);
   border-radius: var(--radius);
   font-weight: 600;
   font-size: 0.9375rem;
   transition:
-    background-position 0.3s ease,
-    background-color 0.15s,
-    transform 0.1s ease,
-    box-shadow 0.2s ease;
+    background 0.15s,
+    transform 0.1s ease;
   border: none;
   cursor: pointer;
   width: 100%;
@@ -192,15 +183,13 @@ a {
 
 @media (hover: hover) {
   .btn-primary:hover:not(:disabled) {
-    background-position: left;
-    box-shadow: var(--shadow-colored);
+    background: var(--primary-dark);
   }
 }
 
 .btn-primary:active {
   transform: scale(0.97);
-  background-position: right;
-  box-shadow: none;
+  background: var(--primary-dark);
 }
 
 .btn-primary:disabled,
@@ -460,13 +449,7 @@ textarea:focus-visible,
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-card);
-  padding: 16px;
-}
-
-/* Accent card variant — subtle left border in primary color */
-.card-accent {
-  border-left: 3px solid var(--primary);
-  padding-left: 13px; /* compensate for extra border width */
+  padding: 20px;
 }
 
 /* Interactive card variant — opt-in hover lift for clickable cards */

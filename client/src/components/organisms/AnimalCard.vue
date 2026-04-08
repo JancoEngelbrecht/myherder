@@ -77,15 +77,13 @@ const lifePhase = computed(() => {
 </script>
 
 <style scoped>
-/* 3.6 — subtle left-border accent + softer shadow */
 .animal-card {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 12px 16px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-left: 3px solid rgba(4, 120, 87, 0.2);
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
   text-decoration: none;
@@ -97,13 +95,11 @@ const lifePhase = computed(() => {
   cursor: pointer;
 }
 
-/* 3.8 — desktop hover lift */
 @media (hover: hover) {
   .animal-card:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow);
     border-color: var(--border-strong);
-    border-left-color: rgba(4, 120, 87, 0.45);
   }
 }
 
@@ -137,7 +133,6 @@ const lifePhase = computed(() => {
   min-width: 0;
 }
 
-/* 3.7 — tighter badge grouping */
 .animal-top {
   display: flex;
   align-items: center;
@@ -198,7 +193,6 @@ const lifePhase = computed(() => {
   align-items: center;
 }
 
-/* 3.8 — desktop grid card layout */
 @media (min-width: 600px) {
   .animal-card {
     flex-direction: column;
@@ -224,7 +218,6 @@ const lifePhase = computed(() => {
     white-space: normal;
   }
 
-  /* 3.7 — badges wrap on desktop cards */
   .animal-top {
     flex-wrap: wrap;
     overflow: visible;

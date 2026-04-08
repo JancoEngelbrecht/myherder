@@ -341,7 +341,7 @@ onMounted(async () => {
 <style scoped>
 /* ── Greeting ─────────────────────────────────────────────────────────── */
 .greeting {
-  margin-bottom: 22px;
+  margin-bottom: 24px;
 }
 
 /* 3.1 — stronger greeting typography */
@@ -358,7 +358,7 @@ onMounted(async () => {
   font-weight: 700;
 }
 
-/* ── Section labels ───────────────────────────────────────────────────── */
+/* ── Section labels ─────────────────────────────────────────────────── */
 .section-label {
   font-size: var(--text-xs);
   font-weight: 700;
@@ -369,19 +369,17 @@ onMounted(async () => {
 }
 
 .section-label--spaced {
-  margin-top: 28px;
+  margin-top: 24px;
 }
 
 /* ── Herd card ────────────────────────────────────────────────────────── */
-/* 3.2 — card-accent left border + refined shadow/hover */
 .herd-card {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 16px;
+  padding: 20px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-left: 3px solid rgba(4, 120, 87, 0.2);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   text-decoration: none;
@@ -396,9 +394,8 @@ onMounted(async () => {
 @media (hover: hover) {
   .herd-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-colored);
-    border-color: rgba(4, 120, 87, 0.35);
-    border-left-color: rgba(4, 120, 87, 0.5);
+    box-shadow: var(--shadow);
+    border-color: var(--border-strong);
   }
 }
 
@@ -453,13 +450,12 @@ onMounted(async () => {
   margin-bottom: 12px;
 }
 
-/* ── Action card ──────────────────────────────────────────────────────── */
-/* 3.3 — improved spacing + hover lift */
+/* ── Action cards ─────────────────────────────────────────────────────── */
 .action-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 16px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -491,7 +487,6 @@ onMounted(async () => {
 }
 
 /* ── Icon circle ──────────────────────────────────────────────────────── */
-/* 3.3 — slightly larger, consistent sizing */
 .icon-circle {
   width: 44px;
   height: 44px;
@@ -537,7 +532,6 @@ onMounted(async () => {
 }
 
 /* ── More options ─────────────────────────────────────────────────────── */
-/* 3.5 — better circle sizing + label spacing */
 .more-options {
   display: flex;
   justify-content: space-evenly;
@@ -623,7 +617,6 @@ onMounted(async () => {
 }
 
 /* ── Super-admin stats ────────────────────────────────────────────────── */
-/* 3.4 — refine stat chips with better radius + inner shadow */
 .section {
   margin-bottom: 24px;
 }
@@ -693,7 +686,7 @@ onMounted(async () => {
   text-align: center;
   aspect-ratio: 4 / 3;
   gap: 6px;
-  padding: 16px 12px;
+  padding: 20px 16px;
 }
 
 .action-icon-svg {
