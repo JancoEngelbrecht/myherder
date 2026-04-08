@@ -33,23 +33,23 @@
           <h2 class="section-label">{{ t('superAdmin.management') }}</h2>
           <div class="actions-grid">
             <RouterLink to="/super/farms" class="action-card active-action">
-              <span class="action-icon">🏢</span>
+              <AppIcon name="warehouse" :size="32" :stroke-width="1.5" class="action-icon-svg" />
               <span class="action-label">{{ t('superAdmin.farms') }}</span>
             </RouterLink>
             <RouterLink to="/super/defaults" class="action-card active-action">
-              <span class="action-icon">⚙️</span>
+              <AppIcon name="settings" :size="32" :stroke-width="1.5" class="action-icon-svg" />
               <span class="action-label">{{ t('globalDefaults.title') }}</span>
             </RouterLink>
             <RouterLink to="/super/announcements" class="action-card active-action">
-              <span class="action-icon">📢</span>
+              <AppIcon name="bell" :size="32" :stroke-width="1.5" class="action-icon-svg" />
               <span class="action-label">{{ t('announcements.title') }}</span>
             </RouterLink>
             <RouterLink to="/super/system-health" class="action-card active-action">
-              <span class="action-icon">🩺</span>
+              <AppIcon name="activity" :size="32" :stroke-width="1.5" class="action-icon-svg" />
               <span class="action-label">{{ t('systemHealth.title') }}</span>
             </RouterLink>
             <RouterLink to="/super/farm-groups" class="action-card active-action">
-              <span class="action-icon">🔗</span>
+              <AppIcon name="layers" :size="32" :stroke-width="1.5" class="action-icon-svg" />
               <span class="action-label">{{ t('farmGroups.title') }}</span>
             </RouterLink>
           </div>
@@ -70,7 +70,7 @@
           :data-herd-pregnant="herdPregnant"
         >
           <div class="herd-avatar">
-            <span class="herd-emoji">{{ speciesEmoji.female }}</span>
+            <AppIcon :name="speciesIcon.female" :size="28" :stroke-width="1.5" />
           </div>
           <div class="herd-info">
             <span class="herd-title">{{ t('dashboard.viewAnimals', { collectiveNoun }) }}</span>
@@ -104,7 +104,7 @@
             class="action-card"
           >
             <div class="icon-circle icon-circle--purple">
-              <span>{{ speciesEmoji.male }}</span>
+              <AppIcon :name="speciesIcon.male" :size="22" :stroke-width="1.5" />
             </div>
             <span class="action-title">{{ t('dashboard.breed') }}</span>
             <span class="action-subtitle">{{ t('dashboard.breedSubtitle') }}</span>
@@ -116,7 +116,7 @@
             class="action-card"
           >
             <div class="icon-circle icon-circle--green">
-              <span>🩺</span>
+              <AppIcon name="stethoscope" :size="22" :stroke-width="1.5" />
             </div>
             <span class="action-title">{{ t('dashboard.health') }}</span>
             <span class="action-subtitle">{{ t('dashboard.logIssue') }}</span>
@@ -137,7 +137,7 @@
             class="action-card"
           >
             <div class="icon-circle icon-circle--teal">
-              <span>💉</span>
+              <AppIcon name="syringe" :size="22" :stroke-width="1.5" />
             </div>
             <span class="action-title">{{ t('dashboard.addLog') }}</span>
             <span class="action-subtitle">{{ t('dashboard.health') }}</span>
@@ -149,7 +149,7 @@
             class="action-card"
           >
             <div class="icon-circle icon-circle--blue">
-              <span>🥛</span>
+              <AppIcon name="milk" :size="22" :stroke-width="1.5" />
             </div>
             <span class="action-title">{{ t('dashboard.recordMilk') }}</span>
             <span class="action-subtitle">{{ t('dashboard.milkSubtitle') }}</span>
@@ -177,7 +177,7 @@
               :data-issue-count="openIssueCount"
             >
               <div class="option-circle option-circle--red">
-                <span>🚨</span>
+                <AppIcon name="alert-triangle" :size="24" :stroke-width="1.5" />
               </div>
               <span class="option-label">{{ t('dashboard.openIssues') }}</span>
               <span class="option-count">{{ openIssueCount }}</span>
@@ -190,7 +190,7 @@
               :data-withdrawal-count="withdrawalCount"
             >
               <div class="option-circle option-circle--orange">
-                <span>🚫</span>
+                <AppIcon name="ban" :size="24" :stroke-width="1.5" />
               </div>
               <span class="option-label">{{ t('dashboard.withdrawal') }}</span>
               <span class="option-count">{{ withdrawalCount }}</span>
@@ -202,7 +202,7 @@
               class="option-btn"
             >
               <div class="option-circle option-circle--indigo">
-                <span>📊</span>
+                <AppIcon name="bar-chart-3" :size="24" :stroke-width="1.5" />
               </div>
               <span class="option-label">{{ t('dashboard.analytics') }}</span>
             </RouterLink>
@@ -225,12 +225,13 @@ import { useSpeciesTerms } from '../composables/useSpeciesTerms'
 import api from '../services/api'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import TourButton from '../components/atoms/TourButton.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 import { useTour } from '../composables/useTour'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
 const featureFlagsStore = useFeatureFlagsStore()
-const { emoji: speciesEmoji, collectiveNoun } = useSpeciesTerms()
+const { icon: speciesIcon, collectiveNoun } = useSpeciesTerms()
 
 const flags = computed(() => featureFlagsStore.flags)
 const { hasPermission } = authStore
@@ -415,7 +416,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 1.5rem;
+  color: var(--primary);
 }
 
 .herd-info {
@@ -498,24 +499,27 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
   flex-shrink: 0;
 }
 
 .icon-circle--blue {
   background: rgba(59, 130, 246, 0.1);
+  color: rgb(59, 130, 246);
 }
 
 .icon-circle--purple {
   background: rgba(139, 92, 246, 0.1);
+  color: rgb(139, 92, 246);
 }
 
 .icon-circle--teal {
   background: rgba(20, 184, 166, 0.1);
+  color: rgb(20, 184, 166);
 }
 
 .icon-circle--green {
   background: var(--primary-bg);
+  color: var(--primary);
 }
 
 .action-title {
@@ -568,7 +572,6 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.375rem;
   transition: transform 0.12s ease;
 }
 
@@ -578,22 +581,27 @@ onMounted(async () => {
 
 .option-circle--red {
   background: rgba(220, 38, 38, 0.1);
+  color: rgb(220, 38, 38);
 }
 
 .option-circle--orange {
   background: rgba(217, 119, 6, 0.1);
+  color: rgb(217, 119, 6);
 }
 
 .option-circle--indigo {
   background: rgba(99, 102, 241, 0.1);
+  color: rgb(99, 102, 241);
 }
 
 .option-circle--teal {
   background: rgba(20, 184, 166, 0.1);
+  color: rgb(20, 184, 166);
 }
 
 .option-circle--green {
   background: var(--primary-bg);
+  color: var(--primary);
 }
 
 .option-label {
@@ -688,9 +696,8 @@ onMounted(async () => {
   padding: 16px 12px;
 }
 
-.action-icon {
-  font-size: 2rem;
-  line-height: 1;
+.action-icon-svg {
+  color: var(--text-secondary);
 }
 
 .action-card.active-action .action-label {

@@ -20,7 +20,11 @@
         <!-- Hero -->
         <div class="animal-hero">
           <div class="animal-avatar-lg" :class="`sex-${animal.sex}`">
-            {{ animal.sex === 'male' ? speciesEmoji.male : speciesEmoji.female }}
+            <AppIcon
+              :name="animal.sex === 'male' ? speciesIcon.male : speciesIcon.female"
+              :size="32"
+              :stroke-width="1.5"
+            />
           </div>
           <div class="animal-hero-info">
             <div class="animal-hero-tag mono">{{ animal.tag_number }}</div>
@@ -82,7 +86,7 @@
                 :to="`/animals/${animal.sire_id}`"
                 class="parent-card sire"
               >
-                <span>{{ speciesEmoji.male }}</span>
+                <AppIcon :name="speciesIcon.male" :size="20" :stroke-width="1.5" />
                 <div>
                   <div class="parent-role">
                     {{ t(`animalDetail.sire_${speciesCode}`, t('animalDetail.sire')) }}
@@ -91,7 +95,7 @@
                 </div>
               </RouterLink>
               <div v-else class="parent-card unknown">
-                <span>{{ speciesEmoji.male }}</span>
+                <AppIcon :name="speciesIcon.male" :size="20" :stroke-width="1.5" />
                 <div>
                   <div class="parent-role">
                     {{ t(`animalDetail.sire_${speciesCode}`, t('animalDetail.sire')) }}
@@ -105,7 +109,7 @@
                 :to="`/animals/${animal.dam_id}`"
                 class="parent-card dam"
               >
-                <span>{{ speciesEmoji.female }}</span>
+                <AppIcon :name="speciesIcon.female" :size="20" :stroke-width="1.5" />
                 <div>
                   <div class="parent-role">
                     {{ t(`animalDetail.dam_${speciesCode}`, t('animalDetail.dam')) }}
@@ -114,7 +118,7 @@
                 </div>
               </RouterLink>
               <div v-else class="parent-card unknown">
-                <span>{{ speciesEmoji.female }}</span>
+                <AppIcon :name="speciesIcon.female" :size="20" :stroke-width="1.5" />
                 <div>
                   <div class="parent-role">
                     {{ t(`animalDetail.dam_${speciesCode}`, t('animalDetail.dam')) }}
@@ -130,7 +134,11 @@
             </div>
 
             <div class="this-animal-card">
-              <span>{{ animal.sex === 'male' ? speciesEmoji.male : speciesEmoji.female }}</span>
+              <AppIcon
+                :name="animal.sex === 'male' ? speciesIcon.male : speciesIcon.female"
+                :size="24"
+                :stroke-width="1.5"
+              />
               <div class="mono this-tag">{{ animal.tag_number }}</div>
             </div>
           </div>
@@ -163,7 +171,12 @@
               :to="`/animals/${calf.id}`"
               class="offspring-item"
             >
-              <span>{{ calf.sex === 'male' ? speciesEmoji.male : speciesEmoji.female }}</span>
+              <AppIcon
+                :name="calf.sex === 'male' ? speciesIcon.male : speciesIcon.female"
+                :size="18"
+                :stroke-width="1.5"
+                class="offspring-icon"
+              />
               <span class="mono offspring-tag">{{ calf.tag_number }}</span>
               <span class="offspring-name">{{ calf.name || '—' }}</span>
               <span class="badge" :class="`badge-${calf.status}`">{{
@@ -208,7 +221,7 @@
                 <div v-if="latestReproEvent" class="tx-summary-meta mono">
                   {{ latestReproEvent.event_date?.slice(0, 10) }}
                   <template v-if="latestReproEvent.expected_calving">
-                    · 🐮 {{ latestReproEvent.expected_calving }}
+                    · {{ latestReproEvent.expected_calving }}
                   </template>
                 </div>
               </div>
@@ -277,7 +290,8 @@
 
           <!-- On withdrawal badge -->
           <div v-if="onWithdrawal" class="withdrawal-active-badge">
-            🚫 {{ t('animalDetail.onWithdrawal') }}
+            <AppIcon name="ban" :size="16" :stroke-width="2" />
+            {{ t('animalDetail.onWithdrawal') }}
             <span class="mono">{{ formatDateTime(animalWithdrawalEnd) }}</span>
           </div>
 
@@ -310,17 +324,24 @@
           class="action-row"
         >
           <RouterLink :to="`/breed/log?animal_id=${animal.id}`" class="btn-secondary edit-link">
-            🐂 {{ t('breeding.logEvent') }}
+            <AppIcon name="dna" :size="16" :stroke-width="1.5" />
+            {{ t('breeding.logEvent') }}
           </RouterLink>
         </div>
 
         <!-- Actions -->
         <div v-if="authStore.canManageAnimals" class="action-row">
           <RouterLink :to="`/animals/${animal.id}/edit`" class="btn-secondary edit-link">
-            ✏️ {{ t('animalDetail.edit') }}
+            <AppIcon name="edit" :size="16" :stroke-width="1.5" />
+            {{ t('animalDetail.edit') }}
           </RouterLink>
-          <button v-if="authStore.isAdmin" class="btn-danger" @click="confirmDelete">
-            🗑 {{ t('animalDetail.delete') }}
+          <button
+            v-if="authStore.isAdmin"
+            class="btn-danger btn-danger--flex"
+            @click="confirmDelete"
+          >
+            <AppIcon name="trash-2" :size="16" :stroke-width="1.5" />
+            {{ t('animalDetail.delete') }}
           </button>
         </div>
       </template>
@@ -356,6 +377,7 @@ import { formatDate, formatDateTime } from '../utils/format'
 import api from '../services/api'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../components/molecules/ConfirmDialog.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -369,7 +391,7 @@ const breedingEventsStore = useBreedingEventsStore()
 
 const breedTypesStore = useBreedTypesStore()
 const featureFlagsStore = useFeatureFlagsStore()
-const { speciesCode, emoji: speciesEmoji, lifePhasesConfig } = useSpeciesTerms()
+const { speciesCode, icon: speciesIcon, lifePhasesConfig } = useSpeciesTerms()
 
 const flags = computed(() => featureFlagsStore.flags)
 
@@ -581,15 +603,16 @@ async function handleDelete() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.25rem;
   flex-shrink: 0;
 }
 
 .sex-female {
   background: var(--sex-female-bg);
+  color: var(--sex-female-border, #d97dbf);
 }
 .sex-male {
   background: var(--sex-male-bg);
+  color: var(--sex-male-border, #7db9d9);
 }
 
 .animal-hero-tag {
@@ -680,7 +703,6 @@ async function handleDelete() {
   padding: 10px 12px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  font-size: 1rem;
   text-decoration: none;
   color: var(--text);
   transition: background 0.1s;
@@ -689,10 +711,12 @@ async function handleDelete() {
 .parent-card.sire {
   background: var(--sex-male-bg);
   border-color: var(--sex-male-border);
+  color: var(--sex-male-border, #7db9d9);
 }
 .parent-card.dam {
   background: var(--sex-female-bg);
   border-color: var(--sex-female-border);
+  color: var(--sex-female-border, #d97dbf);
 }
 .parent-card.unknown {
   background: var(--surface-2);
@@ -746,7 +770,7 @@ async function handleDelete() {
   background: var(--primary-bg);
   border-radius: var(--radius);
   border: 1.5px solid var(--primary);
-  font-size: 1.5rem;
+  color: var(--primary);
   flex-shrink: 0;
 }
 
@@ -839,6 +863,17 @@ async function handleDelete() {
   align-items: center;
   justify-content: center;
   gap: 6px;
+}
+
+.btn-danger--flex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.offspring-icon {
+  flex-shrink: 0;
 }
 
 /* Treatment History */

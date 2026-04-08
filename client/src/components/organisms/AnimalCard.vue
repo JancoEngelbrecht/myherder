@@ -1,7 +1,11 @@
 <template>
   <RouterLink :to="`/animals/${animal.id}`" class="animal-card">
     <div class="animal-avatar" :class="`sex-${animal.sex}`">
-      {{ animal.sex === 'male' ? speciesEmoji.male : speciesEmoji.female }}
+      <AppIcon
+        :name="animal.sex === 'male' ? speciesIcon.male : speciesIcon.female"
+        :size="22"
+        :stroke-width="1.5"
+      />
     </div>
 
     <div class="animal-info">
@@ -32,7 +36,9 @@
       </div>
     </div>
 
-    <div class="animal-chevron">›</div>
+    <div class="animal-chevron">
+      <AppIcon name="chevron-right" :size="18" :stroke-width="2" />
+    </div>
   </RouterLink>
 </template>
 
@@ -42,10 +48,11 @@ import { useI18n } from 'vue-i18n'
 import { computeLifePhase } from '../../stores/animals'
 import { useBreedTypesStore } from '../../stores/breedTypes'
 import { useSpeciesTerms } from '../../composables/useSpeciesTerms'
+import AppIcon from '../atoms/AppIcon.vue'
 
 const { t } = useI18n()
 const breedTypesStore = useBreedTypesStore()
-const { emoji: speciesEmoji, lifePhasesConfig } = useSpeciesTerms()
+const { icon: speciesIcon, lifePhasesConfig } = useSpeciesTerms()
 
 const props = defineProps({
   animal: {
@@ -112,16 +119,17 @@ const lifePhase = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
   flex-shrink: 0;
 }
 
 .sex-female {
   background: var(--sex-female-bg);
+  color: var(--sex-female-border, #d97dbf);
 }
 
 .sex-male {
   background: var(--sex-male-bg);
+  color: var(--sex-male-border, #7db9d9);
 }
 
 .animal-info {
@@ -184,9 +192,10 @@ const lifePhase = computed(() => {
 }
 
 .animal-chevron {
-  font-size: 1.25rem;
   color: var(--text-muted);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 /* 3.8 — desktop grid card layout */
@@ -201,7 +210,6 @@ const lifePhase = computed(() => {
   .animal-avatar {
     width: 52px;
     height: 52px;
-    font-size: 1.75rem;
   }
 
   .animal-chevron {
