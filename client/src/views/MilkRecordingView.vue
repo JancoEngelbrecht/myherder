@@ -44,7 +44,8 @@
     <!-- View history link -->
     <div data-tour="milk-history" class="history-link-row">
       <router-link to="/milk/history" class="history-link">
-        {{ t('milkRecording.viewHistory') }} →
+        {{ t('milkRecording.viewHistory') }}
+        <AppIcon name="arrow-right" :size="14" />
       </router-link>
     </div>
 
@@ -98,6 +99,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppHeader from '../components/organisms/AppHeader.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 import MilkEntryCard from '../components/molecules/MilkEntryCard.vue'
 import SearchInput from '../components/atoms/SearchInput.vue'
 import TourButton from '../components/atoms/TourButton.vue'
@@ -376,6 +378,9 @@ const { startTour } = useTour('milk-recording', () => [
   text-decoration: none;
   opacity: 0.85;
   transition: opacity 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .history-link:hover {

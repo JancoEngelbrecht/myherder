@@ -19,7 +19,7 @@
         <div class="card">
           <div class="detail-date mono">{{ formatDateTime(issue.observed_at) }}</div>
           <RouterLink :to="`/animals/${issue.cow_id}`" class="animal-row">
-            <span class="animal-emoji">🐄</span>
+            <span class="animal-emoji"><AppIcon name="cow" :size="20" /></span>
             <div class="animal-info">
               <span class="animal-tag mono">{{ issue.tag_number }}</span>
               <span class="animal-name">{{ issue.cow_name || '—' }}</span>
@@ -31,9 +31,12 @@
         <!-- Issue type + severity -->
         <div class="card">
           <div class="issue-type-row">
-            <span class="type-emoji">{{
-              issueTypesStore.getByCode(issue.issue_types?.[0])?.emoji || '❓'
-            }}</span>
+            <span class="type-emoji">
+              <template v-if="issueTypesStore.getByCode(issue.issue_types?.[0])?.emoji">{{
+                issueTypesStore.getByCode(issue.issue_types[0]).emoji
+              }}</template>
+              <AppIcon v-else name="help-circle" :size="28" />
+            </span>
             <div class="type-info">
               <span class="type-name">{{
                 (issue.issue_types || [])
@@ -148,7 +151,8 @@
               :to="`/log/treatment?animal_id=${issue.cow_id}&health_issue_id=${route.params.id}`"
               class="btn-secondary action-btn log-treatment-link"
             >
-              💊 {{ t('healthIssues.logTreatment') }}
+              <AppIcon name="pill" :size="16" />
+              {{ t('healthIssues.logTreatment') }}
             </RouterLink>
           </template>
           <button
@@ -156,7 +160,8 @@
             class="btn-danger action-btn"
             @click="showDeleteDialog = true"
           >
-            🗑 {{ t('common.delete') }}
+            <AppIcon name="trash-2" :size="16" />
+            {{ t('common.delete') }}
           </button>
         </div>
       </template>
@@ -195,6 +200,7 @@ import { extractApiError, resolveError } from '../utils/apiError'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import TeatSelector from '../components/molecules/TeatSelector.vue'
 import ConfirmDialog from '../components/molecules/ConfirmDialog.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -328,7 +334,9 @@ async function handleDelete() {
 }
 
 .animal-emoji {
-  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
 }
 
 .animal-info {
@@ -364,6 +372,9 @@ async function handleDelete() {
 .type-emoji {
   font-size: 2rem;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  line-height: 1;
 }
 
 .type-info {
@@ -475,6 +486,10 @@ async function handleDelete() {
   flex: 1 1 100%;
   padding: 10px 16px;
   font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .log-treatment-link {

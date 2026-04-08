@@ -39,6 +39,8 @@ import {
   Activity,
   Thermometer,
   Ban,
+  Droplets,
+  Utensils,
   // Farm
   Warehouse,
   Settings,
@@ -168,6 +170,10 @@ export const iconMap: Record<string, object> = {
   thermometer: Thermometer,
   ban: Ban,
   blocked: Ban,
+  droplets: Droplets,
+  'milk-drop': Droplets,
+  utensils: Utensils,
+  meat: Utensils,
 
   // ── Farm ─────────────────────────────────────────────────────────
   warehouse: Warehouse,

@@ -2,7 +2,7 @@
   <div class="milk-entry-card" :class="cardClass">
     <!-- Withdrawal banner -->
     <div v-if="onWithdrawal" class="withdrawal-banner">
-      <span class="withdrawal-icon">⚠</span>
+      <span class="withdrawal-icon"><AppIcon name="alert-triangle" :size="16" /></span>
       <span>{{ t('milkRecording.withdrawalBanner', { date: formattedWithdrawalDate }) }}</span>
     </div>
 
@@ -41,6 +41,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import AppIcon from '../atoms/AppIcon.vue'
 
 const { t } = useI18n()
 
@@ -165,7 +166,9 @@ function handleInput(event) {
 }
 
 .withdrawal-icon {
-  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .card-body {

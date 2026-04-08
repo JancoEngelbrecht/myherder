@@ -19,7 +19,7 @@
         <div class="card">
           <div class="detail-date mono">{{ formatDateTime(treatment.treatment_date) }}</div>
           <RouterLink :to="`/animals/${treatment.cow_id}`" class="animal-row">
-            <span class="animal-emoji">🐄</span>
+            <span class="animal-emoji"><AppIcon name="cow" :size="20" /></span>
             <div class="animal-info">
               <span class="animal-tag mono">{{ treatment.tag_number }}</span>
               <span class="animal-name">{{ treatment.cow_name || '—' }}</span>
@@ -53,7 +53,8 @@
             class="withdrawal-row"
             :class="{ active: isMilkActive }"
           >
-            🥛 {{ t('cowDetail.milkClear') }}:
+            <AppIcon name="droplets" :size="16" />
+            {{ t('cowDetail.milkClear') }}:
             <span class="mono">{{ formatDateTime(treatment.withdrawal_end_milk) }}</span>
             <span v-if="isMilkActive" class="active-tag">{{ t('treatmentDetail.active') }}</span>
           </div>
@@ -62,7 +63,8 @@
             class="withdrawal-row"
             :class="{ active: isMeatActive }"
           >
-            🥩 {{ t('treatments.meatClear') }}:
+            <AppIcon name="utensils" :size="16" />
+            {{ t('treatments.meatClear') }}:
             <span class="mono">{{ formatDateTime(treatment.withdrawal_end_meat) }}</span>
             <span v-if="isMeatActive" class="active-tag">{{ t('treatmentDetail.active') }}</span>
           </div>
@@ -99,7 +101,10 @@
 
         <!-- Admin delete -->
         <div v-if="authStore.isAdmin" class="action-row">
-          <button class="btn-danger" @click="confirmDelete">🗑 {{ t('common.delete') }}</button>
+          <button class="btn-danger btn-icon-label" @click="confirmDelete">
+            <AppIcon name="trash-2" :size="16" />
+            {{ t('common.delete') }}
+          </button>
         </div>
       </template>
     </div>
@@ -125,6 +130,7 @@ import { useAuthStore } from '../stores/auth'
 import { formatDateTime } from '../utils/format'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../components/molecules/ConfirmDialog.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -213,7 +219,9 @@ async function handleDelete() {
 }
 
 .animal-emoji {
-  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
 }
 
 .animal-info {
@@ -349,5 +357,12 @@ async function handleDelete() {
 
 .action-row > * {
   width: 100%;
+}
+
+.btn-icon-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 </style>

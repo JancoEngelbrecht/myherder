@@ -79,16 +79,21 @@
           class="withdrawal-preview"
           :class="{ 'has-withdrawal': hasWithdrawal }"
         >
-          <div class="preview-icon">{{ hasWithdrawal ? '⚠️' : '✅' }}</div>
+          <div class="preview-icon">
+            <AppIcon v-if="hasWithdrawal" name="alert-triangle" :size="22" />
+            <AppIcon v-else name="check-circle" :size="22" />
+          </div>
           <div class="preview-text">
             <template v-if="hasWithdrawal">
               <strong>{{ $t('treatments.withdrawalWarning') }}</strong>
               <div v-if="previewMilkEnd" class="preview-date">
-                🥛 {{ $t('treatments.milkClear') }}:
+                <AppIcon name="droplets" :size="14" />
+                {{ $t('treatments.milkClear') }}:
                 <span class="mono">{{ formatDateTime(previewMilkEnd) }}</span>
               </div>
               <div v-if="previewMeatEnd" class="preview-date">
-                🥩 {{ $t('treatments.meatClear') }}:
+                <AppIcon name="utensils" :size="14" />
+                {{ $t('treatments.meatClear') }}:
                 <span class="mono">{{ formatDateTime(previewMeatEnd) }}</span>
               </div>
             </template>
@@ -142,7 +147,7 @@
             <option v-for="issue in openIssues" :key="issue.id" :value="issue.id">
               {{
                 (issue.issue_types || [])
-                  .map((c) => issueTypesStore.getByCode(c)?.emoji || '❓')
+                  .map((c) => issueTypesStore.getByCode(c)?.emoji || '')
                   .join(' ')
               }}
               {{
@@ -196,6 +201,7 @@ import { formatDate, formatDateTime } from '../utils/format'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import AnimalSearchDropdown from '../components/molecules/AnimalSearchDropdown.vue'
 import TourButton from '../components/atoms/TourButton.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 import { extractApiError, resolveError } from '../utils/apiError'
 import { useTour } from '../composables/useTour'
 import { useSpeciesTerms } from '../composables/useSpeciesTerms'
@@ -508,8 +514,9 @@ async function submit() {
 }
 
 .preview-icon {
-  font-size: 1.4rem;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .preview-text {
@@ -525,6 +532,9 @@ async function submit() {
 
 .preview-date {
   margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .checkbox-label {

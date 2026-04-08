@@ -52,11 +52,15 @@
             class="issue-item"
           >
             <div class="issue-top">
-              <span class="issue-icon">{{
-                (issue.issue_types || [])
-                  .map((c) => issueTypesStore.getByCode(c)?.emoji || '❓')
-                  .join(' ')
-              }}</span>
+              <span class="issue-icon">
+                <template v-for="(code, i) in issue.issue_types || []" :key="code">
+                  <span v-if="i > 0"> </span>
+                  <template v-if="issueTypesStore.getByCode(code)?.emoji">{{
+                    issueTypesStore.getByCode(code).emoji
+                  }}</template>
+                  <AppIcon v-else name="help-circle" :size="18" />
+                </template>
+              </span>
               <div class="issue-main">
                 <span class="issue-type-label">{{
                   (issue.issue_types || [])
@@ -106,6 +110,7 @@ import { formatDate } from '../utils/format'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import SearchInput from '../components/atoms/SearchInput.vue'
 import PaginationBar from '../components/atoms/PaginationBar.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 
 const { t } = useI18n()
 const healthIssuesStore = useHealthIssuesStore()

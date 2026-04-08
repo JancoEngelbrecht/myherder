@@ -10,7 +10,7 @@
         v-else-if="(!isDairy || milkCows.length === 0) && meatCows.length === 0"
         class="empty-state clear-state"
       >
-        <div class="clear-icon">✅</div>
+        <div class="clear-icon"><AppIcon name="check-circle" :size="64" /></div>
         <h2>{{ $t('withdrawal.allClear') }}</h2>
         <p>{{ $t('withdrawal.allClearSub') }}</p>
       </div>
@@ -24,7 +24,8 @@
             :class="{ active: activeTab === 'milk' }"
             @click="activeTab = 'milk'"
           >
-            🥛 {{ $t('withdrawal.milkSection') }}
+            <AppIcon name="droplets" :size="14" />
+            {{ $t('withdrawal.milkSection') }}
             <span v-if="milkCows.length > 0" class="chip-count">{{ milkCows.length }}</span>
           </button>
           <button
@@ -32,7 +33,8 @@
             :class="{ active: activeTab === 'meat' }"
             @click="activeTab = 'meat'"
           >
-            🥩 {{ $t('withdrawal.meatSection') }}
+            <AppIcon name="utensils" :size="14" />
+            {{ $t('withdrawal.meatSection') }}
             <span v-if="meatCows.length > 0" class="chip-count">{{ meatCows.length }}</span>
           </button>
         </div>
@@ -40,12 +42,12 @@
         <!-- ── Milk Tab (dairy species only) ── -->
         <div v-if="isDairy && activeTab === 'milk'">
           <div v-if="milkCows.length > 0" class="alert-banner milk-banner">
-            <span class="alert-icon">🚫</span>
+            <span class="alert-icon"><AppIcon name="ban" :size="22" /></span>
             <span>{{ $t('withdrawal.milkBanner', { count: milkCows.length }) }}</span>
           </div>
 
           <div v-if="milkCows.length === 0" class="section-clear">
-            <span class="section-clear-icon">✅</span>
+            <span class="section-clear-icon"><AppIcon name="check-circle" :size="20" /></span>
             <span>{{ $t('withdrawal.milkAllClear') }}</span>
           </div>
 
@@ -57,7 +59,7 @@
                   <span v-if="item.cow_name" class="cow-name">{{ item.cow_name }}</span>
                 </div>
                 <RouterLink :to="`/animals/${item.cow_id}`" class="view-link">
-                  {{ $t('common.view') }} →
+                  {{ $t('common.view') }} <AppIcon name="arrow-right" :size="13" />
                 </RouterLink>
               </div>
 
@@ -66,7 +68,9 @@
               </div>
 
               <div class="withdrawal-row">
-                <span class="wd-label">🥛 {{ $t('withdrawal.milkClear') }}</span>
+                <span class="wd-label wd-label-icon"
+                  ><AppIcon name="droplets" :size="14" /> {{ $t('withdrawal.milkClear') }}</span
+                >
                 <div class="wd-right">
                   <span class="wd-date mono">{{ formatDateTime(item.withdrawal_end_milk) }}</span>
                   <span
@@ -103,12 +107,12 @@
         <!-- ── Meat Tab ── -->
         <div v-if="activeTab === 'meat'">
           <div v-if="meatCows.length > 0" class="alert-banner meat-banner">
-            <span class="alert-icon">🚫</span>
+            <span class="alert-icon"><AppIcon name="ban" :size="22" /></span>
             <span>{{ $t('withdrawal.meatBanner', { count: meatCows.length }) }}</span>
           </div>
 
           <div v-if="meatCows.length === 0" class="section-clear">
-            <span class="section-clear-icon">✅</span>
+            <span class="section-clear-icon"><AppIcon name="check-circle" :size="20" /></span>
             <span>{{ $t('withdrawal.meatAllClear') }}</span>
           </div>
 
@@ -124,7 +128,7 @@
                   <span v-if="item.cow_name" class="cow-name">{{ item.cow_name }}</span>
                 </div>
                 <RouterLink :to="`/animals/${item.cow_id}`" class="view-link">
-                  {{ $t('common.view') }} →
+                  {{ $t('common.view') }} <AppIcon name="arrow-right" :size="13" />
                 </RouterLink>
               </div>
 
@@ -133,7 +137,9 @@
               </div>
 
               <div class="withdrawal-row">
-                <span class="wd-label">🥩 {{ $t('withdrawal.meatClear') }}</span>
+                <span class="wd-label wd-label-icon"
+                  ><AppIcon name="utensils" :size="14" /> {{ $t('withdrawal.meatClear') }}</span
+                >
                 <div class="wd-right">
                   <span class="wd-date mono">{{ formatDateTime(item.withdrawal_end_meat) }}</span>
                   <span
@@ -184,6 +190,7 @@ import { useSpeciesTerms } from '../composables/useSpeciesTerms'
 import { formatDateTime } from '../utils/format'
 import AppHeader from '../components/organisms/AppHeader.vue'
 import PaginationBar from '../components/atoms/PaginationBar.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 
 const store = useTreatmentsStore()
 const { speciesCode } = useSpeciesTerms()
@@ -325,7 +332,9 @@ function withdrawalInfo(endDate) {
 }
 
 .alert-icon {
-  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .section-clear {
@@ -341,7 +350,8 @@ function withdrawalInfo(endDate) {
 }
 
 .section-clear-icon {
-  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
 }
 
 .spinner-wrap {
@@ -356,7 +366,9 @@ function withdrawalInfo(endDate) {
 }
 
 .clear-icon {
-  font-size: 4rem;
+  display: flex;
+  justify-content: center;
+  color: var(--primary);
   margin-bottom: 16px;
 }
 
@@ -423,6 +435,9 @@ function withdrawalInfo(endDate) {
   color: var(--primary);
   text-decoration: none;
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .med-info {
@@ -455,6 +470,12 @@ function withdrawalInfo(endDate) {
 .wd-label {
   font-size: 0.85rem;
   color: var(--text-secondary);
+}
+
+.wd-label-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .wd-right {
