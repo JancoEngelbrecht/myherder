@@ -41,7 +41,7 @@
               :class="{ active: form.event_type === et.code }"
               @click="form.event_type = et.code"
             >
-              <span class="et-icon">{{ et.emoji }}</span>
+              <span class="et-icon"><AppIcon :name="et.icon ?? 'calendar'" :size="22" /></span>
               <span class="et-label">{{ t(`breeding.eventTypes.${et.code}`) }}</span>
             </button>
           </div>
@@ -127,11 +127,17 @@
           <div v-if="computedDryOff" class="auto-dates-preview card">
             <div class="preview-dates">
               <div class="preview-item">
-                <span class="preview-key">🐮 {{ t('breeding.dates.calving') }}</span>
+                <span class="preview-key"
+                  ><AppIcon name="baby" :size="14" class="preview-icon" />
+                  {{ t('breeding.dates.calving') }}</span
+                >
                 <span class="preview-val mono">{{ form.expected_calving }}</span>
               </div>
               <div class="preview-item">
-                <span class="preview-key">🌿 {{ t('breeding.dates.dryOff') }}</span>
+                <span class="preview-key"
+                  ><AppIcon name="leaf" :size="14" class="preview-icon" />
+                  {{ t('breeding.dates.dryOff') }}</span
+                >
                 <span class="preview-val mono">{{ computedDryOff }}</span>
               </div>
             </div>
@@ -201,19 +207,31 @@
           <p class="preview-label">{{ t('breeding.form.autoDatesPreview') }}</p>
           <div class="preview-dates">
             <div v-if="autoDates.expected_next_heat" class="preview-item">
-              <span class="preview-key">🔥 {{ t('breeding.dates.nextHeat') }}</span>
+              <span class="preview-key"
+                ><AppIcon name="flame" :size="14" class="preview-icon" />
+                {{ t('breeding.dates.nextHeat') }}</span
+              >
               <span class="preview-val mono">{{ autoDates.expected_next_heat }}</span>
             </div>
             <div v-if="autoDates.expected_preg_check" class="preview-item">
-              <span class="preview-key">🩺 {{ t('breeding.dates.pregCheck') }}</span>
+              <span class="preview-key"
+                ><AppIcon name="stethoscope" :size="14" class="preview-icon" />
+                {{ t('breeding.dates.pregCheck') }}</span
+              >
               <span class="preview-val mono">{{ autoDates.expected_preg_check }}</span>
             </div>
             <div v-if="autoDates.expected_calving" class="preview-item">
-              <span class="preview-key">🐮 {{ t('breeding.dates.calving') }}</span>
+              <span class="preview-key"
+                ><AppIcon name="baby" :size="14" class="preview-icon" />
+                {{ t('breeding.dates.calving') }}</span
+              >
               <span class="preview-val mono">{{ autoDates.expected_calving }}</span>
             </div>
             <div v-if="autoDates.expected_dry_off" class="preview-item">
-              <span class="preview-key">🌿 {{ t('breeding.dates.dryOff') }}</span>
+              <span class="preview-key"
+                ><AppIcon name="leaf" :size="14" class="preview-icon" />
+                {{ t('breeding.dates.dryOff') }}</span
+              >
               <span class="preview-val mono">{{ autoDates.expected_dry_off }}</span>
             </div>
           </div>
@@ -235,6 +253,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/organisms/AppHeader.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 import AnimalSearchDropdown from '../components/molecules/AnimalSearchDropdown.vue'
 import { useBreedingEventsStore } from '../stores/breedingEvents'
 import { getEventType, getEventTypesForSpecies } from '../config/breedingEventTypes'
@@ -603,8 +622,19 @@ onMounted(async () => {
 }
 
 .et-icon {
-  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
+  color: var(--text-secondary);
+}
+
+.event-type-btn.active .et-icon {
+  color: var(--primary);
+}
+
+.preview-icon {
+  vertical-align: middle;
 }
 
 .et-label {

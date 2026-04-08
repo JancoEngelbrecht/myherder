@@ -1,7 +1,7 @@
 <template>
   <div class="breeding-event-card card" :class="{ compact }" @click="navigateToEvent">
     <div class="event-avatar" :class="`event-${eventCategory}`">
-      {{ getEventType(event.event_type)?.emoji ?? '📋' }}
+      <AppIcon :name="getEventType(event.event_type)?.icon ?? 'clipboard-list'" :size="22" />
     </div>
 
     <div class="event-info">
@@ -19,15 +19,18 @@
       <!-- Auto-calculated dates -->
       <div v-if="hasAutoDates" class="auto-dates">
         <span v-if="event.expected_next_heat" class="date-chip">
-          🔥 {{ t('breeding.dates.nextHeat') }}:
+          <AppIcon name="flame" :size="11" />
+          {{ t('breeding.dates.nextHeat') }}:
           <span class="mono">{{ formatDate(event.expected_next_heat) }}</span>
         </span>
         <span v-if="event.expected_preg_check" class="date-chip">
-          🩺 {{ t('breeding.dates.pregCheck') }}:
+          <AppIcon name="stethoscope" :size="11" />
+          {{ t('breeding.dates.pregCheck') }}:
           <span class="mono">{{ formatDate(event.expected_preg_check) }}</span>
         </span>
         <span v-if="event.expected_calving" class="date-chip">
-          🐮 {{ t('breeding.dates.calving') }}:
+          <AppIcon name="baby" :size="11" />
+          {{ t('breeding.dates.calving') }}:
           <span class="mono">{{ formatDate(event.expected_calving) }}</span>
         </span>
       </div>
@@ -51,6 +54,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import AppIcon from '../atoms/AppIcon.vue'
 import { getEventType } from '../../config/breedingEventTypes'
 
 const { t } = useI18n()
@@ -97,7 +101,7 @@ const calvingDetails = computed(() => {
 
 const metaText = computed(() => {
   if (hasInsemDetails.value) {
-    if (props.event.sire_name) return `🐂 ${props.event.sire_name}`
+    if (props.event.sire_name) return props.event.sire_name
     if (props.event.inseminator) return props.event.inseminator
   }
   if (props.event.preg_check_method) {
@@ -106,9 +110,7 @@ const metaText = computed(() => {
   if (calvingDetails.value) {
     const parts = []
     if (calvingDetails.value.calf_sex) {
-      parts.push(
-        `${calvingDetails.value.calf_sex === 'male' ? '🐂' : '🐄'} ${t(`sex.${calvingDetails.value.calf_sex}`)}`
-      )
+      parts.push(t(`sex.${calvingDetails.value.calf_sex}`))
     }
     if (calvingDetails.value.calf_tag_number) parts.push(calvingDetails.value.calf_tag_number)
     if (parts.length) return parts.join(' · ')
@@ -166,8 +168,8 @@ function navigateToEvent() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.3rem;
   flex-shrink: 0;
+  color: var(--text-secondary);
 }
 
 .event-heat {
@@ -336,7 +338,6 @@ function navigateToEvent() {
   .breeding-event-card:not(.compact) .event-avatar {
     width: 48px;
     height: 48px;
-    font-size: 1.6rem;
   }
 
   .breeding-event-card:not(.compact) .event-chevron {

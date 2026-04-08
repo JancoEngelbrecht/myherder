@@ -16,7 +16,7 @@
       <template v-else>
         <!-- Status banner -->
         <div class="status-banner" :class="bannerClass">
-          <span class="banner-icon">{{ bannerIcon }}</span>
+          <span class="banner-icon"><AppIcon :name="bannerIcon" :size="28" /></span>
           <div class="banner-body">
             <span class="banner-status">{{ bannerStatus }}</span>
             <span v-if="daysToCalving !== null" class="banner-sub">
@@ -52,28 +52,28 @@
           <h3 class="section-label">{{ t('breeding.keyDates') }}</h3>
           <div class="dates-grid">
             <div v-if="latestEvent.expected_next_heat" class="date-item">
-              <span class="date-icon">🔥</span>
+              <span class="date-icon"><AppIcon name="flame" :size="18" /></span>
               <div class="date-body">
                 <span class="date-key">{{ t('breeding.dates.nextHeat') }}</span>
                 <span class="date-val mono">{{ formatDate(latestEvent.expected_next_heat) }}</span>
               </div>
             </div>
             <div v-if="latestEvent.expected_preg_check" class="date-item">
-              <span class="date-icon">🩺</span>
+              <span class="date-icon"><AppIcon name="stethoscope" :size="18" /></span>
               <div class="date-body">
                 <span class="date-key">{{ t('breeding.dates.pregCheck') }}</span>
                 <span class="date-val mono">{{ formatDate(latestEvent.expected_preg_check) }}</span>
               </div>
             </div>
             <div v-if="latestEvent.expected_calving" class="date-item">
-              <span class="date-icon">🐮</span>
+              <span class="date-icon"><AppIcon name="baby" :size="18" /></span>
               <div class="date-body">
                 <span class="date-key">{{ t('breeding.dates.calving') }}</span>
                 <span class="date-val mono">{{ formatDate(latestEvent.expected_calving) }}</span>
               </div>
             </div>
             <div v-if="latestEvent.expected_dry_off" class="date-item">
-              <span class="date-icon">🌿</span>
+              <span class="date-icon"><AppIcon name="leaf" :size="18" /></span>
               <div class="date-body">
                 <span class="date-key">{{ t('breeding.dates.dryOff') }}</span>
                 <span class="date-val mono">{{ formatDate(latestEvent.expected_dry_off) }}</span>
@@ -149,6 +149,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/organisms/AppHeader.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 import BreedingEventCard from '../components/molecules/BreedingEventCard.vue'
 import ConfirmDialog from '../components/molecules/ConfirmDialog.vue'
 import { useBreedingEventsStore } from '../stores/breedingEvents'
@@ -215,7 +216,7 @@ const bannerClass = computed(() => {
   return 'banner-open'
 })
 
-const bannerIcon = computed(() => (isPregnant.value ? '🤰' : '🐄'))
+const bannerIcon = computed(() => (isPregnant.value ? 'baby' : 'cow'))
 
 const bannerStatus = computed(() =>
   isPregnant.value ? t('breeding.status.pregnant') : t('breeding.status.open')
@@ -295,14 +296,23 @@ onMounted(async () => {
   border: 1px solid color-mix(in srgb, #7b5ea7 30%, transparent);
 }
 
+.banner-pregnant .banner-icon {
+  color: #7b5ea7;
+}
+
+.banner-open .banner-icon {
+  color: var(--text-secondary);
+}
+
 .banner-open {
   background: var(--surface);
   border: 1px solid var(--border);
 }
 
 .banner-icon {
-  font-size: 1.8rem;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .banner-body {
@@ -391,10 +401,12 @@ onMounted(async () => {
 }
 
 .date-icon {
-  font-size: 1.1rem;
   flex-shrink: 0;
   width: 1.4rem;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
 }
 
 .date-body {

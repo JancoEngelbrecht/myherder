@@ -16,7 +16,11 @@ import { extractApiError } from '../utils/apiError'
  * @param breedType - breed type with calf_max_months, heifer_min_months, young_bull_min_months
  * @param speciesLifePhases - species.config.life_phases { female: [...], male: [...] }
  */
-export function computeLifePhase(animal: any, breedType: any = null, speciesLifePhases: any = null): string {
+export function computeLifePhase(
+  animal: any,
+  breedType: any = null,
+  speciesLifePhases: any = null
+): string {
   if (animal.life_phase_override) return animal.life_phase_override
 
   // Compute age once — used by both species-aware and legacy paths
@@ -84,7 +88,11 @@ export function computeLifePhase(animal: any, breedType: any = null, speciesLife
  * Compute whether an animal is ready to breed.
  * Male → false. Pregnant → false. Based on age (heifer) or days since last calving (cow).
  */
-export function computeIsReadyToBreed(animal: any, breedType: any = null, lastCalvingDate: string | null = null): boolean {
+export function computeIsReadyToBreed(
+  animal: any,
+  breedType: any = null,
+  lastCalvingDate: string | null = null
+): boolean {
   if (animal.sex === 'male') return false
   if (animal.status === 'pregnant') return false
   if (!animal.dob) return false

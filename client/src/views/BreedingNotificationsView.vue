@@ -67,7 +67,9 @@
         <!-- Upcoming heats -->
         <section v-if="timeFilteredHeats.length" class="section">
           <div class="alert-group">
-            <h3 class="group-label">🔥 {{ t('breeding.upcoming.heats') }}</h3>
+            <h3 class="group-label">
+              <AppIcon name="flame" :size="13" /> {{ t('breeding.upcoming.heats') }}
+            </h3>
             <div
               v-for="ev in visibleHeats"
               :key="ev.id"
@@ -97,7 +99,7 @@
         <section v-if="timeFilteredCalvings.length" class="section">
           <div class="alert-group">
             <h3 class="group-label">
-              {{ speciesEmoji.female }} {{ t('breeding.upcoming.calvings') }}
+              <AppIcon name="baby" :size="13" /> {{ t('breeding.upcoming.calvings') }}
             </h3>
             <div
               v-for="ev in visibleCalvings"
@@ -127,7 +129,9 @@
         <!-- Upcoming preg checks -->
         <section v-if="timeFilteredPregChecks.length" class="section">
           <div class="alert-group">
-            <h3 class="group-label">🩺 {{ t('breeding.upcoming.pregChecks') }}</h3>
+            <h3 class="group-label">
+              <AppIcon name="stethoscope" :size="13" /> {{ t('breeding.upcoming.pregChecks') }}
+            </h3>
             <div
               v-for="ev in visiblePregChecks"
               :key="ev.id"
@@ -156,7 +160,9 @@
         <!-- Upcoming dry-offs -->
         <section v-if="timeFilteredDryOffs.length" class="section">
           <div class="alert-group">
-            <h3 class="group-label">🌿 {{ t('breeding.upcoming.dryOffs') }}</h3>
+            <h3 class="group-label">
+              <AppIcon name="leaf" :size="13" /> {{ t('breeding.upcoming.dryOffs') }}
+            </h3>
             <div v-for="ev in visibleDryOffs" :key="ev.id" class="card dryoff-card">
               <div class="alert-row" @click="goToRepro(ev.cow_id)">
                 <span class="alert-cow mono">{{ ev.tag_number }}</span>
@@ -273,9 +279,9 @@ import { ref, computed, reactive, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import AppHeader from '../components/organisms/AppHeader.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 import ConfirmDialog from '../components/molecules/ConfirmDialog.vue'
 import { useBreedingEventsStore } from '../stores/breedingEvents'
-import { useSpeciesTerms } from '../composables/useSpeciesTerms'
 import { useToast } from '../composables/useToast'
 import { extractApiError, resolveError } from '../utils/apiError'
 import { isOfflineError } from '../services/syncManager'
@@ -283,7 +289,6 @@ import { isOfflineError } from '../services/syncManager'
 const { t } = useI18n()
 const router = useRouter()
 const breedingStore = useBreedingEventsStore()
-const { emoji: speciesEmoji } = useSpeciesTerms()
 const toast = useToast()
 
 // ── Filter state ─────────────────────────────────────────────────────────────

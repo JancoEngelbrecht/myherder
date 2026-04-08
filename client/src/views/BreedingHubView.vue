@@ -41,7 +41,7 @@
             class="nav-card card"
             @click="goTo('/breed/notifications')"
           >
-            <div class="nav-card-icon">🔔</div>
+            <div class="nav-card-icon"><AppIcon name="bell" :size="22" /></div>
             <div class="nav-card-body">
               <div class="nav-card-header">
                 <span class="nav-card-title">{{ t('breeding.notificationsCard') }}</span>
@@ -56,7 +56,7 @@
 
           <!-- Recent Events card -->
           <div data-tour="breed-events" class="nav-card card" @click="goTo('/breed/events')">
-            <div class="nav-card-icon">📋</div>
+            <div class="nav-card-icon"><AppIcon name="clipboard-list" :size="22" /></div>
             <div class="nav-card-body">
               <div class="nav-card-header">
                 <span class="nav-card-title">{{ t('breeding.recentEventsCard') }}</span>
@@ -86,6 +86,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import AppHeader from '../components/organisms/AppHeader.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 import TourButton from '../components/atoms/TourButton.vue'
 import { useBreedingEventsStore } from '../stores/breedingEvents'
 import { useAnimalsStore } from '../stores/animals'
@@ -277,7 +278,6 @@ onMounted(async () => {
 }
 
 .nav-card-icon {
-  font-size: 1.5rem;
   flex-shrink: 0;
   width: 2.5rem;
   height: 2.5rem;
@@ -286,6 +286,7 @@ onMounted(async () => {
   justify-content: center;
   border-radius: var(--radius-sm);
   background: var(--bg);
+  color: var(--primary);
 }
 
 .nav-card-body {

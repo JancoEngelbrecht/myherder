@@ -79,7 +79,9 @@ export const useTreatmentsStore = defineStore('treatments', () => {
         const animalList = await db.animals.bulkGet(animalIds)
         // Try to fetch breed types for accurate life phase thresholds
         const breedTypeIds = [
-          ...new Set(animalList.filter((a: any) => a?.breed_type_id).map((a: any) => a.breed_type_id)),
+          ...new Set(
+            animalList.filter((a: any) => a?.breed_type_id).map((a: any) => a.breed_type_id)
+          ),
         ]
         const breedTypeMap: Record<string, any> = {}
         try {

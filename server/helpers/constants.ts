@@ -60,7 +60,14 @@ export function parsePagination(
 export const MS_PER_DAY = 1000 * 60 * 60 * 24
 
 /** All valid animal status values */
-export const ANIMAL_STATUSES: readonly string[] = ['active', 'dry', 'pregnant', 'sick', 'sold', 'dead']
+export const ANIMAL_STATUSES: readonly string[] = [
+  'active',
+  'dry',
+  'pregnant',
+  'sick',
+  'sold',
+  'dead',
+]
 
 /** Extract a clean error message from a Joi validation error */
 export function joiMsg(error: { details: Array<{ message: string }> }): string {

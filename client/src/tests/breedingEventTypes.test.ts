@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { getEventType, getEventTypesForSpecies } from '../config/breedingEventTypes'
+import {
+  BREEDING_EVENT_TYPES,
+  getEventType,
+  getEventTypesForSpecies,
+} from '../config/breedingEventTypes'
 
 describe('breedingEventTypes', () => {
   describe('getEventType', () => {
@@ -22,6 +26,27 @@ describe('breedingEventTypes', () => {
       const l = getEventType('lambing')
       expect(l.emoji).toBe('🐑')
       expect(l.species).toEqual(['sheep'])
+    })
+
+    it('every event type has an icon field', () => {
+      for (const et of BREEDING_EVENT_TYPES) {
+        expect(typeof et.icon).toBe('string')
+        expect(et.icon.length).toBeGreaterThan(0)
+      }
+    })
+
+    it('heat_observed icon is flame', () => {
+      const heat = getEventType('heat_observed')
+      expect(heat.icon).toBe('flame')
+    })
+
+    it('calving and lambing share baby icon', () => {
+      expect(getEventType('calving').icon).toBe('baby')
+      expect(getEventType('lambing').icon).toBe('baby')
+    })
+
+    it('dry_off icon is leaf', () => {
+      expect(getEventType('dry_off').icon).toBe('leaf')
     })
   })
 

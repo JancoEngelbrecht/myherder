@@ -12,7 +12,8 @@
           :class="{ active: eventFilter === f.value }"
           @click="setEventFilter(f.value)"
         >
-          {{ f.label }}
+          <AppIcon v-if="f.icon" :name="f.icon" :size="14" class="chip-icon" />
+          <span v-if="f.label">{{ f.label }}</span>
         </button>
       </div>
 
@@ -152,6 +153,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import AppHeader from '../components/organisms/AppHeader.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 import BreedingEventCard from '../components/molecules/BreedingEventCard.vue'
 import ConfirmDialog from '../components/molecules/ConfirmDialog.vue'
 import AnimalSearchDropdown from '../components/molecules/AnimalSearchDropdown.vue'
@@ -186,12 +188,12 @@ const deleteTargetId = ref(null)
 const deleting = ref(false)
 
 const eventFilters = [
-  { value: '', label: t('cows.filterAll') },
-  { value: 'heat_observed', label: '🔥' },
-  { value: 'ai_insemination,bull_service', label: '🧬' },
-  { value: 'preg_check_positive,preg_check_negative', label: '🩺' },
-  { value: 'calving', label: '🐮' },
-  { value: 'dry_off', label: '🌿' },
+  { value: '', label: t('cows.filterAll'), icon: null },
+  { value: 'heat_observed', label: null, icon: 'flame' },
+  { value: 'ai_insemination,bull_service', label: null, icon: 'syringe' },
+  { value: 'preg_check_positive,preg_check_negative', label: null, icon: 'stethoscope' },
+  { value: 'calving', label: null, icon: 'baby' },
+  { value: 'dry_off', label: null, icon: 'leaf' },
 ]
 
 const advancedFilterCount = computed(() => {
@@ -275,6 +277,11 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+/* ── Filter chip icon ─── */
+.chip-icon {
+  vertical-align: middle;
 }
 
 /* ── Advanced Filters ─── */

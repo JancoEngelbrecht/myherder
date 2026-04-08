@@ -1,12 +1,4 @@
-export type LifePhase =
-  | 'calf'
-  | 'heifer'
-  | 'cow'
-  | 'young_bull'
-  | 'bull'
-  | 'lamb'
-  | 'ewe'
-  | 'ram'
+export type LifePhase = 'calf' | 'heifer' | 'cow' | 'young_bull' | 'bull' | 'lamb' | 'ewe' | 'ram'
 
 export interface AnimalForLifePhase {
   life_phase_override?: string | null
