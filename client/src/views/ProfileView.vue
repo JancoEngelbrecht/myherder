@@ -25,23 +25,33 @@
 
       <div class="settings-list">
         <RouterLink v-if="authStore.isAdmin && hasFarmContext" to="/settings" class="settings-item">
-          <span class="settings-icon">⚙</span>
+          <span class="settings-icon">
+            <AppIcon name="settings" :size="20" :stroke-width="1.5" />
+          </span>
           <div class="settings-info">
             <span class="settings-name">{{ t('profile.settings') }}</span>
           </div>
-          <span class="settings-arrow">›</span>
+          <span class="settings-arrow">
+            <AppIcon name="chevron-right" :size="16" :stroke-width="2" />
+          </span>
         </RouterLink>
 
         <RouterLink to="/help" class="settings-item">
-          <span class="settings-icon">📖</span>
+          <span class="settings-icon">
+            <AppIcon name="book-open" :size="20" :stroke-width="1.5" />
+          </span>
           <div class="settings-info">
             <span class="settings-name">{{ t('help.title') }}</span>
           </div>
-          <span class="settings-arrow">›</span>
+          <span class="settings-arrow">
+            <AppIcon name="chevron-right" :size="16" :stroke-width="2" />
+          </span>
         </RouterLink>
 
         <button class="settings-item logout-item" @click="showLogoutDialog = true">
-          <span class="settings-icon">🚪</span>
+          <span class="settings-icon settings-icon-danger">
+            <AppIcon name="log-out" :size="20" :stroke-width="1.5" />
+          </span>
           <div class="settings-info">
             <span class="settings-name logout-text">{{ t('profile.logout') }}</span>
           </div>
@@ -67,6 +77,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import { getInitials } from '../utils/initials'
 import AppHeader from '../components/organisms/AppHeader.vue'
+import AppIcon from '../components/atoms/AppIcon.vue'
 import ConfirmDialog from '../components/molecules/ConfirmDialog.vue'
 
 const { t } = useI18n()
@@ -187,9 +198,19 @@ async function handleLogout() {
 }
 
 .settings-icon {
-  font-size: 1.25rem;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--primary);
   flex-shrink: 0;
+}
+
+.settings-icon-danger {
+  color: var(--danger);
 }
 
 .settings-info {
@@ -205,9 +226,9 @@ async function handleLogout() {
 }
 
 .settings-arrow {
-  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
   color: var(--text-secondary);
-  line-height: 1;
 }
 
 .logout-text {

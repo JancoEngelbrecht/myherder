@@ -2,7 +2,7 @@
   <header class="app-header">
     <div class="header-left">
       <button v-if="showBack" class="btn-icon" :aria-label="t('common.back')" @click="handleBack">
-        ‹
+        <AppIcon name="chevron-left" :size="22" :stroke-width="2" />
       </button>
     </div>
 
@@ -16,8 +16,14 @@
           <!-- Farm switcher pill — only shown when user has 2+ farms -->
           <div v-if="showFarmSwitcher" class="farm-switcher" @click.stop="toggleFarmDropdown">
             <span class="farm-pill">
-              {{ farmPillLabel }}
-              <span class="farm-pill-arrow">{{ farmDropdownOpen ? '▴' : '▾' }}</span>
+              <AppIcon :name="farmPillIconName" :size="14" :stroke-width="1.5" />
+              {{ farmPillName }}
+              <AppIcon
+                :name="farmDropdownOpen ? 'chevron-up' : 'chevron-down'"
+                :size="12"
+                :stroke-width="2"
+                class="farm-pill-arrow"
+              />
             </span>
             <div v-if="farmDropdownOpen" class="farm-dropdown" @click.stop>
               <button
@@ -28,9 +34,13 @@
                 :disabled="switching"
                 @click="handleSwitchFarm(farm.id)"
               >
-                <span class="farm-option-emoji">{{
-                  farm.species?.code === 'sheep' ? '🐑' : '🐄'
-                }}</span>
+                <span class="farm-option-icon">
+                  <AppIcon
+                    :name="farm.species?.code === 'sheep' ? 'sheep' : 'cow'"
+                    :size="16"
+                    :stroke-width="1.5"
+                  />
+                </span>
                 <span class="farm-option-name">{{ farm.name }}</span>
               </button>
             </div>
@@ -78,6 +88,7 @@ import { getInitials } from '../../utils/initials'
 import SyncIndicator from '../atoms/SyncIndicator.vue'
 import SyncPanel from '../molecules/SyncPanel.vue'
 import ConfirmDialog from '../molecules/ConfirmDialog.vue'
+import AppIcon from '../atoms/AppIcon.vue'
 import { extractApiError, resolveError } from '../../utils/apiError'
 import { useToast } from '../../composables/useToast'
 
@@ -109,11 +120,15 @@ const showFarmSwitcher = computed(() => {
   return authStore.myFarms.length > 1
 })
 
-const farmPillLabel = computed(() => {
+const farmPillIconName = computed(() => {
   const farm = authStore.myFarms.find((f) => f.id === authStore.user?.farm_id)
   const speciesCode = farm?.species?.code ?? authStore.user?.species_code ?? 'cattle'
-  const emoji = speciesCode === 'sheep' ? '🐑' : '🐄'
-  return `${emoji} ${farm?.name ?? ''}`
+  return speciesCode === 'sheep' ? 'sheep' : 'cow'
+})
+
+const farmPillName = computed(() => {
+  const farm = authStore.myFarms.find((f) => f.id === authStore.user?.farm_id)
+  return farm?.name ?? ''
 })
 
 function handleBack() {
@@ -276,13 +291,11 @@ onUnmounted(() => {
   border-radius: var(--radius);
   border: none;
   background: transparent;
-  font-size: 1.5rem;
   color: var(--text);
   cursor: pointer;
   transition:
     background 0.15s,
     color 0.15s;
-  line-height: 1;
 }
 
 .btn-icon:hover {
@@ -340,7 +353,8 @@ onUnmounted(() => {
 }
 
 .farm-pill-arrow {
-  font-size: 0.625rem;
+  display: flex;
+  align-items: center;
   color: var(--text-muted);
   flex-shrink: 0;
 }
@@ -387,9 +401,11 @@ onUnmounted(() => {
   color: var(--primary);
 }
 
-.farm-option-emoji {
-  font-size: 1rem;
+.farm-option-icon {
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
+  color: var(--text-secondary);
 }
 
 .farm-option-name {

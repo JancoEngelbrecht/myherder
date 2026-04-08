@@ -169,7 +169,7 @@ describe('AppHeader — farm switcher', () => {
     expect(wrapper.find('.farm-switcher').exists()).toBe(false)
   })
 
-  it('farm pill label uses cattle emoji for cattle farm', () => {
+  it('farm pill label shows farm name for cattle farm', () => {
     const wrapper = mountWithFarms(
       [
         { id: 'farm-1', name: 'Botha Cattle', code: 'BC', species: { code: 'cattle' } },
@@ -178,11 +178,10 @@ describe('AppHeader — farm switcher', () => {
       { id: 'u1', farm_id: 'farm-1', username: 'admin', role: 'admin' }
     )
     const pill = wrapper.find('.farm-pill')
-    expect(pill.text()).toContain('🐄')
     expect(pill.text()).toContain('Botha Cattle')
   })
 
-  it('farm pill label uses sheep emoji for sheep farm', () => {
+  it('farm pill label shows farm name for sheep farm', () => {
     const wrapper = mountWithFarms(
       [
         { id: 'farm-1', name: 'Botha Cattle', code: 'BC', species: { code: 'cattle' } },
@@ -191,7 +190,6 @@ describe('AppHeader — farm switcher', () => {
       { id: 'u1', farm_id: 'farm-2', username: 'admin', role: 'admin', species_code: 'sheep' }
     )
     const pill = wrapper.find('.farm-pill')
-    expect(pill.text()).toContain('🐑')
     expect(pill.text()).toContain('Botha Sheep')
   })
 

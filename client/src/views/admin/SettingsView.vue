@@ -7,12 +7,16 @@
         <h2 class="section-label">{{ t('settings.adminTools') }}</h2>
         <div class="settings-list">
           <RouterLink data-tour="settings-users" to="/admin/users" class="settings-item">
-            <span class="settings-icon">👥</span>
+            <span class="settings-icon">
+              <AppIcon name="users" :size="20" :stroke-width="1.5" />
+            </span>
             <div class="settings-info">
               <span class="settings-name">{{ t('users.title') }}</span>
               <span class="settings-desc">{{ t('settings.usersDesc') }}</span>
             </div>
-            <span class="settings-arrow">›</span>
+            <span class="settings-arrow">
+              <AppIcon name="chevron-right" :size="16" :stroke-width="2" />
+            </span>
           </RouterLink>
 
           <RouterLink
@@ -21,48 +25,68 @@
             to="/admin/medications"
             class="settings-item"
           >
-            <span class="settings-icon">💊</span>
+            <span class="settings-icon">
+              <AppIcon name="pill" :size="20" :stroke-width="1.5" />
+            </span>
             <div class="settings-info">
               <span class="settings-name">{{ t('medications.title') }}</span>
               <span class="settings-desc">{{ t('settings.medicationsDesc') }}</span>
             </div>
-            <span class="settings-arrow">›</span>
+            <span class="settings-arrow">
+              <AppIcon name="chevron-right" :size="16" :stroke-width="2" />
+            </span>
           </RouterLink>
 
           <RouterLink v-if="flags.healthIssues" to="/admin/issue-types" class="settings-item">
-            <span class="settings-icon">🩺</span>
+            <span class="settings-icon">
+              <AppIcon name="stethoscope" :size="20" :stroke-width="1.5" />
+            </span>
             <div class="settings-info">
               <span class="settings-name">{{ t('issueTypes.title') }}</span>
               <span class="settings-desc">{{ t('settings.issueTypesDesc') }}</span>
             </div>
-            <span class="settings-arrow">›</span>
+            <span class="settings-arrow">
+              <AppIcon name="chevron-right" :size="16" :stroke-width="2" />
+            </span>
           </RouterLink>
 
           <RouterLink v-if="flags.breeding" to="/admin/breed-types" class="settings-item">
-            <span class="settings-icon">🐄</span>
+            <span class="settings-icon">
+              <AppIcon name="cow" :size="20" :stroke-width="1.5" />
+            </span>
             <div class="settings-info">
               <span class="settings-name">{{ t('breedTypes.title') }}</span>
               <span class="settings-desc">{{ t('settings.breedTypesDesc') }}</span>
             </div>
-            <span class="settings-arrow">›</span>
+            <span class="settings-arrow">
+              <AppIcon name="chevron-right" :size="16" :stroke-width="2" />
+            </span>
           </RouterLink>
 
           <RouterLink data-tour="settings-audit" to="/admin/audit-log" class="settings-item">
-            <span class="settings-icon">📋</span>
+            <span class="settings-icon">
+              <AppIcon name="clipboard-list" :size="20" :stroke-width="1.5" />
+            </span>
             <div class="settings-info">
               <span class="settings-name">{{ t('audit.title') }}</span>
               <span class="settings-desc">{{ t('settings.auditLogDesc') }}</span>
             </div>
-            <span class="settings-arrow">›</span>
+            <span class="settings-arrow">
+              <AppIcon name="chevron-right" :size="16" :stroke-width="2" />
+            </span>
           </RouterLink>
 
           <RouterLink data-tour="settings-reports" to="/admin/reports" class="settings-item">
-            <span class="settings-icon">📄</span>
+            <span class="settings-icon">
+              <AppIcon name="file-text" :size="20" :stroke-width="1.5" />
+            </span>
             <div class="settings-info">
               <span class="settings-name">{{ t('reports.title') }}</span>
               <span class="settings-desc">{{ t('settings.reportsDesc') }}</span>
             </div>
-            <span class="settings-arrow">›</span>
+            <span class="settings-arrow">
+              <AppIcon name="chevron-right" :size="16" :stroke-width="2" />
+            </span>
           </RouterLink>
         </div>
       </section>
@@ -147,7 +171,9 @@
         <h2 class="section-label">{{ t('settings.dataSection') }}</h2>
         <div class="settings-list">
           <button class="settings-item" :disabled="exporting" @click="exportData">
-            <span class="settings-icon">{{ exporting ? '...' : '📦' }}</span>
+            <span class="settings-icon">
+              <AppIcon name="download" :size="20" :stroke-width="1.5" />
+            </span>
             <div class="settings-info">
               <span class="settings-name">{{ t('settings.exportData') }}</span>
               <span class="settings-desc">{{ t('settings.exportDataDesc') }}</span>
@@ -160,7 +186,9 @@
         <h2 class="section-label">{{ t('settings.dataSync') }}</h2>
         <div class="settings-list">
           <button class="settings-item" :disabled="syncing" @click="forceSync">
-            <span class="settings-icon">{{ syncing ? '⏳' : '🔄' }}</span>
+            <span class="settings-icon">
+              <AppIcon :name="syncing ? 'refresh-cw' : 'sync'" :size="20" :stroke-width="1.5" />
+            </span>
             <div class="settings-info">
               <span class="settings-name">{{ t('settings.forceSync') }}</span>
               <span class="settings-desc">
@@ -183,6 +211,7 @@
 import { ref, computed, reactive, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppHeader from '../../components/organisms/AppHeader.vue'
+import AppIcon from '../../components/atoms/AppIcon.vue'
 import TourButton from '../../components/atoms/TourButton.vue'
 import { initialSync, lastSyncTime as syncLastTime } from '../../services/syncManager'
 import { useFeatureFlagsStore } from '../../stores/featureFlags'
@@ -376,8 +405,14 @@ function formatSyncTime(iso) {
 }
 
 .settings-icon {
-  font-size: 1.5rem;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--primary);
   flex-shrink: 0;
 }
 
@@ -399,9 +434,9 @@ function formatSyncTime(iso) {
 }
 
 .settings-arrow {
-  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
   color: var(--text-secondary);
-  line-height: 1;
 }
 
 .app-setting-row {

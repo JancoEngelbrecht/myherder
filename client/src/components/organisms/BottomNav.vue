@@ -8,7 +8,9 @@
       :class="{ active: isActive(tab) }"
       :aria-current="isActive(tab) ? 'page' : undefined"
     >
-      <span class="nav-icon">{{ tab.icon }}</span>
+      <span class="nav-icon">
+        <AppIcon :name="tab.icon" :size="22" :stroke-width="1.5" />
+      </span>
       <span class="nav-label">{{ t(tab.labelKey) }}</span>
     </RouterLink>
   </nav>
@@ -21,27 +23,28 @@ import { useRoute } from 'vue-router'
 import { useFeatureFlagsStore } from '../../stores/featureFlags'
 import { useAuthStore } from '../../stores/auth'
 import { useSpeciesTerms } from '../../composables/useSpeciesTerms'
+import AppIcon from '../atoms/AppIcon.vue'
 
 const { t } = useI18n()
 const route = useRoute()
 const featureFlagsStore = useFeatureFlagsStore()
 const authStore = useAuthStore()
-const { emoji: speciesEmoji, speciesCode } = useSpeciesTerms()
+const { icon: speciesIcon, speciesCode } = useSpeciesTerms()
 
 const animalsLabelKey = computed(() => (speciesCode.value === 'sheep' ? 'nav.sheep' : 'nav.cows'))
 
 const allTabs = computed(() => [
-  { name: 'home', to: '/', icon: '🏠', labelKey: 'nav.home' },
+  { name: 'home', to: '/', icon: 'home', labelKey: 'nav.home' },
   {
     name: 'animals',
     to: '/animals',
-    icon: speciesEmoji.value.female,
+    icon: speciesIcon.value.female,
     labelKey: animalsLabelKey.value,
   },
   {
     name: 'milk',
     to: '/milk',
-    icon: '🥛',
+    icon: 'milk-bucket',
     labelKey: 'nav.milk',
     flag: 'milkRecording',
     permission: 'can_record_milk',
@@ -49,7 +52,7 @@ const allTabs = computed(() => [
   {
     name: 'breed',
     to: '/breed',
-    icon: speciesCode.value === 'sheep' ? '🧬' : speciesEmoji.value.male,
+    icon: speciesCode.value === 'sheep' ? 'dna' : speciesIcon.value.male,
     labelKey: 'nav.breed',
     flag: 'breeding',
     permission: 'can_log_breeding',
@@ -132,7 +135,9 @@ function isActive(tab) {
 }
 
 .nav-icon {
-  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
   position: relative;
 }
