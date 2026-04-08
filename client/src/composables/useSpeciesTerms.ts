@@ -1,6 +1,7 @@
 import { computed } from 'vue'
 import { useSpeciesStore } from '../stores/species'
 import i18n from '../i18n'
+import { getSpeciesIcons } from '../config/speciesIcons'
 
 /**
  * Provides reactive, locale-aware species terminology for the current farm.
@@ -20,6 +21,12 @@ export function useSpeciesTerms() {
   const config = computed(() => species.value.config)
   const terminology = computed(() => config.value.terminology)
   const emoji = computed(() => config.value.emoji)
+
+  /**
+   * SVG icon names for the farm's species — use with <AppIcon :name="icon.female" />.
+   * Parallel to `emoji` but resolves to icon names instead of emoji characters.
+   */
+  const icon = computed(() => getSpeciesIcons(species.value.code))
 
   /** Return translated term if available, otherwise fall back to DB value */
   const term = (key: string) =>
@@ -52,6 +59,7 @@ export function useSpeciesTerms() {
     speciesCode,
     terminology,
     emoji,
+    icon,
     singular,
     plural,
     maleSingular,

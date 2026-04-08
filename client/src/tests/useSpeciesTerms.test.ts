@@ -75,4 +75,11 @@ describe('useSpeciesTerms', () => {
     expect(terms.lifePhasesConfig.value.female).toHaveLength(3)
     expect(terms.lifePhasesConfig.value.female[0].code).toBe('calf')
   })
+
+  it('returns cattle icon names by default', () => {
+    const terms = useSpeciesTerms()
+    expect(terms.icon.value.female).toBe('cow')
+    expect(terms.icon.value.male).toBe('bull')
+    expect(terms.icon.value.default).toBe('cow')
+  })
 })
