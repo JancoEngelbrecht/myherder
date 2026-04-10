@@ -63,6 +63,19 @@
             </span>
           </RouterLink>
 
+          <RouterLink to="/admin/herd" class="settings-item">
+            <span class="settings-icon">
+              <AppIcon name="layers" :size="20" :stroke-width="1.5" />
+            </span>
+            <div class="settings-info">
+              <span class="settings-name">{{ t('herdManagement.title') }}</span>
+              <span class="settings-desc">{{ t('settings.herdManagementDesc') }}</span>
+            </div>
+            <span class="settings-arrow">
+              <AppIcon name="chevron-right" :size="16" :stroke-width="2" />
+            </span>
+          </RouterLink>
+
           <RouterLink data-tour="settings-audit" to="/admin/audit-log" class="settings-item">
             <span class="settings-icon">
               <AppIcon name="clipboard-list" :size="20" :stroke-width="1.5" />

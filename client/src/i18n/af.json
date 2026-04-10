@@ -852,6 +852,7 @@
     "usersDesc": "Bestuur gebruikers, rolle en toestemmings",
     "auditLogDesc": "Sien veranderingsgeskiedenis vir gebruikers, koeie en instellings",
     "reportsDesc": "Genereer PDF- en Excel-verslae vir oudits en ontleding",
+    "herdManagementDesc": "Voeg diere in groot maat by of verwyder verskeie tegelyk",
     "appSettings": "App Instellings",
     "farmName": "Plaasnaam",
     "farmNamePlaceholder": "bv. Groen Weiding Plaas",
@@ -2232,6 +2233,8 @@
     "deleteSelected": "Verwyder {count} Dier | Verwyder {count} Diere",
     "confirmDelete": "Verwyder {count} dier permanent? Dit kan nie ongedaan gemaak word nie. | Verwyder {count} diere permanent? Dit kan nie ongedaan gemaak word nie.",
     "successDeleted": "{count} dier verwyder | {count} diere verwyder",
-    "noAnimals": "Geen diere gevind nie."
+    "noAnimals": "Geen diere gevind nie.",
+    "tagsHint": "{count} merke gereed",
+    "emptyListSetupCta": "Stel jou kudde op →"
   }
 }

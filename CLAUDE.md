@@ -65,6 +65,8 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
 - **Read-mirrors-write model:** GET routes require the same permission as their corresponding write routes. Workers only see data for features they have permission to use. Sync pull (`/api/sync/pull`) also filters entities by permission — unpermitted entity keys are omitted entirely.
 - `GET /api/animals` returns a **plain array**, not `{ cows: [] }`
 - `GET /api/animals/:id` returns animal with `sire_name`/`dam_name` strings + `breed_type_name`/`breed_type_code` via left-joins
+- `POST /api/animals/batch` — body `{ defaults: { sex, status, breed_type_id? }, tags: [...] }`; max 500 per batch; rejects duplicates within batch (400) or existing in farm (409); requires `can_manage_animals`
+- `POST /api/animals/batch-delete` — body `{ ids: [uuid] }`; max 500; admin only; soft-delete; all-or-nothing
 - Animal date field is `dob`, not `date_of_birth`
 - `GET /api/analytics/herd-summary` returns `{ total, by_status: [{status, count}], milking_count, dry_count, heifer_count, males, females, replacement_rate }`
 - `GET /api/analytics/unhealthiest?from&to` — top 10 cows by issue count; returns `[{ id, tag_number, name, sex, issue_count }]`

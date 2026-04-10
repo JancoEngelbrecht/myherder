@@ -298,6 +298,12 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true, requiresModule: 'breeding' },
   },
   {
+    path: '/admin/herd',
+    name: 'herd-management',
+    component: () => import('../views/admin/HerdManagement.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
+  {
     path: '/admin/reports',
     name: 'reports',
     component: () => import('../views/admin/ReportsView.vue'),

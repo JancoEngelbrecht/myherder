@@ -852,6 +852,7 @@
     "usersDesc": "Manage users, roles, and permissions",
     "auditLogDesc": "View change history for users, cows, and settings",
     "reportsDesc": "Generate PDF and Excel reports for audits and analysis",
+    "herdManagementDesc": "Add animals in bulk or remove multiple at once",
     "appSettings": "App Settings",
     "farmName": "Farm Name",
     "farmNamePlaceholder": "e.g. Green Pastures Farm",
@@ -2232,6 +2233,8 @@
     "deleteSelected": "Delete {count} Animal | Delete {count} Animals",
     "confirmDelete": "Permanently delete {count} animal? This cannot be undone. | Permanently delete {count} animals? This cannot be undone.",
     "successDeleted": "{count} animal removed | {count} animals removed",
-    "noAnimals": "No animals found."
+    "noAnimals": "No animals found.",
+    "tagsHint": "{count} tags ready",
+    "emptyListSetupCta": "Set up your herd →"
   }
 }

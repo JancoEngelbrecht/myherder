@@ -223,6 +223,13 @@
           {{ t('animals.emptyTitle', { speciesPlural: plural }) }}
         </div>
         <div class="empty-state-subtitle">{{ t('animals.emptySubtitle') }}</div>
+        <RouterLink
+          v-if="!hasActiveFilters && isAdmin"
+          to="/admin/herd"
+          class="btn-primary herd-setup-cta"
+        >
+          {{ t('herdManagement.emptyListSetupCta') }}
+        </RouterLink>
       </div>
 
       <!-- List -->
@@ -408,6 +415,19 @@ const advancedFilterCount = computed(() => {
   }
   return n
 })
+
+const isAdmin = computed(() => authStore.isAdmin)
+
+const hasActiveFilters = computed(
+  () =>
+    Boolean(searchQuery.value) ||
+    Boolean(activeFilter.value) ||
+    Boolean(sexFilter.value) ||
+    Boolean(breedFilter.value) ||
+    Boolean(lifePhaseFilter.value) ||
+    Boolean(pregnantFilter.value) ||
+    readyToBreed.value
+)
 
 function loadAnimals() {
   const params = { page: page.value, limit: limit.value }
@@ -630,6 +650,13 @@ loadAnimals()
   padding: 24px;
   color: var(--danger);
   font-size: 0.9375rem;
+}
+
+.herd-setup-cta {
+  margin-top: 16px;
+  width: auto;
+  display: inline-block;
+  text-decoration: none;
 }
 
 .animal-list {

@@ -8,6 +8,7 @@ const mockRouter = { push: vi.fn() }
 
 vi.mock('vue-router', () => ({
   useRouter: () => mockRouter,
+  RouterLink: { template: '<a><slot /></a>', props: ['to'] },
 }))
 
 vi.mock('../services/api', () => ({
@@ -202,5 +203,53 @@ describe('AnimalListView', () => {
     const chipSections = wrapper.findAll('.filter-chips-wrap')
     const statusChips = chipSections[0].findAll('.chip')
     expect(statusChips).toHaveLength(7)
+  })
+
+  it('shows herd setup CTA in empty state for admin with no active filters', async () => {
+    setAdmin()
+    const animalsStore = useAnimalsStore()
+    vi.spyOn(animalsStore, 'fetchAll').mockResolvedValue()
+    animalsStore.animals = []
+    animalsStore.total = 0
+    animalsStore.loading = false
+
+    const wrapper = mount(AnimalListView, { global: { stubs } })
+    await flushPromises()
+
+    expect(wrapper.find('.herd-setup-cta').exists()).toBe(true)
+  })
+
+  it('hides herd setup CTA for worker in empty state', async () => {
+    setWorker()
+    const animalsStore = useAnimalsStore()
+    vi.spyOn(animalsStore, 'fetchAll').mockResolvedValue()
+    animalsStore.animals = []
+    animalsStore.total = 0
+    animalsStore.loading = false
+
+    const wrapper = mount(AnimalListView, { global: { stubs } })
+    await flushPromises()
+
+    expect(wrapper.find('.herd-setup-cta').exists()).toBe(false)
+  })
+
+  it('hides herd setup CTA for admin when active filters are set', async () => {
+    setAdmin()
+    const animalsStore = useAnimalsStore()
+    vi.spyOn(animalsStore, 'fetchAll').mockResolvedValue()
+    animalsStore.animals = []
+    animalsStore.total = 0
+    animalsStore.loading = false
+
+    const wrapper = mount(AnimalListView, { global: { stubs } })
+    await flushPromises()
+
+    // Simulate clicking the "active" status filter chip
+    const chipSections = wrapper.findAll('.filter-chips-wrap')
+    const activeChip = chipSections[0].findAll('.chip')[1] // index 1 = 'active'
+    await activeChip.trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.herd-setup-cta').exists()).toBe(false)
   })
 })
