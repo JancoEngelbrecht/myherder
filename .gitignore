@@ -46,3 +46,8 @@ tmpclaude-*
 
 # Session transcripts
 .sessions/
+
+# Argo demo videos
+.argo/
+videos/
+test-results/

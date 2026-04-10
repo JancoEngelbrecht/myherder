@@ -1,0 +1,82 @@
+[
+  {
+    "scene": "intro",
+    "text": "Welkom by myHerder! Vandag wys ons hoe jy 'n skaap registreer en haar hele lewensiklus bestuur — van gesondheid tot teling.",
+    "overlay": {
+      "type": "headline-card",
+      "title": "Skaap-lewensiklus — van registrasie tot lam",
+      "placement": "center",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "create-animal",
+    "text": "Eerstens, registreer ons 'n nuwe ooi. Vul die merknommer, naam, ras en geboortedatum in — klaar in sekondes.",
+    "overlay": {
+      "type": "callout",
+      "text": "Nuwe skaap registreer: merk, naam, ras",
+      "placement": "top-right",
+      "motion": "slide-in"
+    }
+  },
+  {
+    "scene": "animal-created",
+    "text": "Stertjie is nou geregistreer. Haar profiel is dadelik beskikbaar met al haar besonderhede.",
+    "overlay": {
+      "type": "callout",
+      "text": "Stertjie is geregistreer!",
+      "placement": "top-right",
+      "motion": "fade-in"
+    }
+  },
+  {
+    "scene": "log-issue",
+    "text": "Stertjie lyk maer. Ons teken 'n gesondheidskwessie aan — inwendige parasiete, medium erns.",
+    "overlay": {
+      "type": "callout",
+      "text": "Gesondheidskwessie: inwendige parasiete",
+      "placement": "top-right",
+      "motion": "slide-in"
+    }
+  },
+  {
+    "scene": "log-treatment",
+    "text": "Nou behandel ons haar met Dectomax — die dosering en koste word gestoor, en die onttrekkingsperiode word outomaties bereken.",
+    "overlay": {
+      "type": "callout",
+      "text": "Behandeling: Dectomax, dosering, koste",
+      "placement": "top-right",
+      "motion": "slide-in"
+    }
+  },
+  {
+    "scene": "log-ram-service",
+    "text": "Stertjie word by die ram gesit. Kies die ram en die app bereken outomaties die verwagte dragtigheidstoets en lamdatum.",
+    "overlay": {
+      "type": "callout",
+      "text": "Ramdiens: verwagte datums word bereken",
+      "placement": "top-right",
+      "motion": "slide-in"
+    }
+  },
+  {
+    "scene": "log-lambing",
+    "text": "Maande later — Stertjie lam tweelinge! Teken die lamgeboorte aan met die aantal lammers.",
+    "overlay": {
+      "type": "callout",
+      "text": "Lamgeboorte: tweelinge!",
+      "placement": "top-right",
+      "motion": "slide-in"
+    }
+  },
+  {
+    "scene": "summary",
+    "text": "En hier is Stertjie se volledige profiel — gesondheid, behandelings, en teelgeskiedenis alles op een plek. Dit is myHerder.",
+    "overlay": {
+      "type": "headline-card",
+      "title": "Volledige lewensiklus — alles op een plek",
+      "placement": "center",
+      "motion": "fade-in"
+    }
+  }
+]
