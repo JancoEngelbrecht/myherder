@@ -226,5 +226,31 @@ export const useAnimalsStore = defineStore('animals', () => {
     }
   }
 
-  return { animals, total, loading, error, fetchAll, fetchOne, create, update, remove }
+  async function batchCreate(payload: { defaults: Record<string, any>; tags: string[] }) {
+    const { data } = await api.post('/animals/batch', payload)
+    const plainAnimals = data.animals.map((a: any) => ({ ...a }))
+    await db.animals.bulkPut(plainAnimals)
+    animals.value.push(...plainAnimals)
+    return data
+  }
+
+  async function batchDelete(ids: string[]) {
+    await api.post('/animals/batch-delete', { ids })
+    animals.value = animals.value.filter((a) => !ids.includes(a.id))
+    await db.animals.bulkDelete(ids)
+  }
+
+  return {
+    animals,
+    total,
+    loading,
+    error,
+    fetchAll,
+    fetchOne,
+    create,
+    update,
+    remove,
+    batchCreate,
+    batchDelete,
+  }
 })

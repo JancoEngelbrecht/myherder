@@ -2207,5 +2207,31 @@
       "birthEventPast": "Gelam",
       "maleService": "Ram Diens"
     }
+  },
+  "herdManagement": {
+    "title": "Kudde Bestuur",
+    "batchCreate": "Voeg Verskeie Diere By",
+    "batchCreateDesc": "Voer een of meer oormerknommers in om verskeie diere met dieselfde verstekwaardes te registreer.",
+    "sharedDefaults": "Gedeelde Verstekwaardes",
+    "breed": "Ras",
+    "sex": "Geslag",
+    "sexMale": "Manlik",
+    "sexFemale": "Vroulik",
+    "status": "Status",
+    "tagsLabel": "Oormerknommers",
+    "tagsPlaceholder": "bv. T-001, T-002, T-003\nSkei merke met kommas of nuwe reëls.",
+    "tagPreview": "{count} merk | {count} merke",
+    "duplicateTags": "Duplikaatmerke opgespoor: {tags}",
+    "addAnimals": "Voeg {count} Dier By | Voeg {count} Diere By",
+    "successCreated": "{count} dier bygevoeg | {count} diere bygevoeg",
+    "existingTags": "Sommige merke bestaan reeds",
+    "removeAnimals": "Verwyder Diere",
+    "search": "Soek diere…",
+    "selectAll": "Kies almal",
+    "clearAll": "Maak keuse skoon",
+    "deleteSelected": "Verwyder {count} Dier | Verwyder {count} Diere",
+    "confirmDelete": "Verwyder {count} dier permanent? Dit kan nie ongedaan gemaak word nie. | Verwyder {count} diere permanent? Dit kan nie ongedaan gemaak word nie.",
+    "successDeleted": "{count} dier verwyder | {count} diere verwyder",
+    "noAnimals": "Geen diere gevind nie."
   }
 }

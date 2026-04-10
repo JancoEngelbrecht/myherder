@@ -485,3 +485,111 @@ describe('computeIsReadyToBreed', () => {
     )
   })
 })
+
+// ═══════════════════════════════════════════════════════════════
+// Integration: batchCreate
+// ═══════════════════════════════════════════════════════════════
+
+describe('animalsStore.batchCreate', () => {
+  it('happy path: calls POST /animals/batch, saves to IndexedDB, merges into store state', async () => {
+    const created = [
+      { id: 'batch-1', tag_number: 'B-001', sex: 'female', status: 'active' },
+      { id: 'batch-2', tag_number: 'B-002', sex: 'female', status: 'active' },
+    ]
+    api.post.mockResolvedValue({ data: { animals: created, count: 2 } })
+
+    const store = useAnimalsStore()
+    store.animals = []
+    const result = await store.batchCreate({
+      defaults: { sex: 'female', status: 'active' },
+      tags: ['B-001', 'B-002'],
+    })
+
+    // Returns server response
+    expect(result.count).toBe(2)
+
+    // API called with correct endpoint and payload
+    expect(api.post).toHaveBeenCalledWith('/animals/batch', {
+      defaults: { sex: 'female', status: 'active' },
+      tags: ['B-001', 'B-002'],
+    })
+
+    // Animals added to store state
+    expect(store.animals).toHaveLength(2)
+    expect(store.animals.find((a) => a.id === 'batch-1')).toBeTruthy()
+
+    // Animals persisted to IndexedDB (plain objects, no proxy)
+    const db1 = await db.animals.get('batch-1')
+    const db2 = await db.animals.get('batch-2')
+    expect(db1).toMatchObject({ tag_number: 'B-001' })
+    expect(db2).toMatchObject({ tag_number: 'B-002' })
+  })
+
+  it('API error: throws and leaves store state unchanged', async () => {
+    const err = new Error('Conflict')
+    err.response = { status: 409, data: { error: 'Tags already exist', existing_tags: ['B-001'] } }
+    api.post.mockRejectedValue(err)
+
+    const store = useAnimalsStore()
+    store.animals = []
+
+    await expect(
+      store.batchCreate({ defaults: { sex: 'female', status: 'active' }, tags: ['B-001'] })
+    ).rejects.toThrow('Conflict')
+
+    // State unchanged
+    expect(store.animals).toHaveLength(0)
+    expect(await db.animals.count()).toBe(0)
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════
+// Integration: batchDelete
+// ═══════════════════════════════════════════════════════════════
+
+describe('animalsStore.batchDelete', () => {
+  const ANIMALS = [
+    { id: 'del-1', tag_number: 'D-001', sex: 'female', status: 'active' },
+    { id: 'del-2', tag_number: 'D-002', sex: 'female', status: 'active' },
+    { id: 'del-3', tag_number: 'D-003', sex: 'female', status: 'active' },
+  ]
+
+  beforeEach(async () => {
+    await db.animals.bulkPut(ANIMALS)
+  })
+
+  it('happy path: removes selected IDs from store state and IndexedDB', async () => {
+    api.post.mockResolvedValue({})
+
+    const store = useAnimalsStore()
+    store.animals = [...ANIMALS]
+
+    await store.batchDelete(['del-1', 'del-2'])
+
+    // API called with correct endpoint
+    expect(api.post).toHaveBeenCalledWith('/animals/batch-delete', { ids: ['del-1', 'del-2'] })
+
+    // Only del-3 remains in store
+    expect(store.animals).toHaveLength(1)
+    expect(store.animals[0].id).toBe('del-3')
+
+    // Deleted animals gone from IndexedDB
+    expect(await db.animals.get('del-1')).toBeUndefined()
+    expect(await db.animals.get('del-2')).toBeUndefined()
+    expect(await db.animals.get('del-3')).toMatchObject({ tag_number: 'D-003' })
+  })
+
+  it('API error: throws and leaves store state unchanged', async () => {
+    const err = new Error('Forbidden')
+    err.response = { status: 403, data: {} }
+    api.post.mockRejectedValue(err)
+
+    const store = useAnimalsStore()
+    store.animals = [...ANIMALS]
+
+    await expect(store.batchDelete(['del-1'])).rejects.toThrow('Forbidden')
+
+    // State is unchanged — API error thrown before filter runs
+    expect(store.animals).toHaveLength(3)
+  })
+})
