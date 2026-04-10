@@ -27,6 +27,21 @@ router.use(tenantScope)
 
 // ── Validation schemas ──────────────────────────────────────────
 
+const batchSchema = Joi.object({
+  defaults: Joi.object({
+    sex: Joi.string().valid('female', 'male').required(),
+    status: Joi.string()
+      .valid(...ANIMAL_STATUSES)
+      .default('active'),
+    breed_type_id: Joi.string().max(36).allow(null, ''),
+  }).required(),
+  tags: Joi.array().items(Joi.string().max(50).required()).min(1).max(500).required(),
+})
+
+const batchDeleteSchema = Joi.object({
+  ids: Joi.array().items(Joi.string().uuid().required()).min(1).max(500).required(),
+})
+
 const animalSchema = Joi.object({
   tag_number: Joi.string().max(50).required(),
   name: Joi.string().max(100).allow('', null),
@@ -357,6 +372,157 @@ router.post('/', authorize('can_manage_animals'), async (req, res, next) => {
     res.status(201).json(response)
   } catch (err) {
     // Unique constraint errors are handled centrally by errorHandler
+    next(err)
+  }
+})
+
+// POST /api/animals/batch — create up to 500 animals in one transaction
+router.post('/batch', authorize('can_manage_animals'), async (req, res, next) => {
+  try {
+    const { error, value } = batchSchema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true,
+    })
+    if (error) return res.status(400).json({ error: joiMsg(error) })
+
+    const { defaults, tags } = value
+
+    // Phase 1: dedupe within the submitted tags array
+    const unique = new Set(tags)
+    if (unique.size !== tags.length) {
+      const seen = new Set()
+      const duplicates = tags.filter((t) => {
+        if (seen.has(t)) return true
+        seen.add(t)
+        return false
+      })
+      return res.status(400).json({
+        error: {
+          code: 'DUPLICATE_TAGS',
+          message: 'Duplicate tag numbers within batch',
+          details: [...new Set(duplicates)],
+        },
+      })
+    }
+
+    // Phase 2: check for tags that already exist in this farm
+    const existingRows = await db('animals')
+      .where('farm_id', req.farmId)
+      .whereIn('tag_number', tags)
+      .whereNull('deleted_at')
+      .pluck('tag_number')
+
+    if (existingRows.length > 0) {
+      return res.status(409).json({
+        error: {
+          code: 'TAGS_EXIST',
+          message: 'Some tag numbers already exist in this farm',
+          details: existingRows,
+        },
+      })
+    }
+
+    // Phase 3: resolve species_id once from breed_type_id (scoped to farm)
+    let speciesId = null
+    if (defaults.breed_type_id) {
+      const bt = await db('breed_types')
+        .where('id', defaults.breed_type_id)
+        .where('farm_id', req.farmId)
+        .select('species_id')
+        .first()
+      if (bt && bt.species_id) speciesId = bt.species_id
+    }
+    if (!speciesId) {
+      const fs = await db('farm_species').where('farm_id', req.farmId).first()
+      if (fs) speciesId = fs.species_id
+    }
+
+    // Phase 4: build rows and insert in one transaction
+    const now = new Date().toISOString()
+    const rows = tags.map((tag) => ({
+      id: uuidv4(),
+      farm_id: req.farmId,
+      tag_number: tag,
+      sex: defaults.sex,
+      status: defaults.status,
+      breed_type_id: defaults.breed_type_id || null,
+      species_id: speciesId,
+      created_by: req.user.id,
+      created_at: now,
+      updated_at: now,
+    }))
+
+    await db.transaction(async (trx) => {
+      await trx('animals').insert(rows)
+    })
+
+    // Phase 5: audit log — best-effort, post-commit (matches existing pattern)
+    for (const row of rows) {
+      await logAudit({
+        farmId: req.user.farm_id,
+        userId: req.user.id,
+        action: 'create',
+        entityType: 'animal',
+        entityId: row.id,
+        newValues: row,
+      })
+    }
+
+    res.status(201).json({ created: rows.length, animals: rows })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /api/animals/batch-delete — soft-delete multiple animals, admin only
+router.post('/batch-delete', requireAdmin, async (req, res, next) => {
+  try {
+    const { error, value } = batchDeleteSchema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true,
+    })
+    if (error) return res.status(400).json({ error: joiMsg(error) })
+
+    const { ids } = value
+
+    // Verify all IDs belong to this farm and are not already deleted
+    const validRows = await db('animals')
+      .where('farm_id', req.farmId)
+      .whereIn('id', ids)
+      .whereNull('deleted_at')
+      .pluck('id')
+
+    if (validRows.length !== ids.length) {
+      return res.status(404).json({
+        error: {
+          code: 'ANIMALS_NOT_FOUND',
+          message: 'One or more animal IDs were not found or already deleted',
+        },
+      })
+    }
+
+    const deletedAt = new Date().toISOString()
+
+    await db.transaction(async (trx) => {
+      await trx('animals')
+        .where('farm_id', req.farmId)
+        .whereIn('id', ids)
+        .update({ deleted_at: deletedAt })
+    })
+
+    // Audit log — best-effort, post-commit
+    for (const id of ids) {
+      await logAudit({
+        farmId: req.user.farm_id,
+        userId: req.user.id,
+        action: 'delete',
+        entityType: 'animal',
+        entityId: id,
+      })
+    }
+
+    res.json({ deleted: ids.length })
+  } catch (err) {
     next(err)
   }
 })

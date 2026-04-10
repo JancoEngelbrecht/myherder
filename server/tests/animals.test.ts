@@ -389,6 +389,257 @@ describe('PUT /api/animals/:id — species_id sync on breed_type change', () => 
   })
 })
 
+// ─── POST /api/animals/batch ──────────────────────────────────────────────────
+
+describe('POST /api/animals/batch', () => {
+  it('creates 10 animals, returns 201 with correct count and animals array', async () => {
+    const tags = Array.from({ length: 10 }, (_, i) => `BATCH-${randomUUID().slice(0, 6)}-${i}`)
+
+    const res = await request(app)
+      .post('/api/animals/batch')
+      .set('Authorization', adminToken())
+      .send({
+        defaults: { sex: 'female', status: 'active' },
+        tags,
+      })
+
+    expect(res.status).toBe(201)
+    expect(res.body.created).toBe(10)
+    expect(Array.isArray(res.body.animals)).toBe(true)
+    expect(res.body.animals).toHaveLength(10)
+
+    // Verify rows exist in DB
+    const dbRows = await db('animals').whereIn('tag_number', tags).whereNull('deleted_at')
+    expect(dbRows).toHaveLength(10)
+  })
+
+  it('writes N audit log entries after batch create', async () => {
+    const tags = Array.from({ length: 3 }, (_, i) => `AUDIT-${randomUUID().slice(0, 6)}-${i}`)
+
+    const res = await request(app)
+      .post('/api/animals/batch')
+      .set('Authorization', adminToken())
+      .send({
+        defaults: { sex: 'male', status: 'active' },
+        tags,
+      })
+
+    expect(res.status).toBe(201)
+
+    const createdIds = res.body.animals.map((a) => a.id)
+    const auditRows = await db('audit_log')
+      .whereIn('entity_id', createdIds)
+      .where('action', 'create')
+      .where('entity_type', 'animal')
+
+    expect(auditRows).toHaveLength(3)
+  })
+
+  it('returns 400 when tags array contains duplicates within the batch', async () => {
+    const tag = `DUP-BATCH-${randomUUID().slice(0, 6)}`
+
+    const res = await request(app)
+      .post('/api/animals/batch')
+      .set('Authorization', adminToken())
+      .send({
+        defaults: { sex: 'female', status: 'active' },
+        tags: [tag, tag],
+      })
+
+    expect(res.status).toBe(400)
+    expect(res.body.error.code).toBe('DUPLICATE_TAGS')
+    expect(res.body.error.details).toContain(tag)
+  })
+
+  it('returns 409 when tags already exist in the farm', async () => {
+    const existingTag = `EXIST-${randomUUID().slice(0, 6)}`
+    await createAnimal({ tag_number: existingTag })
+
+    const newTag = `NEW-${randomUUID().slice(0, 6)}`
+
+    const res = await request(app)
+      .post('/api/animals/batch')
+      .set('Authorization', adminToken())
+      .send({
+        defaults: { sex: 'female', status: 'active' },
+        tags: [existingTag, newTag],
+      })
+
+    expect(res.status).toBe(409)
+    expect(res.body.error.code).toBe('TAGS_EXIST')
+    expect(res.body.error.details).toContain(existingTag)
+    expect(res.body.error.details).not.toContain(newTag)
+  })
+
+  it('returns 400 when a tag item in the array is invalid (null)', async () => {
+    const res = await request(app)
+      .post('/api/animals/batch')
+      .set('Authorization', adminToken())
+      .send({
+        defaults: { sex: 'female', status: 'active' },
+        tags: [null],
+      })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when tags array exceeds 500 items', async () => {
+    const tags = Array.from({ length: 501 }, (_, i) => `OVER-${i}`)
+
+    const res = await request(app)
+      .post('/api/animals/batch')
+      .set('Authorization', adminToken())
+      .send({
+        defaults: { sex: 'female', status: 'active' },
+        tags,
+      })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when required defaults.sex is missing', async () => {
+    const res = await request(app)
+      .post('/api/animals/batch')
+      .set('Authorization', adminToken())
+      .send({
+        defaults: { status: 'active' },
+        tags: [`NOSEX-${randomUUID().slice(0, 6)}`],
+      })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 403 for a worker with can_manage_animals (batch-delete only blocks workers, batch create allows)', async () => {
+    // Workers with can_manage_animals are allowed to batch-create
+    const tags = [`WBATCH-${randomUUID().slice(0, 6)}`]
+
+    const res = await request(app)
+      .post('/api/animals/batch')
+      .set('Authorization', workerToken())
+      .send({
+        defaults: { sex: 'female', status: 'active' },
+        tags,
+      })
+
+    // workerToken() has can_manage_animals, so this should succeed
+    expect(res.status).toBe(201)
+  })
+})
+
+// ─── POST /api/animals/batch-delete ──────────────────────────────────────────
+
+describe('POST /api/animals/batch-delete', () => {
+  it('soft-deletes multiple animals and returns deleted count', async () => {
+    const ids = await Promise.all([
+      createAnimal({ tag_number: `BDEL1-${randomUUID().slice(0, 6)}` }),
+      createAnimal({ tag_number: `BDEL2-${randomUUID().slice(0, 6)}` }),
+      createAnimal({ tag_number: `BDEL3-${randomUUID().slice(0, 6)}` }),
+    ])
+
+    const res = await request(app)
+      .post('/api/animals/batch-delete')
+      .set('Authorization', adminToken())
+      .send({ ids })
+
+    expect(res.status).toBe(200)
+    expect(res.body.deleted).toBe(3)
+
+    // Verify soft-delete applied
+    const dbRows = await db('animals').whereIn('id', ids).whereNull('deleted_at')
+    expect(dbRows).toHaveLength(0)
+
+    const deletedRows = await db('animals').whereIn('id', ids).whereNotNull('deleted_at')
+    expect(deletedRows).toHaveLength(3)
+  })
+
+  it('writes N audit log entries after batch delete', async () => {
+    const ids = await Promise.all([
+      createAnimal({ tag_number: `AUDDEL1-${randomUUID().slice(0, 6)}` }),
+      createAnimal({ tag_number: `AUDDEL2-${randomUUID().slice(0, 6)}` }),
+    ])
+
+    const res = await request(app)
+      .post('/api/animals/batch-delete')
+      .set('Authorization', adminToken())
+      .send({ ids })
+
+    expect(res.status).toBe(200)
+
+    const auditRows = await db('audit_log')
+      .whereIn('entity_id', ids)
+      .where('action', 'delete')
+      .where('entity_type', 'animal')
+
+    expect(auditRows).toHaveLength(2)
+  })
+
+  it('returns 403 for a worker token (admin-only endpoint)', async () => {
+    const id = await createAnimal({ tag_number: `WBDEL-${randomUUID().slice(0, 6)}` })
+
+    const res = await request(app)
+      .post('/api/animals/batch-delete')
+      .set('Authorization', workerToken())
+      .send({ ids: [id] })
+
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 404 when any ID belongs to a different farm', async () => {
+    const otherFarmId = randomUUID()
+    await db('farms').insert({
+      id: otherFarmId,
+      name: 'Other Farm',
+      code: 'OTH',
+      slug: 'other',
+      is_active: true,
+    })
+
+    const crossFarmAnimalId = randomUUID()
+    await db('animals').insert({
+      id: crossFarmAnimalId,
+      farm_id: otherFarmId,
+      tag_number: `XFARM-${randomUUID().slice(0, 6)}`,
+      sex: 'female',
+      status: 'active',
+    })
+
+    const res = await request(app)
+      .post('/api/animals/batch-delete')
+      .set('Authorization', adminToken())
+      .send({ ids: [crossFarmAnimalId] })
+
+    expect(res.status).toBe(404)
+    expect(res.body.error.code).toBe('ANIMALS_NOT_FOUND')
+  })
+
+  it('returns 400 when ids array is empty', async () => {
+    const res = await request(app)
+      .post('/api/animals/batch-delete')
+      .set('Authorization', adminToken())
+      .send({ ids: [] })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 when ids contains a non-UUID value', async () => {
+    const res = await request(app)
+      .post('/api/animals/batch-delete')
+      .set('Authorization', adminToken())
+      .send({ ids: ['not-a-uuid'] })
+
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 404 for a non-existent ID', async () => {
+    const res = await request(app)
+      .post('/api/animals/batch-delete')
+      .set('Authorization', adminToken())
+      .send({ ids: [randomUUID()] })
+
+    expect(res.status).toBe(404)
+  })
+})
+
 // ─── Query Validation (12B.4) ─────────────────────────────────────────────────
 
 describe('GET /api/animals query validation', () => {
