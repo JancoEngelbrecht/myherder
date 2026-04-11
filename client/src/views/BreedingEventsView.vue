@@ -29,7 +29,7 @@
         <div class="filter-group">
           <span class="filter-group-title">{{ t('breeding.filterGroupCow') }}</span>
           <AnimalSearchDropdown
-            v-model="cowFilter"
+            v-model="animalFilter"
             :placeholder="t('breeding.form.cowPlaceholder')"
           />
           <div class="filter-chips filter-chips-wrap">
@@ -178,7 +178,7 @@ const eventFilter = ref('')
 
 // Advanced filters
 const showAdvanced = ref(false)
-const cowFilter = ref(null)
+const animalFilter = ref(null)
 const cowStatusFilter = ref('')
 const dateFrom = ref('')
 const dateTo = ref('')
@@ -198,19 +198,19 @@ const eventFilters = [
 
 const advancedFilterCount = computed(() => {
   let count = 0
-  if (cowFilter.value) count++
+  if (animalFilter.value) count++
   if (cowStatusFilter.value) count++
   if (dateFrom.value) count++
   if (dateTo.value) count++
   return count
 })
 
-watch(cowFilter, () => onAdvancedChange())
+watch(animalFilter, () => onAdvancedChange())
 
 function fetchEvents() {
   const params = { page: page.value, limit: limit.value }
   if (eventFilter.value) params.event_type = eventFilter.value
-  if (cowFilter.value) params.animal_id = cowFilter.value
+  if (animalFilter.value) params.animal_id = animalFilter.value
   if (cowStatusFilter.value) params.cow_status = cowStatusFilter.value
   if (dateFrom.value) params.date_from = dateFrom.value
   if (dateTo.value) params.date_to = dateTo.value

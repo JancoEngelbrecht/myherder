@@ -8,9 +8,9 @@
         <div data-tour="treat-cow" class="form-group">
           <label>{{ animalLabel }} *</label>
           <AnimalSearchDropdown
-            v-model="form.cow_id"
+            v-model="form.animal_id"
             :placeholder="$t('treatments.cowPlaceholder', { animal: animalLabel })"
-            :error="errors.cow_id"
+            :error="errors.animal_id"
           />
         </div>
 
@@ -137,7 +137,7 @@
 
         <!-- Link to health issue (optional, shown when cow is selected) -->
         <div
-          v-if="form.cow_id && openIssues.length"
+          v-if="form.animal_id && openIssues.length"
           data-tour="treat-health-link"
           class="form-group"
         >
@@ -255,12 +255,12 @@ const { startTour } = useTour('treatments', () => [
 
 const medications = computed(() => medicationsStore.medications)
 
-const prefillCowId = route.query.cow_id || route.query.animal_id || ''
+const prefillAnimalId = route.query.animal_id || route.query.cow_id || ''
 const prefillHealthIssueId = route.query.health_issue_id || ''
-const backRoute = prefillCowId ? `/animals/${prefillCowId}` : '/'
+const backRoute = prefillAnimalId ? `/animals/${prefillAnimalId}` : '/'
 
 const form = ref({
-  cow_id: prefillCowId,
+  animal_id: prefillAnimalId,
   health_issue_id: prefillHealthIssueId,
   medications: [{ medication_id: '', dosage: '', unit: '' }],
   treatment_date: localNow(),
@@ -270,22 +270,22 @@ const form = ref({
   notes: '',
 })
 
-// Fetch open/treating issues for the prefilled cow immediately (before the watch runs)
-if (prefillCowId) healthIssuesStore.fetchByCow(prefillCowId)
+// Fetch open/treating issues for the prefilled animal immediately (before the watch runs)
+if (prefillAnimalId) healthIssuesStore.fetchByCow(prefillAnimalId)
 
-// Reset health_issue_id only when the user manually changes the cow
+// Reset health_issue_id only when the user manually changes the animal
 watch(
-  () => form.value.cow_id,
-  (cowId) => {
+  () => form.value.animal_id,
+  (animalId) => {
     form.value.health_issue_id = ''
-    if (cowId) healthIssuesStore.fetchByCow(cowId)
+    if (animalId) healthIssuesStore.fetchByCow(animalId)
   }
 )
 
 const openIssues = computed(() => {
-  if (!form.value.cow_id) return []
+  if (!form.value.animal_id) return []
   return healthIssuesStore
-    .getAnimalIssues(form.value.cow_id)
+    .getAnimalIssues(form.value.animal_id)
     .filter((i) => i.status === 'open' || i.status === 'treating')
 })
 
@@ -370,10 +370,10 @@ async function submit() {
   errors.value = {}
   submitError.value = ''
 
-  // Validate cow is selected
-  const cowId = form.value.cow_id?.toString().trim() || ''
+  // Validate animal is selected
+  const cowId = form.value.animal_id?.toString().trim() || ''
   if (!cowId) {
-    errors.value.cow_id = t('common.required')
+    errors.value.animal_id = t('common.required')
   }
 
   // Filter to only medications with a valid medication_id (truthy and not just whitespace)

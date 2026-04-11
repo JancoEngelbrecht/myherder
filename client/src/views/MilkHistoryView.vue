@@ -64,7 +64,7 @@
         <div class="filter-group">
           <span class="filter-group-title">{{ t('milkHistory.filterCow') }}</span>
           <AnimalSearchDropdown
-            v-model="cowFilter"
+            v-model="animalFilter"
             :placeholder="t('milkHistory.searchPlaceholder')"
             sex-filter="female"
           />
@@ -177,7 +177,7 @@ const dateFrom = ref(defaultFrom())
 const dateTo = ref(today())
 const searchQuery = ref('')
 const sessionFilter = ref('')
-const cowFilter = ref(null)
+const animalFilter = ref(null)
 const discardedOnly = ref(false)
 const recorderFilter = ref('')
 const showAdvanced = ref(false)
@@ -197,7 +197,7 @@ const pageLitres = computed(() => {
 const advancedFilterCount = computed(() => {
   let n = 0
   if (sessionFilter.value) n++
-  if (cowFilter.value) n++
+  if (animalFilter.value) n++
   if (discardedOnly.value) n++
   if (recorderFilter.value) n++
   return n
@@ -225,7 +225,7 @@ async function fetchRecords() {
     }
     if (searchQuery.value) params.search = searchQuery.value
     if (sessionFilter.value) params.session = sessionFilter.value
-    if (cowFilter.value) params.animal_id = cowFilter.value
+    if (animalFilter.value) params.animal_id = animalFilter.value
     if (discardedOnly.value) params.discarded = true
     if (recorderFilter.value) params.recorded_by = recorderFilter.value
 
@@ -277,7 +277,7 @@ async function getUnsyncedLocal() {
       return d >= dateFrom.value && d <= dateTo.value && !r.synced_at
     })
     if (sessionFilter.value) local = local.filter((r) => r.session === sessionFilter.value)
-    if (cowFilter.value) local = local.filter((r) => r.animal_id === cowFilter.value)
+    if (animalFilter.value) local = local.filter((r) => r.animal_id === animalFilter.value)
     if (discardedOnly.value) local = local.filter((r) => r.milk_discarded)
     if (recorderFilter.value) local = local.filter((r) => r.recorded_by === recorderFilter.value)
     return local
@@ -294,7 +294,7 @@ async function getLocalRecords() {
     return d >= dateFrom.value && d <= dateTo.value
   })
   if (sessionFilter.value) local = local.filter((r) => r.session === sessionFilter.value)
-  if (cowFilter.value) local = local.filter((r) => r.animal_id === cowFilter.value)
+  if (animalFilter.value) local = local.filter((r) => r.animal_id === animalFilter.value)
   if (discardedOnly.value) local = local.filter((r) => r.milk_discarded)
   if (recorderFilter.value) local = local.filter((r) => r.recorded_by === recorderFilter.value)
   if (searchQuery.value) {
@@ -336,7 +336,7 @@ function onLimitChange(l) {
 }
 
 // Re-fetch when cow filter changes (emitted from CowSearchDropdown)
-watch(cowFilter, resetAndFetch)
+watch(animalFilter, resetAndFetch)
 
 onMounted(() => {
   fetchRecords()

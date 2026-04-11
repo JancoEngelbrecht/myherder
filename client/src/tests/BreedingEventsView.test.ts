@@ -194,7 +194,7 @@ describe('BreedingEventsView', () => {
     fetchSpy.mockClear()
 
     // Simulate selecting an animal
-    wrapper.vm.cowFilter = 'animal-abc'
+    wrapper.vm.animalFilter = 'animal-abc'
     await flushPromises()
 
     const lastCall = fetchSpy.mock.calls[fetchSpy.mock.calls.length - 1]

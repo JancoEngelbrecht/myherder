@@ -279,4 +279,31 @@ describe('LogTreatmentView', () => {
 
     expect(wrapper.find('.app-header').exists()).toBe(true)
   })
+
+  it('pre-fills animal_id from animal_id route query', async () => {
+    mockRouteQuery = { animal_id: 'animal-from-query' }
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    expect(wrapper.vm.form.animal_id).toBe('animal-from-query')
+  })
+
+  it('D2 backward-compat: pre-fills animal_id from legacy cow_id route query', async () => {
+    mockRouteQuery = { cow_id: 'legacy-cow-123' }
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    expect(wrapper.vm.form.animal_id).toBe('legacy-cow-123')
+  })
+
+  it('D2 backward-compat: animal_id takes priority over cow_id when both present', async () => {
+    mockRouteQuery = { animal_id: 'new-animal-456', cow_id: 'legacy-cow-123' }
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    expect(wrapper.vm.form.animal_id).toBe('new-animal-456')
+  })
 })

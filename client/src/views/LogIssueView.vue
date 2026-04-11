@@ -8,9 +8,9 @@
         <div data-tour="issue-cow" class="form-group">
           <label>{{ animalLabel }} *</label>
           <AnimalSearchDropdown
-            v-model="form.cow_id"
+            v-model="form.animal_id"
             :placeholder="$t('healthIssues.cowPlaceholder', { animal: animalLabel })"
-            :error="errors.cow_id"
+            :error="errors.animal_id"
           />
         </div>
 
@@ -158,8 +158,8 @@ const { startTour } = useTour('health-issues', () => [
   },
 ])
 
-const prefillCowId = route.query.cow_id || route.query.animal_id || ''
-const backRoute = prefillCowId ? `/animals/${prefillCowId}` : '/'
+const prefillAnimalId = route.query.animal_id || route.query.cow_id || ''
+const backRoute = prefillAnimalId ? `/animals/${prefillAnimalId}` : '/'
 
 const issueTypes = computed(() => issueTypesStore.activeTypes)
 
@@ -172,7 +172,7 @@ function localNow() {
 }
 
 const form = ref({
-  cow_id: prefillCowId,
+  animal_id: prefillAnimalId,
   issue_types: [],
   severity: 'medium',
   affected_teats: [],
@@ -225,8 +225,8 @@ async function submit() {
   errors.value = {}
   submitError.value = ''
 
-  const cowId = form.value.cow_id?.toString().trim() || ''
-  if (!cowId) errors.value.cow_id = t('common.required')
+  const cowId = form.value.animal_id?.toString().trim() || ''
+  if (!cowId) errors.value.animal_id = t('common.required')
   if (!form.value.issue_types.length) errors.value.issue_types = t('common.required')
   if (Object.keys(errors.value).length) return
 

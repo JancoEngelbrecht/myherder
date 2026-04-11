@@ -21,9 +21,9 @@
           </div>
           <template v-else>
             <AnimalSearchDropdown
-              v-model="form.cow_id"
+              v-model="form.animal_id"
               :placeholder="t('breeding.form.cowPlaceholder')"
-              :error="errors.cow_id"
+              :error="errors.animal_id"
               sex-filter="female"
             />
           </template>
@@ -288,7 +288,7 @@ const nowLocal = () => {
 const maxDateTime = computed(() => nowLocal())
 
 const form = ref({
-  cow_id: '',
+  animal_id: '',
   event_type: '',
   event_date: nowLocal(),
   semen_id: '',
@@ -312,7 +312,8 @@ const lastSavedCowId = ref(null)
 
 const backRoute = computed(() => {
   if (route.query.from) return String(route.query.from)
-  if (route.query.cow_id) return `/animals/${route.query.cow_id}/repro`
+  const queryAnimalId = route.query.animal_id || route.query.cow_id
+  if (queryAnimalId) return `/animals/${queryAnimalId}/repro`
   return '/breed'
 })
 
@@ -326,8 +327,8 @@ const isBirthEvent = computed(() => ['calving', 'lambing'].includes(form.value.e
 
 // Look up breed timings for the selected cow
 const selectedCowBreed = computed(() => {
-  if (!form.value.cow_id) return null
-  const cow = animalsStore.animals.find((c) => c.id === form.value.cow_id)
+  if (!form.value.animal_id) return null
+  const cow = animalsStore.animals.find((c) => c.id === form.value.animal_id)
   if (!cow?.breed_type_id) return null
   return breedTypesStore.getById(cow.breed_type_id)
 })
@@ -359,14 +360,14 @@ const computedDryOff = computed(() => {
 // Hint text showing where the pre-filled date came from
 const prefillSource = computed(() => {
   if (form.value.event_type !== 'preg_check_positive') return null
-  const insem = findLatestInsemCalving(form.value.cow_id)
+  const insem = findLatestInsemCalving(form.value.animal_id)
   if (insem) return t('breeding.form.expectedCalvingHint')
   return null
 })
 
-// Pre-fill expected_calving from latest insemination when cow/event_type changes
+// Pre-fill expected_calving from latest insemination when animal/event_type changes
 watch(
-  () => [form.value.cow_id, form.value.event_type],
+  () => [form.value.animal_id, form.value.event_type],
   ([cowId, eventType]) => {
     if (eventType !== 'preg_check_positive' || editMode.value) return
     const insem = findLatestInsemCalving(cowId)
@@ -449,7 +450,7 @@ function skipOffspring() {
 
 function validate() {
   const e = {}
-  if (!editMode.value && !form.value.cow_id) e.cow_id = t('common.required')
+  if (!editMode.value && !form.value.animal_id) e.animal_id = t('common.required')
   if (!form.value.event_type) e.event_type = t('common.required')
   errors.value = e
   return Object.keys(e).length === 0
@@ -488,7 +489,7 @@ async function submit() {
       router.replace(backRoute.value)
     } else {
       const payload = {
-        animal_id: form.value.cow_id,
+        animal_id: form.value.animal_id,
         event_type: form.value.event_type,
         event_date: form.value.event_date,
         semen_id: form.value.semen_id || null,
@@ -515,10 +516,10 @@ async function submit() {
       if (isBirthEvent.value) {
         lastSavedOffspringCount.value = form.value.offspring_count || 1
         lastSavedEventId.value = created.id
-        lastSavedCowId.value = created.animal_id ?? created.cow_id
+        lastSavedCowId.value = created.animal_id
         showOffspringPrompt.value = true
-      } else if (route.query.cow_id) {
-        router.replace(`/animals/${created.animal_id ?? created.cow_id}/repro`)
+      } else if (route.query.animal_id || route.query.cow_id) {
+        router.replace(`/animals/${created.animal_id}/repro`)
       } else {
         router.replace('/breed')
       }
@@ -545,7 +546,7 @@ onMounted(async () => {
     loadingEvent.value = true
     try {
       const { data } = await api.get(`/breeding-events/${route.params.id}`)
-      form.value.cow_id = data.animal_id ?? data.cow_id
+      form.value.animal_id = data.animal_id
       form.value.event_type = data.event_type
       form.value.event_date = data.event_date
         ? new Date(data.event_date).toISOString().slice(0, 16)
@@ -560,15 +561,16 @@ onMounted(async () => {
 
       editCowLabel.value = data.tag_number
         ? `${data.tag_number}${data.cow_name ? ` · ${data.cow_name}` : ''}`
-        : data.cow_id
+        : data.animal_id
     } catch {
       submitError.value = t('common.errorLoading')
     } finally {
       loadingEvent.value = false
     }
   } else {
-    if (route.query.cow_id) {
-      form.value.cow_id = String(route.query.cow_id)
+    const queryAnimalId = route.query.animal_id || route.query.cow_id
+    if (queryAnimalId) {
+      form.value.animal_id = String(queryAnimalId)
     }
     if (route.query.event_type) {
       const qt = String(route.query.event_type)

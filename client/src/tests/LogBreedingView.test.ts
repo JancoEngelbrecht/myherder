@@ -118,7 +118,7 @@ function createWrapper() {
       return Promise.resolve({
         data: {
           id: 'be-1',
-          cow_id: 'cow-1',
+          animal_id: 'cow-1',
           event_type: 'ai_insemination',
           event_date: '2026-01-15T10:00:00.000Z',
           semen_id: 'SEM-001',
@@ -220,7 +220,7 @@ describe('LogBreedingView', () => {
     expect(costInput.exists()).toBe(true)
   })
 
-  it('validates required fields — blocks submit without cow_id and event_type', async () => {
+  it('validates required fields — blocks submit without animal_id and event_type', async () => {
     const wrapper = createWrapper()
     await flushPromises()
 
@@ -256,14 +256,32 @@ describe('LogBreedingView', () => {
     expect(dateInput.exists()).toBe(true)
   })
 
-  it('pre-fills cow_id from route query', async () => {
-    mockRouteQuery = { cow_id: 'cow-from-query' }
+  it('pre-fills animal_id from animal_id route query', async () => {
+    mockRouteQuery = { animal_id: 'animal-from-query' }
 
     const wrapper = createWrapper()
     await flushPromises()
 
-    // The AnimalSearchDropdown should still be present (not read-only mode)
+    expect(wrapper.vm.form.animal_id).toBe('animal-from-query')
     expect(wrapper.find('.cow-search-dropdown').exists()).toBe(true)
+  })
+
+  it('D2 backward-compat: pre-fills animal_id from legacy cow_id route query', async () => {
+    mockRouteQuery = { cow_id: 'legacy-cow-123' }
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    expect(wrapper.vm.form.animal_id).toBe('legacy-cow-123')
+  })
+
+  it('D2 backward-compat: animal_id takes priority over cow_id when both present', async () => {
+    mockRouteQuery = { animal_id: 'new-animal-456', cow_id: 'legacy-cow-123' }
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    expect(wrapper.vm.form.animal_id).toBe('new-animal-456')
   })
 
   it('birth event with offspring_count=1 shows offspring prompt (not auto-redirect)', async () => {
@@ -276,12 +294,12 @@ describe('LogBreedingView', () => {
     await calvingBtn.trigger('click')
     await flushPromises()
 
-    // Set cow_id via vm
-    wrapper.vm.form.cow_id = 'cow-1'
+    // Set animal_id via vm
+    wrapper.vm.form.animal_id = 'cow-1'
     wrapper.vm.form.offspring_count = 1
     await flushPromises()
 
-    api.post.mockResolvedValueOnce({ data: { id: 'be-new', cow_id: 'cow-1' } })
+    api.post.mockResolvedValueOnce({ data: { id: 'be-new', animal_id: 'cow-1' } })
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
@@ -300,11 +318,11 @@ describe('LogBreedingView', () => {
     await calvingBtn.trigger('click')
     await flushPromises()
 
-    wrapper.vm.form.cow_id = 'cow-1'
+    wrapper.vm.form.animal_id = 'cow-1'
     wrapper.vm.form.offspring_count = 2
     await flushPromises()
 
-    api.post.mockResolvedValueOnce({ data: { id: 'be-new', cow_id: 'cow-1' } })
+    api.post.mockResolvedValueOnce({ data: { id: 'be-new', animal_id: 'cow-1' } })
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
@@ -334,8 +352,8 @@ describe('LogBreedingView', () => {
     await buttons[3].trigger('click')
     await flushPromises()
 
-    // Now set the cow — the watch fires and should prefill from the insemination above
-    wrapper.vm.form.cow_id = 'cow-abc'
+    // Now set the animal — the watch fires and should prefill from the insemination above
+    wrapper.vm.form.animal_id = 'cow-abc'
     await flushPromises()
 
     expect(wrapper.vm.form.expected_calving).toBe('2026-10-25')
