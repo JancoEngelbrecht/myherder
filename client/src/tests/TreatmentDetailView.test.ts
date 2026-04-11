@@ -134,7 +134,7 @@ const stubs = {
 
 const MOCK_TREATMENT = {
   id: 'tx-1',
-  cow_id: 'cow-1',
+  animal_id: 'cow-1',
   tag_number: '001',
   cow_name: 'Bessie',
   medication_name: 'Pen-Strep',

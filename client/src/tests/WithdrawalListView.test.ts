@@ -55,7 +55,7 @@ const futureDate = new Date(Date.now() + 86400000 * 3).toISOString()
 
 const MOCK_MILK_COW = {
   id: 'w1',
-  cow_id: 'c1',
+  animal_id: 'c1',
   tag_number: '001',
   cow_name: 'Bessie',
   sex: 'female',
@@ -67,7 +67,7 @@ const MOCK_MILK_COW = {
 
 const MOCK_MEAT_ONLY_COW = {
   id: 'w2',
-  cow_id: 'c2',
+  animal_id: 'c2',
   tag_number: '002',
   cow_name: 'Bruno',
   sex: 'male',
@@ -182,7 +182,7 @@ describe('WithdrawalListView', () => {
   it('excludes heifer from milk tab but shows in meat tab', async () => {
     const heiferCow = {
       id: 'w-heifer',
-      cow_id: 'c-heifer',
+      animal_id: 'c-heifer',
       tag_number: '099',
       cow_name: 'Young Daisy',
       sex: 'female',
@@ -213,7 +213,7 @@ describe('WithdrawalListView', () => {
   it('excludes calf from milk tab', async () => {
     const calfCow = {
       id: 'w-calf',
-      cow_id: 'c-calf',
+      animal_id: 'c-calf',
       tag_number: '088',
       cow_name: 'Baby',
       sex: 'female',

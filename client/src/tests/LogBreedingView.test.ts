@@ -84,6 +84,7 @@ vi.mock('../utils/apiError', () => ({
 import LogBreedingView from '../views/LogBreedingView.vue'
 import api from '../services/api'
 import { createPinia, setActivePinia } from 'pinia'
+import { useBreedingEventsStore } from '../stores/breedingEvents'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -310,5 +311,33 @@ describe('LogBreedingView', () => {
     // Offspring prompt should be visible with count = 2
     expect(wrapper.find('.offspring-prompt').exists()).toBe(true)
     expect(mockReplace).not.toHaveBeenCalled()
+  })
+
+  it('preg_check_positive prefills expected_calving from the latest insemination event', async () => {
+    // Seed the breedingEvents store with a prior insemination for cow-abc
+    const breedingStore = useBreedingEventsStore()
+    breedingStore.events = [
+      {
+        id: 'be-insem-1',
+        animal_id: 'cow-abc',
+        event_type: 'ai_insemination',
+        event_date: '2026-01-15',
+        expected_calving: '2026-10-25',
+      },
+    ]
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    // Select preg_check_positive (index 3 in cattle)
+    const buttons = wrapper.findAll('.event-type-btn')
+    await buttons[3].trigger('click')
+    await flushPromises()
+
+    // Now set the cow — the watch fires and should prefill from the insemination above
+    wrapper.vm.form.cow_id = 'cow-abc'
+    await flushPromises()
+
+    expect(wrapper.vm.form.expected_calving).toBe('2026-10-25')
   })
 })

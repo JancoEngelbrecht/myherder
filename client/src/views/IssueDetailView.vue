@@ -18,7 +18,7 @@
         <!-- Date & cow -->
         <div class="card">
           <div class="detail-date mono">{{ formatDateTime(issue.observed_at) }}</div>
-          <RouterLink :to="`/animals/${issue.cow_id}`" class="animal-row">
+          <RouterLink :to="`/animals/${issue.animal_id}`" class="animal-row">
             <span class="animal-emoji"><AppIcon name="cow" :size="20" /></span>
             <div class="animal-info">
               <span class="animal-tag mono">{{ issue.tag_number }}</span>
@@ -148,7 +148,7 @@
               {{ t('healthIssues.markResolved') }}
             </button>
             <RouterLink
-              :to="`/log/treatment?animal_id=${issue.cow_id}&health_issue_id=${route.params.id}`"
+              :to="`/log/treatment?animal_id=${issue.animal_id}&health_issue_id=${route.params.id}`"
               class="btn-secondary action-btn log-treatment-link"
             >
               <AppIcon name="pill" :size="16" />

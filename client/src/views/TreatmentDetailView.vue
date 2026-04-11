@@ -18,7 +18,7 @@
         <!-- Date & cow -->
         <div class="card">
           <div class="detail-date mono">{{ formatDateTime(treatment.treatment_date) }}</div>
-          <RouterLink :to="`/animals/${treatment.cow_id}`" class="animal-row">
+          <RouterLink :to="`/animals/${treatment.animal_id}`" class="animal-row">
             <span class="animal-emoji"><AppIcon name="cow" :size="20" /></span>
             <div class="animal-info">
               <span class="animal-tag mono">{{ treatment.tag_number }}</span>

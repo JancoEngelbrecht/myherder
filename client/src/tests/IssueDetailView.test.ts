@@ -134,7 +134,7 @@ const stubs = {
 
 const MOCK_ISSUE = {
   id: 'issue-1',
-  cow_id: 'cow-1',
+  animal_id: 'cow-1',
   tag_number: '001',
   cow_name: 'Bessie',
   issue_types: ['mastitis'],

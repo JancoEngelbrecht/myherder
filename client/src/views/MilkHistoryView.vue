@@ -225,7 +225,7 @@ async function fetchRecords() {
     }
     if (searchQuery.value) params.search = searchQuery.value
     if (sessionFilter.value) params.session = sessionFilter.value
-    if (cowFilter.value) params.cow_id = cowFilter.value
+    if (cowFilter.value) params.animal_id = cowFilter.value
     if (discardedOnly.value) params.discarded = true
     if (recorderFilter.value) params.recorded_by = recorderFilter.value
 
@@ -277,7 +277,7 @@ async function getUnsyncedLocal() {
       return d >= dateFrom.value && d <= dateTo.value && !r.synced_at
     })
     if (sessionFilter.value) local = local.filter((r) => r.session === sessionFilter.value)
-    if (cowFilter.value) local = local.filter((r) => r.cow_id === cowFilter.value)
+    if (cowFilter.value) local = local.filter((r) => r.animal_id === cowFilter.value)
     if (discardedOnly.value) local = local.filter((r) => r.milk_discarded)
     if (recorderFilter.value) local = local.filter((r) => r.recorded_by === recorderFilter.value)
     return local
@@ -294,7 +294,7 @@ async function getLocalRecords() {
     return d >= dateFrom.value && d <= dateTo.value
   })
   if (sessionFilter.value) local = local.filter((r) => r.session === sessionFilter.value)
-  if (cowFilter.value) local = local.filter((r) => r.cow_id === cowFilter.value)
+  if (cowFilter.value) local = local.filter((r) => r.animal_id === cowFilter.value)
   if (discardedOnly.value) local = local.filter((r) => r.milk_discarded)
   if (recorderFilter.value) local = local.filter((r) => r.recorded_by === recorderFilter.value)
   if (searchQuery.value) {

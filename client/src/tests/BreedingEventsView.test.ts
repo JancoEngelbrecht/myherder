@@ -177,4 +177,29 @@ describe('BreedingEventsView', () => {
 
     expect(wrapper.find('.spinner').exists()).toBe(true)
   })
+
+  it('sends animal_id (not cow_id) param when animal filter is set', async () => {
+    const store = useBreedingEventsStore()
+    const fetchSpy = vi.spyOn(store, 'fetchAll').mockResolvedValue()
+    store.events = []
+    store.total = 0
+    store.loading = false
+
+    const auth = useAuthStore()
+    auth.user = { role: 'admin', permissions: [] }
+
+    const wrapper = mount(BreedingEventsView, { global: { stubs } })
+    await flushPromises()
+
+    fetchSpy.mockClear()
+
+    // Simulate selecting an animal
+    wrapper.vm.cowFilter = 'animal-abc'
+    await flushPromises()
+
+    const lastCall = fetchSpy.mock.calls[fetchSpy.mock.calls.length - 1]
+    expect(lastCall).toBeTruthy()
+    expect(lastCall[0].animal_id).toBe('animal-abc')
+    expect(lastCall[0].cow_id).toBeUndefined()
+  })
 })

@@ -210,7 +210,7 @@ watch(cowFilter, () => onAdvancedChange())
 function fetchEvents() {
   const params = { page: page.value, limit: limit.value }
   if (eventFilter.value) params.event_type = eventFilter.value
-  if (cowFilter.value) params.cow_id = cowFilter.value
+  if (cowFilter.value) params.animal_id = cowFilter.value
   if (cowStatusFilter.value) params.cow_status = cowStatusFilter.value
   if (dateFrom.value) params.date_from = dateFrom.value
   if (dateTo.value) params.date_to = dateTo.value

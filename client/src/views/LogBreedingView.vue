@@ -339,7 +339,7 @@ function findLatestInsemCalving(cowId) {
     breedingStore.events
       .filter(
         (e) =>
-          e.cow_id === cowId &&
+          e.animal_id === cowId &&
           ['ai_insemination', 'bull_service', 'ram_service'].includes(e.event_type) &&
           e.expected_calving
       )

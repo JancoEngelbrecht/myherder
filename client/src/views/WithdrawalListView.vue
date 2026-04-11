@@ -52,13 +52,13 @@
           </div>
 
           <div v-else class="cow-list">
-            <div v-for="item in paginatedMilkCows" :key="item.cow_id" class="withdrawal-card">
+            <div v-for="item in paginatedMilkCows" :key="item.animal_id" class="withdrawal-card">
               <div class="card-top">
                 <div class="cow-id">
                   <span class="tag-number mono">{{ item.tag_number }}</span>
                   <span v-if="item.cow_name" class="cow-name">{{ item.cow_name }}</span>
                 </div>
-                <RouterLink :to="`/animals/${item.cow_id}`" class="view-link">
+                <RouterLink :to="`/animals/${item.animal_id}`" class="view-link">
                   {{ $t('common.view') }} <AppIcon name="arrow-right" :size="13" />
                 </RouterLink>
               </div>
@@ -119,7 +119,7 @@
           <div v-else class="cow-list">
             <div
               v-for="item in paginatedMeatCows"
-              :key="item.cow_id"
+              :key="item.animal_id"
               class="withdrawal-card meat-card"
             >
               <div class="card-top">
@@ -127,7 +127,7 @@
                   <span class="tag-number mono">{{ item.tag_number }}</span>
                   <span v-if="item.cow_name" class="cow-name">{{ item.cow_name }}</span>
                 </div>
-                <RouterLink :to="`/animals/${item.cow_id}`" class="view-link">
+                <RouterLink :to="`/animals/${item.animal_id}`" class="view-link">
                   {{ $t('common.view') }} <AppIcon name="arrow-right" :size="13" />
                 </RouterLink>
               </div>

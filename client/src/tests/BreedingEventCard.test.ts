@@ -9,7 +9,7 @@ vi.mock('vue-router', () => ({
 
 const MOCK_EVENT = {
   id: 'ev1',
-  cow_id: 'c1',
+  animal_id: 'c1',
   tag_number: 'TAG-001',
   cow_name: 'Bessie',
   event_type: 'ai_insemination',
@@ -68,5 +68,15 @@ describe('BreedingEventCard', () => {
     const emitted = wrapper.emitted('delete')
     expect(emitted).toHaveLength(1)
     expect(emitted[0][0]).toBe('ev1')
+  })
+
+  it('navigates to animal detail page using animal_id when showCow is true and card is clicked', async () => {
+    const wrapper = mount(BreedingEventCard, {
+      props: { event: MOCK_EVENT, showCow: true, showDelete: false },
+    })
+
+    await wrapper.find('.breeding-event-card').trigger('click')
+
+    expect(mockRouter.push).toHaveBeenCalledWith('/animals/c1')
   })
 })

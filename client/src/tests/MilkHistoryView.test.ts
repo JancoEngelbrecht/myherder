@@ -247,4 +247,23 @@ describe('MilkHistoryView', () => {
     const recorderCall = api.get.mock.calls.find((c) => c[0] === '/milk-records/recorders')
     expect(recorderCall).toBeTruthy()
   })
+
+  it('uses animal_id (not cow_id) as the filter param when an animal is selected', async () => {
+    mockApiResponse([], 0)
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    // Simulate selecting an animal via the AnimalSearchDropdown
+    wrapper.vm.cowFilter = 'animal-xyz'
+    await flushPromises()
+
+    const milkCall = api.get.mock.calls
+      .slice()
+      .reverse()
+      .find((c) => c[0] === '/milk-records')
+    expect(milkCall).toBeTruthy()
+    expect(milkCall[1].params.animal_id).toBe('animal-xyz')
+    expect(milkCall[1].params.cow_id).toBeUndefined()
+  })
 })
