@@ -88,16 +88,20 @@ jobs:
 
           # Pull code, install server deps, migrate, restart
           ssh -o StrictHostKeyChecking=no myherder@myherder.co.za 'bash -s' << 'DEPLOY'
+            set -e
             source /home/myherder/nodevenv/repositories/myherder/24/bin/activate
             cd /home/myherder/repositories/myherder
 
-            # Reset tracked files so git pull never fails on dirty working tree
-            # (SCP-uploaded client/dist replaces git-tracked hashed assets,
-            #  leaving hundreds of "deleted" files that block a normal pull)
+            # Reset tracked files + clean untracked so git pull never fails
+            # (SCP-uploaded client/dist adds new hashed-asset filenames that
+            #  land as untracked files and would block `git pull` with
+            #  "untracked working tree files would be overwritten".)
             git reset --hard HEAD
+            git clean -fd client/dist dist
             git pull origin main
 
-            npm install --production
+            # --ignore-scripts skips husky prepare hook (devDep, not in prod)
+            npm install --omit=dev --ignore-scripts
 
             npx knex migrate:latest --env production
 
