@@ -114,9 +114,9 @@ describe('BreedingNotificationsView', () => {
 
   it('renders filter chips with correct counts', async () => {
     seedUpcoming(store, {
-      heats: [{ id: 'h1', cow_id: 'c1', tag_number: 'C001', expected_next_heat: tomorrow }],
-      calvings: [{ id: 'ca1', cow_id: 'c2', tag_number: 'C002', expected_calving: in3Days }],
-      needsAttention: [{ id: 'n1', cow_id: 'c3', tag_number: 'C003', alert_type: 'heat' }],
+      heats: [{ id: 'h1', animal_id: 'c1', tag_number: 'C001', expected_next_heat: tomorrow }],
+      calvings: [{ id: 'ca1', animal_id: 'c2', tag_number: 'C002', expected_calving: in3Days }],
+      needsAttention: [{ id: 'n1', animal_id: 'c3', tag_number: 'C003', alert_type: 'heat' }],
     })
     const wrapper = createWrapper()
     await flushPromises()
@@ -134,8 +134,8 @@ describe('BreedingNotificationsView', () => {
 
   it('shows grouped layout in "All" filter', async () => {
     seedUpcoming(store, {
-      needsAttention: [{ id: 'n1', cow_id: 'c1', tag_number: 'C001', alert_type: 'heat' }],
-      heats: [{ id: 'h1', cow_id: 'c2', tag_number: 'C002', expected_next_heat: tomorrow }],
+      needsAttention: [{ id: 'n1', animal_id: 'c1', tag_number: 'C001', alert_type: 'heat' }],
+      heats: [{ id: 'h1', animal_id: 'c2', tag_number: 'C002', expected_next_heat: tomorrow }],
     })
     const wrapper = createWrapper()
     await flushPromises()
@@ -147,8 +147,8 @@ describe('BreedingNotificationsView', () => {
 
   it('shows flat list in category filter', async () => {
     seedUpcoming(store, {
-      needsAttention: [{ id: 'n1', cow_id: 'c1', tag_number: 'C001', alert_type: 'heat' }],
-      heats: [{ id: 'h1', cow_id: 'c2', tag_number: 'C002', expected_next_heat: tomorrow }],
+      needsAttention: [{ id: 'n1', animal_id: 'c1', tag_number: 'C001', alert_type: 'heat' }],
+      heats: [{ id: 'h1', animal_id: 'c2', tag_number: 'C002', expected_next_heat: tomorrow }],
     })
     const wrapper = createWrapper()
     await flushPromises()
@@ -168,8 +168,10 @@ describe('BreedingNotificationsView', () => {
 
   it('shows overdue items first in category filter', async () => {
     seedUpcoming(store, {
-      needsAttention: [{ id: 'n1', cow_id: 'c1', tag_number: 'C-OVERDUE', alert_type: 'heat' }],
-      heats: [{ id: 'h1', cow_id: 'c2', tag_number: 'C-UPCOMING', expected_next_heat: tomorrow }],
+      needsAttention: [{ id: 'n1', animal_id: 'c1', tag_number: 'C-OVERDUE', alert_type: 'heat' }],
+      heats: [
+        { id: 'h1', animal_id: 'c2', tag_number: 'C-UPCOMING', expected_next_heat: tomorrow },
+      ],
     })
     const wrapper = createWrapper()
     await flushPromises()
@@ -191,7 +193,7 @@ describe('BreedingNotificationsView', () => {
 
   it('clicking alert row navigates to cow repro', async () => {
     seedUpcoming(store, {
-      heats: [{ id: 'h1', cow_id: 'cow-abc', tag_number: 'C001', expected_next_heat: tomorrow }],
+      heats: [{ id: 'h1', animal_id: 'cow-abc', tag_number: 'C001', expected_next_heat: tomorrow }],
     })
     const wrapper = createWrapper()
     await flushPromises()
@@ -202,7 +204,7 @@ describe('BreedingNotificationsView', () => {
 
   it('dismiss button opens confirm dialog', async () => {
     seedUpcoming(store, {
-      needsAttention: [{ id: 'n1', cow_id: 'c1', tag_number: 'C001', alert_type: 'heat' }],
+      needsAttention: [{ id: 'n1', animal_id: 'c1', tag_number: 'C001', alert_type: 'heat' }],
     })
     const wrapper = createWrapper()
     await flushPromises()
@@ -219,7 +221,7 @@ describe('BreedingNotificationsView', () => {
 
   it('dry-off cards show accept/reject actions', async () => {
     seedUpcoming(store, {
-      dryOffs: [{ id: 'd1', cow_id: 'c1', tag_number: 'C001', expected_dry_off: tomorrow }],
+      dryOffs: [{ id: 'd1', animal_id: 'c1', tag_number: 'C001', expected_dry_off: tomorrow }],
     })
     const wrapper = createWrapper()
     await flushPromises()
@@ -231,7 +233,7 @@ describe('BreedingNotificationsView', () => {
   it('show more toggle works for heats', async () => {
     const manyHeats = Array.from({ length: 8 }, (_, i) => ({
       id: `h${i}`,
-      cow_id: `c${i}`,
+      animal_id: `c${i}`,
       tag_number: `C${i}`,
       expected_next_heat: tomorrow,
     }))
