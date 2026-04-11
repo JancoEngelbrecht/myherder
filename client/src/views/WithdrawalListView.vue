@@ -7,7 +7,7 @@
 
       <!-- Global all-clear -->
       <div
-        v-else-if="(!isDairy || milkCows.length === 0) && meatCows.length === 0"
+        v-else-if="(!showMilk || milkCows.length === 0) && meatCows.length === 0"
         class="empty-state clear-state"
       >
         <div class="clear-icon"><AppIcon name="check-circle" :size="64" /></div>
@@ -19,7 +19,7 @@
         <!-- ── Tab bar ── -->
         <div class="filter-chips">
           <button
-            v-if="isDairy"
+            v-if="showMilk"
             class="chip"
             :class="{ active: activeTab === 'milk' }"
             @click="activeTab = 'milk'"
@@ -39,8 +39,8 @@
           </button>
         </div>
 
-        <!-- ── Milk Tab (dairy species only) ── -->
-        <div v-if="isDairy && activeTab === 'milk'">
+        <!-- ── Milk Tab (dairy species only, requires milkRecording flag) ── -->
+        <div v-if="showMilk && activeTab === 'milk'">
           <div v-if="milkCows.length > 0" class="alert-banner milk-banner">
             <span class="alert-icon"><AppIcon name="ban" :size="22" /></span>
             <span>{{ $t('withdrawal.milkBanner', { count: milkCows.length }) }}</span>
@@ -180,6 +180,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useTreatmentsStore } from '../stores/treatments'
+import { useFeatureFlagsStore } from '../stores/featureFlags'
 import { useSpeciesTerms } from '../composables/useSpeciesTerms'
 import { formatDateTime } from '../utils/format'
 import AppHeader from '../components/organisms/AppHeader.vue'
@@ -187,10 +188,12 @@ import PaginationBar from '../components/atoms/PaginationBar.vue'
 import AppIcon from '../components/atoms/AppIcon.vue'
 
 const store = useTreatmentsStore()
+const featureFlagsStore = useFeatureFlagsStore()
 const { speciesCode } = useSpeciesTerms()
 const loading = computed(() => store.loadingWithdrawal)
 const withdrawalCows = computed(() => store.withdrawalCows)
 const isDairy = computed(() => speciesCode.value === 'cattle')
+const showMilk = computed(() => isDairy.value && featureFlagsStore.flags.milkRecording)
 const activeTab = ref('milk')
 
 // Pagination state
@@ -205,9 +208,9 @@ watch(activeTab, () => {
   meatPage.value = 1
 })
 
-// Default to meat tab for non-dairy species (e.g. sheep)
+// Default to meat tab when milk section is hidden (non-dairy species or milkRecording flag off)
 watch(
-  isDairy,
+  showMilk,
   (val) => {
     if (!val) activeTab.value = 'meat'
   },

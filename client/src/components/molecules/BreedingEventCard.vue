@@ -9,7 +9,7 @@
       <div class="header-text">
         <div v-if="showCow" class="event-title">
           {{ event.tag_number
-          }}<span v-if="event.cow_name" class="cow-name-sub"> · {{ event.cow_name }}</span>
+          }}<span v-if="event.animal_name" class="cow-name-sub"> · {{ event.animal_name }}</span>
         </div>
         <div class="event-subtitle">
           <span class="event-date mono">{{ formatDate(event.event_date) }}</span>
@@ -23,8 +23,6 @@
       <span class="badge" :class="`badge-event-${eventCategory}`">
         {{ t(`breeding.eventTypes.${event.event_type}`, event.event_type) }}
       </span>
-
-      <div v-if="showCow" class="event-chevron">›</div>
     </div>
 
     <!-- Body: auto-dates + notes -->
@@ -287,13 +285,6 @@ function navigateToEvent() {
   color: var(--text-secondary);
 }
 
-.event-chevron {
-  font-size: 1.5rem;
-  color: var(--text-muted);
-  flex-shrink: 0;
-  line-height: 1;
-}
-
 /* ── Body ───────────────────────────────────── */
 .card-body {
   display: flex;
@@ -381,12 +372,5 @@ function navigateToEvent() {
 
 .breeding-event-card.compact .card-body {
   padding-left: 48px;
-}
-
-/* ── Mobile: hide chevron only when in a list row ── */
-@media (max-width: 599px) {
-  .event-chevron {
-    display: none;
-  }
 }
 </style>

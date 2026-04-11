@@ -12,20 +12,42 @@
         />
       </div>
 
-      <!-- Filter tabs -->
-      <div class="filter-tabs">
-        <button
-          v-for="f in filters"
-          :key="f.value"
-          class="filter-tab"
-          :class="{ active: activeFilter === f.value }"
-          @click="setFilter(f.value)"
-        >
-          {{ t(f.label) }}
-          <span v-if="activeFilter === f.value" class="tab-count">{{
-            healthIssuesStore.allIssuesTotal
-          }}</span>
-        </button>
+      <!-- Filter tabs + view toggle -->
+      <div class="filter-row">
+        <div class="filter-tabs">
+          <button
+            v-for="f in filters"
+            :key="f.value"
+            class="filter-tab"
+            :class="{ active: activeFilter === f.value }"
+            @click="setFilter(f.value)"
+          >
+            {{ t(f.label) }}
+            <span v-if="activeFilter === f.value" class="tab-count">{{
+              healthIssuesStore.allIssuesTotal
+            }}</span>
+          </button>
+        </div>
+        <div class="view-toggle">
+          <button
+            type="button"
+            class="view-btn"
+            :class="{ active: viewMode === 'list' }"
+            :aria-label="t('common.listView', 'List view')"
+            @click="setViewMode('list')"
+          >
+            <AppIcon name="list" :size="18" />
+          </button>
+          <button
+            type="button"
+            class="view-btn"
+            :class="{ active: viewMode === 'grid' }"
+            :aria-label="t('common.gridView', 'Grid view')"
+            @click="setViewMode('grid')"
+          >
+            <AppIcon name="grid" :size="18" />
+          </button>
+        </div>
       </div>
 
       <div v-if="healthIssuesStore.loadingAll" class="center-spinner">
@@ -44,7 +66,7 @@
           <p class="empty-state-text">{{ t('healthIssues.noIssues') }}</p>
         </div>
 
-        <div v-else class="card issue-list-card">
+        <div v-else-if="viewMode === 'list'" class="card issue-list-card">
           <RouterLink
             v-for="issue in healthIssuesStore.allIssues"
             :key="issue.id"
@@ -69,13 +91,52 @@
                 }}</span>
                 <span class="issue-cow"
                   >{{ issue.tag_number
-                  }}<template v-if="issue.cow_name"> · {{ issue.cow_name }}</template></span
+                  }}<template v-if="issue.animal_name"> · {{ issue.animal_name }}</template></span
                 >
               </div>
               <span class="issue-date mono">{{ formatDate(issue.observed_at) }}</span>
               <span class="issue-chevron">›</span>
             </div>
             <div class="issue-bottom">
+              <span class="badge" :class="`issue-sev-${issue.severity}`">{{
+                $t(`healthIssues.${issue.severity}`)
+              }}</span>
+              <span class="badge" :class="`issue-status-${issue.status}`">{{
+                $t(`healthIssues.${issue.status}`)
+              }}</span>
+            </div>
+          </RouterLink>
+        </div>
+
+        <div v-else class="issue-grid">
+          <RouterLink
+            v-for="issue in healthIssuesStore.allIssues"
+            :key="issue.id"
+            :to="`/issues/${issue.id}`"
+            class="card issue-grid-card"
+          >
+            <div class="issue-grid-icon">
+              <template v-for="(code, i) in issue.issue_types || []" :key="code">
+                <span v-if="i > 0"> </span>
+                <template v-if="issueTypesStore.getByCode(code)?.emoji">{{
+                  issueTypesStore.getByCode(code).emoji
+                }}</template>
+                <AppIcon v-else name="help-circle" :size="28" />
+              </template>
+            </div>
+            <div class="issue-grid-title">
+              {{
+                (issue.issue_types || [])
+                  .map((c) => issueTypesStore.getByCode(c)?.name || c)
+                  .join(' + ')
+              }}
+            </div>
+            <div class="issue-grid-cow mono">
+              {{ issue.tag_number
+              }}<template v-if="issue.animal_name"> · {{ issue.animal_name }}</template>
+            </div>
+            <div class="issue-grid-date mono">{{ formatDate(issue.observed_at) }}</div>
+            <div class="issue-grid-badges">
               <span class="badge" :class="`issue-sev-${issue.severity}`">{{
                 $t(`healthIssues.${issue.severity}`)
               }}</span>
@@ -121,6 +182,14 @@ const searchQuery = ref('')
 const activeFilter = ref('open')
 const page = ref(1)
 const limit = ref(20)
+
+const VIEW_MODE_KEY = 'openIssues.viewMode'
+const viewMode = ref(localStorage.getItem(VIEW_MODE_KEY) === 'grid' ? 'grid' : 'list')
+
+function setViewMode(mode) {
+  viewMode.value = mode
+  localStorage.setItem(VIEW_MODE_KEY, mode)
+}
 
 const filters = [
   { value: 'open', label: 'healthIssues.open' },
@@ -177,13 +246,52 @@ onMounted(() => {
   margin-bottom: 12px;
 }
 
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
 .filter-tabs {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
   overflow-x: auto;
   padding-bottom: 4px;
   scrollbar-width: none;
+  flex: 1;
+  min-width: 0;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full, 9999px);
+  padding: 3px;
+}
+
+.view-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-full, 9999px);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.view-btn.active {
+  background: var(--primary);
+  color: #fff;
 }
 
 .filter-tabs::-webkit-scrollbar {
@@ -356,5 +464,67 @@ onMounted(() => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.issue-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 600px) {
+  .issue-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+  }
+}
+
+.issue-grid-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  text-decoration: none;
+  color: var(--text);
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+.issue-grid-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.issue-grid-icon {
+  font-size: 1.75rem;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.issue-grid-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+
+.issue-grid-cow {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.issue-grid-date {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.issue-grid-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
 }
 </style>
