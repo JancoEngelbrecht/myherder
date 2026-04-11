@@ -55,7 +55,7 @@
           >
             <div class="attention-top">
               <span class="alert-cow mono">{{ item.tag_number }}</span>
-              <span v-if="item.cow_name" class="alert-name">{{ item.cow_name }}</span>
+              <span v-if="item.animal_name" class="alert-name">{{ item.animal_name }}</span>
               <span class="alert-badge overdue">{{ overdueLabel(item.alert_type) }}</span>
             </div>
             <button class="btn-secondary btn-sm-dismiss" @click.stop="openDismiss(item)">
@@ -77,7 +77,7 @@
               @click="goToRepro(ev.animal_id)"
             >
               <span class="alert-cow mono">{{ ev.tag_number }}</span>
-              <span v-if="ev.cow_name" class="alert-name">{{ ev.cow_name }}</span>
+              <span v-if="ev.animal_name" class="alert-name">{{ ev.animal_name }}</span>
               <span class="spacer" />
               <span class="alert-badge heat">{{ alertLabel(ev.expected_next_heat) }}</span>
             </div>
@@ -108,7 +108,7 @@
               @click="goToRepro(ev.animal_id)"
             >
               <span class="alert-cow mono">{{ ev.tag_number }}</span>
-              <span v-if="ev.cow_name" class="alert-name">{{ ev.cow_name }}</span>
+              <span v-if="ev.animal_name" class="alert-name">{{ ev.animal_name }}</span>
               <span class="spacer" />
               <span class="alert-badge calving">{{ alertLabel(ev.expected_calving) }}</span>
             </div>
@@ -139,7 +139,7 @@
               @click="goToRepro(ev.animal_id)"
             >
               <span class="alert-cow mono">{{ ev.tag_number }}</span>
-              <span v-if="ev.cow_name" class="alert-name">{{ ev.cow_name }}</span>
+              <span v-if="ev.animal_name" class="alert-name">{{ ev.animal_name }}</span>
               <span class="spacer" />
               <span class="alert-badge check">{{ alertLabel(ev.expected_preg_check) }}</span>
             </div>
@@ -166,7 +166,7 @@
             <div v-for="ev in visibleDryOffs" :key="ev.id" class="card dryoff-card">
               <div class="alert-row" @click="goToRepro(ev.animal_id)">
                 <span class="alert-cow mono">{{ ev.tag_number }}</span>
-                <span v-if="ev.cow_name" class="alert-name">{{ ev.cow_name }}</span>
+                <span v-if="ev.animal_name" class="alert-name">{{ ev.animal_name }}</span>
                 <span class="spacer" />
                 <span class="alert-badge dryoff">{{ alertLabel(ev.expected_dry_off) }}</span>
               </div>
@@ -211,7 +211,7 @@
             <template v-if="item._isDryOff">
               <div class="alert-row" @click="goToRepro(item.animal_id)">
                 <span class="alert-cow mono">{{ item.tag_number }}</span>
-                <span v-if="item.cow_name" class="alert-name">{{ item.cow_name }}</span>
+                <span v-if="item.animal_name" class="alert-name">{{ item.animal_name }}</span>
                 <span class="spacer" />
                 <span class="alert-badge" :class="item._badgeClass">{{ item._label }}</span>
               </div>
@@ -229,7 +229,7 @@
             <template v-else>
               <div class="alert-row-inner" @click="goToRepro(item.animal_id)">
                 <span class="alert-cow mono">{{ item.tag_number }}</span>
-                <span v-if="item.cow_name" class="alert-name">{{ item.cow_name }}</span>
+                <span v-if="item.animal_name" class="alert-name">{{ item.animal_name }}</span>
                 <span class="spacer" />
                 <span class="alert-badge" :class="item._badgeClass">{{ item._label }}</span>
               </div>

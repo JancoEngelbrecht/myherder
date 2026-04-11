@@ -11,7 +11,7 @@ const MOCK_EVENT = {
   id: 'ev1',
   animal_id: 'c1',
   tag_number: 'TAG-001',
-  cow_name: 'Bessie',
+  animal_name: 'Bessie',
   event_type: 'ai_insemination',
   event_date: '2026-01-15',
   sire_name: 'Big Bull',

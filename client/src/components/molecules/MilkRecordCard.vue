@@ -3,7 +3,7 @@
     <div class="card-top">
       <div class="cow-info">
         <span class="mono tag-number">{{ record.tag_number }}</span>
-        <span v-if="record.cow_name" class="cow-name">{{ record.cow_name }}</span>
+        <span v-if="record.animal_name" class="cow-name">{{ record.animal_name }}</span>
       </div>
       <div class="litres-info">
         <span class="mono litres">{{ Number(record.litres).toFixed(1) }} L</span>

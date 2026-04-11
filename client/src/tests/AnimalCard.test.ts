@@ -25,12 +25,12 @@ describe('AnimalCard', () => {
     expect(wrapper.text()).toContain('Bessie')
   })
 
-  it('shows em-dash when animal has no name', () => {
+  it('omits the name element when animal has no name', () => {
     const wrapper = mount(AnimalCard, {
       props: { animal: { ...mockAnimal, name: null } },
       global: { stubs },
     })
-    expect(wrapper.text()).toContain('—')
+    expect(wrapper.find('.animal-name').exists()).toBe(false)
   })
 
   it('shows the breed when provided', () => {

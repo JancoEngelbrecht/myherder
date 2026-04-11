@@ -124,7 +124,7 @@ function createWrapper() {
           semen_id: 'SEM-001',
           inseminator: 'Dr. Smith',
           tag_number: 'TAG-001',
-          cow_name: 'Bessie',
+          animal_name: 'Bessie',
         },
       })
     }

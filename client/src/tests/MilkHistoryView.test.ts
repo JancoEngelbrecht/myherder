@@ -62,7 +62,7 @@ function makeRecord(id, overrides = {}) {
     id,
     animal_id: `cow-${id}`,
     tag_number: `C-${id}`,
-    cow_name: `Cow ${id}`,
+    animal_name: `Cow ${id}`,
     recorded_by: 'user-1',
     recorded_by_name: 'Admin',
     session: 'morning',

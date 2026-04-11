@@ -302,7 +302,7 @@ async function getLocalRecords() {
     local = local.filter(
       (r) =>
         (r.tag_number || '').toLowerCase().includes(q) ||
-        (r.cow_name || '').toLowerCase().includes(q) ||
+        (r.animal_name || '').toLowerCase().includes(q) ||
         (r.recorded_by_name || '').toLowerCase().includes(q)
     )
   }

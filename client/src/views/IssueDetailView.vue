@@ -22,7 +22,7 @@
             <span class="animal-emoji"><AppIcon name="cow" :size="20" /></span>
             <div class="animal-info">
               <span class="animal-tag mono">{{ issue.tag_number }}</span>
-              <span class="animal-name">{{ issue.cow_name || '—' }}</span>
+              <span class="animal-name">{{ issue.animal_name || '—' }}</span>
             </div>
             <span class="animal-chevron">›</span>
           </RouterLink>

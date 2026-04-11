@@ -79,7 +79,7 @@ const MOCK_EVENTS = [
     event_type: 'ai_insemination',
     event_date: '2024-01-10',
     tag_number: '001',
-    cow_name: 'Bessie',
+    animal_name: 'Bessie',
   },
   {
     id: 'e2',
@@ -87,7 +87,7 @@ const MOCK_EVENTS = [
     event_type: 'calving',
     event_date: '2024-01-12',
     tag_number: '002',
-    cow_name: 'Daisy',
+    animal_name: 'Daisy',
   },
 ]
 

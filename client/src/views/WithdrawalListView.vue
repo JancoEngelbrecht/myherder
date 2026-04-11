@@ -56,7 +56,7 @@
               <div class="card-top">
                 <div class="cow-id">
                   <span class="tag-number mono">{{ item.tag_number }}</span>
-                  <span v-if="item.cow_name" class="cow-name">{{ item.cow_name }}</span>
+                  <span v-if="item.animal_name" class="cow-name">{{ item.animal_name }}</span>
                 </div>
                 <RouterLink :to="`/animals/${item.animal_id}`" class="view-link">
                   {{ $t('common.view') }} <AppIcon name="arrow-right" :size="13" />
@@ -125,7 +125,7 @@
               <div class="card-top">
                 <div class="cow-id">
                   <span class="tag-number mono">{{ item.tag_number }}</span>
-                  <span v-if="item.cow_name" class="cow-name">{{ item.cow_name }}</span>
+                  <span v-if="item.animal_name" class="cow-name">{{ item.animal_name }}</span>
                 </div>
                 <RouterLink :to="`/animals/${item.animal_id}`" class="view-link">
                   {{ $t('common.view') }} <AppIcon name="arrow-right" :size="13" />

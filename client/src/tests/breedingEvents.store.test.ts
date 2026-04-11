@@ -41,7 +41,7 @@ const EVENT_FIXTURE = {
   event_type: 'ai_insemination',
   event_date: '2026-02-01T10:00',
   tag_number: 'T-001',
-  cow_name: 'Daisy',
+  animal_name: 'Daisy',
   expected_calving: '2026-11-11',
   expected_dry_off: '2026-09-12',
 }

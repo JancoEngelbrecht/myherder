@@ -40,7 +40,7 @@ const RECORD = {
   milk_discarded: false,
   discard_reason: null,
   tag_number: 'T-001',
-  cow_name: 'Bessie',
+  animal_name: 'Bessie',
 }
 
 describe('useMilkRecordsStore', () => {

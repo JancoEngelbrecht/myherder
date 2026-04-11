@@ -9,7 +9,7 @@ function makeRecord(overrides = {}) {
     id: 'rec-1',
     animal_id: 'cow-1',
     tag_number: 'C-001',
-    cow_name: 'Bella',
+    animal_name: 'Bella',
     recorded_by: 'user-1',
     recorded_by_name: 'Admin',
     session: 'morning',
@@ -77,7 +77,7 @@ describe('MilkRecordCard', () => {
   it('handles missing optional fields gracefully', () => {
     const wrapper = createWrapper(
       makeRecord({
-        cow_name: null,
+        animal_name: null,
         session_time: null,
         recorded_by_name: null,
         notes: null,

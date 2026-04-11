@@ -136,7 +136,7 @@ const MOCK_TREATMENT = {
   id: 'tx-1',
   animal_id: 'cow-1',
   tag_number: '001',
-  cow_name: 'Bessie',
+  animal_name: 'Bessie',
   medication_name: 'Pen-Strep',
   dosage: '10ml',
   cost: 150.5,

@@ -308,7 +308,7 @@ const submitError = ref(null)
 const showOffspringPrompt = ref(false)
 const lastSavedOffspringCount = ref(0)
 const lastSavedEventId = ref(null)
-const lastSavedCowId = ref(null)
+const lastSavedAnimalId = ref(null)
 
 const backRoute = computed(() => {
   if (route.query.from) return String(route.query.from)
@@ -431,7 +431,7 @@ function goRegisterOffspring() {
   showOffspringPrompt.value = false
   const q = {
     birth_event_id: lastSavedEventId.value,
-    dam_id: lastSavedCowId.value,
+    dam_id: lastSavedAnimalId.value,
     offspring_total: String(lastSavedOffspringCount.value),
     offspring_index: '1',
     dob: new Date().toISOString().slice(0, 10),
@@ -441,8 +441,8 @@ function goRegisterOffspring() {
 
 function skipOffspring() {
   showOffspringPrompt.value = false
-  if (lastSavedCowId.value) {
-    router.replace(`/animals/${lastSavedCowId.value}/repro`)
+  if (lastSavedAnimalId.value) {
+    router.replace(`/animals/${lastSavedAnimalId.value}/repro`)
   } else {
     router.replace('/breed')
   }
@@ -516,7 +516,7 @@ async function submit() {
       if (isBirthEvent.value) {
         lastSavedOffspringCount.value = form.value.offspring_count || 1
         lastSavedEventId.value = created.id
-        lastSavedCowId.value = created.animal_id
+        lastSavedAnimalId.value = created.animal_id
         showOffspringPrompt.value = true
       } else if (route.query.animal_id || route.query.cow_id) {
         router.replace(`/animals/${created.animal_id}/repro`)
@@ -560,7 +560,7 @@ onMounted(async () => {
       form.value.notes = data.notes ?? ''
 
       editCowLabel.value = data.tag_number
-        ? `${data.tag_number}${data.cow_name ? ` · ${data.cow_name}` : ''}`
+        ? `${data.tag_number}${data.animal_name ? ` · ${data.animal_name}` : ''}`
         : data.animal_id
     } catch {
       submitError.value = t('common.errorLoading')

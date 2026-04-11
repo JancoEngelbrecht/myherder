@@ -175,7 +175,7 @@ const latestEventLabel = computed(() => {
   if (!latestEvent.value) return t('breeding.noEvents')
   const ev = latestEvent.value
   const type = t(`breeding.eventTypes.${ev.event_type}`)
-  return t('breeding.lastEvent', { type, tag: ev.tag_number || ev.cow_name || '' })
+  return t('breeding.lastEvent', { type, tag: ev.tag_number || ev.animal_name || '' })
 })
 
 // ── Lifecycle ────────────────────────────────────────────────────────────────
