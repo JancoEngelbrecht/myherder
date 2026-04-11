@@ -488,7 +488,7 @@ async function submit() {
       router.replace(backRoute.value)
     } else {
       const payload = {
-        cow_id: form.value.cow_id,
+        animal_id: form.value.cow_id,
         event_type: form.value.event_type,
         event_date: form.value.event_date,
         semen_id: form.value.semen_id || null,
@@ -515,10 +515,10 @@ async function submit() {
       if (isBirthEvent.value) {
         lastSavedOffspringCount.value = form.value.offspring_count || 1
         lastSavedEventId.value = created.id
-        lastSavedCowId.value = created.cow_id
+        lastSavedCowId.value = created.animal_id ?? created.cow_id
         showOffspringPrompt.value = true
       } else if (route.query.cow_id) {
-        router.replace(`/animals/${created.cow_id}/repro`)
+        router.replace(`/animals/${created.animal_id ?? created.cow_id}/repro`)
       } else {
         router.replace('/breed')
       }
@@ -545,7 +545,7 @@ onMounted(async () => {
     loadingEvent.value = true
     try {
       const { data } = await api.get(`/breeding-events/${route.params.id}`)
-      form.value.cow_id = data.cow_id
+      form.value.cow_id = data.animal_id ?? data.cow_id
       form.value.event_type = data.event_type
       form.value.event_date = data.event_date
         ? new Date(data.event_date).toISOString().slice(0, 16)

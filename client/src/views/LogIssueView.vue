@@ -232,7 +232,7 @@ async function submit() {
 
   submitting.value = true
   const payload = {
-    cow_id: cowId,
+    animal_id: cowId,
     issue_types: form.value.issue_types,
     severity: form.value.severity,
     affected_teats: form.value.affected_teats.length ? form.value.affected_teats : null,

@@ -389,7 +389,7 @@ async function submit() {
 
   submitting.value = true
   const payload = {
-    cow_id: cowId,
+    animal_id: cowId,
     health_issue_id: form.value.health_issue_id || null,
     medications: validMeds.map((m) => ({
       medication_id: m.medication_id.toString().trim(),

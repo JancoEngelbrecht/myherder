@@ -51,7 +51,7 @@
             v-for="item in timeFilteredAttention"
             :key="`${item.id}-${item.alert_type}`"
             class="attention-row card"
-            @click="goToRepro(item.cow_id)"
+            @click="goToRepro(item.animal_id)"
           >
             <div class="attention-top">
               <span class="alert-cow mono">{{ item.tag_number }}</span>
@@ -74,7 +74,7 @@
               v-for="ev in visibleHeats"
               :key="ev.id"
               class="alert-row card"
-              @click="goToRepro(ev.cow_id)"
+              @click="goToRepro(ev.animal_id)"
             >
               <span class="alert-cow mono">{{ ev.tag_number }}</span>
               <span v-if="ev.cow_name" class="alert-name">{{ ev.cow_name }}</span>
@@ -105,7 +105,7 @@
               v-for="ev in visibleCalvings"
               :key="ev.id"
               class="alert-row card"
-              @click="goToRepro(ev.cow_id)"
+              @click="goToRepro(ev.animal_id)"
             >
               <span class="alert-cow mono">{{ ev.tag_number }}</span>
               <span v-if="ev.cow_name" class="alert-name">{{ ev.cow_name }}</span>
@@ -136,7 +136,7 @@
               v-for="ev in visiblePregChecks"
               :key="ev.id"
               class="alert-row card"
-              @click="goToRepro(ev.cow_id)"
+              @click="goToRepro(ev.animal_id)"
             >
               <span class="alert-cow mono">{{ ev.tag_number }}</span>
               <span v-if="ev.cow_name" class="alert-name">{{ ev.cow_name }}</span>
@@ -164,7 +164,7 @@
               <AppIcon name="leaf" :size="13" /> {{ t('breeding.upcoming.dryOffs') }}
             </h3>
             <div v-for="ev in visibleDryOffs" :key="ev.id" class="card dryoff-card">
-              <div class="alert-row" @click="goToRepro(ev.cow_id)">
+              <div class="alert-row" @click="goToRepro(ev.animal_id)">
                 <span class="alert-cow mono">{{ ev.tag_number }}</span>
                 <span v-if="ev.cow_name" class="alert-name">{{ ev.cow_name }}</span>
                 <span class="spacer" />
@@ -209,7 +209,7 @@
           >
             <!-- Dry-off card layout -->
             <template v-if="item._isDryOff">
-              <div class="alert-row" @click="goToRepro(item.cow_id)">
+              <div class="alert-row" @click="goToRepro(item.animal_id)">
                 <span class="alert-cow mono">{{ item.tag_number }}</span>
                 <span v-if="item.cow_name" class="alert-name">{{ item.cow_name }}</span>
                 <span class="spacer" />
@@ -227,7 +227,7 @@
 
             <!-- Standard alert row -->
             <template v-else>
-              <div class="alert-row-inner" @click="goToRepro(item.cow_id)">
+              <div class="alert-row-inner" @click="goToRepro(item.animal_id)">
                 <span class="alert-cow mono">{{ item.tag_number }}</span>
                 <span v-if="item.cow_name" class="alert-name">{{ item.cow_name }}</span>
                 <span class="spacer" />
@@ -551,7 +551,7 @@ async function doDismissAll() {
 async function acceptDryOff(ev) {
   try {
     await breedingStore.createEvent({
-      cow_id: ev.cow_id,
+      animal_id: ev.animal_id,
       event_type: 'dry_off',
       event_date: new Date().toISOString().slice(0, 16),
     })
