@@ -242,9 +242,9 @@ describe('useHealthIssuesStore', () => {
     })
   })
 
-  // ─── getCowIssues / getById ────────────────────────────────────────────────
+  // ─── getAnimalIssues / getById ────────────────────────────────────────────────
 
-  describe('getCowIssues', () => {
+  describe('getAnimalIssues', () => {
     it('returns issues filtered by animal_id', () => {
       const store = useHealthIssuesStore()
       store.issues = [
@@ -252,8 +252,8 @@ describe('useHealthIssuesStore', () => {
         { ...ISSUE_FIXTURE, id: 'i2', animal_id: 'cow-2' },
         { ...ISSUE_FIXTURE, id: 'i3', animal_id: 'cow-1' },
       ]
-      expect(store.getCowIssues('cow-1')).toHaveLength(2)
-      expect(store.getCowIssues('cow-2')).toHaveLength(1)
+      expect(store.getAnimalIssues('cow-1')).toHaveLength(2)
+      expect(store.getAnimalIssues('cow-2')).toHaveLength(1)
     })
   })
 

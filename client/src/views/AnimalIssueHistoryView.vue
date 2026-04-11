@@ -87,7 +87,7 @@ const animal = ref(null)
 const loading = ref(true)
 const error = ref('')
 
-const animalIssues = computed(() => healthIssuesStore.getCowIssues(animalId))
+const animalIssues = computed(() => healthIssuesStore.getAnimalIssues(animalId))
 
 async function load() {
   loading.value = true

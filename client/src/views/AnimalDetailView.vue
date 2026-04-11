@@ -411,7 +411,7 @@ const reproLoading = ref(false)
 const treatmentsLoading = computed(() => treatmentsStore.loadingByCow)
 const issuesLoading = computed(() => healthIssuesStore.loadingByCow)
 const animalIssues = computed(() =>
-  animal.value ? healthIssuesStore.getCowIssues(animal.value.id) : []
+  animal.value ? healthIssuesStore.getAnimalIssues(animal.value.id) : []
 )
 const openIssueCount = computed(() => animalIssues.value.filter((i) => i.status === 'open').length)
 

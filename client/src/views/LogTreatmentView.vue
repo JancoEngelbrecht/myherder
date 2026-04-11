@@ -285,7 +285,7 @@ watch(
 const openIssues = computed(() => {
   if (!form.value.cow_id) return []
   return healthIssuesStore
-    .getCowIssues(form.value.cow_id)
+    .getAnimalIssues(form.value.cow_id)
     .filter((i) => i.status === 'open' || i.status === 'treating')
 })
 

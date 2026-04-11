@@ -131,8 +131,8 @@ export const useHealthIssuesStore = defineStore('healthIssues', () => {
     }
   }
 
-  function getCowIssues(cowId: string): any[] {
-    return issues.value.filter((i) => i.animal_id === cowId)
+  function getAnimalIssues(animalId: string): any[] {
+    return issues.value.filter((i) => i.animal_id === animalId)
   }
 
   async function fetchAll(params: Record<string, any> = {}) {
@@ -210,7 +210,7 @@ export const useHealthIssuesStore = defineStore('healthIssues', () => {
     create,
     updateStatus,
     remove,
-    getCowIssues,
+    getAnimalIssues,
     getById,
     fetchComments,
     addComment,

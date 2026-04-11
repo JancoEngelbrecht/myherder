@@ -180,8 +180,8 @@ describe('AnimalIssueHistoryView', () => {
     vi.spyOn(healthIssuesStore, 'fetchByCow').mockResolvedValue(MOCK_ISSUES)
     vi.spyOn(issueTypesStore, 'fetchAll').mockResolvedValue([])
 
-    // getCowIssues returns issues for the given animal
-    vi.spyOn(healthIssuesStore, 'getCowIssues').mockReturnValue(MOCK_ISSUES)
+    // getAnimalIssues returns issues for the given animal
+    vi.spyOn(healthIssuesStore, 'getAnimalIssues').mockReturnValue(MOCK_ISSUES)
   })
 
   it('renders list of issues for a specific animal', async () => {
@@ -207,7 +207,7 @@ describe('AnimalIssueHistoryView', () => {
 
   it('shows empty state when no issues exist', async () => {
     healthIssuesStore.fetchByCow = vi.fn().mockResolvedValue([])
-    healthIssuesStore.getCowIssues = vi.fn().mockReturnValue([])
+    healthIssuesStore.getAnimalIssues = vi.fn().mockReturnValue([])
     const wrapper = mount(AnimalIssueHistoryView, { global: { stubs } })
     await flushPromises()
     const html = wrapper.html()
