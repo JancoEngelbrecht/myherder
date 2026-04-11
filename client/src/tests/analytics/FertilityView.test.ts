@@ -95,11 +95,35 @@ const CALVING_RESPONSE = {
     avg_calving_interval_days: 385,
     cow_count: 5,
     intervals: [
-      { cow_id: 'c1', tag_number: 'MH-001', name: 'Bessie', interval_days: 350, calving_count: 3 },
-      { cow_id: 'c2', tag_number: 'MH-002', name: 'Daisy', interval_days: 380, calving_count: 2 },
-      { cow_id: 'c3', tag_number: 'MH-003', name: 'Rosie', interval_days: 420, calving_count: 2 },
-      { cow_id: 'c4', tag_number: 'MH-004', name: 'Clara', interval_days: 460, calving_count: 2 },
-      { cow_id: 'c5', tag_number: 'MH-005', name: 'Luna', interval_days: 510, calving_count: 2 },
+      {
+        animal_id: 'c1',
+        tag_number: 'MH-001',
+        name: 'Bessie',
+        interval_days: 350,
+        calving_count: 3,
+      },
+      {
+        animal_id: 'c2',
+        tag_number: 'MH-002',
+        name: 'Daisy',
+        interval_days: 380,
+        calving_count: 2,
+      },
+      {
+        animal_id: 'c3',
+        tag_number: 'MH-003',
+        name: 'Rosie',
+        interval_days: 420,
+        calving_count: 2,
+      },
+      {
+        animal_id: 'c4',
+        tag_number: 'MH-004',
+        name: 'Clara',
+        interval_days: 460,
+        calving_count: 2,
+      },
+      { animal_id: 'c5', tag_number: 'MH-005', name: 'Luna', interval_days: 510, calving_count: 2 },
     ],
   },
 }
@@ -109,9 +133,9 @@ const DAYS_OPEN_RESPONSE = {
     avg_days_open: 95,
     cow_count: 3,
     records: [
-      { cow_id: 'c1', tag_number: 'MH-001', name: 'Bessie', days_open: 55 },
-      { cow_id: 'c2', tag_number: 'MH-002', name: 'Daisy', days_open: 105 },
-      { cow_id: 'c3', tag_number: 'MH-003', name: 'Rosie', days_open: 125 },
+      { animal_id: 'c1', tag_number: 'MH-001', name: 'Bessie', days_open: 55 },
+      { animal_id: 'c2', tag_number: 'MH-002', name: 'Daisy', days_open: 105 },
+      { animal_id: 'c3', tag_number: 'MH-003', name: 'Rosie', days_open: 125 },
     ],
   },
 }

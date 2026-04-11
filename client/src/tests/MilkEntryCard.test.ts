@@ -14,7 +14,7 @@ const noNameCow = { ...activeCow, name: null }
 
 const savedRecord = {
   id: 'rec-1',
-  cow_id: 'cow-1',
+  animal_id: 'cow-1',
   litres: 12.5,
   milk_discarded: false,
 }

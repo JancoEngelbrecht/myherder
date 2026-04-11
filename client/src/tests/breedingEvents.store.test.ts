@@ -37,7 +37,7 @@ vi.mock('../services/syncManager', () => ({
 
 const EVENT_FIXTURE = {
   id: 'ev-1',
-  cow_id: 'cow-1',
+  animal_id: 'cow-1',
   event_type: 'ai_insemination',
   event_date: '2026-02-01T10:00',
   tag_number: 'T-001',
@@ -51,9 +51,9 @@ describe('useBreedingEventsStore', () => {
     vi.clearAllMocks()
   })
 
-  // ─── fetchAll — paginated (no cow_id) ────────────────────────────────────
+  // ─── fetchAll — paginated (no animal_id) ───────────────────────────────
 
-  describe('fetchAll (paginated, no cow_id)', () => {
+  describe('fetchAll (paginated, no animal_id)', () => {
     it('stores events and total from paginated response', async () => {
       const payload = { data: [EVENT_FIXTURE], total: 42 }
       api.get.mockResolvedValue({ data: payload })
@@ -136,7 +136,7 @@ describe('useBreedingEventsStore', () => {
       expect(db.breedingEvents.bulkPut).toHaveBeenCalledWith([EVENT_FIXTURE])
     })
 
-    it('falls back to IndexedDB filtered by cow_id on error', async () => {
+    it('falls back to IndexedDB filtered by animal_id on error', async () => {
       api.get.mockRejectedValue(new Error('Offline'))
 
       const { default: db } = await import('../db/indexedDB')
@@ -234,7 +234,7 @@ describe('useBreedingEventsStore', () => {
 
       const store = useBreedingEventsStore()
       const result = await store.createEvent({
-        cow_id: 'cow-1',
+        animal_id: 'cow-1',
         event_type: 'ai_insemination',
         event_date: '2026-02-01',
       })
@@ -251,13 +251,13 @@ describe('useBreedingEventsStore', () => {
 
       const store = useBreedingEventsStore()
       const result = await store.createEvent({
-        cow_id: 'cow-1',
+        animal_id: 'cow-1',
         event_type: 'heat_observed',
         event_date: '2026-02-01',
       })
 
       expect(result).toBeDefined()
-      expect(result.cow_id).toBe('cow-1')
+      expect(result.animal_id).toBe('cow-1')
       expect(store.events).toHaveLength(1)
     })
   })

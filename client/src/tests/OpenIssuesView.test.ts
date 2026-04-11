@@ -57,7 +57,7 @@ vi.mock('../db/indexedDB', () => ({
 const MOCK_ISSUES = [
   {
     id: 'i1',
-    cow_id: 'c1',
+    animal_id: 'c1',
     tag_number: '001',
     cow_name: 'Bessie',
     issue_types: ['mastitis'],
@@ -67,7 +67,7 @@ const MOCK_ISSUES = [
   },
   {
     id: 'i2',
-    cow_id: 'c2',
+    animal_id: 'c2',
     tag_number: '002',
     cow_name: 'Daisy',
     issue_types: ['lameness'],

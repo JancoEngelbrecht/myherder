@@ -36,7 +36,7 @@ function createDb(dbName) {
   instance.version(10).stores(CURRENT_SCHEMA)
   // v11: added species table
   instance.version(11).stores(CURRENT_SCHEMA)
-  // v12: renamed cows → animals table; cow_id → animal_id indexes
+  // v12: animals table (post cow-rename)
   instance.version(12).stores(CURRENT_SCHEMA)
   return instance
 }

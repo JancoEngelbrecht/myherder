@@ -33,7 +33,7 @@ vi.mock('../services/syncManager', () => ({
 
 const ISSUE_FIXTURE = {
   id: 'issue-1',
-  cow_id: 'cow-1',
+  animal_id: 'cow-1',
   issue_types: ['mastitis'],
   affected_teats: ['front_left'],
   severity: 'medium',
@@ -194,7 +194,7 @@ describe('useHealthIssuesStore', () => {
 
       const store = useHealthIssuesStore()
       const result = await store.create({
-        cow_id: 'cow-1',
+        animal_id: 'cow-1',
         issue_types: ['mastitis'],
         observed_at: '2026-01-01T00:00:00Z',
       })

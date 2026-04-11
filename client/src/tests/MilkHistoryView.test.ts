@@ -60,7 +60,7 @@ const stubs = {
 function makeRecord(id, overrides = {}) {
   return {
     id,
-    cow_id: `cow-${id}`,
+    animal_id: `cow-${id}`,
     tag_number: `C-${id}`,
     cow_name: `Cow ${id}`,
     recorded_by: 'user-1',

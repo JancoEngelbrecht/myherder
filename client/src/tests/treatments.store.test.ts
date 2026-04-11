@@ -38,7 +38,7 @@ vi.mock('../utils/apiError', () => ({
 
 const TREATMENT_FIXTURE = {
   id: 'treat-1',
-  cow_id: 'cow-1',
+  animal_id: 'cow-1',
   medication_id: 'med-1',
   medication_name: 'Penicillin',
   dosage: '10ml',
@@ -116,10 +116,10 @@ describe('useTreatmentsStore', () => {
       api.post.mockResolvedValue({ data: created })
 
       const store = useTreatmentsStore()
-      const result = await store.create({ cow_id: 'cow-1', medication_id: 'med-1' })
+      const result = await store.create({ animal_id: 'cow-1', medication_id: 'med-1' })
 
       expect(api.post).toHaveBeenCalledWith('/treatments', {
-        cow_id: 'cow-1',
+        animal_id: 'cow-1',
         medication_id: 'med-1',
       })
       expect(store.treatments).toContainEqual(created)
@@ -132,7 +132,7 @@ describe('useTreatmentsStore', () => {
       api.post.mockRejectedValue(new Error('offline'))
 
       const store = useTreatmentsStore()
-      const result = await store.create({ cow_id: 'cow-1' })
+      const result = await store.create({ animal_id: 'cow-1' })
 
       expect(result).toBeDefined()
       expect(store.treatments.length).toBe(1)

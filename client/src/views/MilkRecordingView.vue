@@ -145,11 +145,11 @@ const filteredCows = computed(() => {
 
 // ── Withdrawal helpers ────────────────────────────────────────────────────────
 
-// O(1) lookup: indexed by cow_id
+// O(1) lookup: indexed by animal_id (backend returns animal_id, not cow_id)
 const withdrawalMap = computed(() => {
   const map = {}
   for (const w of treatmentsStore.withdrawalCows) {
-    map[w.cow_id] = w
+    map[w.animal_id] = w
   }
   return map
 })

@@ -7,7 +7,7 @@ import MilkRecordCard from '../components/molecules/MilkRecordCard.vue'
 function makeRecord(overrides = {}) {
   return {
     id: 'rec-1',
-    cow_id: 'cow-1',
+    animal_id: 'cow-1',
     tag_number: 'C-001',
     cow_name: 'Bella',
     recorded_by: 'user-1',

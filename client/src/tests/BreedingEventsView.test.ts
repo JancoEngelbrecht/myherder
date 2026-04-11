@@ -75,7 +75,7 @@ vi.mock('../db/indexedDB', () => ({
 const MOCK_EVENTS = [
   {
     id: 'e1',
-    cow_id: 'c1',
+    animal_id: 'c1',
     event_type: 'ai_insemination',
     event_date: '2024-01-10',
     tag_number: '001',
@@ -83,7 +83,7 @@ const MOCK_EVENTS = [
   },
   {
     id: 'e2',
-    cow_id: 'c2',
+    animal_id: 'c2',
     event_type: 'calving',
     event_date: '2024-01-12',
     tag_number: '002',

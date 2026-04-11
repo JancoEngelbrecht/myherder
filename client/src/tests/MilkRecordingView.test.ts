@@ -185,7 +185,7 @@ describe('MilkRecordingView', () => {
         return Promise.resolve({
           data: [
             {
-              cow_id: 'cow-1',
+              animal_id: 'cow-1',
               withdrawal_end_milk: null,
               withdrawal_end_meat: futureMeat,
               tag_number: '001',
@@ -230,7 +230,7 @@ describe('MilkRecordingView', () => {
         return Promise.resolve({
           data: [
             {
-              cow_id: 'cow-2',
+              animal_id: 'cow-2',
               withdrawal_end_milk: futureMilk,
               withdrawal_end_meat: null,
               tag_number: '002',
@@ -275,7 +275,7 @@ describe('MilkRecordingView', () => {
         return Promise.resolve({
           data: [
             {
-              cow_id: 'cow-3',
+              animal_id: 'cow-3',
               withdrawal_end_milk: pastMilk,
               withdrawal_end_meat: null,
               tag_number: '003',
