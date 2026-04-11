@@ -47,14 +47,14 @@ describe('useHealthIssuesStore', () => {
     vi.clearAllMocks()
   })
 
-  // ─── fetchByCow ───────────────────────────────────────────────────────────
+  // ─── fetchByAnimal ────────────────────────────────────────────────────────
 
-  describe('fetchByCow', () => {
-    it('fetches issues for a cow and stores them', async () => {
+  describe('fetchByAnimal', () => {
+    it('fetches issues for an animal and stores them', async () => {
       api.get.mockResolvedValue({ data: [ISSUE_FIXTURE] })
 
       const store = useHealthIssuesStore()
-      const result = await store.fetchByCow('cow-1')
+      const result = await store.fetchByAnimal('cow-1')
 
       expect(api.get).toHaveBeenCalledWith('/health-issues', { params: { animal_id: 'cow-1' } })
       expect(store.issues).toContainEqual(ISSUE_FIXTURE)
@@ -68,7 +68,7 @@ describe('useHealthIssuesStore', () => {
 
       const store = useHealthIssuesStore()
       store.issues = [oldIssue]
-      await store.fetchByCow('cow-1')
+      await store.fetchByAnimal('cow-1')
 
       const cowIssues = store.issues.filter((i) => i.animal_id === 'cow-1')
       expect(cowIssues).toHaveLength(1)
@@ -85,7 +85,7 @@ describe('useHealthIssuesStore', () => {
       })
 
       const store = useHealthIssuesStore()
-      const result = await store.fetchByCow('cow-1')
+      const result = await store.fetchByAnimal('cow-1')
 
       expect(result).toContainEqual(localIssue)
       expect(store.error).not.toBeNull()
@@ -100,7 +100,7 @@ describe('useHealthIssuesStore', () => {
       )
 
       const store = useHealthIssuesStore()
-      const fetchPromise = store.fetchByCow('cow-1')
+      const fetchPromise = store.fetchByAnimal('cow-1')
       expect(store.loadingByCow).toBe(true)
 
       resolveRequest()

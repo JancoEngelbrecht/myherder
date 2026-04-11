@@ -496,7 +496,7 @@ async function load() {
       treatmentsStore.fetchByCow(animal.value.id)
     }
     if (featureFlagsStore.flags.healthIssues && authStore.hasPermission('can_log_issues')) {
-      healthIssuesStore.fetchByCow(animal.value.id)
+      healthIssuesStore.fetchByAnimal(animal.value.id)
     }
     if (featureFlagsStore.flags.breeding && authStore.hasPermission('can_log_breeding')) {
       if (animal.value.sex !== 'male') {

@@ -271,14 +271,14 @@ const form = ref({
 })
 
 // Fetch open/treating issues for the prefilled animal immediately (before the watch runs)
-if (prefillAnimalId) healthIssuesStore.fetchByCow(prefillAnimalId)
+if (prefillAnimalId) healthIssuesStore.fetchByAnimal(prefillAnimalId)
 
 // Reset health_issue_id only when the user manually changes the animal
 watch(
   () => form.value.animal_id,
   (animalId) => {
     form.value.health_issue_id = ''
-    if (animalId) healthIssuesStore.fetchByCow(animalId)
+    if (animalId) healthIssuesStore.fetchByAnimal(animalId)
   }
 )
 

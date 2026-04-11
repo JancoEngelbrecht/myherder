@@ -94,7 +94,7 @@ async function load() {
   error.value = ''
   try {
     animal.value = await animalsStore.fetchOne(animalId)
-    await healthIssuesStore.fetchByCow(animalId)
+    await healthIssuesStore.fetchByAnimal(animalId)
   } catch {
     error.value = t('common.error')
   } finally {

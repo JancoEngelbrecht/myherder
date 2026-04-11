@@ -177,7 +177,7 @@ describe('AnimalIssueHistoryView', () => {
     issueTypesStore = useIssueTypesStore()
 
     vi.spyOn(animalsStore, 'fetchOne').mockResolvedValue(MOCK_ANIMAL)
-    vi.spyOn(healthIssuesStore, 'fetchByCow').mockResolvedValue(MOCK_ISSUES)
+    vi.spyOn(healthIssuesStore, 'fetchByAnimal').mockResolvedValue(MOCK_ISSUES)
     vi.spyOn(issueTypesStore, 'fetchAll').mockResolvedValue([])
 
     // getAnimalIssues returns issues for the given animal
@@ -190,8 +190,8 @@ describe('AnimalIssueHistoryView', () => {
     // Should show both issues
     const html = wrapper.html()
     expect(html).toBeTruthy()
-    // fetchByCow should have been called with the animal ID from route params
-    expect(healthIssuesStore.fetchByCow).toHaveBeenCalledWith('animal-1')
+    // fetchByAnimal should have been called with the animal ID from route params
+    expect(healthIssuesStore.fetchByAnimal).toHaveBeenCalledWith('animal-1')
   })
 
   it('issue items link to issue detail', async () => {
@@ -206,7 +206,7 @@ describe('AnimalIssueHistoryView', () => {
   })
 
   it('shows empty state when no issues exist', async () => {
-    healthIssuesStore.fetchByCow = vi.fn().mockResolvedValue([])
+    healthIssuesStore.fetchByAnimal = vi.fn().mockResolvedValue([])
     healthIssuesStore.getAnimalIssues = vi.fn().mockReturnValue([])
     const wrapper = mount(AnimalIssueHistoryView, { global: { stubs } })
     await flushPromises()

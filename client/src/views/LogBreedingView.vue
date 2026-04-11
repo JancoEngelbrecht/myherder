@@ -518,10 +518,8 @@ async function submit() {
         lastSavedEventId.value = created.id
         lastSavedAnimalId.value = created.animal_id
         showOffspringPrompt.value = true
-      } else if (route.query.animal_id || route.query.cow_id) {
-        router.replace(`/animals/${created.animal_id}/repro`)
       } else {
-        router.replace('/breed')
+        router.replace(backRoute.value)
       }
     }
   } catch (err) {

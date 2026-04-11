@@ -16,17 +16,17 @@ export const useHealthIssuesStore = defineStore('healthIssues', () => {
   const loadingAll = ref(false)
   const error = ref<string | null>(null)
 
-  async function fetchByCow(cowId: string) {
+  async function fetchByAnimal(animalId: string) {
     loadingByCow.value = true
     error.value = null
     try {
-      const { data } = await api.get('/health-issues', { params: { animal_id: cowId } })
-      issues.value = [...issues.value.filter((i) => i.animal_id !== cowId), ...data]
+      const { data } = await api.get('/health-issues', { params: { animal_id: animalId } })
+      issues.value = [...issues.value.filter((i) => i.animal_id !== animalId), ...data]
       await db.healthIssues.bulkPut(data)
       return data
     } catch (err) {
-      const local = await db.healthIssues.where('animal_id').equals(cowId).toArray()
-      issues.value = [...issues.value.filter((i) => i.animal_id !== cowId), ...local]
+      const local = await db.healthIssues.where('animal_id').equals(animalId).toArray()
+      issues.value = [...issues.value.filter((i) => i.animal_id !== animalId), ...local]
       error.value = extractApiError(err)
       return local
     } finally {
@@ -204,7 +204,7 @@ export const useHealthIssuesStore = defineStore('healthIssues', () => {
     loadingOne,
     loadingAll,
     error,
-    fetchByCow,
+    fetchByAnimal,
     fetchOne,
     fetchAll,
     create,

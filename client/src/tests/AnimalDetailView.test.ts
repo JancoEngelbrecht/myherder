@@ -204,7 +204,7 @@ describe('AnimalDetailView', () => {
 
     vi.spyOn(animalsStore, 'fetchOne').mockResolvedValue(MOCK_ANIMAL)
     vi.spyOn(treatmentsStore, 'fetchByCow').mockResolvedValue([])
-    vi.spyOn(healthIssuesStore, 'fetchByCow').mockResolvedValue([])
+    vi.spyOn(healthIssuesStore, 'fetchByAnimal').mockResolvedValue([])
     vi.spyOn(breedingEventsStore, 'fetchForCow').mockResolvedValue([])
     vi.spyOn(issueTypesStore, 'fetchAll').mockResolvedValue([])
     vi.spyOn(breedTypesStore, 'fetchAll').mockResolvedValue([MOCK_BREED_TYPE])
@@ -306,7 +306,7 @@ describe('AnimalDetailView', () => {
     const wrapper = mount(AnimalDetailView, { global: { stubs } })
     await flushPromises()
     expect(wrapper.text()).not.toContain('healthIssues.title')
-    expect(healthIssuesStore.fetchByCow).not.toHaveBeenCalled()
+    expect(healthIssuesStore.fetchByAnimal).not.toHaveBeenCalled()
   })
 
   it('hides breeding section when worker lacks can_log_breeding', async () => {
