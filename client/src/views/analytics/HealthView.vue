@@ -190,7 +190,7 @@
               >
                 <span class="animal-rank mono">{{ i + 1 }}</span>
                 <span class="mono animal-tag">{{ cow.tag_number }}</span>
-                <span class="animal-name">{{ cow.name || '—' }}</span>
+                <span v-if="cow.name" class="animal-name">{{ cow.name }}</span>
                 <span class="animal-days mono"
                   >{{ cow.avg_days }} {{ t('analytics.health.daysAvg') }}</span
                 >
@@ -214,7 +214,7 @@
               >
                 <span class="animal-rank mono">{{ i + 1 }}</span>
                 <span class="mono animal-tag">{{ cow.tag_number }}</span>
-                <span class="animal-name">{{ cow.name || '—' }}</span>
+                <span v-if="cow.name" class="animal-name">{{ cow.name }}</span>
                 <span class="animal-count mono warn">{{ cow.issue_count }}</span>
               </RouterLink>
             </div>

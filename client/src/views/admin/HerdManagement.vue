@@ -51,6 +51,16 @@
               </option>
             </select>
           </div>
+
+          <div class="form-group">
+            <label class="form-label">{{ t('herdManagement.lifePhase') }}</label>
+            <select v-model="defaults.life_phase_override" class="form-input">
+              <option :value="null">{{ t('herdManagement.lifePhaseAuto') }}</option>
+              <option v-for="phase in lifePhaseOptions" :key="phase.code" :value="phase.code">
+                {{ t(`lifePhase.${phase.code}`) }}
+              </option>
+            </select>
+          </div>
         </div>
 
         <div class="form-group">
@@ -140,7 +150,7 @@
                 @change="toggleSelect(animal.id)"
               />
               <span class="row-tag mono">{{ animal.tag_number }}</span>
-              <span class="row-name">{{ animal.name || '—' }}</span>
+              <span class="row-name">{{ animal.name || animal.tag_number }}</span>
               <span class="badge" :class="animal.sex === 'male' ? 'badge-male' : 'badge-female'">
                 {{
                   animal.sex === 'male'
@@ -196,13 +206,14 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted } from 'vue'
+import { ref, computed, reactive, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppHeader from '../../components/organisms/AppHeader.vue'
 import ConfirmDialog from '../../components/molecules/ConfirmDialog.vue'
 import { useAnimalsStore } from '../../stores/animals'
 import { useBreedTypesStore } from '../../stores/breedTypes'
 import { useToast } from '../../composables/useToast'
+import { useSpeciesTerms } from '../../composables/useSpeciesTerms'
 import { extractApiError, resolveError } from '../../utils/apiError'
 import api from '../../services/api'
 
@@ -210,6 +221,7 @@ const { t } = useI18n()
 const animalsStore = useAnimalsStore()
 const breedTypesStore = useBreedTypesStore()
 const toast = useToast()
+const { lifePhasesConfig } = useSpeciesTerms()
 
 const ANIMAL_STATUSES = ['active', 'dry', 'pregnant', 'sick', 'sold', 'dead']
 const PAGE_SIZE = 20
@@ -220,7 +232,29 @@ const defaults = reactive({
   breed_type_id: '',
   sex: 'female',
   status: 'active',
+  life_phase_override: null,
 })
+
+// Life phase options from species config, filtered by current sex
+const lifePhaseOptions = computed(() => {
+  const phases = lifePhasesConfig.value
+  if (!phases) {
+    if (defaults.sex === 'male') return [{ code: 'calf' }, { code: 'young_bull' }, { code: 'bull' }]
+    return [{ code: 'calf' }, { code: 'heifer' }, { code: 'cow' }]
+  }
+  return defaults.sex === 'male' ? (phases.male ?? []) : (phases.female ?? [])
+})
+
+// Reset life phase override when sex changes if current value is incompatible
+watch(
+  () => defaults.sex,
+  () => {
+    const allowed = new Set([null, ...lifePhaseOptions.value.map((p) => p.code)])
+    if (!allowed.has(defaults.life_phase_override)) {
+      defaults.life_phase_override = null
+    }
+  }
+)
 
 const tagsInput = ref('')
 const creating = ref(false)
@@ -254,6 +288,7 @@ async function submitBatchCreate() {
         breed_type_id: defaults.breed_type_id || undefined,
         sex: defaults.sex,
         status: defaults.status,
+        life_phase_override: defaults.life_phase_override || undefined,
       },
       tags: parsedTags.value,
     }

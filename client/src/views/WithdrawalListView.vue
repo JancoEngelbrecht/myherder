@@ -2,7 +2,7 @@
   <div class="page withdrawal-page" :class="{ 'meat-theme': activeTab === 'meat' }">
     <AppHeader :title="$t('withdrawal.title')" show-back back-to="/" />
 
-    <div class="content">
+    <div class="page-content">
       <div v-if="loading" class="spinner-wrap"><div class="spinner" /></div>
 
       <!-- Global all-clear -->
@@ -174,12 +174,6 @@
         </div>
       </template>
     </div>
-
-    <div v-if="!loading" class="refresh-row">
-      <button class="btn-secondary" @click="store.fetchWithdrawal()">
-        {{ $t('common.refresh') }}
-      </button>
-    </div>
   </div>
 </template>
 
@@ -298,12 +292,20 @@ function withdrawalInfo(endDate) {
   background: #fdf5ee;
 }
 
-.content {
-  padding: 80px 16px 120px;
-  max-width: 600px;
-  margin: 0 auto;
-  width: 100%;
-  box-sizing: border-box;
+.cow-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  padding-bottom: 8px;
+}
+
+@media (min-width: 600px) {
+  .cow-list {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+  .cow-list :deep(.pagination-bar) {
+    grid-column: 1 / -1;
+  }
 }
 
 .filter-chips {
@@ -379,13 +381,6 @@ function withdrawalInfo(endDate) {
 
 .clear-state p {
   color: var(--text-secondary);
-}
-
-.cow-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding-bottom: 8px;
 }
 
 .withdrawal-card {

@@ -42,7 +42,7 @@ describe('BreedingEventCard', () => {
       props: { event: MOCK_EVENT, showCow: true, showDelete: false },
     })
 
-    expect(wrapper.find('.event-cow-name').text()).toContain('TAG-001')
+    expect(wrapper.find('.event-title').text()).toContain('TAG-001')
     expect(wrapper.find('.event-date').text()).toBeTruthy()
   })
 

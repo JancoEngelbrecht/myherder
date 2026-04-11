@@ -34,6 +34,9 @@ const batchSchema = Joi.object({
       .valid(...ANIMAL_STATUSES)
       .default('active'),
     breed_type_id: Joi.string().max(36).allow(null, ''),
+    life_phase_override: Joi.string()
+      .valid('calf', 'heifer', 'cow', 'young_bull', 'bull', 'lamb', 'ewe', 'ram')
+      .allow(null, ''),
   }).required(),
   tags: Joi.array().items(Joi.string().max(50).required()).min(1).max(500).required(),
 })
@@ -447,6 +450,7 @@ router.post('/batch', authorize('can_manage_animals'), async (req, res, next) =>
       status: defaults.status,
       breed_type_id: defaults.breed_type_id || null,
       species_id: speciesId,
+      life_phase_override: defaults.life_phase_override || null,
       created_by: req.user.id,
       created_at: now,
       updated_at: now,

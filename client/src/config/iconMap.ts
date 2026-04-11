@@ -68,9 +68,7 @@ import {
   RefreshCw,
   Eye,
   Lock,
-  // Species (Lucide has no cow/sheep — use closest)
-  Beef,
-  Rabbit,
+  // (Species icons are custom SVGs imported below — Lucide has no cow/sheep)
   // Extra
   Star,
   ExternalLink,
@@ -115,6 +113,9 @@ import {
   Signal,
   Tag,
 } from 'lucide-vue-next'
+
+import CowIcon from '../components/atoms/CowIcon.vue'
+import SheepIcon from '../components/atoms/SheepIcon.vue'
 
 /**
  * Map of semantic icon names to Lucide components.
@@ -193,13 +194,13 @@ export const iconMap: Record<string, object> = {
   globe: Globe,
 
   // ── Animals (species-specific) ───────────────────────────────────
-  // Lucide has no cow/sheep. Use Beef as cattle placeholder, Rabbit for generic.
-  cow: Beef,
-  bull: Beef,
-  cattle: Beef,
-  sheep: Rabbit,
-  ram: Rabbit,
-  animal: Beef,
+  // Custom SVG icons — real animal silhouettes, not Lucide's Beef/Rabbit.
+  cow: CowIcon,
+  bull: CowIcon,
+  cattle: CowIcon,
+  animal: CowIcon,
+  sheep: SheepIcon,
+  ram: SheepIcon,
 
   // ── Analytics ────────────────────────────────────────────────────
   'bar-chart-3': BarChart3,

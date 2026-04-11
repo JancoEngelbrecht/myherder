@@ -102,7 +102,7 @@
               >
                 <span class="producer-rank mono">{{ i + 1 }}</span>
                 <span class="mono producer-tag">{{ cow.tag_number }}</span>
-                <span class="producer-name">{{ cow.name || '—' }}</span>
+                <span v-if="cow.name" class="producer-name">{{ cow.name }}</span>
                 <span class="producer-avg mono">{{ cow.avg_daily_litres }} L/d</span>
               </RouterLink>
             </div>
@@ -127,7 +127,7 @@
               >
                 <span class="producer-rank mono">{{ i + 1 }}</span>
                 <span class="mono producer-tag">{{ cow.tag_number }}</span>
-                <span class="producer-name">{{ cow.name || '—' }}</span>
+                <span v-if="cow.name" class="producer-name">{{ cow.name }}</span>
                 <span class="producer-avg mono warn">{{ cow.avg_daily_litres }} L/d</span>
               </RouterLink>
             </div>

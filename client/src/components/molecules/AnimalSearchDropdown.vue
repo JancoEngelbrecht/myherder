@@ -28,7 +28,7 @@
             />
           </span>
           <span class="item-tag mono">{{ animal.tag_number }}</span>
-          <span class="item-name">{{ animal.name || '—' }}</span>
+          <span v-if="animal.name" class="item-name">{{ animal.name }}</span>
         </button>
       </div>
     </Transition>

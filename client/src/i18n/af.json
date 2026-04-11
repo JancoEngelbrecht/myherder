@@ -2219,6 +2219,8 @@
     "sexMale": "Manlik",
     "sexFemale": "Vroulik",
     "status": "Status",
+    "lifePhase": "Lewensfase",
+    "lifePhaseAuto": "Outomaties (volgens ouderdom)",
     "tagsLabel": "Oormerknommers",
     "tagsPlaceholder": "bv. T-001, T-002, T-003\nSkei merke met kommas of nuwe reëls.",
     "tagPreview": "{count} merk | {count} merke",

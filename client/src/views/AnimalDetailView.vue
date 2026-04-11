@@ -28,7 +28,7 @@
           </div>
           <div class="animal-hero-info">
             <div class="animal-hero-tag mono">{{ animal.tag_number }}</div>
-            <div class="animal-hero-name">{{ animal.name || '—' }}</div>
+            <div v-if="animal.name" class="animal-hero-name">{{ animal.name }}</div>
             <div class="hero-badges">
               <span class="badge" :class="`badge-${animal.status}`">
                 {{ t(`status.${animal.status}`) }}

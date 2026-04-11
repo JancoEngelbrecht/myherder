@@ -359,11 +359,18 @@ const { startTour } = useTour('milk-recording', () => [
 }
 
 .cow-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 0.6rem;
   padding: 0.75rem 1rem;
   padding-bottom: 5rem;
+}
+
+@media (min-width: 720px) {
+  .cow-list {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+  }
 }
 
 .history-link-row {

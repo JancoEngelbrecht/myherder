@@ -2219,6 +2219,8 @@
     "sexMale": "Male",
     "sexFemale": "Female",
     "status": "Status",
+    "lifePhase": "Life Phase",
+    "lifePhaseAuto": "Auto (by age)",
     "tagsLabel": "Tag Numbers",
     "tagsPlaceholder": "e.g. T-001, T-002, T-003\nSeparate tags with commas or new lines.",
     "tagPreview": "{count} tag | {count} tags",

@@ -18,7 +18,7 @@
           {{ t(`lifePhase.${lifePhase}`) }}
         </span>
       </div>
-      <div class="animal-name">{{ animal.name || '—' }}</div>
+      <div v-if="animal.name" class="animal-name">{{ animal.name }}</div>
       <div class="animal-meta">
         {{ breedName }}
         <template
