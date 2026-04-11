@@ -678,7 +678,6 @@
     "summary": "{recorded} of {total} recorded • {litres} L • {discarded} discarded",
     "noActiveCows": "No active cows to record",
     "sessionTime": "Recording time",
-    "sessionTimeHint": "All entries will be logged at this time",
     "viewHistory": "View records",
     "withdrawalDiscard": "Medication withdrawal until {date}"
   },
@@ -1863,10 +1862,6 @@
       }
     },
     "milkRecording": {
-      "session": {
-        "title": "Choose a Session",
-        "desc": "Select AM or PM to record milk for the morning or afternoon session."
-      },
       "search": {
         "title": "Find a Cow",
         "desc": "Use the search bar to quickly find a cow by tag number or name."

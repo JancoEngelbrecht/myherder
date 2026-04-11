@@ -678,7 +678,6 @@
     "summary": "{recorded} van {total} opgeteken • {litres} L • {discarded} weggegooi",
     "noActiveCows": "Geen aktiewe koeie om op te teken",
     "sessionTime": "Melktyd",
-    "sessionTimeHint": "Alle inskrywings word op hierdie tyd aangeteken",
     "viewHistory": "Sien rekords",
     "withdrawalDiscard": "Medikasie-onttrekking tot {date}"
   },
@@ -1863,10 +1862,6 @@
       }
     },
     "milkRecording": {
-      "session": {
-        "title": "Kies 'n Sessie",
-        "desc": "Kies VM of NM om melk vir die oggend- of middagsessie aan te teken."
-      },
       "search": {
         "title": "Vind 'n Koei",
         "desc": "Gebruik die soekbalk om vinnig 'n koei te vind volgens oormerknommer of naam."

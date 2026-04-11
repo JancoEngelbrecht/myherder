@@ -117,12 +117,45 @@ describe('MilkRecordingView', () => {
     expect([0, 15, 30, 45]).toContain(mins)
   })
 
-  it('renders session tabs', async () => {
+  it('does not render the removed session tab selector', async () => {
     const wrapper = createWrapper()
     await flushPromises()
 
-    const tabs = wrapper.findAll('.session-tab')
-    expect(tabs.length).toBe(3)
+    expect(wrapper.findAll('.session-tab').length).toBe(0)
+    expect(wrapper.find('.session-tabs').exists()).toBe(false)
+  })
+
+  it('renders a derived session badge next to the time input', async () => {
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    const badge = wrapper.find('.derived-session-badge')
+    expect(badge.exists()).toBe(true)
+    // Badge text starts with an arrow and resolves to one of the session labels.
+    // i18n keys fall back to the key path under vue-i18n in test mode, so we
+    // just verify the badge is populated with something non-empty.
+    expect(badge.text().length).toBeGreaterThan(0)
+  })
+
+  it('updates the derived session badge when the time crosses a boundary', async () => {
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    const timeInput = wrapper.find('.time-input')
+    await timeInput.setValue('07:00')
+    await flushPromises()
+    const morningText = wrapper.find('.derived-session-badge').text()
+
+    await timeInput.setValue('14:00')
+    await flushPromises()
+    const afternoonText = wrapper.find('.derived-session-badge').text()
+
+    await timeInput.setValue('19:30')
+    await flushPromises()
+    const eveningText = wrapper.find('.derived-session-badge').text()
+
+    // The three time buckets must produce three distinct badge values.
+    expect(new Set([morningText, afternoonText, eveningText]).size).toBe(3)
   })
 
   it('renders view history link', async () => {

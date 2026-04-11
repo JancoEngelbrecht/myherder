@@ -15,24 +15,11 @@
         />
       </div>
 
-      <!-- Session tabs -->
-      <div data-tour="milk-session" class="session-tabs">
-        <button
-          v-for="s in sessions"
-          :key="s.value"
-          class="session-tab"
-          :class="{ active: selectedSession === s.value }"
-          @click="setSession(s.value)"
-        >
-          {{ t(`milkRecording.${s.value}`) }}
-        </button>
-      </div>
-
-      <!-- Time picker — always shown -->
+      <!-- Time picker — drives the derived session badge -->
       <div class="time-row">
         <label class="control-label">{{ t('milkRecording.sessionTime') }}</label>
         <input v-model="selectedTime" type="time" class="form-input time-input" />
-        <span class="time-hint">{{ t('milkRecording.sessionTimeHint') }}</span>
+        <span class="derived-session-badge"> → {{ t(`milkRecording.${selectedSession}`) }} </span>
       </div>
 
       <!-- Search -->
@@ -108,16 +95,13 @@ import { useTreatmentsStore } from '../stores/treatments'
 import { useMilkRecordsStore } from '../stores/milkRecords'
 import { resolveError } from '../utils/apiError'
 import { useTour } from '../composables/useTour'
+import { deriveSession } from '../utils/milkSession'
 
 const { t } = useI18n()
 
 const animalsStore = useAnimalsStore()
 const treatmentsStore = useTreatmentsStore()
 const milkStore = useMilkRecordsStore()
-
-const sessions = [{ value: 'morning' }, { value: 'afternoon' }, { value: 'evening' }]
-
-const sessionDefaultTimes = { morning: '06:00', afternoon: '12:00', evening: '18:00' }
 
 function roundToQuarter() {
   const now = new Date()
@@ -133,9 +117,12 @@ function roundToQuarter() {
 
 const today = new Date().toISOString().slice(0, 10)
 const selectedDate = ref(today)
-const selectedSession = ref('morning')
 const selectedTime = ref(roundToQuarter())
 const searchQuery = ref('')
+
+// Derived from selectedTime — a change in the time input that crosses an 11:00
+// or 16:00 boundary automatically triggers the loadRecords watcher below.
+const selectedSession = computed(() => deriveSession(selectedTime.value))
 
 const isToday = computed(() => selectedDate.value === today)
 
@@ -215,15 +202,10 @@ function handleUpdate(cowId, litres) {
   )
 }
 
-function setSession(session) {
-  selectedSession.value = session
-  selectedTime.value = isToday.value ? roundToQuarter() : sessionDefaultTimes[session]
-  // watcher handles loadRecords
-}
-
 function onDateChange() {
-  selectedTime.value = isToday.value ? roundToQuarter() : sessionDefaultTimes[selectedSession.value]
-  // watcher handles loadRecords
+  // Reset to a sensible default time for the newly chosen date. The computed
+  // selectedSession will recompute automatically and the watcher handles reload.
+  selectedTime.value = isToday.value ? roundToQuarter() : '06:00'
 }
 
 async function loadRecords() {
@@ -244,13 +226,6 @@ onMounted(async () => {
 watch([selectedDate, selectedSession], loadRecords)
 
 const { startTour } = useTour('milk-recording', () => [
-  {
-    element: '[data-tour="milk-session"]',
-    popover: {
-      title: t('tour.milkRecording.session.title'),
-      description: t('tour.milkRecording.session.desc'),
-    },
-  },
   {
     element: '[data-tour="milk-search"]',
     popover: {
@@ -325,37 +300,17 @@ const { startTour } = useTour('milk-recording', () => [
   font-size: 0.9rem;
 }
 
-.time-hint {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  flex: 1;
-}
-
-.session-tabs {
-  display: flex;
-  gap: 0.375rem;
-  background: var(--surface-2);
-  padding: 3px;
+.derived-session-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.7rem;
   border-radius: var(--radius-sm);
-}
-
-.session-tab {
-  flex: 1;
-  padding: 0.5rem 0;
-  border: none;
-  border-radius: calc(var(--radius-sm) - 2px);
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.session-tab.active {
-  background: var(--surface);
+  background: var(--surface-2);
   color: var(--primary);
-  box-shadow: var(--shadow-sm);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .cow-list {
