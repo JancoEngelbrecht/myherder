@@ -49,7 +49,7 @@ jobs:
       - name: Production boot test
         run: |
           # Verify compiled server starts without crashing (catches missing modules)
-          NODE_ENV=test timeout 10 node dist/server/index.js &
+          NODE_ENV=test timeout 10 node dist/index.js &
           SERVER_PID=$!
           sleep 3
           if kill -0 $SERVER_PID 2>/dev/null; then
