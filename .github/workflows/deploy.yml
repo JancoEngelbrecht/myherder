@@ -43,6 +43,24 @@ jobs:
       - name: Frontend tests
         run: cd client && npm run test:run
 
+      - name: Build server (for boot test)
+        run: npm run build:server
+
+      - name: Production boot test
+        run: |
+          # Verify compiled server starts without crashing (catches missing modules)
+          NODE_ENV=test timeout 10 node dist/server/index.js &
+          SERVER_PID=$!
+          sleep 3
+          if kill -0 $SERVER_PID 2>/dev/null; then
+            echo "Boot test passed — server started successfully"
+            kill $SERVER_PID
+            wait $SERVER_PID 2>/dev/null || true
+          else
+            echo "Boot test FAILED — server crashed on startup"
+            exit 1
+          fi
+
       - name: Dependency audit
         run: npm audit --audit-level=high || true
 
@@ -63,7 +81,7 @@ jobs:
           cache: npm
           cache-dependency-path: client/package-lock.json
 
-      - name: Install root dependencies
+      - name: Install all dependencies
         run: npm ci
 
       - name: Build server TypeScript
@@ -71,6 +89,13 @@ jobs:
 
       - name: Build frontend
         run: cd client && npm ci && npm run build
+
+      - name: Prepare production node_modules
+        run: |
+          # Prune to production-only deps and compress for fast SCP
+          rm -rf node_modules
+          npm ci --omit=dev --ignore-scripts
+          tar czf node_modules.tar.gz node_modules
 
       - name: Set up SSH agent
         uses: webfactory/ssh-agent@v0.9.0
@@ -81,34 +106,56 @@ jobs:
         run: |
           ssh-keyscan -H myherder.co.za >> ~/.ssh/known_hosts 2>/dev/null
 
-          # Upload pre-built server dist and client dist to server
+          # Upload pre-built server dist and client dist
           ssh -o StrictHostKeyChecking=no myherder@myherder.co.za 'rm -rf /home/myherder/repositories/myherder/dist /home/myherder/repositories/myherder/client/dist'
           scp -r dist myherder@myherder.co.za:/home/myherder/repositories/myherder/
           scp -r client/dist myherder@myherder.co.za:/home/myherder/repositories/myherder/client/
 
-          # Pull code, install server deps, migrate, restart
+          # Upload production node_modules as tarball (~17MB compressed)
+          scp node_modules.tar.gz myherder@myherder.co.za:/home/myherder/repositories/myherder/
+
+          # Pull code, extract deps, migrate, restart
           ssh -o StrictHostKeyChecking=no myherder@myherder.co.za 'bash -s' << 'DEPLOY'
-            set -e
+            set -e  # Abort on ANY failure — never kill the server if setup fails
+
             source /home/myherder/nodevenv/repositories/myherder/24/bin/activate
             cd /home/myherder/repositories/myherder
 
             # Reset tracked files + clean untracked so git pull never fails
-            # (SCP-uploaded client/dist adds new hashed-asset filenames that
-            #  land as untracked files and would block `git pull` with
-            #  "untracked working tree files would be overwritten".)
             git reset --hard HEAD
             git clean -fd client/dist dist
             git pull origin main
 
-            # --ignore-scripts skips husky prepare hook (devDep, not in prod)
-            npm install --omit=dev --ignore-scripts
+            # Extract CI-built production dependencies (cPanel blocks npm install)
+            echo "Extracting production node_modules..."
+            tar xzf node_modules.tar.gz
+            rm node_modules.tar.gz
+            echo "Dependencies ready."
 
+            echo "Running migrations..."
             npx knex migrate:latest --env production
+            echo "Migrations complete."
 
-            # Kill lsnode process so LiteSpeed spawns a fresh one with new code
-            # (touch tmp/restart.txt does NOT work with LiteSpeed)
+            # Only restart if everything above succeeded (set -e guarantees this)
             pkill -u myherder -f 'lsnode:' 2>/dev/null || true
             touch tmp/restart.txt
 
             echo "Deployed commit: $(git log --oneline -1)"
           DEPLOY
+
+      - name: Post-deploy smoke test
+        run: |
+          echo "Waiting for server to restart..."
+          for i in 1 2 3 4 5 6; do
+            HTTP_CODE=$(curl -s -o /dev/null -w '%{http_code}' \
+              -X POST -H 'Content-Type: application/json' -d '{}' \
+              https://myherder.co.za/api/auth/login 2>/dev/null || echo "000")
+            echo "Attempt $i: HTTP $HTTP_CODE"
+            if [ "$HTTP_CODE" != "000" ] && [ "$HTTP_CODE" != "502" ] && [ "$HTTP_CODE" != "503" ]; then
+              echo "Smoke test passed: server responding (HTTP $HTTP_CODE)"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Smoke test FAILED: server not responding after 30 seconds"
+          exit 1
