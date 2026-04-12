@@ -5,7 +5,13 @@
         {{ t('login.superAdminLink') }}
       </router-link>
       <div class="login-logo">
-        <span class="login-logo-mark">M</span>
+        <img
+          src="/icons/icon-192.png"
+          alt="MyHerder"
+          width="80"
+          height="80"
+          class="login-logo-img"
+        />
       </div>
       <h1 class="login-title">{{ t('login.title') }}</h1>
       <p v-if="farmName" class="login-farm-name">{{ farmName }}</p>
@@ -309,19 +315,9 @@ function handlePinLogin() {
   margin-bottom: 14px;
 }
 
-.login-logo-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 72px;
-  height: 72px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.18);
-  border: 2px solid rgba(255, 255, 255, 0.35);
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: -0.04em;
+.login-logo-img {
+  border-radius: 16px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   font-family: var(--font-body);
 }
