@@ -21,7 +21,7 @@
     "format:check": "prettier --check \"**/*.{js,ts,vue,json,css,md}\"",
     "typecheck": "tsc -p server/tsconfig.json --noEmit",
     "knip": "knip",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "engines": {
     "node": ">=18.0.0",

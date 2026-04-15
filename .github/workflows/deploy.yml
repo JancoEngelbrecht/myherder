@@ -92,16 +92,12 @@ jobs:
       - name: Build frontend
         run: cd client && npm ci && npm run build
 
-      - name: Prepare production node_modules
-        run: |
-          # Prune to production-only deps (devDependencies never touch prod)
-          rm -rf node_modules
-          npm ci --omit=dev --ignore-scripts
-
       - name: Build deploy tarball
         run: |
           # Explicit allowlist — only files the server needs at runtime.
-          # No source .ts, no tests, no plans/, no docs, no CI configs.
+          # No node_modules: CloudLinux Node.js Selector requires node_modules
+          # to be a symlink into the nodevenv; server runs `npm ci --omit=dev`
+          # inside the activated venv instead.
           tar czf deploy.tar.gz \
             app.js \
             package.json \
@@ -109,7 +105,6 @@ jobs:
             knexfile.js \
             dist \
             client/dist \
-            node_modules \
             server/migrations \
             server/seeds/production
           ls -lh deploy.tar.gz
@@ -166,26 +161,33 @@ jobs:
             echo ">>> [4/8] Stopping app (pkill lsnode)"
             pkill -u myherder -f 'lsnode:' 2>/dev/null || true
 
-            echo ">>> [5/8] Clean-slate: removing everything except .env, .htaccess, tmp/"
+            echo ">>> [5/9] Clean-slate: removing everything except .env, .htaccess, tmp/, node_modules symlink"
+            # node_modules is a CloudLinux-managed symlink into the nodevenv —
+            # never delete it, or the Node.js Selector breaks.
             find . -maxdepth 1 -mindepth 1 \
               ! -name '.env' \
               ! -name '.htaccess' \
               ! -name 'tmp' \
+              ! -name 'node_modules' \
               -exec rm -rf {} +
             echo "After clean:"
             ls -la
 
-            echo ">>> [6/8] Extracting tarball"
+            echo ">>> [6/9] Extracting tarball"
             tar xzf "$TARBALL"
             rm -f "$TARBALL"
             mkdir -p tmp
             echo "After extract:"
             ls -la
 
-            echo ">>> [7/8] Running migrations"
+            echo ">>> [7/9] Installing production deps into nodevenv"
+            # --ignore-scripts skips the husky prepare hook (dev-only tool)
+            npm ci --omit=dev --ignore-scripts
+
+            echo ">>> [8/9] Running migrations"
             npx knex migrate:latest --env production
 
-            echo ">>> [8/8] Restarting Passenger"
+            echo ">>> [9/9] Restarting Passenger"
             touch tmp/restart.txt
 
             echo "Deployed commit: ${GITHUB_SHA:-unknown}"
