@@ -119,54 +119,70 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy to server
+      - name: Add server to known_hosts
+        run: ssh-keyscan -H myherder.co.za >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Upload deploy tarball
         run: |
-          ssh-keyscan -H myherder.co.za >> ~/.ssh/known_hosts 2>/dev/null
+          # Upload to user's home dir — always writable on cPanel shared hosting
+          # (some cPanel hosts restrict /tmp)
+          scp -v deploy.tar.gz myherder@myherder.co.za:/home/myherder/deploy.tar.gz 2>&1 | tail -20
+          echo "Upload OK"
 
-          # Upload single tarball with everything the server needs
-          scp deploy.tar.gz myherder@myherder.co.za:/tmp/deploy.tar.gz
-
-          ssh -o StrictHostKeyChecking=no myherder@myherder.co.za 'bash -s' << 'DEPLOY'
-            set -e  # Abort on ANY failure — never leave server half-deployed
+      - name: Run remote deploy
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          ssh -o StrictHostKeyChecking=no myherder@myherder.co.za "GITHUB_SHA='${GITHUB_SHA}' bash -s" << 'DEPLOY'
+            set -euo pipefail
 
             DEPLOY_DIR=/home/myherder/repositories/myherder
+            TARBALL=/home/myherder/deploy.tar.gz
 
+            echo ">>> [1/8] Activating nodevenv"
             source /home/myherder/nodevenv/repositories/myherder/24/bin/activate
-            cd "$DEPLOY_DIR"
 
-            # Paranoid safety check — never rm from wrong directory
+            echo ">>> [2/8] Verifying tarball exists"
+            if [ ! -f "$TARBALL" ]; then
+              echo "FATAL: $TARBALL not found" >&2
+              exit 1
+            fi
+            ls -lh "$TARBALL"
+
+            echo ">>> [3/8] Entering deploy dir"
+            cd "$DEPLOY_DIR"
             if [ "$(pwd)" != "$DEPLOY_DIR" ]; then
               echo "FATAL: cwd is $(pwd), expected $DEPLOY_DIR" >&2
               exit 1
             fi
 
-            # Stop the app before replacing files (avoid serving mid-extract state)
+            echo ">>> [4/8] Stopping app (pkill lsnode)"
             pkill -u myherder -f 'lsnode:' 2>/dev/null || true
 
-            # Clean slate: remove every top-level entry EXCEPT persistent server state.
-            # This wipes old source .ts, tests, plans/, docs, .git, node_modules, etc.
+            echo ">>> [5/8] Clean-slate: removing everything except .env, .htaccess, tmp/"
             find . -maxdepth 1 -mindepth 1 \
               ! -name '.env' \
               ! -name '.htaccess' \
               ! -name 'tmp' \
               -exec rm -rf {} +
+            echo "After clean:"
+            ls -la
 
-            # Extract fresh build (only runtime files, per workflow allowlist)
-            tar xzf /tmp/deploy.tar.gz
-            rm /tmp/deploy.tar.gz
+            echo ">>> [6/8] Extracting tarball"
+            tar xzf "$TARBALL"
+            rm -f "$TARBALL"
             mkdir -p tmp
+            echo "After extract:"
+            ls -la
 
-            echo "Running migrations..."
+            echo ">>> [7/8] Running migrations"
             npx knex migrate:latest --env production
-            echo "Migrations complete."
 
-            # Restart Passenger
+            echo ">>> [8/8] Restarting Passenger"
             touch tmp/restart.txt
 
             echo "Deployed commit: ${GITHUB_SHA:-unknown}"
           DEPLOY
-        env:
-          GITHUB_SHA: ${{ github.sha }}
 
       - name: Post-deploy smoke test
         run: |
