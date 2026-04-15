@@ -14,7 +14,7 @@ client/node_modules/
 
 # Build output
 dist/
-!client/dist/
+client/dist/
 client/dist-ssr/
 
 # Logs
@@ -50,4 +50,6 @@ tmpclaude-*
 # Argo demo videos
 .argo/
 videos/
+demos/
+argo.config.mjs
 test-results/

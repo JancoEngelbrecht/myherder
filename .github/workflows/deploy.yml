@@ -79,7 +79,9 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: client/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            client/package-lock.json
 
       - name: Install all dependencies
         run: npm ci
@@ -92,10 +94,25 @@ jobs:
 
       - name: Prepare production node_modules
         run: |
-          # Prune to production-only deps and compress for fast SCP
+          # Prune to production-only deps (devDependencies never touch prod)
           rm -rf node_modules
           npm ci --omit=dev --ignore-scripts
-          tar czf node_modules.tar.gz node_modules
+
+      - name: Build deploy tarball
+        run: |
+          # Explicit allowlist — only files the server needs at runtime.
+          # No source .ts, no tests, no plans/, no docs, no CI configs.
+          tar czf deploy.tar.gz \
+            app.js \
+            package.json \
+            package-lock.json \
+            knexfile.js \
+            dist \
+            client/dist \
+            node_modules \
+            server/migrations \
+            server/seeds/production
+          ls -lh deploy.tar.gz
 
       - name: Set up SSH agent
         uses: webfactory/ssh-agent@v0.9.0
@@ -106,42 +123,50 @@ jobs:
         run: |
           ssh-keyscan -H myherder.co.za >> ~/.ssh/known_hosts 2>/dev/null
 
-          # Upload pre-built server dist and client dist
-          ssh -o StrictHostKeyChecking=no myherder@myherder.co.za 'rm -rf /home/myherder/repositories/myherder/dist /home/myherder/repositories/myherder/client/dist'
-          scp -r dist myherder@myherder.co.za:/home/myherder/repositories/myherder/
-          scp -r client/dist myherder@myherder.co.za:/home/myherder/repositories/myherder/client/
+          # Upload single tarball with everything the server needs
+          scp deploy.tar.gz myherder@myherder.co.za:/tmp/deploy.tar.gz
 
-          # Upload production node_modules as tarball (~17MB compressed)
-          scp node_modules.tar.gz myherder@myherder.co.za:/home/myherder/repositories/myherder/
-
-          # Pull code, extract deps, migrate, restart
           ssh -o StrictHostKeyChecking=no myherder@myherder.co.za 'bash -s' << 'DEPLOY'
-            set -e  # Abort on ANY failure — never kill the server if setup fails
+            set -e  # Abort on ANY failure — never leave server half-deployed
+
+            DEPLOY_DIR=/home/myherder/repositories/myherder
 
             source /home/myherder/nodevenv/repositories/myherder/24/bin/activate
-            cd /home/myherder/repositories/myherder
+            cd "$DEPLOY_DIR"
 
-            # Reset tracked files + clean untracked so git pull never fails
-            git reset --hard HEAD
-            git clean -fd client/dist dist
-            git pull origin main
+            # Paranoid safety check — never rm from wrong directory
+            if [ "$(pwd)" != "$DEPLOY_DIR" ]; then
+              echo "FATAL: cwd is $(pwd), expected $DEPLOY_DIR" >&2
+              exit 1
+            fi
 
-            # Extract CI-built production dependencies (cPanel blocks npm install)
-            echo "Extracting production node_modules..."
-            tar xzf node_modules.tar.gz
-            rm node_modules.tar.gz
-            echo "Dependencies ready."
+            # Stop the app before replacing files (avoid serving mid-extract state)
+            pkill -u myherder -f 'lsnode:' 2>/dev/null || true
+
+            # Clean slate: remove every top-level entry EXCEPT persistent server state.
+            # This wipes old source .ts, tests, plans/, docs, .git, node_modules, etc.
+            find . -maxdepth 1 -mindepth 1 \
+              ! -name '.env' \
+              ! -name '.htaccess' \
+              ! -name 'tmp' \
+              -exec rm -rf {} +
+
+            # Extract fresh build (only runtime files, per workflow allowlist)
+            tar xzf /tmp/deploy.tar.gz
+            rm /tmp/deploy.tar.gz
+            mkdir -p tmp
 
             echo "Running migrations..."
             npx knex migrate:latest --env production
             echo "Migrations complete."
 
-            # Only restart if everything above succeeded (set -e guarantees this)
-            pkill -u myherder -f 'lsnode:' 2>/dev/null || true
+            # Restart Passenger
             touch tmp/restart.txt
 
-            echo "Deployed commit: $(git log --oneline -1)"
+            echo "Deployed commit: ${GITHUB_SHA:-unknown}"
           DEPLOY
+        env:
+          GITHUB_SHA: ${{ github.sha }}
 
       - name: Post-deploy smoke test
         run: |
