@@ -119,21 +119,28 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Add server to known_hosts
-        run: ssh-keyscan -H myherder.co.za >> ~/.ssh/known_hosts 2>/dev/null
-
       - name: Upload deploy tarball
         run: |
           # Upload to user's home dir — always writable on cPanel shared hosting
-          # (some cPanel hosts restrict /tmp)
-          scp -v deploy.tar.gz myherder@myherder.co.za:/home/myherder/deploy.tar.gz 2>&1 | tail -20
+          # (some cPanel hosts restrict /tmp). Skip known_hosts dance — trust IP.
+          scp \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            -o ConnectTimeout=30 \
+            deploy.tar.gz \
+            myherder@myherder.co.za:/home/myherder/deploy.tar.gz
           echo "Upload OK"
 
       - name: Run remote deploy
         env:
           GITHUB_SHA: ${{ github.sha }}
         run: |
-          ssh -o StrictHostKeyChecking=no myherder@myherder.co.za "GITHUB_SHA='${GITHUB_SHA}' bash -s" << 'DEPLOY'
+          ssh \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            -o ConnectTimeout=30 \
+            myherder@myherder.co.za \
+            "GITHUB_SHA='${GITHUB_SHA}' bash -s" << 'DEPLOY'
             set -euo pipefail
 
             DEPLOY_DIR=/home/myherder/repositories/myherder
