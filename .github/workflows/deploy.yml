@@ -142,7 +142,9 @@ jobs:
             TARBALL=/home/myherder/deploy.tar.gz
 
             echo ">>> [1/8] Activating nodevenv"
+            set +u
             source /home/myherder/nodevenv/repositories/myherder/24/bin/activate
+            set -u
 
             echo ">>> [2/8] Verifying tarball exists"
             if [ ! -f "$TARBALL" ]; then
