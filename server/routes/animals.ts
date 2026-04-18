@@ -494,7 +494,7 @@ router.post('/batch-delete', requireAdmin, async (req, res, next) => {
       .where('farm_id', req.farmId)
       .whereIn('id', ids)
       .whereNull('deleted_at')
-      .pluck('id')
+      .select('id', 'tag_number')
 
     if (validRows.length !== ids.length) {
       return res.status(404).json({
@@ -508,10 +508,13 @@ router.post('/batch-delete', requireAdmin, async (req, res, next) => {
     const deletedAt = new Date().toISOString()
 
     await db.transaction(async (trx) => {
-      await trx('animals')
-        .where('farm_id', req.farmId)
-        .whereIn('id', ids)
-        .update({ deleted_at: deletedAt })
+      for (const row of validRows) {
+        const deletedTag = `${row.tag_number}__del_${Date.now()}_${uuidv4().slice(0, 4)}`
+        await trx('animals')
+          .where({ id: row.id })
+          .where('farm_id', req.farmId)
+          .update({ deleted_at: deletedAt, tag_number: deletedTag })
+      }
     })
 
     // Audit log — best-effort, post-commit
@@ -580,10 +583,14 @@ router.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
     const animal = await findAnimalOrFail(req.params.id, req.farmId)
 
+    const deletedTag = `${animal.tag_number}__del_${Date.now()}_${uuidv4().slice(0, 4)}`
+    const deletedAt = new Date().toISOString()
+
     await db('animals')
       .where({ id: req.params.id })
       .where('farm_id', req.farmId)
-      .update({ deleted_at: new Date().toISOString() })
+      .update({ deleted_at: deletedAt, tag_number: deletedTag })
+
     await logAudit({
       farmId: req.user.farm_id,
       userId: req.user.id,
@@ -592,6 +599,7 @@ router.delete('/:id', requireAdmin, async (req, res, next) => {
       entityId: req.params.id,
       oldValues: animal,
     })
+
     res.json({ message: 'Animal deleted' })
   } catch (err) {
     next(err)

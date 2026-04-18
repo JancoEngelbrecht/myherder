@@ -226,6 +226,11 @@ describe('DELETE /api/animals/:id', () => {
     // Should no longer appear in listings
     const listRes = await request(app).get('/api/animals').set('Authorization', adminToken())
     expect(listRes.body.find((c) => c.id === id)).toBeUndefined()
+
+    // tag_number must be renamed so the slot is freed for re-use
+    const dbRow = await db('animals').where({ id }).first()
+    expect(dbRow.tag_number).toContain('__del_')
+    expect(dbRow.deleted_at).not.toBeNull()
   })
 
   it('returns 403 for a worker token', async () => {
@@ -550,6 +555,9 @@ describe('POST /api/animals/batch-delete', () => {
 
     const deletedRows = await db('animals').whereIn('id', ids).whereNotNull('deleted_at')
     expect(deletedRows).toHaveLength(3)
+
+    // Every deleted row must have its tag_number renamed
+    expect(deletedRows.every((r) => r.tag_number.includes('__del_'))).toBe(true)
   })
 
   it('writes N audit log entries after batch delete', async () => {
@@ -637,6 +645,85 @@ describe('POST /api/animals/batch-delete', () => {
       .send({ ids: [randomUUID()] })
 
     expect(res.status).toBe(404)
+  })
+})
+
+// ─── Tag re-use after delete ──────────────────────────────────────────────────
+
+describe('Tag re-use after delete', () => {
+  it('single: re-creates same tag after delete (201)', async () => {
+    const tag = `REUSE-${randomUUID().slice(0, 6)}`
+    const id = await createAnimal({ tag_number: tag })
+
+    // Delete
+    const delRes = await request(app)
+      .delete(`/api/animals/${id}`)
+      .set('Authorization', adminToken())
+    expect(delRes.status).toBe(200)
+
+    // DB row has renamed tag
+    const dbRow = await db('animals').where({ id }).first()
+    expect(dbRow.tag_number).toContain('__del_')
+
+    // Re-create with same tag must succeed
+    const createRes = await request(app)
+      .post('/api/animals')
+      .set('Authorization', adminToken())
+      .send({ tag_number: tag, sex: 'female', status: 'active' })
+    expect(createRes.status).toBe(201)
+    expect(createRes.body.tag_number).toBe(tag)
+  })
+
+  it('batch: re-creates same tags after batch delete (201)', async () => {
+    const tags = [
+      `BREUSE-${randomUUID().slice(0, 6)}`,
+      `BREUSE-${randomUUID().slice(0, 6)}`,
+      `BREUSE-${randomUUID().slice(0, 6)}`,
+    ]
+    const ids = await Promise.all(tags.map((tag_number) => createAnimal({ tag_number })))
+
+    // Batch delete
+    const delRes = await request(app)
+      .post('/api/animals/batch-delete')
+      .set('Authorization', adminToken())
+      .send({ ids })
+    expect(delRes.status).toBe(200)
+    expect(delRes.body.deleted).toBe(3)
+
+    // Batch re-create with same tags must succeed
+    const createRes = await request(app)
+      .post('/api/animals/batch')
+      .set('Authorization', adminToken())
+      .send({
+        defaults: { sex: 'female', status: 'active' },
+        tags,
+      })
+    expect(createRes.status).toBe(201)
+    expect(createRes.body.created).toBe(3)
+  })
+
+  it('double delete: two distinct __del_ suffixes, no UNIQUE violation', async () => {
+    const tag = `DDEL-${randomUUID().slice(0, 6)}`
+
+    // First create + delete
+    const id1 = await createAnimal({ tag_number: tag })
+    const del1 = await request(app).delete(`/api/animals/${id1}`).set('Authorization', adminToken())
+    expect(del1.status).toBe(200)
+
+    // Second create + delete (same tag)
+    const id2 = await createAnimal({ tag_number: tag })
+    const del2 = await request(app).delete(`/api/animals/${id2}`).set('Authorization', adminToken())
+    expect(del2.status).toBe(200)
+
+    // Both rows have __del_ in tag_number
+    const rows = await db('animals')
+      .whereRaw('tag_number LIKE ?', ['%__del_%'])
+      .whereIn('id', [id1, id2])
+    expect(rows).toHaveLength(2)
+
+    // Suffixes must be distinct (no collision)
+    const [tag1, tag2] = rows.map((r) => r.tag_number)
+    expect(tag1).not.toBe(tag2)
   })
 })
 

@@ -604,6 +604,58 @@ describe('GET /api/sync/pull', () => {
     const deletedIds = res.body.deleted.map((d) => d.id)
     expect(deletedIds).toContain(animalId)
   })
+
+  it('tombstone bounded by since: animal deleted in 2020 is NOT returned when since=2025', async () => {
+    const animalId = await createAnimal({ name: 'Old Delete Sync' })
+    const deletedAt = '2020-06-15T12:00:00.000Z'
+    await db('animals').where({ id: animalId }).update({
+      deleted_at: deletedAt,
+      updated_at: deletedAt,
+    })
+
+    const res = await request(app)
+      .get('/api/sync/pull?since=2025-01-01T00:00:00.000Z')
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    const deletedIds = res.body.deleted.map((d) => d.id)
+    expect(deletedIds).not.toContain(animalId)
+  })
+
+  it('tombstone bounded by since: animal deleted in 2020 IS returned when since=2019', async () => {
+    const animalId = await createAnimal({ name: 'Old Delete Sync 2' })
+    const deletedAt = '2020-06-15T12:00:00.000Z'
+    await db('animals').where({ id: animalId }).update({
+      deleted_at: deletedAt,
+      updated_at: deletedAt,
+    })
+
+    const res = await request(app)
+      .get('/api/sync/pull?since=2019-01-01T00:00:00.000Z')
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    const deletedIds = res.body.deleted.map((d) => d.id)
+    expect(deletedIds).toContain(animalId)
+  })
+
+  it('tombstone bounded by since: strict boundary — since == deleted_at does NOT return the item', async () => {
+    const animalId = await createAnimal({ name: 'Boundary Sync' })
+    const deletedAt = '2020-06-15T12:00:00.000Z'
+    await db('animals').where({ id: animalId }).update({
+      deleted_at: deletedAt,
+      updated_at: deletedAt,
+    })
+
+    // since == deleted_at: strict > means NOT returned
+    const res = await request(app)
+      .get(`/api/sync/pull?since=${deletedAt}`)
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    const deletedIds = res.body.deleted.map((d) => d.id)
+    expect(deletedIds).not.toContain(animalId)
+  })
 })
 
 // ─── Ownership checks ─────────────────────────────────────────────────────────

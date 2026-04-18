@@ -541,11 +541,12 @@ async function pullData(
       const rows = await query
 
       if (!full && since && softDelete) {
-        // Return ALL soft-deleted IDs so clients always reconcile stale records,
-        // even if the deletion predates the client's last sync timestamp.
+        // Return soft-deleted IDs bounded by `since` — only deletions that
+        // occurred after the client's last sync timestamp are returned.
         const deletedRows = await db(table)
           .where('farm_id', farmId)
           .whereNotNull('deleted_at')
+          .where('deleted_at', '>', since)
           .select('id')
 
         const entityDeleted = deletedRows.map((row: { id: string }) => ({

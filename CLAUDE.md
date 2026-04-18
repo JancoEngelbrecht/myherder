@@ -97,7 +97,7 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
 - `GET /api/analytics/health-cure-rate-trend?from&to` — monthly cure rate; returns `{ months: [{ month, rate, total, resolved }] }`
 - `GET /api/analytics/slowest-to-resolve?from&to` — top 10 cows by avg resolution time; returns `[{ id, tag_number, name, avg_days, issue_count }]`
 - Cows API supports `search`, `status`, `sex`, `breed_type_id`, `is_dry`, `page`, `limit` query params
-- Soft delete: `DELETE /api/animals/:id` sets `deleted_at` (admin only)
+- Soft delete: `DELETE /api/animals/:id` sets `deleted_at` and renames `tag_number` to `<tag>__del_<ms>_<rand4>` (admin only) — frees the tag slot for immediate re-use; `POST /api/animals/batch-delete` does the same rename per animal inside a single transaction
 - **Animal IDs are UUIDs** — never use `Number(route.params.id)`
 - `GET /api/medications` — active only; `?all=1` for all (admin)
 - `GET /api/milk-records` — **dual mode**: without `page`/`limit` returns plain array (legacy recording page); with `page`/`limit` returns `{ data: [...], total: N }` (history view). Optional filters: `date`, `from`/`to` (date range), `session`, `animal_id`, `recorded_by`, `search` (LIKE on tag_number/animal_name/recorded_by_name), `discarded` (boolean). Sort: `sort=recording_date|litres|tag_number`, `order=asc|desc` (default: recording_date desc). Joined fields: `tag_number`, `animal_name`, `recorded_by_name`
@@ -121,7 +121,7 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
 - `PATCH /api/feature-flags` — admin only; body `{ flagKey: bool }` (camelCase); returns updated full flags object
 - `GET /api/sync/health` — no auth, returns `{ ok, timestamp }` (connectivity check)
 - `POST /api/sync/push` — batch push client changes; body `{ deviceId, changes: [{ entityType, action, id, data, updatedAt }] }`; returns `{ results: [{ id, entityType, status, serverData?, error? }] }`; LWW conflict resolution
-- `GET /api/sync/pull?since=<ISO>&full=1` — pull server data; returns `{ cows, medications, treatments, healthIssues, milkRecords, breedingEvents, breedTypes, issueTypes, deleted, syncedAt }`
+- `GET /api/sync/pull?since=<ISO>&full=1` — pull server data; returns `{ cows, medications, treatments, healthIssues, milkRecords, breedingEvents, breedTypes, issueTypes, deleted, syncedAt }`. Tombstones in `deleted` are bounded by `since` (strict `>`) on incremental pulls — only deletions that occurred after `since` are returned. Full pull (`full=1`) always returns all non-deleted records (no tombstones).
 - `GET /api/users` — admin only; returns all users (sanitized, no hashes). `?active_only=1` for active users only
 - `POST /api/users` — admin only; create user with `{ username, full_name, role, pin?, password?, permissions[], language }`
 - `PATCH /api/users/:id` — admin only; update user fields. Cannot change own role
