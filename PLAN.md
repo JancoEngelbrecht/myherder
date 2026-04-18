@@ -595,7 +595,7 @@ All core features are built and working:
 - **Phase 5**: Offline sync engine (queue, push/pull, background sync, offline login)
 - **Cross-cutting**: Feature flags, code quality tooling, breeding hub redesign
 
-Completed sub-plans: [breeding-v2](plans/breeding-v2.md), [offline-sync](plans/offline-sync.md), [feature-flags](plans/feature-flags.md), [breeding-hub-redesign](plans/breeding-hub-redesign.md)
+Completed sub-plans: [breeding-v2](plans/breeding-v2.md), [offline-sync](plans/offline-sync.md), [feature-flags](plans/feature-flags.md), [breeding-hub-redesign](plans/breeding-hub-redesign.md), [animal-tag-reuse](plans/animal-tag-reuse.md)
 
 ---
 

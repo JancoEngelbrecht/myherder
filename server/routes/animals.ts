@@ -114,6 +114,13 @@ async function findAnimalOrFail(id, farmId) {
   return animal
 }
 
+// Build a tag suffix that frees the original slot while guaranteeing
+// uniqueness across concurrent batches and historical deletes.
+// 8 hex chars = ~4B combos, collision-proof even when Date.now() repeats.
+function deletedTag(originalTag) {
+  return `${originalTag}__del_${Date.now()}_${uuidv4().slice(0, 8)}`
+}
+
 // ── Routes ──────────────────────────────────────────────────────
 
 // ── Life-phase SQL CASE expression ───
@@ -507,24 +514,28 @@ router.post('/batch-delete', requireAdmin, async (req, res, next) => {
 
     const deletedAt = new Date().toISOString()
 
+    // Sort by id to acquire row locks in a deterministic order —
+    // prevents deadlocks under concurrent batch-deletes on MySQL.
+    const orderedRows = [...validRows].sort((a, b) => a.id.localeCompare(b.id))
+
     await db.transaction(async (trx) => {
-      for (const row of validRows) {
-        const deletedTag = `${row.tag_number}__del_${Date.now()}_${uuidv4().slice(0, 4)}`
+      for (const row of orderedRows) {
         await trx('animals')
           .where({ id: row.id })
           .where('farm_id', req.farmId)
-          .update({ deleted_at: deletedAt, tag_number: deletedTag })
+          .update({ deleted_at: deletedAt, tag_number: deletedTag(row.tag_number) })
       }
     })
 
     // Audit log — best-effort, post-commit
-    for (const id of ids) {
+    for (const row of orderedRows) {
       await logAudit({
         farmId: req.user.farm_id,
         userId: req.user.id,
         action: 'delete',
         entityType: 'animal',
-        entityId: id,
+        entityId: row.id,
+        oldValues: row,
       })
     }
 
@@ -583,13 +594,12 @@ router.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
     const animal = await findAnimalOrFail(req.params.id, req.farmId)
 
-    const deletedTag = `${animal.tag_number}__del_${Date.now()}_${uuidv4().slice(0, 4)}`
     const deletedAt = new Date().toISOString()
 
     await db('animals')
       .where({ id: req.params.id })
       .where('farm_id', req.farmId)
-      .update({ deleted_at: deletedAt, tag_number: deletedTag })
+      .update({ deleted_at: deletedAt, tag_number: deletedTag(animal.tag_number) })
 
     await logAudit({
       farmId: req.user.farm_id,

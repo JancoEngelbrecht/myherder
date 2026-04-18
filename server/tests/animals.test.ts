@@ -724,6 +724,12 @@ describe('Tag re-use after delete', () => {
     // Suffixes must be distinct (no collision)
     const [tag1, tag2] = rows.map((r) => r.tag_number)
     expect(tag1).not.toBe(tag2)
+
+    // Suffix format: <original>__del_<13-digit-ms>_<8-hex-chars>
+    // eslint-disable-next-line security/detect-non-literal-regexp -- test-local tag is regex-safe
+    const pattern = new RegExp(`^${tag}__del_\\d{13}_[0-9a-f]{8}$`)
+    expect(tag1).toMatch(pattern)
+    expect(tag2).toMatch(pattern)
   })
 })
 
