@@ -1,0 +1,1 @@
+npm test --silent && (cd client && npm run test:run)
