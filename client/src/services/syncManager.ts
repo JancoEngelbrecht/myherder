@@ -203,8 +203,13 @@ async function sync() {
     await pullChanges()
     isOnline.value = true
     lastPullMs = Date.now()
-  } catch {
-    // Push/pull errors are handled internally
+  } catch (err) {
+    // Offline errors flip isOnline via isOfflineError checks inside push/pull.
+    // Other failures (5xx, malformed response, IndexedDB quota) would otherwise
+    // vanish — log them so they are visible in DevTools / frontend telemetry.
+    if (!isOfflineError(err)) {
+      console.error('[sync] unexpected failure:', err)
+    }
   } finally {
     isSyncing.value = false
     await refreshPendingCount()

@@ -12,7 +12,8 @@ module.exports = function errorHandler(
   res: Response,
   _next: NextFunction
 ): void {
-  console.error(err.stack || err.message || err)
+  const reqId = (req as any).reqId || '?'
+  console.error(`[${reqId}]`, err.stack || err.message || err)
 
   // Database unique constraint violations (SQLite + MySQL)
   if (

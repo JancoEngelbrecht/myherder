@@ -7,6 +7,18 @@ import './style.css'
 
 const app = createApp(App)
 
+app.config.errorHandler = (err, _instance, info) => {
+  console.error('[vue-error]', info, err)
+}
+
+window.addEventListener('error', (event) => {
+  console.error('[window-error]', event.message, event.error)
+})
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('[unhandledrejection]', event.reason)
+})
+
 app.use(createPinia())
 app.use(router)
 app.use(i18n)

@@ -2,11 +2,25 @@ const express = require('express')
 const cors = require('cors')
 const helmet = require('helmet')
 const path = require('path')
+const crypto = require('crypto')
 const { nodeEnv, isProduction, corsOrigins } = require('./config/env')
 const errorHandler = require('./middleware/errorHandler')
 const { requestStatsMiddleware } = require('./helpers/requestStats')
 
 const app = express()
+
+// Request correlation ID — attached before any middleware that logs,
+// so log lines from the same request can be correlated under load.
+app.use((req, res, next) => {
+  const incoming = req.headers['x-request-id']
+  const reqId =
+    typeof incoming === 'string' && incoming.length > 0 && incoming.length <= 64
+      ? incoming
+      : crypto.randomBytes(4).toString('hex')
+  ;(req as any).reqId = reqId
+  res.setHeader('X-Request-Id', reqId)
+  next()
+})
 
 // Trust first proxy (Passenger/cPanel reverse proxy) so express-rate-limit reads X-Forwarded-For correctly
 if (isProduction) app.set('trust proxy', 1)
@@ -36,7 +50,10 @@ app.use(requestStatsMiddleware)
 if (nodeEnv !== 'test') {
   app.use((req, _res, next) => {
     const url = isProduction ? req.path : req.url
-    console.log(`${req.method} ${url}`)
+    const user = (req as any).user
+    const userPart = user?.id ? ` user=${user.id}` : ''
+    const farmPart = (req as any).farmId ? ` farm=${(req as any).farmId}` : ''
+    console.log(`[${(req as any).reqId}] ${req.method} ${url}${userPart}${farmPart}`)
     next()
   })
 }

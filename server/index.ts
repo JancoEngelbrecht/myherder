@@ -24,3 +24,16 @@ function shutdown(signal) {
 
 process.on('SIGTERM', () => shutdown('SIGTERM'))
 process.on('SIGINT', () => shutdown('SIGINT'))
+
+// Surface fatal errors to stderr before Passenger restarts the worker.
+// Without these, unhandled rejections in Node 22+ crash silently.
+process.on('unhandledRejection', (reason: unknown) => {
+  const detail = reason instanceof Error ? reason.stack || reason.message : String(reason)
+  console.error('[fatal] unhandledRejection:', detail)
+})
+
+process.on('uncaughtException', (err: Error) => {
+  console.error('[fatal] uncaughtException:', err.stack || err.message)
+  // Flush and exit — Passenger will respawn the worker.
+  process.exit(1)
+})
