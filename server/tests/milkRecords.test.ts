@@ -359,3 +359,47 @@ describe('GET /api/milk-records permission enforcement', () => {
     expect(res.status).toBe(403)
   })
 })
+
+// ── GET /api/milk-records — unbounded request guard ──────────────────────────
+
+describe('GET /api/milk-records unbounded guard', () => {
+  it('returns 400 when no filter or pagination is supplied', async () => {
+    const res = await request(app).get('/api/milk-records').set('Authorization', adminToken())
+    expect(res.status).toBe(400)
+    expect(res.body.error).toMatch(/date|from|to|animal_id|pagination/)
+  })
+
+  it('returns 200 with ?date= filter (legacy mode still works)', async () => {
+    const res = await request(app)
+      .get('/api/milk-records?date=2026-01-10')
+      .set('Authorization', adminToken())
+    expect(res.status).toBe(200)
+    expect(Array.isArray(res.body)).toBe(true)
+  })
+
+  it('returns 200 with ?from=&to= filter (legacy mode still works)', async () => {
+    const res = await request(app)
+      .get('/api/milk-records?from=2026-01-01&to=2026-01-31')
+      .set('Authorization', adminToken())
+    expect(res.status).toBe(200)
+    expect(Array.isArray(res.body)).toBe(true)
+  })
+
+  it('returns 200 with ?animal_id= filter (cow history still works)', async () => {
+    const animalId = await createAnimal({ tag_number: `GUARD-${Date.now()}` })
+    const res = await request(app)
+      .get(`/api/milk-records?animal_id=${animalId}`)
+      .set('Authorization', adminToken())
+    expect(res.status).toBe(200)
+    expect(Array.isArray(res.body)).toBe(true)
+  })
+
+  it('returns 200 with ?page=1 (paginated mode still works)', async () => {
+    const res = await request(app)
+      .get('/api/milk-records?page=1')
+      .set('Authorization', adminToken())
+    expect(res.status).toBe(200)
+    expect(res.body).toHaveProperty('data')
+    expect(res.body).toHaveProperty('total')
+  })
+})

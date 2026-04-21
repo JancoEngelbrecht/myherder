@@ -245,24 +245,36 @@ router.get('/', authorize('can_manage_animals'), async (req, res, next) => {
     if (q.calving_before) query.whereRaw(`${LAST_CALVING_SQL} <= ?`, [q.calving_before])
 
     // Average daily milk yield range (last 7 days)
+    // Pre-aggregate once via a derived table then LEFT JOIN — avoids one correlated
+    // subquery per animal row (O(n) → O(1) extra query).
     if (q.yield_min !== undefined || q.yield_max !== undefined) {
       const sevenDaysAgo = isMySQL() ? 'DATE_SUB(NOW(), INTERVAL 7 DAY)' : "date('now', '-7 days')"
-      const yieldSub = `(
-        SELECT AVG(daily_total) FROM (
-          SELECT mr.recording_date, SUM(mr.litres) as daily_total
-          FROM milk_records mr
-          WHERE mr.animal_id = c.id AND mr.farm_id = c.farm_id
-            AND mr.recording_date >= ${sevenDaysAgo}
-          GROUP BY mr.recording_date
-        ) AS daily_yields
-      )`
+
+      // Build the derived table: sum litres per (animal, day) then average across days
+      const dailyYieldsSub = db
+        .from(
+          db('milk_records as mr_inner')
+            .where('mr_inner.farm_id', req.farmId)
+            .whereRaw(`mr_inner.recording_date >= ${sevenDaysAgo}`)
+            .select('mr_inner.animal_id')
+            .select(db.raw('SUM(mr_inner.litres) as daily_total'))
+            .groupBy('mr_inner.animal_id', 'mr_inner.recording_date')
+            .as('_daily')
+        )
+        .select('_daily.animal_id')
+        .select(db.raw('AVG(_daily.daily_total) as avg_daily_yield'))
+        .groupBy('_daily.animal_id')
+        .as('yield_agg')
+
+      query.leftJoin(dailyYieldsSub, 'yield_agg.animal_id', 'c.id')
+
       if (q.yield_min !== undefined) {
         const yMin = parseFloat(String(q.yield_min))
-        if (!isNaN(yMin) && yMin >= 0) query.whereRaw(`${yieldSub} >= ?`, [yMin])
+        if (!isNaN(yMin) && yMin >= 0) query.whereRaw('yield_agg.avg_daily_yield >= ?', [yMin])
       }
       if (q.yield_max !== undefined) {
         const yMax = parseFloat(String(q.yield_max))
-        if (!isNaN(yMax) && yMax >= 0) query.whereRaw(`${yieldSub} <= ?`, [yMax])
+        if (!isNaN(yMax) && yMax >= 0) query.whereRaw('yield_agg.avg_daily_yield <= ?', [yMax])
       }
     }
 

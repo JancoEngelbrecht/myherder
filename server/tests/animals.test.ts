@@ -752,3 +752,89 @@ describe('GET /api/animals query validation', () => {
     expect(res.status).toBe(400)
   })
 })
+
+// ─── Yield filter (pre-aggregated JOIN) ───────────────────────────────────────
+
+describe('GET /api/animals — yield_min / yield_max filter', () => {
+  let highYieldId, lowYieldId, noMilkId
+
+  beforeAll(async () => {
+    const now = new Date().toISOString()
+
+    highYieldId = await createAnimal({ tag_number: `YHIGH-${randomUUID().slice(0, 6)}` })
+    lowYieldId = await createAnimal({ tag_number: `YLOW-${randomUUID().slice(0, 6)}` })
+    noMilkId = await createAnimal({ tag_number: `YNONE-${randomUUID().slice(0, 6)}` })
+
+    const adminUser = await db('users').where('farm_id', DEFAULT_FARM_ID).first()
+
+    // Insert 7-day milk records for highYield (avg ~20 L/day) and lowYield (avg ~3 L/day)
+    for (let i = 0; i < 7; i++) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      const dateStr = [
+        d.getFullYear(),
+        String(d.getMonth() + 1).padStart(2, '0'),
+        String(d.getDate()).padStart(2, '0'),
+      ].join('-')
+
+      await db('milk_records').insert({
+        id: randomUUID(),
+        farm_id: DEFAULT_FARM_ID,
+        animal_id: highYieldId,
+        recorded_by: adminUser.id,
+        session: 'morning',
+        litres: 20,
+        recording_date: dateStr,
+        created_at: now,
+        updated_at: now,
+      })
+      await db('milk_records').insert({
+        id: randomUUID(),
+        farm_id: DEFAULT_FARM_ID,
+        animal_id: lowYieldId,
+        recorded_by: adminUser.id,
+        session: 'morning',
+        litres: 3,
+        recording_date: dateStr,
+        created_at: now,
+        updated_at: now,
+      })
+    }
+  })
+
+  it('yield_min=10 includes high-yield, excludes low-yield and no-milk animals', async () => {
+    const res = await request(app)
+      .get('/api/animals?yield_min=10')
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    const ids = res.body.map((c) => c.id)
+    expect(ids).toContain(highYieldId)
+    expect(ids).not.toContain(lowYieldId)
+    expect(ids).not.toContain(noMilkId)
+  })
+
+  it('yield_max=5 includes low-yield, excludes high-yield and no-milk animals', async () => {
+    const res = await request(app)
+      .get('/api/animals?yield_max=5')
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    const ids = res.body.map((c) => c.id)
+    expect(ids).toContain(lowYieldId)
+    expect(ids).not.toContain(highYieldId)
+    expect(ids).not.toContain(noMilkId)
+  })
+
+  it('yield_min=5&yield_max=25 includes high-yield, excludes low-yield (3 L/day below min)', async () => {
+    const res = await request(app)
+      .get('/api/animals?yield_min=5&yield_max=25')
+      .set('Authorization', adminToken())
+
+    expect(res.status).toBe(200)
+    const ids = res.body.map((c) => c.id)
+    expect(ids).toContain(highYieldId)
+    expect(ids).not.toContain(lowYieldId) // 3 L/day is below yield_min 5
+    expect(ids).not.toContain(noMilkId)
+  })
+})

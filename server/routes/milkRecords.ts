@@ -117,6 +117,13 @@ router.get('/', authorize('can_record_milk'), async (req, res, next) => {
     if (error) return res.status(400).json({ error: joiMsg(error) })
 
     const paginated = value.page != null || value.limit != null
+
+    // Guard: legacy (non-paginated) callers must supply at least one date/animal filter
+    // to prevent full-table scans on large farms.
+    if (!paginated && !value.date && !value.from && !value.to && !value.animal_id) {
+      return res.status(400).json({ error: 'date, from, to, animal_id, or pagination required' })
+    }
+
     const sortCol = SORT_COLUMN_MAP[value.sort || 'recording_date']
     const order = value.order || 'desc'
 

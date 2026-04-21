@@ -229,7 +229,8 @@ describe('Milk Records isolation', () => {
   })
 
   it('Farm B list returns zero Farm A records', async () => {
-    const res = await request(app).get('/api/milk-records').set('Authorization', farmBToken)
+    // Use paginated mode (page=1) — legacy mode now requires at least one date/animal filter
+    const res = await request(app).get('/api/milk-records?page=1').set('Authorization', farmBToken)
     expect(res.status).toBe(200)
     const body = Array.isArray(res.body) ? res.body : res.body.data
     const ids = body.map((r) => r.id)

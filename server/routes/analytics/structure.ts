@@ -184,11 +184,14 @@ router.get('/herd-turnover', async (req, res, next) => {
 // GET /api/analytics/herd-size-trend
 router.get('/herd-size-trend', async (req, res, next) => {
   try {
-    const { start, end } = defaultRange(req.query.from, req.query.to)
+    const { start, end, endTs } = defaultRange(req.query.from, req.query.to)
 
-    // Count cows added per month — include soft-deleted cows (they were real additions)
+    // Count cows added per month — include soft-deleted cows (they were real additions).
+    // Upper-bound by endTs so the DB can use the created_at index rather than scanning
+    // all historical rows, and exclude future-dated records from a different query window.
     const addedRows = await db('animals')
       .where('farm_id', req.farmId)
+      .where('created_at', '<=', endTs)
       .select(db.raw(`${monthExpr('created_at')} as month`))
       .count('id as added')
       .groupByRaw(`${monthExpr('created_at')}`)
