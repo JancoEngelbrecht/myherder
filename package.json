@@ -30,6 +30,9 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "overrides": {
+    "path-to-regexp": ">=8.4.0"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
@@ -80,6 +83,7 @@
     "supertest": "^7.2.2",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2",
+    "vue-eslint-parser": "^10.4.0",
     "wait-on": "^9.0.4"
   }
 }

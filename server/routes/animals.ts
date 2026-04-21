@@ -164,7 +164,7 @@ const LAST_CALVING_SQL = `(
   )`
 
 // GET /api/animals
-router.get('/', async (req, res, next) => {
+router.get('/', authorize('can_manage_animals'), async (req, res, next) => {
   try {
     const { error: qError, value: q } = validateQuery(animalQuerySchema, req.query)
     if (qError) return res.status(400).json({ error: joiMsg(qError) })
@@ -305,7 +305,7 @@ router.get('/', async (req, res, next) => {
 })
 
 // GET /api/animals/:id
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', authorize('can_manage_animals'), async (req, res, next) => {
   try {
     // Single query with LEFT JOINs to resolve sire/dam names
     const animal = await db('animals as c')

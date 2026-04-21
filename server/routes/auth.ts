@@ -22,6 +22,15 @@ const {
 
 const router = express.Router()
 
+// ── 2FA bypass (dev only, refuse in prod) ───────────────────────
+const SKIP_SUPER_ADMIN_2FA = process.env.SKIP_2FA === 'true'
+if (SKIP_SUPER_ADMIN_2FA && process.env.NODE_ENV === 'production') {
+  throw new Error('SKIP_2FA=true is not permitted in production')
+}
+if (SKIP_SUPER_ADMIN_2FA) {
+  process.stderr.write('[WARNING] SKIP_2FA=true — super_admin 2FA bypassed (dev only)\n')
+}
+
 // ── Validation schemas ──────────────────────────────────────────
 
 const loginSchema = Joi.object({
@@ -231,8 +240,8 @@ router.post('/login', loginLimiter, async (req, res, next) => {
       return res.status(401).json({ error: 'Invalid credentials' })
     }
 
-    // Super-admin 2FA flow (skipped in development)
-    if (user.role === 'super_admin' && process.env.NODE_ENV === 'production') {
+    // Super-admin 2FA flow — always enforced unless SKIP_2FA=true (dev only)
+    if (user.role === 'super_admin' && !SKIP_SUPER_ADMIN_2FA) {
       const tempToken = issueTempToken(user)
       if (!user.totp_enabled) {
         return res.json({ requires_totp_setup: true, temp_token: tempToken })

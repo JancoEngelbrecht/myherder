@@ -379,7 +379,7 @@ async function handleCreate(
   const row: Record<string, unknown> = {
     ...data,
     id,
-    created_at: (data && data.created_at) || now,
+    created_at: now,
     updated_at: now,
   }
 
@@ -426,10 +426,14 @@ async function handleUpdate(
   }
 
   // Conflict check: last-write-wins (use Date objects for reliable comparison)
+  // Cap client timestamp to server-now + 5min to prevent LWW forgery with future dates
   const serverUpdatedAt = existing.updated_at
   if (serverUpdatedAt && clientUpdatedAt) {
     const serverTime = new Date(serverUpdatedAt).getTime()
-    const clientTime = new Date(clientUpdatedAt).getTime()
+    const rawClientTime = new Date(clientUpdatedAt).getTime()
+    const nowMs = Date.now()
+    const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000
+    const clientTime = Math.min(rawClientTime, nowMs + MAX_CLOCK_SKEW_MS)
     if (!isNaN(serverTime) && !isNaN(clientTime) && serverTime > clientTime) {
       // Server is newer — conflict, return server version
       return { id, entityType, status: 'conflict', serverData: existing }
