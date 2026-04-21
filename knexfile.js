@@ -44,7 +44,10 @@ module.exports = {
       database: process.env.DB_NAME,
       charset: 'utf8mb4',
     },
-    pool: { min: 0, max: 5 },
+    // Dashboard load fires 6 parallel analytics queries; with 10 concurrent users
+    // across farms, max:5 causes queue-up. VitalHost MySQL allows >50 concurrent
+    // connections, so 15 is a safe ceiling with comfortable headroom.
+    pool: { min: 0, max: 15 },
     migrations: {
       directory: './server/migrations',
     },
