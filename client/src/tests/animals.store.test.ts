@@ -1,9 +1,12 @@
 import 'fake-indexeddb/auto'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { useAnimalsStore, computeLifePhase, computeIsReadyToBreed } from '../stores/animals'
-import api from '../services/api'
+import _api from '../services/api'
+import type { MockedApi } from './helpers/mockedApi'
 import db from '../db/indexedDB'
 import { destroyListeners, pendingCount, isOnline } from '../services/syncManager'
+
+const api = _api as unknown as MockedApi
 
 // Mock only the API layer — let real IndexedDB + syncManager run
 vi.mock('../services/api', () => ({

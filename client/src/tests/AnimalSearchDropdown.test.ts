@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import AnimalSearchDropdown from '../components/molecules/AnimalSearchDropdown.vue'
-import api from '../services/api'
+import _api from '../services/api'
+import type { MockedApi } from './helpers/mockedApi'
 import db from '../db/indexedDB'
+
+const api = _api as unknown as MockedApi
 
 vi.mock('../services/api', () => ({
   default: {

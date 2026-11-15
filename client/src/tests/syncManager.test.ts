@@ -22,7 +22,8 @@ if (!('serviceWorker' in navigator)) {
   Object.defineProperty(navigator, 'serviceWorker', { value: undefined, configurable: true })
 }
 
-import api from '../services/api'
+import _api from '../services/api'
+import type { MockedApi } from './helpers/mockedApi'
 import db, { ensureDeviceId } from '../db/indexedDB'
 import {
   enqueue,
@@ -44,6 +45,8 @@ import {
   destroyListeners,
   PULL_INTERVAL_MS,
 } from '../services/syncManager'
+
+const api = _api as unknown as MockedApi
 
 // ── Helpers ─────────────────────────────────────────────────────
 

@@ -63,8 +63,11 @@ vi.mock('chart.js', () => ({
 vi.mock('chartjs-plugin-annotation', () => ({ default: {} }))
 
 import FertilityView from '../../views/analytics/FertilityView.vue'
-import api from '../../services/api'
+import _api from '../../services/api'
+import type { MockedApi } from '../helpers/mockedApi'
 import { createPinia, setActivePinia } from 'pinia'
+
+const api = _api as unknown as MockedApi
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

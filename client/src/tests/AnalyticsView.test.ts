@@ -41,8 +41,11 @@ vi.mock('../db/indexedDB', () => ({
 }))
 
 import AnalyticsView from '../views/AnalyticsView.vue'
-import api from '../services/api'
+import _api from '../services/api'
+import type { MockedApi } from './helpers/mockedApi'
 import { createPinia, setActivePinia } from 'pinia'
+
+const api = _api as unknown as MockedApi
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

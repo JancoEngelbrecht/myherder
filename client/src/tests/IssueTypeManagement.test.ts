@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import IssueTypeManagement from '../views/admin/IssueTypeManagement.vue'
+import type { MockedApi } from './helpers/mockedApi'
 
 const mockRouter = { push: vi.fn(), back: vi.fn() }
 vi.mock('vue-router', () => ({
@@ -94,7 +95,7 @@ const stubs = {
 }
 
 async function mountWithData() {
-  const api = (await import('../services/api')).default
+  const api = (await import('../services/api')).default as unknown as MockedApi
   api.get.mockResolvedValue({
     data: MOCK_ISSUE_TYPES,
     headers: { 'x-total-count': '3' },
@@ -149,7 +150,7 @@ describe('IssueTypeManagement', () => {
   })
 
   it('shows page error on 409 when delete is blocked by in-use type', async () => {
-    const api = (await import('../services/api')).default
+    const api = (await import('../services/api')).default as unknown as MockedApi
     api.get.mockResolvedValue({
       data: MOCK_ISSUE_TYPES,
       headers: { 'x-total-count': '3' },

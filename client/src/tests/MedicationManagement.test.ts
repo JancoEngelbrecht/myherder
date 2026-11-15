@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import MedicationManagement from '../views/admin/MedicationManagement.vue'
+import type { MockedApi } from './helpers/mockedApi'
 
 const mockRouter = { push: vi.fn(), back: vi.fn() }
 vi.mock('vue-router', () => ({
@@ -107,7 +108,7 @@ const stubs = {
 }
 
 async function mountWithData() {
-  const api = (await import('../services/api')).default
+  const api = (await import('../services/api')).default as unknown as MockedApi
   api.get.mockResolvedValue({
     data: MOCK_MEDICATIONS,
     headers: { 'x-total-count': '3' },
@@ -161,7 +162,7 @@ describe('MedicationManagement', () => {
   })
 
   it('calls deactivate API when active medication deactivate confirmed', async () => {
-    const api = (await import('../services/api')).default
+    const api = (await import('../services/api')).default as unknown as MockedApi
     api.get.mockResolvedValue({
       data: MOCK_MEDICATIONS,
       headers: { 'x-total-count': '3' },

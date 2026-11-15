@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useMedicationsStore } from '../stores/medications'
-import api from '../services/api'
+import _api from '../services/api'
+import type { MockedApi } from './helpers/mockedApi'
 import db from '../db/indexedDB'
+
+const api = _api as unknown as MockedApi
 
 vi.mock('../services/api', () => ({
   default: {

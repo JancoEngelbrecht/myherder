@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import BreedTypeManagement from '../views/admin/BreedTypeManagement.vue'
+import type { MockedApi } from './helpers/mockedApi'
 
 const mockRouter = { push: vi.fn(), back: vi.fn() }
 vi.mock('vue-router', () => ({
@@ -95,7 +96,7 @@ describe('BreedTypeManagement', () => {
 
   it('fetches and displays breed types from store on mount', async () => {
     // Mock the store's fetchAll to populate types
-    const api = (await import('../services/api')).default
+    const api = (await import('../services/api')).default as unknown as MockedApi
     api.get.mockResolvedValue({ data: MOCK_BREED_TYPES })
 
     const wrapper = mount(BreedTypeManagement, {
@@ -110,7 +111,7 @@ describe('BreedTypeManagement', () => {
   })
 
   it('opens add form when FAB clicked', async () => {
-    const api = (await import('../services/api')).default
+    const api = (await import('../services/api')).default as unknown as MockedApi
     api.get.mockResolvedValue({ data: MOCK_BREED_TYPES })
 
     const wrapper = mount(BreedTypeManagement, {
@@ -125,7 +126,7 @@ describe('BreedTypeManagement', () => {
   })
 
   it('opens edit form with breed type data when edit clicked', async () => {
-    const api = (await import('../services/api')).default
+    const api = (await import('../services/api')).default as unknown as MockedApi
     api.get.mockResolvedValue({ data: MOCK_BREED_TYPES })
 
     const wrapper = mount(BreedTypeManagement, {
@@ -145,7 +146,7 @@ describe('BreedTypeManagement', () => {
   })
 
   it('submits create via store.create when form saved in add mode', async () => {
-    const api = (await import('../services/api')).default
+    const api = (await import('../services/api')).default as unknown as MockedApi
     api.get.mockResolvedValue({ data: MOCK_BREED_TYPES })
     api.post.mockResolvedValue({
       data: {
@@ -179,7 +180,7 @@ describe('BreedTypeManagement', () => {
   })
 
   it('displays gestation days timing fields matching the rendered bt-cards', async () => {
-    const api = (await import('../services/api')).default
+    const api = (await import('../services/api')).default as unknown as MockedApi
     api.get.mockResolvedValue({ data: MOCK_BREED_TYPES })
 
     const wrapper = mount(BreedTypeManagement, {

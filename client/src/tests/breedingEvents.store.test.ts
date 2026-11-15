@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useBreedingEventsStore } from '../stores/breedingEvents'
-import api from '../services/api'
+import _api from '../services/api'
+import type { MockedApi } from './helpers/mockedApi'
+
+const api = _api as unknown as MockedApi
 
 vi.mock('../services/api', () => ({
   default: {
