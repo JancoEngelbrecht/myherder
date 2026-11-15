@@ -106,6 +106,7 @@ jobs:
             dist \
             client/dist \
             server/migrations \
+            server/cron \
             server/seeds/production
           ls -lh deploy.tar.gz
 

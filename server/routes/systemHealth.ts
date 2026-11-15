@@ -130,6 +130,21 @@ router.get('/health', async (_req, res, next) => {
     const memory = getMemory()
     const [disk, database] = await Promise.all([getDisk(), getDbSize()])
     const requests = getStats()
+    const recentErrors = getRecentErrors()
+
+    // Surface persisted last-5xx-error when in-memory buffer is empty (e.g. after restart)
+    let last5xxError: Record<string, unknown> | null = null
+    if (recentErrors.length === 0) {
+      try {
+        const row = await db('system_kv').where({ key: '__last_5xx_error' }).first()
+        if (row?.value) {
+          last5xxError = JSON.parse(row.value)
+        }
+      } catch (err) {
+        // Non-fatal — table missing (pre-migration 040) or malformed JSON
+        console.warn('[systemHealth] could not read last_5xx_error:', (err as Error).message)
+      }
+    }
 
     const thresholds = {
       memory_status: getMemoryStatus(memory.rss_mb),
@@ -145,7 +160,8 @@ router.get('/health', async (_req, res, next) => {
       disk,
       database,
       requests,
-      recent_errors: getRecentErrors(),
+      recent_errors: recentErrors,
+      last_5xx_error: last5xxError,
       thresholds,
     })
   } catch (err) {

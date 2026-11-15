@@ -40,6 +40,27 @@ module.exports = function errorHandler(
   if (status >= 500) {
     const errorMsg = err.message || 'Internal server error'
     recordError(req.method, req.originalUrl || req.url, status, errorMsg)
+
+    // Persist last 5xx error to system_kv so it survives Passenger restarts.
+    // system_kv is farm-agnostic — no farm_id FK required.
+    // Fire-and-forget — telemetry must never affect the HTTP response.
+    const payload = JSON.stringify({
+      at: new Date().toISOString(),
+      method: req.method,
+      path: req.originalUrl || req.url,
+      status,
+      message: errorMsg.slice(0, 1000),
+    })
+    try {
+      const dbConn = require('../config/database')
+      dbConn('system_kv')
+        .insert({ key: '__last_5xx_error', value: payload, updated_at: dbConn.fn.now() })
+        .onConflict('key')
+        .merge(['value', 'updated_at'])
+        .catch(() => {}) // swallow telemetry errors — never break the response path
+    } catch {
+      // ignore — DB module unavailable
+    }
   }
 
   const response: Record<string, unknown> = { error: message }

@@ -15,6 +15,7 @@ npm run dev:client    # vite dev server (port 5173)
 # Database
 npm run migrate       # knex migrate:latest
 npm run seed          # knex seed:run (admin/admin123, sipho/PIN 1234)
+npm run cron:retention  # trim audit_log (>2y) + sync_log (>90d); `npm run cron:retention -- --dry-run` to count only (the extra -- is required). Prod cron needs NODE_ENV=production
 
 # Build frontend for production
 npm run build         # outputs client/dist/
@@ -166,7 +167,7 @@ Frontend: `authStore.hasPermission(perm)` checks permission (admin always true).
 - `PATCH /api/announcements/:id` — super-admin only; update
 - `DELETE /api/announcements/:id` — super-admin only; soft deactivate
 - `POST /api/announcements/:id/dismiss` — authenticated; dismiss for current user (idempotent)
-- `GET /api/system/health` — super-admin only; operational metrics snapshot. Returns `{ node_version, uptime_seconds, memory: { rss_mb, heap_used_mb, heap_total_mb }, disk: { total_gb, used_gb, available_gb, used_pct } | null, database: { size_mb, tables: [{ name, rows, size_mb }] } | null, requests: { started_at, total, errors_4xx, errors_5xx, error_rate_5xx_pct, avg_response_ms, p95_response_ms, window_size }, recent_errors: [{ timestamp, method, path, status, message }], thresholds: { memory_status, disk_status, response_status, error_status } }`. Threshold values: `green` / `yellow` / `red` / `unknown`. Recent errors: last 20 5xx errors (in-memory, newest first, resets on restart)
+- `GET /api/system/health` — super-admin only; operational metrics snapshot. Returns `{ node_version, uptime_seconds, memory: { rss_mb, heap_used_mb, heap_total_mb }, disk: { total_gb, used_gb, available_gb, used_pct } | null, database: { size_mb, tables: [{ name, rows, size_mb }] } | null, requests: { started_at, total, errors_4xx, errors_5xx, error_rate_5xx_pct, avg_response_ms, p95_response_ms, window_size }, recent_errors: [{ timestamp, method, path, status, message }], last_5xx_error: { at, method, path, status, message } | null, thresholds: { memory_status, disk_status, response_status, error_status } }`. Threshold values: `green` / `yellow` / `red` / `unknown`. Recent errors: last 20 5xx errors (in-memory, newest first, resets on restart). `last_5xx_error`: present when `recent_errors` is empty but a persisted error exists in `system_kv` (survives Passenger restart)
 
 ## i18n
 

@@ -175,6 +175,98 @@ describe('GET /api/system/health', () => {
     expect(res.body.recent_errors[0].path).toBe('/api/milk-records')
     expect(res.body.recent_errors[1].path).toBe('/api/animals')
   })
+
+  it('returns last_5xx_error: null when recent_errors is non-empty', async () => {
+    // In-memory buffer has an error — persisted row should NOT surface
+    recordError('GET', '/api/animals', 500, 'In-memory error')
+
+    const res = await request(app).get('/api/system/health').set('Authorization', superAdminToken())
+    expect(res.status).toBe(200)
+    expect(res.body.recent_errors.length).toBeGreaterThan(0)
+    expect(res.body.last_5xx_error).toBeNull()
+  })
+
+  it('surfaces persisted last_5xx_error when in-memory buffer is empty', async () => {
+    // Arrange — no in-memory errors; plant a persisted row
+    const persistedPayload = {
+      at: '2025-01-01T00:00:00.000Z',
+      method: 'DELETE',
+      path: '/api/animals/test-id',
+      status: 500,
+      message: 'Persisted error from before restart',
+    }
+    await db('system_kv').where({ key: '__last_5xx_error' }).del()
+    await db('system_kv').insert({
+      key: '__last_5xx_error',
+      value: JSON.stringify(persistedPayload),
+    })
+
+    // Act — in-memory buffer is already empty (resetStats ran in beforeEach)
+    const res = await request(app).get('/api/system/health').set('Authorization', superAdminToken())
+
+    // Assert
+    expect(res.status).toBe(200)
+    expect(res.body.recent_errors).toEqual([])
+    expect(res.body.last_5xx_error).not.toBeNull()
+    expect(res.body.last_5xx_error.method).toBe('DELETE')
+    expect(res.body.last_5xx_error.path).toBe('/api/animals/test-id')
+    expect(res.body.last_5xx_error.status).toBe(500)
+    expect(res.body.last_5xx_error.message).toBe('Persisted error from before restart')
+  })
+
+  it('returns last_5xx_error: null when no persisted row and buffer empty', async () => {
+    // Ensure no row exists
+    await db('system_kv').where({ key: '__last_5xx_error' }).del()
+
+    const res = await request(app).get('/api/system/health').set('Authorization', superAdminToken())
+    expect(res.status).toBe(200)
+    expect(res.body.recent_errors).toEqual([])
+    expect(res.body.last_5xx_error).toBeNull()
+  })
+})
+
+describe('errorHandler — persists last 5xx to system_kv', () => {
+  it('upserts __last_5xx_error on each 500, keeping only the latest', async () => {
+    const errorHandler = require('../middleware/errorHandler')
+    const fakeRes = () => {
+      const r: any = {}
+      r.status = () => r
+      r.json = () => r
+      return r
+    }
+    const fire = (path: string, msg: string) =>
+      errorHandler(
+        Object.assign(new Error(msg), { status: 500 }),
+        { method: 'GET', originalUrl: path },
+        fakeRes(),
+        () => {}
+      )
+
+    await db('system_kv').where({ key: '__last_5xx_error' }).del()
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {})
+
+    const waitForPath = async (path: string) => {
+      for (let i = 0; i < 100; i++) {
+        const row = await db('system_kv').where({ key: '__last_5xx_error' }).first()
+        if (row && JSON.parse(row.value).path === path) return
+        await new Promise((r) => setTimeout(r, 10))
+      }
+      throw new Error(`timed out waiting for persisted error at ${path}`)
+    }
+
+    fire('/api/first', 'first boom')
+    await waitForPath('/api/first')
+    fire('/api/second', 'x'.repeat(2000))
+    await waitForPath('/api/second')
+    spy.mockRestore()
+
+    const rows = await db('system_kv').where({ key: '__last_5xx_error' })
+    expect(rows).toHaveLength(1)
+    const saved = JSON.parse(rows[0].value)
+    expect(saved.path).toBe('/api/second')
+    expect(saved.message).toBe('x'.repeat(1000)) // truncated to 1000 chars
+    expect(saved.status).toBe(500)
+  })
 })
 
 describe('recordError / getRecentErrors', () => {
