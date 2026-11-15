@@ -1,4 +1,4 @@
-import Dexie from 'dexie'
+import Dexie, { type Table } from 'dexie'
 import { ref } from 'vue'
 
 // ── Schema (single source of truth) ────────────────────────────
@@ -19,13 +19,17 @@ const CURRENT_SCHEMA = {
   species: 'id, code, is_active',
 }
 
+// Dexie instance with one typed table per schema key. Row shapes stay `any`
+// for now — this only tells TypeScript which tables exist.
+type AppDb = Dexie & { [K in keyof typeof CURRENT_SCHEMA]: Table<any, any> }
+
 // ── DB Instance ────────────────────────────────────────────────
 
 let db = createDb('myherder_db')
 let currentDbName = 'myherder_db'
 
-function createDb(dbName) {
-  const instance = new Dexie(dbName)
+function createDb(dbName: string): AppDb {
+  const instance = new Dexie(dbName) as AppDb
   // Keep v7 as baseline (matches previously deployed version)
   instance.version(7).stores(CURRENT_SCHEMA)
   // v8: added attempts index on syncQueue
@@ -145,18 +149,15 @@ async function ensureDeviceId() {
 
 // Use a proxy so all modules always reference the current `db` instance
 // (in case it gets recreated during recovery)
-const dbProxy = new Proxy(
-  {},
-  {
-    get(_, prop) {
-      return db[prop]
-    },
-    set(_, prop, value) {
-      db[prop] = value
-      return true
-    },
-  }
-)
+const dbProxy = new Proxy({} as AppDb, {
+  get(_, prop) {
+    return db[prop]
+  },
+  set(_, prop, value) {
+    db[prop] = value
+    return true
+  },
+})
 
 export default dbProxy
 export { initDb, closeDb, ensureDeviceId, openDb, dbRecovered, clearRecoveredFlag }
