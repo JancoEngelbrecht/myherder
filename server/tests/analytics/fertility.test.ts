@@ -306,7 +306,7 @@ describe('GET /api/analytics/days-open', () => {
     })
 
     const res = await request(app)
-      .get('/api/analytics/days-open')
+      .get('/api/analytics/days-open?from=2025-01-01&to=2025-12-31')
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
@@ -414,7 +414,7 @@ describe('GET /api/analytics/conception-rate', () => {
     })
 
     const res = await request(app)
-      .get('/api/analytics/conception-rate')
+      .get('/api/analytics/conception-rate?from=2025-01-01&to=2025-12-31')
       .set('Authorization', adminToken())
 
     expect(res.status).toBe(200)
