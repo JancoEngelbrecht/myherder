@@ -180,7 +180,23 @@
               </div>
             </div>
           </template>
-          <p v-else class="unavailable">{{ t('systemHealth.noRecentErrors') }}</p>
+          <template v-else>
+            <p class="unavailable">{{ t('systemHealth.noRecentErrors') }}</p>
+            <template v-if="health.last_5xx_error">
+              <p class="last-error-label">{{ t('systemHealth.lastPersistedError') }}</p>
+              <div class="error-item last-error-item">
+                <div class="error-top">
+                  <span class="mono error-method">{{ health.last_5xx_error.method }}</span>
+                  <span class="mono error-path">{{ health.last_5xx_error.path }}</span>
+                  <span class="mono error-status">{{ health.last_5xx_error.status }}</span>
+                </div>
+                <div class="error-bottom">
+                  <span class="error-message">{{ health.last_5xx_error.message }}</span>
+                  <span class="mono error-time">{{ formatDate(health.last_5xx_error.at) }}</span>
+                </div>
+              </div>
+            </template>
+          </template>
         </div>
 
         <!-- Refresh -->
@@ -241,7 +257,7 @@ async function load() {
     const res = await api.get('/system/health')
     health.value = res.data
   } catch (err) {
-    toast.error(resolveError(extractApiError(err), t))
+    toast.show(resolveError(extractApiError(err), t), 'error')
     health.value = null
   } finally {
     loading.value = false
@@ -429,6 +445,17 @@ onMounted(load)
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.last-error-label {
+  margin-top: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.last-error-item {
+  margin-top: 6px;
 }
 
 .error-item {

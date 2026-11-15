@@ -2176,7 +2176,8 @@
     "refresh": "Herlaai",
     "loadError": "Kon nie stelselgesondheid data laai nie.",
     "recentErrors": "Onlangse Foute",
-    "noRecentErrors": "Geen onlangse bediener foute nie"
+    "noRecentErrors": "Geen onlangse bediener foute nie",
+    "lastPersistedError": "Laaste bedienerfout (gestoor voor herbegin)"
   },
   "speciesTerminology": {
     "cattle": {

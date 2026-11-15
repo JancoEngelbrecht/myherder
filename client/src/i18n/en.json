@@ -2176,7 +2176,8 @@
     "refresh": "Refresh",
     "loadError": "Could not load system health data.",
     "recentErrors": "Recent Errors",
-    "noRecentErrors": "No recent server errors"
+    "noRecentErrors": "No recent server errors",
+    "lastPersistedError": "Last server error (saved before restart)"
   },
   "speciesTerminology": {
     "cattle": {
