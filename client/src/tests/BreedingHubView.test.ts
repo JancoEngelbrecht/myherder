@@ -95,8 +95,8 @@ describe('BreedingHubView', () => {
 
     // Prevent actual API calls
     vi.spyOn(breedingStore, 'fetchAll').mockResolvedValue([])
-    vi.spyOn(breedingStore, 'fetchUpcoming').mockResolvedValue()
-    vi.spyOn(animalsStore, 'fetchAll').mockResolvedValue()
+    vi.spyOn(breedingStore, 'fetchUpcoming').mockResolvedValue(undefined)
+    vi.spyOn(animalsStore, 'fetchAll').mockResolvedValue(undefined)
   })
 
   it('shows loading spinner while fetching', () => {

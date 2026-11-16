@@ -86,13 +86,13 @@ const stubs = {
 function setAdmin() {
   const auth = useAuthStore()
   auth.user = { role: 'admin', permissions: [] }
-  auth.canManageAnimals = true
+  ;(auth as any).canManageAnimals = true
 }
 
 function setWorker() {
   const auth = useAuthStore()
   auth.user = { role: 'worker', permissions: [] }
-  auth.canManageAnimals = false
+  ;(auth as any).canManageAnimals = false
 }
 
 describe('AnimalListView', () => {

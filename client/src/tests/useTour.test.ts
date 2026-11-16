@@ -57,7 +57,7 @@ describe('useTour', () => {
     await nextTick()
 
     expect(driver).toHaveBeenCalled()
-    expect(driver.mock.results[0].value.drive).toHaveBeenCalled()
+    expect((driver as any).mock.results[0].value.drive).toHaveBeenCalled()
     wrapper.unmount()
   })
 

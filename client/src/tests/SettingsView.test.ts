@@ -101,7 +101,7 @@ describe('SettingsView', () => {
 
     const farmNameInput = wrapper.find('#farm-name')
     expect(farmNameInput.exists()).toBe(true)
-    expect(farmNameInput.element.value).toBe('Test Farm')
+    expect((farmNameInput.element as any).value).toBe('Test Farm')
   })
 
   it('shows links to admin sub-pages', async () => {

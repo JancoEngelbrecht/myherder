@@ -317,7 +317,7 @@ describe('FertilityView', () => {
 
   it('shows offline banner on network error', async () => {
     const { isOfflineError } = await import('../../services/syncManager')
-    isOfflineError.mockReturnValue(true)
+    ;(isOfflineError as any).mockReturnValue(true)
 
     api.get.mockRejectedValue(new Error('Network Error'))
 

@@ -88,11 +88,11 @@ function createWrapper() {
 }
 
 function seedUpcoming(store, data = {}) {
-  store.upcoming.needsAttention = data.needsAttention || []
-  store.upcoming.heats = data.heats || []
-  store.upcoming.calvings = data.calvings || []
-  store.upcoming.pregChecks = data.pregChecks || []
-  store.upcoming.dryOffs = data.dryOffs || []
+  store.upcoming.needsAttention = (data as any).needsAttention || []
+  store.upcoming.heats = (data as any).heats || []
+  store.upcoming.calvings = (data as any).calvings || []
+  store.upcoming.pregChecks = (data as any).pregChecks || []
+  store.upcoming.dryOffs = (data as any).dryOffs || []
   store.loading = false
 }
 
@@ -109,7 +109,7 @@ describe('BreedingNotificationsView', () => {
     setActivePinia(createPinia())
     store = useBreedingEventsStore()
     // Prevent actual API call on mount
-    vi.spyOn(store, 'fetchUpcoming').mockResolvedValue()
+    vi.spyOn(store, 'fetchUpcoming').mockResolvedValue(undefined)
   })
 
   it('renders filter chips with correct counts', async () => {

@@ -142,7 +142,7 @@ describe('BreedTypeManagement', () => {
     expect(titleText).toContain('breedTypes.editTitle')
 
     const nameInput = wrapper.find('#bt-name')
-    expect(nameInput.element.value).toBe('Holstein')
+    expect((nameInput.element as any).value).toBe('Holstein')
   })
 
   it('submits create via store.create when form saved in add mode', async () => {

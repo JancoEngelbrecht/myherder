@@ -111,7 +111,7 @@ describe('animalsStore.create — integration', () => {
 
   it('API error (non-network): animal removed from IndexedDB, syncQueue empty, throws', async () => {
     const err = new Error('Validation failed')
-    err.response = { status: 422, data: { error: 'Invalid data' } }
+    ;(err as any).response = { status: 422, data: { error: 'Invalid data' } }
     api.post.mockRejectedValue(err)
 
     const store = useAnimalsStore()
@@ -228,7 +228,7 @@ describe('animalsStore.remove — integration', () => {
 
   it('API error (non-network): animal restored to store, syncQueue clean, throws', async () => {
     const err = new Error('Forbidden')
-    err.response = { status: 403, data: {} }
+    ;(err as any).response = { status: 403, data: {} }
     api.delete.mockRejectedValue(err)
 
     const store = useAnimalsStore()
@@ -530,7 +530,10 @@ describe('animalsStore.batchCreate', () => {
 
   it('API error: throws and leaves store state unchanged', async () => {
     const err = new Error('Conflict')
-    err.response = { status: 409, data: { error: 'Tags already exist', existing_tags: ['B-001'] } }
+    ;(err as any).response = {
+      status: 409,
+      data: { error: 'Tags already exist', existing_tags: ['B-001'] },
+    }
     api.post.mockRejectedValue(err)
 
     const store = useAnimalsStore()
@@ -584,7 +587,7 @@ describe('animalsStore.batchDelete', () => {
 
   it('API error: throws and leaves store state unchanged', async () => {
     const err = new Error('Forbidden')
-    err.response = { status: 403, data: {} }
+    ;(err as any).response = { status: 403, data: {} }
     api.post.mockRejectedValue(err)
 
     const store = useAnimalsStore()

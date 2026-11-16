@@ -66,7 +66,7 @@ describe('useBreedTypesStore', () => {
     it('falls back to IndexedDB when API fails', async () => {
       const localData = [{ ...BREED_FIXTURE, id: 'local-1' }]
       api.get.mockRejectedValue(new Error('Network error'))
-      db.breedTypes.toArray.mockResolvedValue(localData)
+      ;(db.breedTypes.toArray as any).mockResolvedValue(localData)
 
       const store = useBreedTypesStore()
       await store.fetchAll()
@@ -76,7 +76,7 @@ describe('useBreedTypesStore', () => {
 
     it('falls back to FALLBACK when API fails and IndexedDB is empty', async () => {
       api.get.mockRejectedValue(new Error('Network error'))
-      db.breedTypes.toArray.mockResolvedValue([])
+      ;(db.breedTypes.toArray as any).mockResolvedValue([])
 
       const store = useBreedTypesStore()
       await store.fetchAll()
@@ -132,7 +132,7 @@ describe('useBreedTypesStore', () => {
     it('puts to /breed-types/:id and replaces in state', async () => {
       const updated = { ...BREED_FIXTURE, name: 'Holstein Friesian' }
       api.put.mockResolvedValue({ data: updated })
-      db.breedTypes.get.mockResolvedValue(BREED_FIXTURE)
+      ;(db.breedTypes.get as any).mockResolvedValue(BREED_FIXTURE)
 
       const store = useBreedTypesStore()
       store.types = [BREED_FIXTURE]

@@ -123,7 +123,7 @@ describe('AnimalReproView', () => {
 
     const breedTypesStore = useBreedTypesStore()
     vi.spyOn(breedTypesStore, 'fetchActive').mockResolvedValue()
-    breedTypesStore.activeTypes = [{ id: 'bt-1', gestation_days: 283 }]
+    ;(breedTypesStore as any).activeTypes = [{ id: 'bt-1', gestation_days: 283 }]
 
     const wrapper = mount(AnimalReproView, { global: { stubs } })
 
@@ -139,7 +139,7 @@ describe('AnimalReproView', () => {
 
     const breedTypesStore = useBreedTypesStore()
     vi.spyOn(breedTypesStore, 'fetchActive').mockResolvedValue()
-    breedTypesStore.activeTypes = [{ id: 'bt-1', gestation_days: 283 }]
+    ;(breedTypesStore as any).activeTypes = [{ id: 'bt-1', gestation_days: 283 }]
 
     const wrapper = mount(AnimalReproView, { global: { stubs } })
     await flushPromises()
@@ -156,7 +156,7 @@ describe('AnimalReproView', () => {
 
     const breedTypesStore = useBreedTypesStore()
     vi.spyOn(breedTypesStore, 'fetchActive').mockResolvedValue()
-    breedTypesStore.activeTypes = [{ id: 'bt-1', gestation_days: 283 }]
+    ;(breedTypesStore as any).activeTypes = [{ id: 'bt-1', gestation_days: 283 }]
 
     const wrapper = mount(AnimalReproView, { global: { stubs } })
     await flushPromises()
@@ -173,7 +173,7 @@ describe('AnimalReproView', () => {
 
     const breedTypesStore = useBreedTypesStore()
     vi.spyOn(breedTypesStore, 'fetchActive').mockResolvedValue()
-    breedTypesStore.activeTypes = [{ id: 'bt-1', gestation_days: 283 }]
+    ;(breedTypesStore as any).activeTypes = [{ id: 'bt-1', gestation_days: 283 }]
 
     const wrapper = mount(AnimalReproView, { global: { stubs } })
     await flushPromises()

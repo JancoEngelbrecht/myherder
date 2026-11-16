@@ -146,7 +146,7 @@ describe('IssueTypeManagement', () => {
     expect(wrapper.find('.form-title').text()).toContain('issueTypes.editTitle')
 
     const nameInput = wrapper.find('#it-name')
-    expect(nameInput.element.value).toBe('Mastitis')
+    expect((nameInput.element as any).value).toBe('Mastitis')
   })
 
   it('shows page error on 409 when delete is blocked by in-use type', async () => {

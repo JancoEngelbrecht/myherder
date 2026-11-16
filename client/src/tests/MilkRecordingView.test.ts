@@ -112,7 +112,7 @@ describe('MilkRecordingView', () => {
     await flushPromises()
 
     const timeInput = wrapper.find('.time-input')
-    const value = timeInput.element.value
+    const value = (timeInput.element as any).value
     // Time should match HH:MM pattern
     expect(value).toMatch(/^\d{2}:\d{2}$/)
     // Minutes should be 0, 15, 30, or 45
@@ -321,7 +321,7 @@ describe('MilkRecordingView', () => {
     await flushPromises()
 
     // For a past date, it should default to the session default time
-    const timeValue = wrapper.find('.time-input').element.value
+    const timeValue = (wrapper.find('.time-input').element as any).value
     expect(timeValue).toBe('06:00') // morning default
   })
 })

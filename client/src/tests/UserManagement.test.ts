@@ -157,7 +157,7 @@ describe('UserManagement', () => {
 
     expect(wrapper.find('.form-card').exists()).toBe(true)
     expect(wrapper.find('.form-title').text()).toContain('users.editUser')
-    expect(wrapper.find('#um-username').element.value).toBe('admin')
+    expect((wrapper.find('#um-username').element as any).value).toBe('admin')
   })
 
   it('cancels form and returns to list', async () => {

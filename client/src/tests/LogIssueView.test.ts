@@ -261,7 +261,7 @@ describe('LogIssueView', () => {
     const wrapper = createWrapper()
     await flushPromises()
 
-    expect(wrapper.vm.form.animal_id).toBe('animal-from-query')
+    expect((wrapper.vm as any).form.animal_id).toBe('animal-from-query')
   })
 
   it('D2 backward-compat: pre-fills animal_id from legacy cow_id route query', async () => {
@@ -270,7 +270,7 @@ describe('LogIssueView', () => {
     const wrapper = createWrapper()
     await flushPromises()
 
-    expect(wrapper.vm.form.animal_id).toBe('legacy-cow-123')
+    expect((wrapper.vm as any).form.animal_id).toBe('legacy-cow-123')
   })
 
   it('D2 backward-compat: animal_id takes priority over cow_id when both present', async () => {
@@ -279,6 +279,6 @@ describe('LogIssueView', () => {
     const wrapper = createWrapper()
     await flushPromises()
 
-    expect(wrapper.vm.form.animal_id).toBe('new-animal-456')
+    expect((wrapper.vm as any).form.animal_id).toBe('new-animal-456')
   })
 })

@@ -89,7 +89,7 @@ describe('CreateFarmView', () => {
     await nameInput.setValue('Sunny Dale Farm')
     await nameInput.trigger('input')
 
-    expect(wrapper.find('#cf-code').element.value).toBe('SUNNYDALEF')
+    expect((wrapper.find('#cf-code').element as any).value).toBe('SUNNYDALEF')
   })
 
   it('calls API on form submit with correct payload and 30s timeout', async () => {

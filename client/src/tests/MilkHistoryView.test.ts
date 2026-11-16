@@ -258,7 +258,7 @@ describe('MilkHistoryView', () => {
     await flushPromises()
 
     // Simulate selecting an animal via the AnimalSearchDropdown
-    wrapper.vm.animalFilter = 'animal-xyz'
+    ;(wrapper.vm as any).animalFilter = 'animal-xyz'
     await flushPromises()
 
     const milkCall = api.get.mock.calls

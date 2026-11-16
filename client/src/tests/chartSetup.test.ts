@@ -16,8 +16,8 @@ describe('chartSetup', () => {
 
   it('registers annotation plugin', async () => {
     await import('../utils/chartSetup')
-    const plugins = ChartJS.registry.plugins.items
-    const hasAnnotation = Object.values(plugins).some((p) => p.id === 'annotation')
+    const plugins = (ChartJS.registry.plugins as any).items
+    const hasAnnotation = Object.values(plugins).some((p) => (p as any).id === 'annotation')
     expect(hasAnnotation).toBe(true)
   })
 })

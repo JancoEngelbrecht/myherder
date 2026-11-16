@@ -157,8 +157,8 @@ describe('MedicationManagement', () => {
 
     expect(wrapper.find('.form-card').exists()).toBe(true)
     expect(wrapper.find('.form-title').text()).toContain('medications.editTitle')
-    expect(wrapper.find('#med-name').element.value).toBe('Penicillin')
-    expect(wrapper.find('#milk-hours').element.value).toBe('96')
+    expect((wrapper.find('#med-name').element as any).value).toBe('Penicillin')
+    expect((wrapper.find('#milk-hours').element as any).value).toBe('96')
   })
 
   it('calls deactivate API when active medication deactivate confirmed', async () => {

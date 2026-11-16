@@ -170,7 +170,7 @@ describe('AnimalFormView', () => {
 
     expect(wrapper.find('.animal-form').exists()).toBe(true)
     const tagInput = wrapper.find('input[type="text"]')
-    expect(tagInput.element.value).toBe('')
+    expect((tagInput.element as any).value).toBe('')
   })
 
   it('renders edit form pre-filled with animal data when route id present', async () => {
@@ -181,7 +181,7 @@ describe('AnimalFormView', () => {
     await flushPromises()
 
     const tagInput = wrapper.find('input[type="text"]')
-    expect(tagInput.element.value).toBe('TAG-001')
+    expect((tagInput.element as any).value).toBe('TAG-001')
   })
 
   it('requires tag_number — shows error when blank', async () => {
@@ -357,7 +357,7 @@ describe('AnimalFormView — offspring mode', () => {
     // The dob input should be pre-filled
     const dobInput = wrapper.find('input[type="date"]')
     if (dobInput.exists()) {
-      expect(dobInput.element.value).toBe('2026-03-01')
+      expect((dobInput.element as any).value).toBe('2026-03-01')
     }
   })
 

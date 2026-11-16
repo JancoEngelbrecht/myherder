@@ -98,7 +98,7 @@ describe('useBreedingEventsStore', () => {
       api.get.mockRejectedValue(new Error('Network'))
 
       const { default: db } = await import('../db/indexedDB')
-      db.breedingEvents.orderBy.mockReturnValue({
+      ;(db.breedingEvents.orderBy as any).mockReturnValue({
         reverse: vi.fn(() => ({ toArray: vi.fn().mockResolvedValue(localEvents) })),
       })
 
@@ -144,7 +144,7 @@ describe('useBreedingEventsStore', () => {
 
       const { default: db } = await import('../db/indexedDB')
       const mockEquals = vi.fn(() => ({ toArray: vi.fn().mockResolvedValue([EVENT_FIXTURE]) }))
-      db.breedingEvents.where.mockReturnValue({ equals: mockEquals })
+      ;(db.breedingEvents.where as any).mockReturnValue({ equals: mockEquals })
 
       const store = useBreedingEventsStore()
       const result = await store.fetchAll({ animal_id: 'cow-1' })
@@ -250,7 +250,7 @@ describe('useBreedingEventsStore', () => {
     it('stores locally and enqueues on offline error', async () => {
       api.post.mockRejectedValue(new Error('Network'))
       const { isOfflineError } = await import('../services/syncManager')
-      isOfflineError.mockReturnValue(true)
+      ;(isOfflineError as any).mockReturnValue(true)
 
       const store = useBreedingEventsStore()
       const result = await store.createEvent({
@@ -276,7 +276,7 @@ describe('useBreedingEventsStore', () => {
       })
 
       const { default: db } = await import('../db/indexedDB')
-      db.breedingEvents.get.mockResolvedValue(EVENT_FIXTURE)
+      ;(db.breedingEvents.get as any).mockResolvedValue(EVENT_FIXTURE)
 
       const store = useBreedingEventsStore()
       store.events = [EVENT_FIXTURE]
@@ -299,7 +299,7 @@ describe('useBreedingEventsStore', () => {
       })
 
       const { default: db } = await import('../db/indexedDB')
-      db.breedingEvents.get.mockResolvedValue(EVENT_FIXTURE)
+      ;(db.breedingEvents.get as any).mockResolvedValue(EVENT_FIXTURE)
 
       const store = useBreedingEventsStore()
       store.events = [EVENT_FIXTURE]
@@ -331,7 +331,7 @@ describe('useBreedingEventsStore', () => {
       const err = new Error('Server error')
       api.delete.mockRejectedValue(err)
       const { isOfflineError } = await import('../services/syncManager')
-      isOfflineError.mockReturnValue(false)
+      ;(isOfflineError as any).mockReturnValue(false)
 
       const store = useBreedingEventsStore()
       store.events = [EVENT_FIXTURE]

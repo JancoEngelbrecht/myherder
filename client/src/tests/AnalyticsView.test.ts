@@ -203,7 +203,7 @@ describe('AnalyticsView (Landing Page)', () => {
 
   it('shows offline banner when API fails with network error', async () => {
     const { isOfflineError } = await import('../services/syncManager')
-    isOfflineError.mockReturnValue(true)
+    ;(isOfflineError as any).mockReturnValue(true)
 
     api.get.mockRejectedValue(new Error('Network Error'))
 

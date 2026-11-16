@@ -117,7 +117,7 @@ describe('BreedingEventsView', () => {
 
   it('renders event type filter chips', async () => {
     const store = useBreedingEventsStore()
-    vi.spyOn(store, 'fetchAll').mockResolvedValue()
+    vi.spyOn(store, 'fetchAll').mockResolvedValue(undefined)
     store.events = MOCK_EVENTS
     store.total = 2
 
@@ -134,7 +134,7 @@ describe('BreedingEventsView', () => {
 
   it('renders breeding event cards', async () => {
     const store = useBreedingEventsStore()
-    vi.spyOn(store, 'fetchAll').mockResolvedValue()
+    vi.spyOn(store, 'fetchAll').mockResolvedValue(undefined)
     store.events = MOCK_EVENTS
     store.total = 2
     store.loading = false
@@ -150,7 +150,7 @@ describe('BreedingEventsView', () => {
 
   it('shows empty state when no events', async () => {
     const store = useBreedingEventsStore()
-    vi.spyOn(store, 'fetchAll').mockResolvedValue()
+    vi.spyOn(store, 'fetchAll').mockResolvedValue(undefined)
     store.events = []
     store.total = 0
     store.loading = false
@@ -166,7 +166,7 @@ describe('BreedingEventsView', () => {
 
   it('shows loading state', async () => {
     const store = useBreedingEventsStore()
-    vi.spyOn(store, 'fetchAll').mockResolvedValue()
+    vi.spyOn(store, 'fetchAll').mockResolvedValue(undefined)
     store.loading = true
 
     const auth = useAuthStore()
@@ -180,7 +180,7 @@ describe('BreedingEventsView', () => {
 
   it('sends animal_id (not cow_id) param when animal filter is set', async () => {
     const store = useBreedingEventsStore()
-    const fetchSpy = vi.spyOn(store, 'fetchAll').mockResolvedValue()
+    const fetchSpy = vi.spyOn(store, 'fetchAll').mockResolvedValue(undefined)
     store.events = []
     store.total = 0
     store.loading = false
@@ -194,7 +194,7 @@ describe('BreedingEventsView', () => {
     fetchSpy.mockClear()
 
     // Simulate selecting an animal
-    wrapper.vm.animalFilter = 'animal-abc'
+    ;(wrapper.vm as any).animalFilter = 'animal-abc'
     await flushPromises()
 
     const lastCall = fetchSpy.mock.calls[fetchSpy.mock.calls.length - 1]

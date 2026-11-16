@@ -90,7 +90,7 @@ describe('WithdrawalListView', () => {
 
   it('shows global all-clear when no animals on withdrawal', async () => {
     const store = useTreatmentsStore()
-    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue()
+    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue(undefined)
     store.withdrawalCows = []
     store.loadingWithdrawal = false
 
@@ -103,7 +103,7 @@ describe('WithdrawalListView', () => {
 
   it('shows spinner while loading', async () => {
     const store = useTreatmentsStore()
-    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue()
+    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue(undefined)
     store.loadingWithdrawal = true
 
     const wrapper = mount(WithdrawalListView, { global: { stubs } })
@@ -114,7 +114,7 @@ describe('WithdrawalListView', () => {
 
   it('shows tab chips with counts when data exists', async () => {
     const store = useTreatmentsStore()
-    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue()
+    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue(undefined)
     store.withdrawalCows = [MOCK_MILK_COW, MOCK_MEAT_ONLY_COW]
     store.loadingWithdrawal = false
 
@@ -132,7 +132,7 @@ describe('WithdrawalListView', () => {
 
   it('defaults to milk tab and renders milk cards', async () => {
     const store = useTreatmentsStore()
-    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue()
+    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue(undefined)
     store.withdrawalCows = [MOCK_MILK_COW]
     store.loadingWithdrawal = false
 
@@ -146,7 +146,7 @@ describe('WithdrawalListView', () => {
 
   it('switches to meat tab on click and shows meat cards', async () => {
     const store = useTreatmentsStore()
-    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue()
+    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue(undefined)
     store.withdrawalCows = [MOCK_MEAT_ONLY_COW]
     store.loadingWithdrawal = false
 
@@ -167,7 +167,7 @@ describe('WithdrawalListView', () => {
 
   it('does not show male in milk tab', async () => {
     const store = useTreatmentsStore()
-    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue()
+    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue(undefined)
     store.withdrawalCows = [MOCK_MEAT_ONLY_COW]
     store.loadingWithdrawal = false
 
@@ -193,7 +193,7 @@ describe('WithdrawalListView', () => {
       treatment_date: '2024-01-15T10:00:00Z',
     }
     const store = useTreatmentsStore()
-    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue()
+    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue(undefined)
     store.withdrawalCows = [heiferCow]
     store.loadingWithdrawal = false
 
@@ -224,7 +224,7 @@ describe('WithdrawalListView', () => {
       treatment_date: '2024-01-15T10:00:00Z',
     }
     const store = useTreatmentsStore()
-    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue()
+    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue(undefined)
     store.withdrawalCows = [calfCow]
     store.loadingWithdrawal = false
 
@@ -241,7 +241,7 @@ describe('WithdrawalListView', () => {
       life_phase: 'cow',
     }
     const store = useTreatmentsStore()
-    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue()
+    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue(undefined)
     store.withdrawalCows = [adultCow]
     store.loadingWithdrawal = false
 
@@ -253,7 +253,7 @@ describe('WithdrawalListView', () => {
 
   it('applies meat-theme class when meat tab is active', async () => {
     const store = useTreatmentsStore()
-    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue()
+    vi.spyOn(store, 'fetchWithdrawal').mockResolvedValue(undefined)
     store.withdrawalCows = [MOCK_MILK_COW]
     store.loadingWithdrawal = false
 

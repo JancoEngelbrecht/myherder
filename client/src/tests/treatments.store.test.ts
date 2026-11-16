@@ -74,7 +74,7 @@ describe('useTreatmentsStore', () => {
       const localData = [TREATMENT_FIXTURE]
       api.get.mockRejectedValue(new Error('Network error'))
       const mockToArray = vi.fn().mockResolvedValue(localData)
-      db.treatments.where.mockReturnValue({
+      ;(db.treatments.where as any).mockReturnValue({
         equals: vi.fn().mockReturnValue({ toArray: mockToArray }),
       })
 
@@ -131,7 +131,7 @@ describe('useTreatmentsStore', () => {
 
     it('enqueues to sync queue when offline', async () => {
       const { isOfflineError } = await import('../services/syncManager')
-      isOfflineError.mockReturnValue(true)
+      ;(isOfflineError as any).mockReturnValue(true)
       api.post.mockRejectedValue(new Error('offline'))
 
       const store = useTreatmentsStore()
@@ -160,7 +160,7 @@ describe('useTreatmentsStore', () => {
 
     it('enqueues to sync queue when offline delete', async () => {
       const { isOfflineError, enqueue } = await import('../services/syncManager')
-      isOfflineError.mockReturnValue(true)
+      ;(isOfflineError as any).mockReturnValue(true)
       api.delete.mockRejectedValue(new Error('offline'))
 
       const store = useTreatmentsStore()

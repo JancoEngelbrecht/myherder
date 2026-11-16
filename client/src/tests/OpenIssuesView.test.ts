@@ -92,12 +92,12 @@ describe('OpenIssuesView', () => {
 
   it('renders open issues list', async () => {
     const store = useHealthIssuesStore()
-    vi.spyOn(store, 'fetchAll').mockResolvedValue()
+    vi.spyOn(store, 'fetchAll').mockResolvedValue(undefined)
     store.allIssues = MOCK_ISSUES
     store.allIssuesTotal = 2
 
     const issueTypesStore = useIssueTypesStore()
-    vi.spyOn(issueTypesStore, 'fetchAll').mockResolvedValue()
+    vi.spyOn(issueTypesStore, 'fetchAll').mockResolvedValue(undefined)
 
     const wrapper = mount(OpenIssuesView, { global: { stubs } })
     await flushPromises()
@@ -108,11 +108,11 @@ describe('OpenIssuesView', () => {
 
   it('shows filter tabs (open, treating, all)', async () => {
     const store = useHealthIssuesStore()
-    vi.spyOn(store, 'fetchAll').mockResolvedValue()
+    vi.spyOn(store, 'fetchAll').mockResolvedValue(undefined)
     store.allIssues = MOCK_ISSUES
 
     const issueTypesStore = useIssueTypesStore()
-    vi.spyOn(issueTypesStore, 'fetchAll').mockResolvedValue()
+    vi.spyOn(issueTypesStore, 'fetchAll').mockResolvedValue(undefined)
 
     const wrapper = mount(OpenIssuesView, { global: { stubs } })
     await flushPromises()
@@ -123,13 +123,13 @@ describe('OpenIssuesView', () => {
 
   it('shows empty state when no issues', async () => {
     const store = useHealthIssuesStore()
-    vi.spyOn(store, 'fetchAll').mockResolvedValue()
+    vi.spyOn(store, 'fetchAll').mockResolvedValue(undefined)
     store.allIssues = []
     store.allIssuesTotal = 0
     store.loadingAll = false
 
     const issueTypesStore = useIssueTypesStore()
-    vi.spyOn(issueTypesStore, 'fetchAll').mockResolvedValue()
+    vi.spyOn(issueTypesStore, 'fetchAll').mockResolvedValue(undefined)
 
     const wrapper = mount(OpenIssuesView, { global: { stubs } })
     await flushPromises()
@@ -139,11 +139,11 @@ describe('OpenIssuesView', () => {
 
   it('shows loading spinner while loading', async () => {
     const store = useHealthIssuesStore()
-    vi.spyOn(store, 'fetchAll').mockResolvedValue()
+    vi.spyOn(store, 'fetchAll').mockResolvedValue(undefined)
     store.loadingAll = true
 
     const issueTypesStore = useIssueTypesStore()
-    vi.spyOn(issueTypesStore, 'fetchAll').mockResolvedValue()
+    vi.spyOn(issueTypesStore, 'fetchAll').mockResolvedValue(undefined)
 
     const wrapper = mount(OpenIssuesView, { global: { stubs } })
     await flushPromises()
@@ -153,11 +153,11 @@ describe('OpenIssuesView', () => {
 
   it('has FAB link to log issue', async () => {
     const store = useHealthIssuesStore()
-    vi.spyOn(store, 'fetchAll').mockResolvedValue()
+    vi.spyOn(store, 'fetchAll').mockResolvedValue(undefined)
     store.allIssues = []
 
     const issueTypesStore = useIssueTypesStore()
-    vi.spyOn(issueTypesStore, 'fetchAll').mockResolvedValue()
+    vi.spyOn(issueTypesStore, 'fetchAll').mockResolvedValue(undefined)
 
     const wrapper = mount(OpenIssuesView, { global: { stubs } })
     await flushPromises()

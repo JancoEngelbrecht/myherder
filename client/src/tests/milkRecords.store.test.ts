@@ -90,7 +90,7 @@ describe('useMilkRecordsStore', () => {
       api.get.mockRejectedValue(new Error('Network error'))
 
       const { default: db } = await import('../db/indexedDB')
-      db.milkRecords.where.mockReturnValue({
+      ;(db.milkRecords.where as any).mockReturnValue({
         equals: vi.fn(() => ({
           and: vi.fn(() => ({ toArray: vi.fn().mockResolvedValue([localRecord]) })),
         })),
@@ -310,7 +310,7 @@ describe('useMilkRecordsStore', () => {
       api.get.mockRejectedValue(new Error('Offline'))
 
       const { default: db } = await import('../db/indexedDB')
-      db.milkRecords.where.mockReturnValue({
+      ;(db.milkRecords.where as any).mockReturnValue({
         equals: vi.fn(() => ({ toArray: vi.fn().mockResolvedValue([localRecord]) })),
         toArray: vi.fn().mockResolvedValue([localRecord]),
       })

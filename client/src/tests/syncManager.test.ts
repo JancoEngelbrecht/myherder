@@ -348,7 +348,7 @@ describe('syncManager — pushChanges', () => {
     await enqueue('animals', 'create', 'cow-1', { id: 'cow-1' })
 
     const err = new Error('Server Error')
-    err.response = { status: 500, data: {} }
+    ;(err as any).response = { status: 500, data: {} }
     api.post.mockRejectedValue(err)
 
     await pushChanges()

@@ -83,7 +83,7 @@ describe('useHealthIssuesStore', () => {
       api.get.mockRejectedValue(new Error('Network error'))
 
       const { default: db } = await import('../db/indexedDB')
-      db.healthIssues.where.mockReturnValue({
+      ;(db.healthIssues.where as any).mockReturnValue({
         equals: vi.fn(() => ({ toArray: vi.fn().mockResolvedValue([localIssue]) })),
       })
 

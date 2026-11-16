@@ -131,7 +131,7 @@ describe('AnimalSearchDropdown', () => {
       { id: 'local-3', tag_number: 'ZZZ-999', name: 'NoMatch', sex: 'female' },
     ]
     api.get.mockRejectedValue(new Error('Network Error'))
-    db.animals.toArray.mockResolvedValue(offlineAnimals)
+    ;(db.animals.toArray as any).mockResolvedValue(offlineAnimals)
 
     const wrapper = mount(AnimalSearchDropdown)
     await wrapper.find('input').setValue('OFF')
@@ -151,7 +151,7 @@ describe('AnimalSearchDropdown', () => {
       { id: 'local-2', tag_number: 'TAG-200', name: 'Cow', sex: 'female' },
     ]
     api.get.mockRejectedValue(new Error('Network Error'))
-    db.animals.toArray.mockResolvedValue(offlineAnimals)
+    ;(db.animals.toArray as any).mockResolvedValue(offlineAnimals)
 
     const wrapper = mount(AnimalSearchDropdown, { props: { sexFilter: 'female' } })
     await wrapper.find('input').setValue('TAG')
@@ -172,7 +172,7 @@ describe('AnimalSearchDropdown', () => {
       sex: 'female',
     }
     api.get.mockRejectedValue(new Error('Network Error'))
-    db.animals.get.mockResolvedValue(localAnimal)
+    ;(db.animals.get as any).mockResolvedValue(localAnimal)
 
     const wrapper = mount(AnimalSearchDropdown, { props: { modelValue: 'animal-99' } })
     await flushPromises()
@@ -187,7 +187,7 @@ describe('AnimalSearchDropdown', () => {
       { id: 'c2', tag_number: 'TAG-002', name: 'Deleted', sex: 'female', deleted_at: '2026-01-01' },
     ]
     api.get.mockRejectedValue(new Error('Network Error'))
-    db.animals.toArray.mockResolvedValue(offlineAnimals)
+    ;(db.animals.toArray as any).mockResolvedValue(offlineAnimals)
 
     const wrapper = mount(AnimalSearchDropdown)
     await wrapper.find('input').setValue('TAG')
@@ -209,7 +209,7 @@ describe('AnimalSearchDropdown', () => {
       deleted_at: '2026-01-01',
     }
     api.get.mockRejectedValue(new Error('Network Error'))
-    db.animals.get.mockResolvedValue(deletedAnimal)
+    ;(db.animals.get as any).mockResolvedValue(deletedAnimal)
 
     const wrapper = mount(AnimalSearchDropdown, { props: { modelValue: 'animal-del' } })
     await flushPromises()
@@ -219,7 +219,7 @@ describe('AnimalSearchDropdown', () => {
 
   it('returns empty results when IndexedDB throws during offline search', async () => {
     api.get.mockRejectedValue(new Error('Network Error'))
-    db.animals.toArray.mockRejectedValue(new Error('DatabaseClosedError'))
+    ;(db.animals.toArray as any).mockRejectedValue(new Error('DatabaseClosedError'))
 
     const wrapper = mount(AnimalSearchDropdown)
     await wrapper.find('input').setValue('TAG')
@@ -231,7 +231,7 @@ describe('AnimalSearchDropdown', () => {
 
   it('does not show results from a 500 server error via IndexedDB fallback', async () => {
     const serverErr = new Error('Internal Server Error')
-    serverErr.response = { status: 500 }
+    ;(serverErr as any).response = { status: 500 }
     api.get.mockRejectedValue(serverErr)
 
     const wrapper = mount(AnimalSearchDropdown)

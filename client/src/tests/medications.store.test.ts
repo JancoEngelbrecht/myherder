@@ -77,7 +77,7 @@ describe('useMedicationsStore', () => {
     it('falls back to IndexedDB on failure', async () => {
       const localData = [MED_FIXTURE]
       api.get.mockRejectedValue(new Error('Network error'))
-      db.medications.toArray.mockResolvedValue(localData)
+      ;(db.medications.toArray as any).mockResolvedValue(localData)
 
       const store = useMedicationsStore()
       await store.fetchAll()
@@ -100,7 +100,7 @@ describe('useMedicationsStore', () => {
         { ...MED_FIXTURE, id: 'med-2', name: 'Inactive Med', is_active: false },
       ]
       api.get.mockRejectedValue(new Error('offline'))
-      db.medications.toArray.mockResolvedValue(allMeds)
+      ;(db.medications.toArray as any).mockResolvedValue(allMeds)
 
       const store = useMedicationsStore()
       await store.fetchAll(false)
@@ -132,7 +132,7 @@ describe('useMedicationsStore', () => {
     it('puts to /medications/:id and replaces in state', async () => {
       const updated = { ...MED_FIXTURE, name: 'Amoxicillin' }
       api.put.mockResolvedValue({ data: updated })
-      db.medications.get.mockResolvedValue(MED_FIXTURE)
+      ;(db.medications.get as any).mockResolvedValue(MED_FIXTURE)
 
       const store = useMedicationsStore()
       store.medications = [MED_FIXTURE]
