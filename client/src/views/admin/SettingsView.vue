@@ -316,7 +316,7 @@ onMounted(async () => {
 
 async function saveAppSettings() {
   try {
-    const payload = { default_language: defaultLang.value }
+    const payload: Record<string, unknown> = { default_language: defaultLang.value }
     if (farmName.value.trim()) {
       payload.farm_name = farmName.value.trim()
     }

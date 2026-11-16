@@ -1,8 +1,19 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useFeatureFlagsStore } from '../stores/featureFlags'
 
-const routes = [
+declare module 'vue-router' {
+  interface RouteMeta {
+    public?: boolean
+    requiresAuth?: boolean
+    requiresAdmin?: boolean
+    requiresSuperAdmin?: boolean
+    requiresPermission?: string
+    requiresModule?: string
+  }
+}
+
+const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'login',

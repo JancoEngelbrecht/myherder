@@ -158,7 +158,7 @@ const { startTour } = useTour('health-issues', () => [
   },
 ])
 
-const prefillAnimalId = route.query.animal_id || route.query.cow_id || ''
+const prefillAnimalId = (route.query.animal_id || route.query.cow_id || '') as string
 const backRoute = prefillAnimalId ? `/animals/${prefillAnimalId}` : '/'
 
 const issueTypes = computed(() => issueTypesStore.activeTypes)
@@ -180,7 +180,7 @@ const form = ref({
   description: '',
 })
 
-const errors = ref({})
+const errors = ref<Record<string, string>>({})
 const submitting = ref(false)
 const submitError = ref('')
 

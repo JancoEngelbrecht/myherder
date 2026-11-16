@@ -281,7 +281,7 @@ const form = reactive({
   life_phase_override: null,
 })
 
-const errors = reactive({})
+const errors = reactive<Record<string, string>>({})
 
 // Species-filtered breed list
 const speciesFilteredBreeds = computed(() => breedTypesStore.activeTypes)
@@ -318,7 +318,7 @@ onMounted(async () => {
 
   if (isEdit.value) {
     try {
-      const animal = await animalsStore.fetchOne(route.params.id)
+      const animal = await animalsStore.fetchOne(route.params.id as string)
       Object.assign(form, {
         tag_number: animal.tag_number || '',
         name: animal.name || '',
@@ -367,7 +367,7 @@ async function handleSubmit() {
   saving.value = true
   apiError.value = ''
 
-  const payload = { ...form }
+  const payload: Record<string, unknown> = { ...form }
   if (!payload.dob) delete payload.dob
   if (!payload.sire_id) delete payload.sire_id
   if (!payload.dam_id) delete payload.dam_id
@@ -382,7 +382,7 @@ async function handleSubmit() {
 
   try {
     if (isEdit.value) {
-      await animalsStore.update(route.params.id, payload)
+      await animalsStore.update(route.params.id as string, payload)
       router.replace(`/animals/${route.params.id}`)
     } else {
       const animal = await animalsStore.create(payload)

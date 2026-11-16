@@ -358,7 +358,7 @@ const frequencyChart = computed(() => ({
 
 const trendChart = computed(() => {
   const months = frequencyData.value?.by_month || []
-  const allCodes = new Set()
+  const allCodes = new Set<string>()
   months.forEach((m) => Object.keys(m.counts).forEach((c) => allCodes.add(c)))
   const codes = [...allCodes]
 
@@ -385,7 +385,7 @@ const stackedBarOptions = {
   plugins: {
     legend: {
       display: true,
-      position: 'bottom',
+      position: 'bottom' as const,
       labels: { boxWidth: 10, padding: 6, font: { size: 9 } },
     },
   },
@@ -537,7 +537,7 @@ const incidenceTrendOptions = {
   plugins: {
     legend: {
       display: true,
-      position: 'bottom',
+      position: 'bottom' as const,
       labels: { boxWidth: 10, padding: 6, font: { size: 9 } },
     },
   },

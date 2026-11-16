@@ -76,7 +76,7 @@
             <div class="issue-top">
               <span class="issue-icon">
                 <template v-for="(code, i) in issue.issue_types || []" :key="code">
-                  <span v-if="i > 0"> </span>
+                  <span v-if="Number(i) > 0"> </span>
                   <template v-if="issueTypesStore.getByCode(code)?.emoji">{{
                     issueTypesStore.getByCode(code).emoji
                   }}</template>
@@ -117,7 +117,7 @@
           >
             <div class="issue-grid-icon">
               <template v-for="(code, i) in issue.issue_types || []" :key="code">
-                <span v-if="i > 0"> </span>
+                <span v-if="Number(i) > 0"> </span>
                 <template v-if="issueTypesStore.getByCode(code)?.emoji">{{
                   issueTypesStore.getByCode(code).emoji
                 }}</template>
@@ -198,7 +198,7 @@ const filters = [
 ]
 
 function buildParams() {
-  const params = { page: page.value, limit: limit.value }
+  const params: Record<string, unknown> = { page: page.value, limit: limit.value }
   if (searchQuery.value) params.search = searchQuery.value
   if (activeFilter.value !== 'all') params.status = activeFilter.value
   return params

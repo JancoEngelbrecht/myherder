@@ -313,7 +313,7 @@ function matchesTimeRange(dateStr, range) {
   today.setHours(0, 0, 0, 0)
   const d = new Date(dateStr)
   d.setHours(0, 0, 0, 0)
-  const diff = Math.round((d - today) / 86400000)
+  const diff = Math.round((d.getTime() - today.getTime()) / 86400000)
   switch (range) {
     case 'today':
       return diff <= 0
@@ -496,7 +496,7 @@ function alertLabel(dateStr) {
   today.setHours(0, 0, 0, 0)
   const d = new Date(dateStr)
   d.setHours(0, 0, 0, 0)
-  const diff = Math.round((d - today) / 86400000)
+  const diff = Math.round((d.getTime() - today.getTime()) / 86400000)
   if (diff === 0) return t('breeding.alert.today')
   if (diff < 0) return t('breeding.alert.overdue')
   return `${diff}d`

@@ -123,12 +123,18 @@ module.exports = [
   // 4. Vue SFCs
   {
     files: ['client/src/**/*.vue'],
-    plugins: { vue: pluginVue },
     languageOptions: {
       parser: vueParser,
-      parserOptions: { ecmaVersion: 2022, sourceType: 'module' },
+      // <script lang="ts"> blocks are parsed by the TypeScript parser
+      parserOptions: {
+        parser: tsParser,
+        ecmaVersion: 2022,
+        sourceType: 'module',
+        extraFileExtensions: ['.vue'],
+      },
       globals: { ...globals.browser, ...globals.es2022 },
     },
+    plugins: { vue: pluginVue, '@typescript-eslint': tsPlugin },
     rules: {
       ...js.configs.recommended.rules,
       ...pluginVue.configs['vue3-recommended'].rules,
@@ -136,7 +142,12 @@ module.exports = [
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       semi: ['error', 'never'],
       'prefer-const': 'error',
-      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      // TS-aware unused-vars (core rule false-positives on type-only usage)
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
       'vue/multi-word-component-names': 'off',
     },
   },

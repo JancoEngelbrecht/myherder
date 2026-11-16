@@ -103,7 +103,7 @@ const treatmentsStore = useTreatmentsStore()
 const breedTypesStore = useBreedTypesStore()
 
 // UUID — keep as string
-const animalId = route.params.id
+const animalId = route.params.id as string
 const animal = ref(null)
 const loading = ref(true)
 const error = ref('')

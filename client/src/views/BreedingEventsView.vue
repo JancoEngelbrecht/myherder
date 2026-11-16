@@ -208,7 +208,7 @@ const advancedFilterCount = computed(() => {
 watch(animalFilter, () => onAdvancedChange())
 
 function fetchEvents() {
-  const params = { page: page.value, limit: limit.value }
+  const params: Record<string, unknown> = { page: page.value, limit: limit.value }
   if (eventFilter.value) params.event_type = eventFilter.value
   if (animalFilter.value) params.animal_id = animalFilter.value
   if (cowStatusFilter.value) params.cow_status = cowStatusFilter.value

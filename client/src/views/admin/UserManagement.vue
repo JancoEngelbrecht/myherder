@@ -399,7 +399,7 @@ async function save() {
   saving.value = true
   formError.value = ''
   try {
-    const payload = {
+    const payload: Record<string, unknown> = {
       username: form.value.username,
       full_name: form.value.full_name,
       role: form.value.role,

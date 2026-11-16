@@ -222,7 +222,7 @@ function getErrorMessage(err) {
   return t('login.errorNetwork')
 }
 
-async function handleLogin(loginFn, onError) {
+async function handleLogin(loginFn, onError?) {
   errorMsg.value = ''
   loading.value = true
   try {

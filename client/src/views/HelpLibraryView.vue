@@ -32,7 +32,9 @@ import AppIcon from '../components/atoms/AppIcon.vue'
 const { t } = useI18n()
 const authStore = useAuthStore()
 
-const categories = [
+type HelpTopic = { slug: string; icon: string; route?: string }
+
+const categories: { key: string; adminOnly?: boolean; topics: HelpTopic[] }[] = [
   {
     key: 'dailyTasks',
     topics: [

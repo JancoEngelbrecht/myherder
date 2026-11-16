@@ -159,7 +159,7 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    treatment.value = await treatmentsStore.fetchOne(route.params.id)
+    treatment.value = await treatmentsStore.fetchOne(route.params.id as string)
   } catch {
     error.value = t('common.error')
   } finally {
@@ -176,7 +176,7 @@ function confirmDelete() {
 async function handleDelete() {
   deleting.value = true
   try {
-    await treatmentsStore.remove(route.params.id)
+    await treatmentsStore.remove(route.params.id as string)
     router.back()
   } catch {
     error.value = t('common.error')

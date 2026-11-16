@@ -255,14 +255,16 @@ const { startTour } = useTour('treatments', () => [
 
 const medications = computed(() => medicationsStore.medications)
 
-const prefillAnimalId = route.query.animal_id || route.query.cow_id || ''
+const prefillAnimalId = (route.query.animal_id || route.query.cow_id || '') as string
 const prefillHealthIssueId = route.query.health_issue_id || ''
 const backRoute = prefillAnimalId ? `/animals/${prefillAnimalId}` : '/'
+
+type MedRow = { medication_id: string; dosage: string; unit: string; _prevMedId?: string }
 
 const form = ref({
   animal_id: prefillAnimalId,
   health_issue_id: prefillHealthIssueId,
-  medications: [{ medication_id: '', dosage: '', unit: '' }],
+  medications: [{ medication_id: '', dosage: '', unit: '' }] as MedRow[],
   treatment_date: localNow(),
   cost: '',
   is_vet_visit: false,
@@ -289,7 +291,7 @@ const openIssues = computed(() => {
     .filter((i) => i.status === 'open' || i.status === 'treating')
 })
 
-const errors = ref({})
+const errors = ref<Record<string, string>>({})
 const submitting = ref(false)
 const submitError = ref('')
 

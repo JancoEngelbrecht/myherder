@@ -31,7 +31,11 @@ async function enqueue(entityType, action, id, data) {
 function requestBackgroundSync() {
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
     navigator.serviceWorker.ready
-      .then((reg) => reg.sync.register('myherder-sync'))
+      .then((reg) =>
+        (
+          reg as ServiceWorkerRegistration & { sync: { register(tag: string): Promise<void> } }
+        ).sync.register('myherder-sync')
+      )
       .catch(() => {
         // Background Sync not supported or denied — polling handles it
       })
@@ -137,7 +141,7 @@ async function pushChanges() {
 
 async function pullChanges(fullPull = false) {
   try {
-    const params = {}
+    const params: Record<string, unknown> = {}
     if (fullPull) {
       params.full = 1
     } else {

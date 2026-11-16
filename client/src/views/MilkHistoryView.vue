@@ -215,7 +215,7 @@ async function fetchRecorders() {
 async function fetchRecords() {
   loading.value = true
   try {
-    const params = {
+    const params: Record<string, unknown> = {
       page: page.value,
       limit: limit.value,
       from: dateFrom.value,

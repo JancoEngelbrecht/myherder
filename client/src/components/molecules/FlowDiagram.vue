@@ -33,12 +33,28 @@
 </template>
 
 <script setup lang="ts">
+import type { PropType } from 'vue'
+
+interface FlowBranch {
+  label: string
+  nodeLabel: string
+  nodeType?: string
+  icon?: string
+  type?: string // 'yes' | 'no'
+}
+
+interface FlowStep {
+  id?: string
+  label: string
+  type?: string // 'action' | 'system' | 'decision'
+  icon?: string
+  branches?: FlowBranch[]
+}
+
 defineProps({
   steps: {
-    type: Array,
+    type: Array as PropType<FlowStep[]>,
     required: true,
-    // Each step: { id?, label, type: 'action'|'system'|'decision', icon?, branches? }
-    // branches: [{ label, nodeLabel, nodeType?, icon?, type: 'yes'|'no' }]
   },
   direction: {
     type: String,

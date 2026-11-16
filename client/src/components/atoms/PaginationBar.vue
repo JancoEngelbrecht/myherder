@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, type PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -8,7 +8,7 @@ const props = defineProps({
   total: { type: Number, required: true },
   page: { type: Number, required: true },
   limit: { type: Number, required: true },
-  pageSizeOptions: { type: Array, default: () => [20, 50, 100] },
+  pageSizeOptions: { type: Array as PropType<number[]>, default: () => [20, 50, 100] },
 })
 
 const emit = defineEmits(['update:page', 'update:limit'])

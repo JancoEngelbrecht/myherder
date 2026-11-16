@@ -241,7 +241,7 @@ async function fetchUsers() {
 async function fetchLog() {
   loading.value = true
   try {
-    const params = { page: page.value, limit: limit.value }
+    const params: Record<string, unknown> = { page: page.value, limit: limit.value }
     if (filter.value !== 'all') params.entity_type = filter.value
     if (actionFilter.value) params.action = actionFilter.value
     if (userFilter.value) params.user_id = userFilter.value

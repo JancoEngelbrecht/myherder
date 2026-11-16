@@ -168,7 +168,7 @@ const authStore = useAuthStore()
 const breedTypesStore = useBreedTypesStore()
 const toast = useToast()
 
-const animalId = computed(() => route.params.id)
+const animalId = computed(() => route.params.id as string)
 const animalEvents = ref([])
 const loading = ref(true)
 const deleteTargetId = ref(null)
@@ -195,7 +195,7 @@ const gestationDays = computed(() => {
   if (!latestEvent.value?.event_date) return 0
   const today = new Date()
   const conception = new Date(latestEvent.value.event_date)
-  return Math.max(0, Math.round((today - conception) / 86400000))
+  return Math.max(0, Math.round((today.getTime() - conception.getTime()) / 86400000))
 })
 
 const gestationPct = computed(
@@ -208,7 +208,7 @@ const daysToCalving = computed(() => {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const calving = new Date(latestEvent.value.expected_calving)
-  return Math.round((calving - today) / 86400000)
+  return Math.round((calving.getTime() - today.getTime()) / 86400000)
 })
 
 const bannerClass = computed(() => {

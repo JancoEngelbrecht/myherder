@@ -480,7 +480,7 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    animal.value = await animalsStore.fetchOne(route.params.id)
+    animal.value = await animalsStore.fetchOne(route.params.id as string)
     // Ensure animals list is loaded for offspring computation
     if (animalsStore.animals.length === 0) {
       await animalsStore.fetchAll()

@@ -256,7 +256,7 @@ const paginatedMeatCows = computed(() => {
 })
 
 function withdrawalInfo(endDate) {
-  const diff = new Date(endDate) - Date.now()
+  const diff = new Date(endDate).getTime() - Date.now()
 
   if (diff <= 0) return { label: '✓', urgency: 'urgency-done' }
 

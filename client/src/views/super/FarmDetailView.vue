@@ -30,7 +30,7 @@
           </div>
 
           <div class="detail-actions">
-            <button class="btn-primary btn-sm-pill" @click="handleEnter">
+            <button class="btn-primary btn-sm-pill" @click="handleEnter()">
               {{ t('superAdmin.enterFarm') }}
             </button>
             <button v-if="!editMode" class="btn-secondary btn-sm-pill" @click="editMode = true">
@@ -140,7 +140,7 @@
                 class="toggle"
                 :checked="farmFlags[flag.key]"
                 :disabled="togglingFlags.has(flag.key)"
-                @change="toggleFlag(flag.key, $event.target.checked)"
+                @change="toggleFlag(flag.key, ($event.target as HTMLInputElement).checked)"
               />
             </label>
           </div>

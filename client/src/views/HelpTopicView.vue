@@ -65,7 +65,7 @@ import { helpTopics } from '../config/helpTopicData'
 const { t, tm } = useI18n()
 const route = useRoute()
 
-const slug = computed(() => route.params.topic)
+const slug = computed(() => route.params.topic as string)
 const topicData = computed(() => helpTopics[slug.value])
 const topicTitle = computed(() =>
   topicData.value ? t(`help.topics.${slug.value}.title`) : t('help.title')

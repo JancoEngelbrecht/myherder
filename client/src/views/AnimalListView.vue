@@ -430,7 +430,7 @@ const hasActiveFilters = computed(
 )
 
 function loadAnimals() {
-  const params = { page: page.value, limit: limit.value }
+  const params: Record<string, unknown> = { page: page.value, limit: limit.value }
   if (searchQuery.value) params.search = searchQuery.value
   if (activeFilter.value) params.status = activeFilter.value
   if (sexFilter.value) params.sex = sexFilter.value

@@ -11,7 +11,7 @@ let driverLoaded = null // module-level lazy import cache
  * @param {object} [options]
  * @param {boolean} [options.autoStart=true] - Auto-start on first visit
  */
-export function useTour(tourId, stepsOrFn, options = {}) {
+export function useTour(tourId, stepsOrFn, options: { autoStart?: boolean } = {}) {
   const { autoStart = true } = options
   const authStore = useAuthStore()
   const hasCompleted = ref(false)

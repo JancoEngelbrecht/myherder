@@ -301,7 +301,7 @@ const form = ref({
   expected_calving: '',
 })
 
-const errors = ref({})
+const errors = ref<Record<string, string>>({})
 const saving = ref(false)
 const submitError = ref(null)
 
@@ -449,7 +449,7 @@ function skipOffspring() {
 }
 
 function validate() {
-  const e = {}
+  const e: Record<string, string> = {}
   if (!editMode.value && !form.value.animal_id) e.animal_id = t('common.required')
   if (!form.value.event_type) e.event_type = t('common.required')
   errors.value = e
@@ -464,7 +464,7 @@ async function submit() {
 
   try {
     if (editMode.value) {
-      const payload = {
+      const payload: Record<string, unknown> = {
         event_type: form.value.event_type,
         event_date: form.value.event_date,
         semen_id: form.value.semen_id || null,
@@ -488,7 +488,7 @@ async function submit() {
       await breedingStore.updateEvent(String(route.params.id), payload)
       router.replace(backRoute.value)
     } else {
-      const payload = {
+      const payload: Record<string, unknown> = {
         animal_id: form.value.animal_id,
         event_type: form.value.event_type,
         event_date: form.value.event_date,

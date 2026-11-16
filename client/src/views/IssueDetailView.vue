@@ -220,7 +220,7 @@ const loadingComments = ref(false)
 const postingComment = ref(false)
 const deleteCommentId = ref(null)
 
-const commentsList = computed(() => healthIssuesStore.getComments(route.params.id))
+const commentsList = computed(() => healthIssuesStore.getComments(route.params.id as string))
 
 const affectedTeats = computed(() => {
   const teats = issue.value?.affected_teats
@@ -237,7 +237,7 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    issue.value = await healthIssuesStore.fetchOne(route.params.id)
+    issue.value = await healthIssuesStore.fetchOne(route.params.id as string)
   } catch {
     error.value = t('common.error')
   } finally {
@@ -245,7 +245,7 @@ async function load() {
   }
   loadingComments.value = true
   try {
-    await healthIssuesStore.fetchComments(route.params.id)
+    await healthIssuesStore.fetchComments(route.params.id as string)
   } finally {
     loadingComments.value = false
   }
@@ -255,7 +255,7 @@ async function postComment() {
   if (!newComment.value.trim()) return
   postingComment.value = true
   try {
-    await healthIssuesStore.addComment(route.params.id, newComment.value.trim())
+    await healthIssuesStore.addComment(route.params.id as string, newComment.value.trim())
     newComment.value = ''
   } catch {
     error.value = t('common.error')
@@ -266,7 +266,7 @@ async function postComment() {
 
 async function confirmDeleteComment() {
   try {
-    await healthIssuesStore.removeComment(route.params.id, deleteCommentId.value)
+    await healthIssuesStore.removeComment(route.params.id as string, deleteCommentId.value)
     deleteCommentId.value = null
   } catch {
     error.value = t('common.error')
@@ -281,7 +281,7 @@ onMounted(() => {
 async function setStatus(status) {
   updatingStatus.value = true
   try {
-    issue.value = await healthIssuesStore.updateStatus(route.params.id, status)
+    issue.value = await healthIssuesStore.updateStatus(route.params.id as string, status)
   } catch {
     error.value = t('common.error')
   } finally {
@@ -292,7 +292,7 @@ async function setStatus(status) {
 async function handleDelete() {
   deleting.value = true
   try {
-    await healthIssuesStore.remove(route.params.id)
+    await healthIssuesStore.remove(route.params.id as string)
     router.back()
   } catch (err) {
     error.value = resolveError(extractApiError(err), t)

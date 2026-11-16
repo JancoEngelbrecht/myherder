@@ -28,7 +28,7 @@
           <div v-if="syncStore.pendingCount > 0" class="section">
             <h4 class="section-title">{{ t('sync.pendingItems') }}</h4>
             <div v-for="(count, type) in pendingByType" :key="type" class="pending-row">
-              <span class="pending-type">{{ t(`sync.entity.${type}`, [type]) }}</span>
+              <span class="pending-type">{{ t(`sync.entity.${type}`, String(type)) }}</span>
               <span class="pending-count mono">{{ count }}</span>
             </div>
           </div>
@@ -95,7 +95,7 @@ defineEmits(['close'])
 const { t } = useI18n()
 const syncStore = useSyncStore()
 
-const pendingByType = ref({})
+const pendingByType = ref<Record<string, number>>({})
 
 // Refresh pending breakdown whenever panel opens
 watch(

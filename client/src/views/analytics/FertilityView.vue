@@ -266,7 +266,7 @@ const doughnutOptions = {
   plugins: {
     legend: {
       display: true,
-      position: 'bottom',
+      position: 'bottom' as const,
       labels: { boxWidth: 10, padding: 8, font: { size: 10 } },
     },
   },
@@ -410,7 +410,7 @@ const activityChartOptions = {
   plugins: {
     legend: {
       display: true,
-      position: 'bottom',
+      position: 'bottom' as const,
       labels: { boxWidth: 10, padding: 8, font: { size: 10 } },
     },
   },

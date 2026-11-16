@@ -151,7 +151,7 @@ async function search() {
   searching.value = true
   showDropdown.value = true
   try {
-    const params = { search: query.value }
+    const params: Record<string, unknown> = { search: query.value }
     if (props.sexFilter) params.sex = props.sexFilter
     const r = await api.get('/animals', { params })
     if (gen !== searchGeneration) return

@@ -82,7 +82,7 @@ const animalsStore = useAnimalsStore()
 const healthIssuesStore = useHealthIssuesStore()
 const issueTypesStore = useIssueTypesStore()
 
-const animalId = route.params.id
+const animalId = route.params.id as string
 const animal = ref(null)
 const loading = ref(true)
 const error = ref('')

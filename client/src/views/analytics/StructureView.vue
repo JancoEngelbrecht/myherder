@@ -261,13 +261,13 @@ const doughnutOptions = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
-    legend: { display: true, position: 'bottom' },
+    legend: { display: true, position: 'bottom' as const },
   },
 }
 
 const stackedBarOptions = {
   ...barChartOptions,
-  plugins: { legend: { display: true, position: 'bottom' } },
+  plugins: { legend: { display: true, position: 'bottom' as const } },
   scales: {
     ...barChartOptions.scales,
     x: { ...barChartOptions.scales.x, stacked: true },
@@ -278,7 +278,7 @@ const stackedBarOptions = {
 const mortalityOptions = computed(() => ({
   ...barChartOptions,
   plugins: {
-    legend: { display: true, position: 'bottom' },
+    legend: { display: true, position: 'bottom' as const },
   },
   scales: {
     ...barChartOptions.scales,

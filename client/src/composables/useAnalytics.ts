@@ -57,7 +57,7 @@ const commonOptions = {
 
 export const lineChartOptions = { ...commonOptions }
 export const barChartOptions = { ...commonOptions }
-export const horizontalBarOptions = { ...commonOptions, indexAxis: 'y' }
+export const horizontalBarOptions = { ...commonOptions, indexAxis: 'y' as const }
 
 // ── Time Range Filter ───────────────────────────────
 
