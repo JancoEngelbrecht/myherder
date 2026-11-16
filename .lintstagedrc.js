@@ -6,10 +6,8 @@ module.exports = {
   // Backend TypeScript: run full tsc project check whenever a .ts file is staged
   'server/**/*.ts': () => 'npm run typecheck',
 
-  // Frontend TypeScript/Vue: vue-tsc check disabled — pre-existing TS errors
-  // in TreatmentDetailView.vue and WithdrawalListView.vue need fixing first.
-  // TODO: re-enable after fixing TS errors: () => 'cd client && npx vue-tsc --noEmit'
-  // 'client/src/**/*.{ts,vue}': () => 'cd client && npx vue-tsc --noEmit',
+  // Frontend TypeScript/Vue: full vue-tsc project check whenever a client file is staged
+  'client/src/**/*.{ts,vue}': () => 'npm --prefix client run typecheck',
 
   // Format and lint all staged JS/TS/Vue files
   '*.{js,ts,vue}': ['prettier --write', 'eslint --fix'],
